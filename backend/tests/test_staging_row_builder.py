@@ -66,7 +66,7 @@ class StagingRowBuilderTests(unittest.TestCase):
         self.assertEqual(rows[0]["idTask"], "501")
         self.assertEqual(rows[0]["category"], "Desenvolvimento")
         self.assertEqual(rows[0]["subcategory"], "Back")
-        self.assertEqual(rows[0]["origin"], "regra")
+        self.assertEqual(rows[0]["origin"], "padrao_titulo_categoria")
         self.assertEqual(rows[0]["raw"]["TituloEpic"], "Epic Migracao")
 
     def test_build_staging_rows_returns_empty_when_required_column_is_missing(self) -> None:

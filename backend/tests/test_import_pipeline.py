@@ -87,7 +87,15 @@ class ImportPipelineTests(unittest.TestCase):
         self.assertEqual(response.validation.sessionId, 77)
         insert_staging_rows.assert_called_once()
         insert_import_log.assert_called_once()
-        update_import_session_summary.assert_not_called()
+        update_import_session_summary.assert_called_once_with(
+            connection,
+            77,
+            status="AGUARDANDO_CONFIRMACAO",
+            total_rows=1,
+            valid_rows=1,
+            alert_rows=0,
+            blocked_rows=0,
+        )
 
 
 if __name__ == "__main__":

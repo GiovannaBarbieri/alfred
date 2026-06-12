@@ -85,7 +85,7 @@ class ClassificationServiceTest(unittest.TestCase):
 
     def test_marks_outside_pattern_as_pending(self) -> None:
         suggestion, issue = classify_title(
-            "Criar servico de integracao",
+            "Atividade operacional sem termo conhecido",
             4,
             "dev.back",
             "125",
