@@ -133,7 +133,8 @@ POST /api/imports/complete
 - `IdLancamento` duplicado bloqueia a conclusao ate o usuario escolher uma linha para manter.
 - `Duracao` deve vir no formato `HH:MM:SS`.
 - `Duracao` igual a `00:00:00` gera alerta, mas nao bloqueia.
-- Categoria e subcategoria podem vir do padrao `[Categoria][Subcategoria] - Descricao`.
+- A classificacao automatica por titulo captura somente a categoria no primeiro colchete: `[Categoria] - Descricao`.
+- Colchetes adicionais no titulo sao ignorados pela classificacao automatica.
 - Quando o titulo nao segue o padrao, o classificador usa palavras-chave no titulo completo.
 - Lancamentos com o mesmo `IdTask` podem ser revisados como uma unica atividade.
 - Overrides manuais de classificacao sempre partem da escolha do usuario.

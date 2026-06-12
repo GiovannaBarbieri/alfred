@@ -65,23 +65,19 @@ def classify_title(
     settings: tuple[dict[str, str], dict[str, str], dict[str, list[str]], list[ClassificationRule]] | None = None,
     collaborator_subcategories: dict[str, str] | None = None,
 ) -> tuple[ClassificationSuggestion, ImportIssue | None]:
-    categories, subcategories, keywords, rules = settings or load_classification_settings()
+    categories, _, keywords, rules = settings or load_classification_settings()
     bracket_values = _leading_bracket_values(title)
 
     if bracket_values:
         category_raw = normalize_text(bracket_values[0])
         bracket_category = _resolve_title_category(category_raw, categories)
         if bracket_category:
-            bracket_subcategory = None
-            if len(bracket_values) > 1:
-                bracket_subcategory = subcategories.get(normalize_text(bracket_values[1]))
             return _classify_by_title_category(
                 title=title,
                 line_number=line_number,
                 login_usuario=login_usuario,
                 id_task=id_task,
                 category=bracket_category,
-                title_subcategory=bracket_subcategory,
                 collaborator_subcategories=collaborator_subcategories,
             ), None
         return _unclassified_suggestion(
@@ -206,19 +202,16 @@ def _classify_by_title_category(
     login_usuario: str,
     id_task: str,
     category: str,
-    title_subcategory: str | None,
     collaborator_subcategories: dict[str, str] | None,
 ) -> ClassificationSuggestion:
     collaborator_subcategories = collaborator_subcategories or _load_collaborator_subcategories()
     normalized_login = normalize_text(login_usuario)
     profile_subcategory = collaborator_subcategories.get(normalized_login)
-    subcategory = title_subcategory or profile_subcategory or "Nao aplicavel"
+    subcategory = profile_subcategory or "Nao aplicavel"
 
     confidence = 0.98
     confidence_factors = ["categoria capturada no primeiro colchete do titulo"]
-    if title_subcategory:
-        confidence_factors.append("subcategoria capturada no segundo colchete do titulo")
-    elif profile_subcategory:
+    if profile_subcategory:
         confidence_factors.append("perfil operacional do colaborador aplicado")
     else:
         confidence = 0.95

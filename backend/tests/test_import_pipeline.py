@@ -93,7 +93,7 @@ class ImportPipelineTests(unittest.TestCase):
             status="AGUARDANDO_CONFIRMACAO",
             total_rows=1,
             valid_rows=1,
-            alert_rows=0,
+            alert_rows=1,
             blocked_rows=0,
         )
 

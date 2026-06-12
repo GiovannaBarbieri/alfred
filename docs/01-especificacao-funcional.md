@@ -131,17 +131,19 @@ Formato ideal:
 Exemplo:
 
 ```text
-[Desenvolvimento][Back] - Nota rota abacaxi dois
+[Desenvolvimento] - Nota rota abacaxi dois
 ```
 
 Resultado:
 
 ```text
 Categoria: Desenvolvimento
-Subcategoria: Back
+Subcategoria: definida por perfil operacional, regra configurada ou revisao manual
 Descricao: Nota rota abacaxi dois
 Status: Automatica por padrao do titulo
 ```
+
+Colchetes adicionais apos o primeiro podem existir no titulo original, mas nao devem ser usados pela classificacao automatica do titulo.
 
 Se o titulo nao estiver no padrao ou a categoria nao estiver cadastrada/ativa, o sistema deve manter o registro como nao classificado para revisao.
 

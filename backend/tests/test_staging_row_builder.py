@@ -65,7 +65,7 @@ class StagingRowBuilderTests(unittest.TestCase):
         self.assertEqual(rows[0]["idLancamento"], "1001")
         self.assertEqual(rows[0]["idTask"], "501")
         self.assertEqual(rows[0]["category"], "Desenvolvimento")
-        self.assertEqual(rows[0]["subcategory"], "Back")
+        self.assertEqual(rows[0]["subcategory"], "Nao aplicavel")
         self.assertEqual(rows[0]["origin"], "padrao_titulo_categoria")
         self.assertEqual(rows[0]["raw"]["TituloEpic"], "Epic Migracao")
 
