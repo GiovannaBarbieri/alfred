@@ -1,0 +1,222 @@
+import { AlertTriangle, ChevronDown, Gauge, Lightbulb, Target } from "lucide-react";
+import type { ReactNode } from "react";
+
+import type { ProjectExecutiveSummary, ProjectInsights, ProjectRecommendation } from "../../types";
+import { ExecutiveSummaryList } from "./ExecutiveSummaryList";
+
+type ProjectOverviewPanelProps = {
+  projectInsights: ProjectInsights;
+  projectRecommendations: ProjectRecommendation[];
+  projectExecutiveSummary: ProjectExecutiveSummary;
+  isExecutiveSummaryOpen: boolean;
+  onToggleExecutiveSummary: () => void;
+};
+
+export function ProjectOverviewPanel({
+  projectInsights,
+  projectRecommendations,
+  projectExecutiveSummary,
+  isExecutiveSummaryOpen,
+  onToggleExecutiveSummary,
+}: ProjectOverviewPanelProps) {
+  const smartSummary = buildSmartSummary(projectExecutiveSummary);
+
+  return (
+    <>
+      <section className="panel smart-summary-panel">
+        <div className="panel-heading compact-heading">
+          <div>
+            <h2>Resumo inteligente</h2>
+            <p className="muted">Leitura automatica baseada nos numeros do projeto.</p>
+          </div>
+        </div>
+        {smartSummary.length === 0 ? (
+          <div className="chart-empty-state compact">
+            <strong>Sem dados suficientes</strong>
+            <span>Conclua uma importacao para gerar leituras automaticas do projeto.</span>
+          </div>
+        ) : (
+          <div className="smart-summary-grid">
+            {smartSummary.map((item) => (
+              <article className={`smart-summary-card ${item.tone}`} key={item.title}>
+                <span>{item.icon}</span>
+                <div>
+                  <strong>{item.title}</strong>
+                  <p>{item.description}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="panel project-insights-panel">
+        <div className="panel-heading compact-heading">
+          <div>
+            <h2>Analises principais</h2>
+            <p className="muted">Resumo executivo dos pontos mais relevantes deste projeto.</p>
+          </div>
+        </div>
+        {projectInsights.cards.length === 0 ? (
+          <div className="chart-empty-state compact">
+            <strong>Sem analises calculadas</strong>
+            <span>Conclua uma importacao com dados validos para exibir os destaques.</span>
+          </div>
+        ) : (
+          <div className="project-insights-grid">
+            {projectInsights.cards.map((insight) => (
+              <article className={`project-insight-card ${insight.tone}`} key={`${insight.kind}-${insight.title}`}>
+                <span>{insight.title}</span>
+                <strong title={insight.value}>{insight.value}</strong>
+                <small>{insight.detail}</small>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="panel project-recommendations-panel">
+        <div className="panel-heading compact-heading">
+          <div>
+            <h2>Recomendacoes operacionais</h2>
+            <p className="muted">Sinais objetivos para apoiar a leitura gerencial do projeto.</p>
+          </div>
+        </div>
+        <div className="project-recommendations-list">
+          {projectRecommendations.map((recommendation) => (
+            <article className={`project-recommendation-card ${recommendation.priority}`} key={`${recommendation.source}-${recommendation.title}`}>
+              <span>{recommendation.priority}</span>
+              <strong>{recommendation.title}</strong>
+              <p>{recommendation.reason}</p>
+              <small>{recommendation.action}</small>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="panel executive-summary-panel">
+        <button
+          className="executive-summary-toggle"
+          type="button"
+          aria-expanded={isExecutiveSummaryOpen}
+          onClick={onToggleExecutiveSummary}
+        >
+          <div>
+            <h2>Resumo executivo</h2>
+            <p className="muted">KPIs, rankings e distribuicao principal para tomada de decisao.</p>
+          </div>
+          <ChevronDown size={20} />
+        </button>
+
+        {isExecutiveSummaryOpen && (
+          <>
+            <div className="executive-metrics-grid">
+              <span><strong>{projectExecutiveSummary.metrics.totalDuration}</strong><small>Total apontado</small></span>
+              <span><strong>{projectExecutiveSummary.metrics.collaboratorsCount}</strong><small>Colaboradores</small></span>
+              <span><strong>{projectExecutiveSummary.metrics.tasksCount}</strong><small>Tasks</small></span>
+              <span><strong>{projectExecutiveSummary.pending.open}</strong><small>Pendencias abertas</small></span>
+            </div>
+
+            <div className="executive-summary-grid">
+              <ExecutiveSummaryList title="Top colaboradores" items={projectExecutiveSummary.topUsers} />
+              <ExecutiveSummaryList title="Top Tasks" items={projectExecutiveSummary.topTasks} showKey />
+              <ExecutiveSummaryList title="Categorias" items={projectExecutiveSummary.categories} />
+              <div className="executive-summary-card">
+                <h3>Pendencias</h3>
+                <ul className="executive-pending-list">
+                  <li><span>Abertas</span><strong>{projectExecutiveSummary.pending.open}</strong></li>
+                  <li><span>Revisadas</span><strong>{projectExecutiveSummary.pending.reviewed}</strong></li>
+                  <li><span>Ignoradas</span><strong>{projectExecutiveSummary.pending.ignored}</strong></li>
+                  <li><span>Total historico</span><strong>{projectExecutiveSummary.pending.total}</strong></li>
+                </ul>
+              </div>
+            </div>
+          </>
+        )}
+      </section>
+    </>
+  );
+}
+
+function buildSmartSummary(projectExecutiveSummary: ProjectExecutiveSummary) {
+  const totalHours = projectExecutiveSummary.metrics.totalHours;
+  const topCategory = projectExecutiveSummary.categories[0];
+  const topUser = projectExecutiveSummary.topUsers[0];
+  const topTasks = projectExecutiveSummary.topTasks.slice(0, 3);
+  const topTasksHours = topTasks.reduce((total, task) => total + task.totalHours, 0);
+  const topTasksPercentage = totalHours > 0 ? (topTasksHours / totalHours) * 100 : 0;
+  const retrabalho = projectExecutiveSummary.categories.find((item) =>
+    `${item.key} ${item.label}`.toLowerCase().includes("retrabalho"),
+  );
+  const pending = projectExecutiveSummary.pending;
+
+  const insights: Array<{
+    title: string;
+    description: string;
+    tone: "info" | "success" | "warning" | "danger";
+    icon: ReactNode;
+  }> = [];
+
+  if (topCategory) {
+    insights.push({
+      title: "Categoria dominante",
+      description: `${topCategory.label || topCategory.key} concentra ${topCategory.percentage.toFixed(1)}% das horas do projeto.`,
+      tone: topCategory.percentage >= 60 ? "warning" : "info",
+      icon: <Target size={18} />,
+    });
+  }
+
+  if (topUser) {
+    insights.push({
+      title: "Maior participacao",
+      description: `${topUser.label || topUser.key} representa ${topUser.percentage.toFixed(1)}% do esforco total apontado.`,
+      tone: topUser.percentage >= 40 ? "warning" : "info",
+      icon: <Gauge size={18} />,
+    });
+  }
+
+  if (topTasks.length > 0) {
+    insights.push({
+      title: "Concentracao em Tasks",
+      description: `As ${topTasks.length} principais Tasks somam ${topTasksHours.toFixed(2)}h, equivalentes a ${topTasksPercentage.toFixed(1)}% do projeto.`,
+      tone: topTasksPercentage >= 45 ? "warning" : "success",
+      icon: <Lightbulb size={18} />,
+    });
+  }
+
+  if (retrabalho && retrabalho.totalHours > 0) {
+    insights.push({
+      title: "Retrabalho/Bugs",
+      description: `Retrabalho/Bugs consumiu ${retrabalho.totalHours.toFixed(2)}h (${retrabalho.percentage.toFixed(1)}%). Vale validar o impacto operacional.`,
+      tone: retrabalho.percentage >= 15 ? "danger" : "warning",
+      icon: <AlertTriangle size={18} />,
+    });
+  }
+
+  if (pending.open > 0) {
+    insights.push({
+      title: "Confiabilidade da analise",
+      description: `${pending.open} pendencia(s) aberta(s) podem afetar a leitura final. Revise antes de compartilhar o relatorio.`,
+      tone: pending.open >= 10 ? "danger" : "warning",
+      icon: <AlertTriangle size={18} />,
+    });
+  } else {
+    insights.push({
+      title: "Pendencias controladas",
+      description: "Nao ha pendencias abertas no resumo executivo deste projeto.",
+      tone: "success",
+      icon: <Lightbulb size={18} />,
+    });
+  }
+
+  if (pending.lowConfidence > 0) {
+    insights.push({
+      title: "Baixa confianca",
+      description: `${pending.lowConfidence} classificacao(oes) com baixa confianca merecem revisao para melhorar a precisao das categorias.`,
+      tone: "warning",
+      icon: <Gauge size={18} />,
+    });
+  }
+
+  return insights.slice(0, 6);
+}

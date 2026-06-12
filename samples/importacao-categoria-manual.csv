@@ -1,0 +1,2 @@
+IdLancamento,DataHoraCadastro,Task,LoginUsuario,Duração,IdTask,TituloTask,IdPBI,TituloPBI,IdFeat,TituloFeat,IdEpic,TituloEpic
+3001,23/05/2026 14:00:00,Task 3001,carlos.qa,00:40:00,701,Corrigir bug no endpoint de notas,501,PBI Correcao,401,Feature Qualidade,301,Epic Qualidade

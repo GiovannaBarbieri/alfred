@@ -1,0 +1,4 @@
+IdLancamento,DataHoraCadastro,Task,LoginUsuario,Duração,IdTask,TituloTask,IdPBI,TituloPBI,IdFeat,TituloFeat,IdEpic,TituloEpic
+1001,23/05/2026 09:10:00,Task 1001,joao.silva,01:30:00,501,[Desenvolvimento][Back] - Criar endpoint de consulta,301,PBI Consulta,201,Feature Financeiro,101,Epic Faturamento
+1002,23/05/2026 10:45:00,Task 1002,maria.souza,00:45:00,502,[Homologacao][QA] - Validar fluxo de notas,302,PBI Homologacao,201,Feature Financeiro,101,Epic Faturamento
+

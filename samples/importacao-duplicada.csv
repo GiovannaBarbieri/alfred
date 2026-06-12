@@ -1,0 +1,4 @@
+IdLancamento,DataHoraCadastro,Task,LoginUsuario,Duração,IdTask,TituloTask,IdPBI,TituloPBI,IdFeat,TituloFeat,IdEpic,TituloEpic
+2001,23/05/2026 09:10:00,Task 2001,joao.silva,01:00:00,601,[Desenvolvimento][Back] - Criar servico duplicado,401,PBI Duplicidade,301,Feature Duplicidade,201,Epic Duplicidade
+2001,23/05/2026 09:15:00,Task 2001,joao.silva,01:15:00,601,[Desenvolvimento][Back] - Criar servico duplicado revisado,401,PBI Duplicidade,301,Feature Duplicidade,201,Epic Duplicidade
+2002,23/05/2026 11:00:00,Task 2002,ana.teste,00:30:00,602,[Analise][QA] - Conferir base duplicada,402,PBI Analise,301,Feature Duplicidade,201,Epic Duplicidade
