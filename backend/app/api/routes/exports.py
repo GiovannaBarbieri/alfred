@@ -16,9 +16,6 @@ from app.api.routes.reports import (
     ReportGroup,
     get_project_comparison,
     get_project_evolution,
-    get_project_insights,
-    get_project_pending_items,
-    get_project_recommendations,
 )
 from app.db import get_connection
 
@@ -222,25 +219,6 @@ def export_project_analysis_xlsx(
             import_row = cursor.fetchone()
             if not import_row:
                 raise HTTPException(status_code=404, detail="Importacao nao encontrada.")
-            cursor.execute(
-                """
-                SELECT
-                    COUNT(*) AS total_registros,
-                    COALESCE(SUM(duracao_segundos), 0) AS total_segundos,
-                    ROUND((COALESCE(SUM(duracao_segundos), 0)::numeric / 3600), 2) AS total_horas,
-                    COUNT(DISTINCT login_usuario) AS total_colaboradores,
-                    COUNT(DISTINCT id_task) AS total_tasks,
-                    MIN(data_hora_cadastro)::date AS data_inicial,
-                    MAX(data_hora_cadastro)::date AS data_final
-                FROM lancamentos_horas
-                WHERE importacao_id = %s
-                """,
-                [import_id],
-            )
-            summary_row = cursor.fetchone()
-            project_insights = get_project_insights(import_id)
-            project_recommendations = get_project_recommendations(import_id)
-            project_pending_items = get_project_pending_items(import_id)
 
             sheets = [
                 (
@@ -335,59 +313,6 @@ def export_project_analysis_xlsx(
             workbook = Workbook()
             index_sheet = workbook.active
             index_sheet.title = "Indice"
-            summary = workbook.create_sheet("Resumo")
-            summary.title = "Resumo"
-            _append_sheet(
-                summary,
-                ["Campo", "Valor"],
-                [
-                    ["ImportacaoId", import_id],
-                    ["Arquivo", import_row["nome_arquivo"]],
-                    ["FiltroColaborador", user or "Todos"],
-                    ["TotalRegistros", summary_row["total_registros"]],
-                    ["TotalDuracao", seconds_to_hhmmss(int(summary_row["total_segundos"]))],
-                    ["TotalHorasDecimal", float(summary_row["total_horas"])],
-                    ["Colaboradores", summary_row["total_colaboradores"]],
-                    ["Tasks", summary_row["total_tasks"]],
-                    ["DataInicial", summary_row["data_inicial"]],
-                    ["DataFinal", summary_row["data_final"]],
-                    ["AnalisesPrincipais", len(project_insights["cards"])],
-                    ["Recomendacoes", len(project_recommendations)],
-                    ["GeradoEm", datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-                ],
-            )
-            _append_sheet(
-                workbook.create_sheet("Analises"),
-                ["Analise", "Resultado", "Detalhe", "Nivel"],
-                [
-                    [
-                        card["title"],
-                        card["value"],
-                        card["detail"],
-                        card["tone"],
-                    ]
-                    for card in project_insights["cards"]
-                ],
-            )
-            _append_sheet(
-                workbook.create_sheet("Recomendacoes"),
-                ["Prioridade", "Titulo", "Motivo", "Acao", "Origem"],
-                [
-                    [
-                        recommendation["priority"],
-                        recommendation["title"],
-                        recommendation["reason"],
-                        recommendation["action"],
-                        recommendation["source"],
-                    ]
-                    for recommendation in project_recommendations
-                ],
-            )
-            _append_sheet(
-                workbook.create_sheet("Pendencias"),
-                ["Tipo", "Prioridade", "Status", "Colaborador", "Titulo", "Detalhe", "Acao sugerida"],
-                _build_pending_export_rows(project_pending_items),
-            )
 
             for title, sql in sheets:
                 cursor.execute(sql, [import_id])
@@ -724,10 +649,6 @@ def _append_index_sheet(index_sheet, worksheets, filename: str, user: str | None
         cell.fill = PatternFill("solid", fgColor="E8F1FF")
 
     descriptions = {
-        "Resumo": "Indicadores principais da importacao.",
-        "Analises": "Insights principais calculados para o projeto.",
-        "Recomendacoes": "Acoes operacionais sugeridas por regras.",
-        "Pendencias": "Fila de pendencias com status de tratamento.",
         "Diario_Total": "Linha do tempo diaria do total do projeto.",
         "Dia_Colaborador": "Horas por dia e colaborador.",
         "Semana_Colaborador": "Horas por semana e colaborador.",
@@ -826,62 +747,6 @@ def _append_evolution_index_sheet(index_sheet, worksheets, project_name: str) ->
     index_sheet.freeze_panes = "A6"
     index_sheet.auto_filter.ref = f"A5:B{index_sheet.max_row}"
     _autosize_columns(index_sheet)
-
-
-def _build_pending_export_rows(pending_items: dict) -> list[list]:
-    rows = []
-    for item in pending_items["unclassifiedTasks"]:
-        rows.append(
-            [
-                "Sem classificacao",
-                "alta",
-                item["reviewStatus"],
-                item["loginUsuario"],
-                f"{item['idTask']} - {item['tituloTask']}",
-                f"{item['totalDuration']} - {item['totalRecords']} lanc.",
-                "Classificar categoria e subcategoria da Task.",
-            ]
-        )
-    for item in pending_items["lowConfidence"]:
-        rows.append(
-            [
-                "Baixa confianca",
-                "media",
-                item["reviewStatus"],
-                item["loginUsuario"],
-                f"{item['idTask']} - {item['tituloTask']}",
-                f"{item['categoria']} - {item['confidence'] * 100:.0f}%",
-                "Revisar se a classificacao sugerida faz sentido.",
-            ]
-        )
-    for item in pending_items["zeroDuration"]:
-        rows.append(
-            [
-                "Duracao zerada",
-                "media",
-                item["reviewStatus"],
-                item["loginUsuario"],
-                f"{item['idTask']} - {item['tituloTask']}",
-                f"Lancamento {item['idLancamento']}",
-                "Verificar se a duracao zero foi intencional.",
-            ]
-        )
-    for item in pending_items["alerts"]:
-        rows.append(
-            [
-                "Alerta operacional",
-                "baixa",
-                "pendente",
-                "",
-                item["code"],
-                f"{'Linha ' + str(item['line']) + ' - ' if item['line'] else ''}{item['field']} - {item['message']}",
-                "Revisar mensagem e decidir se exige correcao.",
-            ]
-        )
-
-    priority_order = {"alta": 0, "media": 1, "baixa": 2}
-    status_order = {"pendente": 0, "revisado": 1, "ignorado": 2}
-    return sorted(rows, key=lambda row: (status_order.get(row[2], 9), priority_order.get(row[1], 9), row[0], row[4]))
 
 
 def _format_sheet_numbers(sheet) -> None:
