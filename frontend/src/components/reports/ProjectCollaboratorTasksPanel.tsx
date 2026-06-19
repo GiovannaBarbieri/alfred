@@ -6,17 +6,22 @@ type ProjectCollaboratorTasksPanelProps = {
   selectedCollaborator: string;
   collaboratorTasks: ProjectCollaboratorTask[];
   filteredCollaboratorTasks: ProjectCollaboratorTask[];
+  paginatedCollaboratorTasks: ProjectCollaboratorTask[];
   taskCategoryOptions: string[];
   taskSearch: string;
   taskCategoryFilter: string;
   taskSort: TaskSortId;
   collaboratorTasksTotal: string;
+  taskPage: number;
+  totalTaskPages: number;
+  taskPageSize: number;
   isLoadingTasks: boolean;
   tasksError: string | null;
   onCollaboratorChange: (value: string) => void;
   onTaskSearchChange: (value: string) => void;
   onTaskCategoryFilterChange: (value: string) => void;
   onTaskSortChange: (value: TaskSortId) => void;
+  onTaskPageChange: (value: number) => void;
 };
 
 export function ProjectCollaboratorTasksPanel({
@@ -24,18 +29,26 @@ export function ProjectCollaboratorTasksPanel({
   selectedCollaborator,
   collaboratorTasks,
   filteredCollaboratorTasks,
+  paginatedCollaboratorTasks,
   taskCategoryOptions,
   taskSearch,
   taskCategoryFilter,
   taskSort,
   collaboratorTasksTotal,
+  taskPage,
+  totalTaskPages,
+  taskPageSize,
   isLoadingTasks,
   tasksError,
   onCollaboratorChange,
   onTaskSearchChange,
   onTaskCategoryFilterChange,
   onTaskSortChange,
+  onTaskPageChange,
 }: ProjectCollaboratorTasksPanelProps) {
+  const firstVisibleTask = filteredCollaboratorTasks.length === 0 ? 0 : (taskPage - 1) * taskPageSize + 1;
+  const lastVisibleTask = Math.min(taskPage * taskPageSize, filteredCollaboratorTasks.length);
+
   return (
     <>
       <section className="panel collaborator-filter-panel">
@@ -108,42 +121,63 @@ export function ProjectCollaboratorTasksPanel({
                 <option value="title_asc">Titulo A-Z</option>
                 <option value="category_asc">Categoria A-Z</option>
               </select>
-              <span>{filteredCollaboratorTasks.length} de {collaboratorTasks.length}</span>
+              <span>{firstVisibleTask}-{lastVisibleTask} de {filteredCollaboratorTasks.length}</span>
             </div>
             {filteredCollaboratorTasks.length === 0 ? (
               <div className="task-empty-state">Nenhuma Task encontrada com os filtros aplicados.</div>
             ) : (
-              <div className="task-table-wrap">
-                <table className="task-table">
-                  <thead>
-                    <tr>
-                      <th>IdTask</th>
-                      <th>Titulo</th>
-                      <th>Categoria</th>
-                      <th>Subcategoria</th>
-                      <th>Duracao</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredCollaboratorTasks.map((task) => (
-                      <tr key={`${task.idTask}-${task.categoria}-${task.subcategoria}`}>
-                        <td>{task.idTask}</td>
-                        <td>{task.tituloTask}</td>
-                        <td>{task.categoria}</td>
-                        <td>{task.subcategoria}</td>
-                        <td>{task.totalDuration}</td>
+              <>
+                <div className="task-table-wrap">
+                  <table className="task-table">
+                    <thead>
+                      <tr>
+                        <th>IdTask</th>
+                        <th>Titulo</th>
+                        <th>Categoria</th>
+                        <th>Subcategoria</th>
+                        <th>Duracao</th>
                       </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td>Total</td>
-                      <td colSpan={3}></td>
-                      <td>{collaboratorTasksTotal}</td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {paginatedCollaboratorTasks.map((task) => (
+                        <tr key={`${task.idTask}-${task.categoria}-${task.subcategoria}`}>
+                          <td>{task.idTask}</td>
+                          <td>{task.tituloTask}</td>
+                          <td>{task.categoria}</td>
+                          <td>{task.subcategoria}</td>
+                          <td>{task.totalDuration}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td>Total filtrado</td>
+                        <td colSpan={3}></td>
+                        <td>{collaboratorTasksTotal}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+                <div className="task-pagination">
+                  <button
+                    className="secondary-button compact"
+                    type="button"
+                    disabled={taskPage <= 1}
+                    onClick={() => onTaskPageChange(taskPage - 1)}
+                  >
+                    Anterior
+                  </button>
+                  <span>Pagina {taskPage} de {totalTaskPages}</span>
+                  <button
+                    className="secondary-button compact"
+                    type="button"
+                    disabled={taskPage >= totalTaskPages}
+                    onClick={() => onTaskPageChange(taskPage + 1)}
+                  >
+                    Proxima
+                  </button>
+                </div>
+              </>
             )}
           </>
         )}

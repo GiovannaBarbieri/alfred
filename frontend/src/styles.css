@@ -5524,6 +5524,20 @@ input {
   text-transform: uppercase;
 }
 
+.task-pagination {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.task-pagination span {
+  color: #455468;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .task-table td {
   color: #172033;
 }

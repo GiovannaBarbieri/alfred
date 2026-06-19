@@ -34,6 +34,7 @@ import type {
 export type ReportViewId = "user" | "epic" | "pbi" | "category" | "subcategory";
 
 type ReportNoticeState = { tone: "success" | "error"; message: string };
+const taskPageSize = 20;
 
 export function ReportsPage({
   imports,
@@ -96,6 +97,7 @@ export function ReportsPage({
   const [isSmartSummaryOpen, setIsSmartSummaryOpen] = useState(false);
   const [isProjectInsightsOpen, setIsProjectInsightsOpen] = useState(false);
   const [isExecutiveSummaryOpen, setIsExecutiveSummaryOpen] = useState(false);
+  const [taskPage, setTaskPage] = useState(1);
   const {
     showDownloadMenu,
     showPdfOptions,
@@ -128,6 +130,11 @@ export function ReportsPage({
     taskCategoryFilter,
     taskSort,
   });
+  const totalTaskPages = Math.max(1, Math.ceil(filteredCollaboratorTasks.length / taskPageSize));
+  const paginatedCollaboratorTasks = filteredCollaboratorTasks.slice(
+    (taskPage - 1) * taskPageSize,
+    taskPage * taskPageSize,
+  );
   const {
     pendingStatusSummary,
     openPendingByType,
@@ -167,7 +174,16 @@ export function ReportsPage({
     setActiveProjectTab(nextProjectTab ?? "executive");
     setNextProjectTab(null);
     resetCollaboratorTasks();
+    setTaskPage(1);
   }, [selectedImportId]);
+
+  useEffect(() => {
+    setTaskPage(1);
+  }, [selectedCollaborator, taskSearch, taskCategoryFilter, taskSort]);
+
+  useEffect(() => {
+    setTaskPage((current) => Math.min(current, totalTaskPages));
+  }, [totalTaskPages]);
 
   function handleOpenProject(importId: number, tab: ProjectTabId = "executive") {
     setNextProjectTab(tab);
@@ -285,17 +301,22 @@ export function ReportsPage({
           selectedCollaborator={selectedCollaborator}
           collaboratorTasks={collaboratorTasks}
           filteredCollaboratorTasks={filteredCollaboratorTasks}
+          paginatedCollaboratorTasks={paginatedCollaboratorTasks}
           taskCategoryOptions={taskCategoryOptions}
           taskSearch={taskSearch}
           taskCategoryFilter={taskCategoryFilter}
           taskSort={taskSort}
           collaboratorTasksTotal={collaboratorTasksTotal}
+          taskPage={taskPage}
+          totalTaskPages={totalTaskPages}
+          taskPageSize={taskPageSize}
           isLoadingTasks={isLoadingTasks}
           tasksError={tasksError}
           onCollaboratorChange={setSelectedCollaborator}
           onTaskSearchChange={setTaskSearch}
           onTaskCategoryFilterChange={setTaskCategoryFilter}
           onTaskSortChange={setTaskSort}
+          onTaskPageChange={setTaskPage}
         />
       )}
 
