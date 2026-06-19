@@ -118,22 +118,12 @@ export function ProjectOverviewPanel({
               <span><strong>{projectExecutiveSummary.metrics.totalDuration}</strong><small>Total apontado</small></span>
               <span><strong>{projectExecutiveSummary.metrics.collaboratorsCount}</strong><small>Colaboradores</small></span>
               <span><strong>{projectExecutiveSummary.metrics.tasksCount}</strong><small>Tasks</small></span>
-              <span><strong>{projectExecutiveSummary.pending.open}</strong><small>Pendencias abertas</small></span>
             </div>
 
             <div className="executive-summary-grid">
               <ExecutiveSummaryList title="Top colaboradores" items={projectExecutiveSummary.topUsers} />
               <ExecutiveSummaryList title="Top Tasks" items={projectExecutiveSummary.topTasks} showKey />
               <ExecutiveSummaryList title="Categorias" items={projectExecutiveSummary.categories} />
-              <div className="executive-summary-card">
-                <h3>Pendencias</h3>
-                <ul className="executive-pending-list">
-                  <li><span>Abertas</span><strong>{projectExecutiveSummary.pending.open}</strong></li>
-                  <li><span>Revisadas</span><strong>{projectExecutiveSummary.pending.reviewed}</strong></li>
-                  <li><span>Ignoradas</span><strong>{projectExecutiveSummary.pending.ignored}</strong></li>
-                  <li><span>Total historico</span><strong>{projectExecutiveSummary.pending.total}</strong></li>
-                </ul>
-              </div>
             </div>
           </>
         )}

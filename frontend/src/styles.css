@@ -4253,8 +4253,7 @@ input {
   margin: 0 0 10px;
 }
 
-.executive-ranking-list,
-.executive-pending-list {
+.executive-ranking-list {
   display: grid;
   gap: 8px;
   list-style: none;
@@ -4262,16 +4261,14 @@ input {
   padding: 0;
 }
 
-.executive-ranking-list li,
-.executive-pending-list li {
+.executive-ranking-list li {
   align-items: center;
   display: grid;
   gap: 8px;
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
-.executive-ranking-list span,
-.executive-pending-list span {
+.executive-ranking-list span {
   color: #455468;
   min-width: 0;
   overflow: hidden;
@@ -4279,8 +4276,7 @@ input {
   white-space: nowrap;
 }
 
-.executive-ranking-list strong,
-.executive-pending-list strong {
+.executive-ranking-list strong {
   color: #123c69;
   font-size: 13px;
 }
