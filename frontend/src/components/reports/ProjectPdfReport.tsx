@@ -10,6 +10,7 @@ import { ExecutiveSummaryList } from "./ExecutiveSummaryList";
 import type { ProjectPdfOptions } from "./ProjectDownloadMenu";
 import { timelineCharts, type TimelineChartId } from "./reportsConfig";
 import type { PendingActionItem } from "../../hooks/useProjectPendingQueue";
+import { formatPeriodBR } from "../../utils/date";
 
 type ProjectPdfReportProps = {
   projectTitle: string;
@@ -79,7 +80,7 @@ export function ProjectPdfReport({
             {projectInsights.cards.map((insight) => (
               <article className={`project-insight-card ${insight.tone}`} key={`pdf-${insight.kind}-${insight.title}`}>
                 <span>{insight.title}</span>
-                <strong title={insight.value}>{insight.value}</strong>
+                <strong title={formatInsightValue(insight.value)}>{formatInsightValue(insight.value)}</strong>
                 <small>{insight.detail}</small>
               </article>
             ))}
@@ -194,4 +195,8 @@ export function ProjectPdfReport({
       )}
     </section>
   );
+}
+
+function formatInsightValue(value: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? formatPeriodBR(value) : value;
 }

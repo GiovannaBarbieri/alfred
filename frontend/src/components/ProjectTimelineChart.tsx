@@ -12,6 +12,7 @@ import {
 } from "recharts";
 
 import type { ProjectTimelinePoint } from "../types";
+import { formatPeriodBR } from "../utils/date";
 
 type ProjectTimelineChartProps = {
   title: string;
@@ -20,12 +21,6 @@ type ProjectTimelineChartProps = {
 };
 
 const colors = ["#2563eb", "#0f766e", "#c2410c", "#7c3aed", "#be123c", "#4d7c0f", "#0369a1", "#a16207"];
-
-function formatPeriod(period: string) {
-  const [year, month, day] = period.split("-");
-  if (!year || !month || !day) return period;
-  return `${day}/${month}`;
-}
 
 export function ProjectTimelineChart({ title, description, data }: ProjectTimelineChartProps) {
   const seriesTotals = useMemo(() => {
@@ -54,7 +49,7 @@ export function ProjectTimelineChart({ title, description, data }: ProjectTimeli
 
   data.forEach((item) => {
     const series = item.series ?? "Total";
-    const current = rowsByPeriod.get(item.period) ?? { period: item.period, label: formatPeriod(item.period) };
+    const current = rowsByPeriod.get(item.period) ?? { period: item.period, label: formatPeriodBR(item.period) };
     current[series] = item.horas;
     rowsByPeriod.set(item.period, current);
   });
@@ -128,7 +123,7 @@ export function ProjectTimelineChart({ title, description, data }: ProjectTimeli
                   <YAxis tickLine={false} axisLine={false} />
                   <Tooltip
                     formatter={(value) => [`${Number(value).toFixed(2)}h`, "Horas"]}
-                    labelFormatter={(_, payload) => String(payload?.[0]?.payload?.period ?? "")}
+                    labelFormatter={(_, payload) => formatPeriodBR(String(payload?.[0]?.payload?.period ?? ""))}
                   />
                   {activeSeries.length > 1 && <Legend verticalAlign="bottom" height={32} />}
                   {activeSeries.map((series, index) => (

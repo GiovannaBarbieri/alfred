@@ -9,12 +9,18 @@ import {
   YAxis,
 } from "recharts";
 import type { TimelinePoint } from "../types";
+import { formatPeriodBR } from "../utils/date";
 
 type DashboardTimelineProps = {
   data: TimelinePoint[];
 };
 
 export function DashboardTimeline({ data }: DashboardTimelineProps) {
+  const chartData = data.map((point) => ({
+    ...point,
+    label: formatPeriodBR(point.period),
+  }));
+
   return (
     <section className="workspace-grid dashboard-grid">
       <div className="panel timeline-panel">
@@ -24,11 +30,11 @@ export function DashboardTimeline({ data }: DashboardTimelineProps) {
         </div>
         <div className="chart-wrap">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ left: 4, right: 12, top: 12, bottom: 4 }}>
+            <LineChart data={chartData} margin={{ left: 4, right: 12, top: 12, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#d9e2ec" />
-              <XAxis dataKey="period" tickLine={false} axisLine={false} />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} />
               <YAxis tickLine={false} axisLine={false} />
-              <Tooltip />
+              <Tooltip labelFormatter={(_, payload) => formatPeriodBR(String(payload?.[0]?.payload?.period ?? ""))} />
               <Line type="monotone" dataKey="horas" stroke="#2563eb" strokeWidth={3} dot={{ r: 4 }} />
             </LineChart>
           </ResponsiveContainer>

@@ -57,3 +57,7 @@ export function formatDateTimeBR(value: string) {
   if (Number.isNaN(date.getTime())) return value;
   return dateTimeWithHourFormat.format(date);
 }
+
+export function formatPeriodBR(value: string) {
+  return formatDateBR(value);
+}
