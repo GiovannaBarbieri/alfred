@@ -164,7 +164,7 @@ export function ProjectPdfReport({
           <table className="task-table">
             <thead>
               <tr>
-                <th>IdTask</th>
+                <th>ID</th>
                 <th>Titulo</th>
                 <th>Categoria</th>
                 <th>Subcategoria</th>

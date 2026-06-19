@@ -79,7 +79,7 @@ export function ProjectCollaboratorTasksPanel({
       <section className="panel collaborator-tasks-panel">
         <div className="collaborator-tasks-title">
           <h2>Tasks por colaborador</h2>
-          <p className="muted">Lista agrupada por IdTask, categoria e duracao total.</p>
+          <p className="muted">Lista agrupada por ID, categoria e duracao total.</p>
         </div>
 
         {!selectedCollaborator && (
@@ -134,7 +134,7 @@ export function ProjectCollaboratorTasksPanel({
             <div className="task-list-toolbar">
               <input
                 aria-label="Buscar Task"
-                placeholder="Buscar por IdTask ou titulo"
+                placeholder="Buscar por ID ou titulo"
                 value={taskSearch}
                 onChange={(event) => onTaskSearchChange(event.target.value)}
               />
@@ -170,7 +170,7 @@ export function ProjectCollaboratorTasksPanel({
                   <table className="task-table">
                     <thead>
                       <tr>
-                        <th>IdTask</th>
+                        <th>ID</th>
                         <th>Titulo</th>
                         <th>Categoria</th>
                         <th>Subcategoria</th>
