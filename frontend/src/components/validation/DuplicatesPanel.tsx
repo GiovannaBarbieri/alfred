@@ -1,5 +1,6 @@
 import type { SetStateAction } from "react";
 import type { DuplicateGroup } from "../../types";
+import { formatDateTimeBR } from "../../utils/date";
 
 type DuplicatesPanelProps = {
   duplicates: DuplicateGroup[];
@@ -40,7 +41,7 @@ export function DuplicatesPanel({ duplicates, duplicateSelections, onDuplicateSe
                   <span>Linha {record.line}</span>
                   <strong>{record.task}</strong>
                   <small>
-                    {record.loginUsuario} - {record.duracao} - {record.dataHoraCadastro}
+                    {record.loginUsuario} - {record.duracao} - {formatDateTimeBR(record.dataHoraCadastro)}
                   </small>
                   <small>
                     {record.epic} / {record.pbi}

@@ -1,6 +1,7 @@
 import { FileSpreadsheet, Search, X } from "lucide-react";
 
 import type { ImportSummary } from "../../types";
+import { formatDateBR } from "../../utils/date";
 import { projectIdentityFromFilename, projectTitleFromFilename } from "../../utils/project";
 
 type ReportsProjectListProps = {
@@ -77,7 +78,7 @@ export function ReportsProjectList({ imports, search, onSearchChange, onOpenProj
                 <small>Alertas</small>
               </span>
               <span>
-                <strong>{new Date(item.importedAt).toLocaleDateString("pt-BR")}</strong>
+                <strong>{formatDateBR(item.importedAt)}</strong>
                 <small className="status-badge">{item.status}</small>
               </span>
               <button className="secondary-button compact" type="button" onClick={() => onOpenProject(item.id)}>

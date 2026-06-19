@@ -11,6 +11,7 @@ import {
 } from "recharts";
 
 import type { ProjectEvolutionPoint } from "../types";
+import { formatDateBR } from "../utils/date";
 
 type EvolutionMetricId = "hours" | "pendings" | "records";
 
@@ -30,12 +31,6 @@ const metrics: Array<{
   { id: "records", label: "Registros", valueKey: "recordsCount", color: "#0f766e", suffix: "" },
 ];
 
-function formatDate(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString("pt-BR");
-}
-
 export function ProjectEvolutionChart({ points }: ProjectEvolutionChartProps) {
   const [selectedMetricId, setSelectedMetricId] = useState<EvolutionMetricId>("pendings");
   const selectedMetric = metrics.find((metric) => metric.id === selectedMetricId) ?? metrics[0];
@@ -43,7 +38,7 @@ export function ProjectEvolutionChart({ points }: ProjectEvolutionChartProps) {
     () =>
       points.map((point, index) => ({
         label: `${index + 1}a`,
-        importedAt: formatDate(point.importedAt),
+        importedAt: formatDateBR(point.importedAt),
         value: point[selectedMetric.valueKey],
       })),
     [points, selectedMetric.valueKey],

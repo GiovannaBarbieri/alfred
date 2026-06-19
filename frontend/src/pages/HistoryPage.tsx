@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Metric } from "../components/Metric";
 import { applyImportReprocess, getImportReprocessHistory, getImportReprocessPreview } from "../services/api";
 import type { ImportDetail, ImportReprocessPreview, ImportSummary, ReprocessHistoryItem } from "../types";
+import { formatDateBR, formatDateTimeBR } from "../utils/date";
 
 const visibleRecordLimit = 100;
 const visibleTaskGroupLimit = 80;
@@ -404,7 +405,7 @@ export function HistoryPage({
                 >
                   #{item.id} - {item.filename}
                 </button>
-                <span>{new Date(item.importedAt).toLocaleString("pt-BR")}</span>
+                <span>{formatDateTimeBR(item.importedAt)}</span>
                 <small>
                   {item.validRows} validos, {item.alertRows} alertas, {item.blockedRows} bloqueios - classificador v{item.classifierVersion}
                 </small>
@@ -758,7 +759,7 @@ export function HistoryPage({
                     <span>
                       <strong>
                         {reprocessHistorySummary.latest
-                          ? new Date(reprocessHistorySummary.latest.createdAt).toLocaleDateString("pt-BR")
+                          ? formatDateBR(reprocessHistorySummary.latest.createdAt)
                           : "-"}
                       </strong>
                       <small>Ultima execucao</small>
@@ -830,7 +831,7 @@ export function HistoryPage({
                               aria-expanded={isExpanded}
                             >
                               <div>
-                                <strong>{new Date(run.createdAt).toLocaleString("pt-BR")}</strong>
+                                <strong>{formatDateTimeBR(run.createdAt)}</strong>
                                 <small>
                                   {run.user} - v{run.previousVersion ?? "-"} {"->"} v{run.newVersion ?? "-"}
                                 </small>

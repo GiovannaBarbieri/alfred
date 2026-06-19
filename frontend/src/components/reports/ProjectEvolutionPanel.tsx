@@ -2,6 +2,7 @@ import { FileSpreadsheet } from "lucide-react";
 
 import { ProjectEvolutionChart } from "../ProjectEvolutionChart";
 import type { ProjectEvolution, ProjectEvolutionOption } from "../../types";
+import { formatDateBR } from "../../utils/date";
 import type { ProjectTabId } from "./reportsConfig";
 
 type ProjectEvolutionPanelProps = {
@@ -168,7 +169,7 @@ export function ProjectEvolutionPanel({
                 {projectEvolution.points.map((point) => (
                   <tr key={point.importId}>
                     <td>
-                      <strong>{new Date(point.importedAt).toLocaleDateString("pt-BR")}</strong>
+                      <strong>{formatDateBR(point.importedAt)}</strong>
                       <small>{point.filename}</small>
                     </td>
                     <td>{point.totalHours}h <small>{point.hoursDelta >= 0 ? "+" : ""}{point.hoursDelta}h</small></td>

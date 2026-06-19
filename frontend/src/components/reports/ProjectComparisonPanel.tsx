@@ -3,6 +3,7 @@ import { useMemo } from "react";
 
 import { ProjectComparisonChart } from "../ProjectComparisonChart";
 import type { ImportSummary, ProjectComparison, SavedProjectComparisonSummary } from "../../types";
+import { formatDateBR } from "../../utils/date";
 import { projectTitleFromFilename } from "../../utils/project";
 import type { ProjectTabId } from "./reportsConfig";
 
@@ -151,7 +152,7 @@ export function ProjectComparisonPanel({
             />
             <span>
               <strong>{projectTitleFromFilename(item.filename)}</strong>
-              <small>{new Date(item.importedAt).toLocaleDateString("pt-BR")} - {item.totalHours}h</small>
+              <small>{formatDateBR(item.importedAt)} - {item.totalHours}h</small>
             </span>
           </label>
         ))}
@@ -211,7 +212,7 @@ export function ProjectComparisonPanel({
                   <tr key={item.importId}>
                     <td>
                       <strong>{item.projectName}</strong>
-                      <small>{new Date(item.importedAt).toLocaleDateString("pt-BR")} - {item.status}</small>
+                      <small>{formatDateBR(item.importedAt)} - {item.status}</small>
                     </td>
                     <td>{item.totalHours}h</td>
                     <td>{item.recordsCount}</td>

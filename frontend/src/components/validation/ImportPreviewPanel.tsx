@@ -17,6 +17,7 @@ import {
 import type { ReactNode } from "react";
 
 import type { ImportValidationResponse } from "../../types";
+import { formatDateBR } from "../../utils/date";
 import type { ImportWizardStep } from "../ImportWizard";
 
 type ImportPreviewPanelProps = {
@@ -104,7 +105,7 @@ export function ImportPreviewPanel({ result, onStepChange }: ImportPreviewPanelP
                 {fileHistory.latestImport && (
                   <small>
                     Ultima importacao: #{fileHistory.latestImport.importId} em{" "}
-                    {new Date(fileHistory.latestImport.importedAt).toLocaleDateString("pt-BR")} -{" "}
+                    {formatDateBR(fileHistory.latestImport.importedAt)} -{" "}
                     {fileHistory.latestImport.totalRows} registros - {fileHistory.latestImport.totalHours.toFixed(2)}h
                   </small>
                 )}

@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { timelineCharts, type TimelineChartId } from "../components/reports/reportsConfig";
 import { buildExportUrl } from "../services/api";
 import type { ImportSummary, ProjectTimelineCharts } from "../types";
+import { formatDateBR } from "../utils/date";
 import { projectTitleFromFilename } from "../utils/project";
 
 type UseProjectReportDataParams = {
@@ -25,7 +26,7 @@ export function useProjectReportData({
   const selectedImport = imports.find((item) => item.id === selectedImportId) ?? null;
   const selectedChart = timelineCharts.find((chart) => chart.id === selectedChartId) ?? timelineCharts[0];
   const projectTitle = selectedImport ? projectTitleFromFilename(selectedImport.filename) : "";
-  const importedAt = selectedImport ? new Date(selectedImport.importedAt).toLocaleDateString("pt-BR") : "";
+  const importedAt = selectedImport ? formatDateBR(selectedImport.importedAt) : "";
   const excelExportUrl = selectedImportId
     ? buildExportUrl("/exports/project-analysis.xlsx", undefined, {
         importId: String(selectedImportId),

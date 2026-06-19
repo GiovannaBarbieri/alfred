@@ -1,6 +1,7 @@
 import { AlertTriangle, ArrowUpRight, CheckCircle2, Clock3, Layers3, Sparkles, UserRoundX, UsersRound } from "lucide-react";
 import { Metric } from "../components/Metric";
 import type { DashboardOverview } from "../types";
+import { formatDateBR } from "../utils/date";
 
 type DashboardPageProps = {
   overview: DashboardOverview;
@@ -138,7 +139,7 @@ export function DashboardPage({
                 <article className="recent-project-card" key={project.importId}>
                   <div className="recent-project-main">
                     <strong>{project.projectName}</strong>
-                    <small>{new Date(project.importedAt).toLocaleDateString("pt-BR")} - {project.status}</small>
+                    <small>{formatDateBR(project.importedAt)} - {project.status}</small>
                   </div>
                   <div className="recent-project-stats">
                     <span>{project.totalHours}h</span>

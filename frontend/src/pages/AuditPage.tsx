@@ -3,6 +3,7 @@ import { Search, ShieldCheck } from "lucide-react";
 
 import { getAuditLogs } from "../services/api";
 import type { AuditLogItem } from "../types";
+import { formatDateTimeBR } from "../utils/date";
 
 const entityLabels: Record<string, string> = {
   import_session: "Sessao de importacao",
@@ -24,13 +25,6 @@ const actionLabels: Record<string, string> = {
   reprocessed: "Reprocessado",
   completion_blocked: "Bloqueado",
 };
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
 
 function compactPayload(value: Record<string, unknown> | null) {
   if (!value) return "Sem dados";
@@ -108,7 +102,7 @@ export function AuditPage() {
               <small>Registro {item.recordId ?? "-"} | {item.user}</small>
             </div>
             <p>{compactPayload(item.after)}</p>
-            <time>{formatDate(item.createdAt)}</time>
+            <time>{formatDateTimeBR(item.createdAt)}</time>
           </article>
         ))}
       </div>
