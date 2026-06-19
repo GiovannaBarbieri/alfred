@@ -4,15 +4,12 @@ import { ProjectChartsPanel } from "../components/reports/ProjectChartsPanel";
 import { ProjectCollaboratorTasksPanel } from "../components/reports/ProjectCollaboratorTasksPanel";
 import { ProjectDownloadMenu } from "../components/reports/ProjectDownloadMenu";
 import { ProjectOverviewPanel } from "../components/reports/ProjectOverviewPanel";
-import { ProjectPendingPanel } from "../components/reports/ProjectPendingPanel";
 import { ProjectPdfReport } from "../components/reports/ProjectPdfReport";
 import { ProjectReportHeader } from "../components/reports/ProjectReportHeader";
 import { ProjectReportTabs } from "../components/reports/ProjectReportTabs";
 import { ReportLandingView } from "../components/reports/ReportLandingView";
 import { ReportNotice } from "../components/reports/ReportNotice";
 import {
-  type PendingStatusFilter,
-  type PendingTypeFilter,
   type ProjectTabId,
   type ReportLandingTabId,
   type TaskSortId,
@@ -23,7 +20,6 @@ import { useProjectCollaboratorTasks } from "../hooks/useProjectCollaboratorTask
 import { useProjectComparisons } from "../hooks/useProjectComparisons";
 import { useProjectEvolution } from "../hooks/useProjectEvolution";
 import { useProjectExports } from "../hooks/useProjectExports";
-import { useProjectPendingActions } from "../hooks/useProjectPendingActions";
 import { useProjectPendingQueue } from "../hooks/useProjectPendingQueue";
 import { useProjectReportData } from "../hooks/useProjectReportData";
 import type {
@@ -98,10 +94,6 @@ export function ReportsPage({
   const [reportLandingTab, setReportLandingTab] = useState<ReportLandingTabId>("projects");
   const [nextProjectTab, setNextProjectTab] = useState<ProjectTabId | null>(null);
   const [isExecutiveSummaryOpen, setIsExecutiveSummaryOpen] = useState(true);
-  const [pendingTypeFilter, setPendingTypeFilter] = useState<PendingTypeFilter>("all");
-  const [pendingStatusFilter, setPendingStatusFilter] = useState<PendingStatusFilter>("pendente");
-  const [pendingUserFilter, setPendingUserFilter] = useState("");
-  const [pendingSearch, setPendingSearch] = useState("");
   const {
     showDownloadMenu,
     showPdfOptions,
@@ -128,7 +120,6 @@ export function ReportsPage({
     setTaskSort,
     resetCollaboratorTasks,
   } = useProjectCollaboratorTaskLoader(selectedImportId);
-  const [selectedPendingIds, setSelectedPendingIds] = useState<string[]>([]);
   const { taskCategoryOptions, filteredCollaboratorTasks, collaboratorTasksTotal } = useProjectCollaboratorTasks({
     collaboratorTasks,
     taskSearch,
@@ -136,46 +127,16 @@ export function ReportsPage({
     taskSort,
   });
   const {
-    pendingQueue,
-    pendingUsers,
     pendingStatusSummary,
     openPendingByType,
-    filteredPendingQueue,
     openPendingPreview,
-    pendingImpactSummary,
-    selectedPendingItems,
-    selectedPendingSummary,
   } = useProjectPendingQueue({
     projectPendingItems,
-    pendingSearch,
-    pendingTypeFilter,
-    pendingStatusFilter,
-    pendingUserFilter,
-    selectedPendingIds,
-  });
-  const {
-    updatingAlertId,
-    updatingReviewId,
-    isBulkUpdatingPending,
-    pendingActionError,
-    resetPendingActions,
-    resolveAlert,
-    updateReview,
-    togglePendingSelection,
-    selectVisiblePendingItems,
-    selectTopImpactPendingItems,
-    clearPendingSelection,
-    bulkUpdatePending,
-  } = useProjectPendingActions({
-    selectedImportId,
-    pendingQueue,
-    filteredPendingQueue,
-    selectedPendingItems,
-    selectedPendingIds,
-    setSelectedPendingIds,
-    onReloadProject: onOpenProject,
-    onKeepPendingTab: () => setActiveProjectTab("pending"),
-    onNotice: setReportNotice,
+    pendingSearch: "",
+    pendingTypeFilter: "all",
+    pendingStatusFilter: "pendente",
+    pendingUserFilter: "",
+    selectedPendingIds: [],
   });
   const {
     selectedImport,
@@ -204,11 +165,6 @@ export function ReportsPage({
     setActiveProjectTab(nextProjectTab ?? "executive");
     setNextProjectTab(null);
     resetCollaboratorTasks();
-    setPendingTypeFilter("all");
-    setPendingStatusFilter("pendente");
-    setPendingUserFilter("");
-    setPendingSearch("");
-    resetPendingActions();
   }, [selectedImportId]);
 
   function handleOpenProject(importId: number, tab: ProjectTabId = "executive") {
@@ -306,38 +262,6 @@ export function ReportsPage({
           projectExecutiveSummary={projectExecutiveSummary}
           isExecutiveSummaryOpen={isExecutiveSummaryOpen}
           onToggleExecutiveSummary={() => setIsExecutiveSummaryOpen((current) => !current)}
-        />
-      )}
-
-      {activeProjectTab === "pending" && (
-        <ProjectPendingPanel
-          pendingQueue={pendingQueue}
-          filteredPendingQueue={filteredPendingQueue}
-          pendingUsers={pendingUsers}
-          openPendingByType={openPendingByType}
-          pendingStatusSummary={pendingStatusSummary}
-          pendingImpactSummary={pendingImpactSummary}
-          selectedPendingIds={selectedPendingIds}
-          selectedPendingSummary={selectedPendingSummary}
-          pendingSearch={pendingSearch}
-          pendingTypeFilter={pendingTypeFilter}
-          pendingStatusFilter={pendingStatusFilter}
-          pendingUserFilter={pendingUserFilter}
-          pendingActionError={pendingActionError}
-          updatingAlertId={updatingAlertId}
-          updatingReviewId={updatingReviewId}
-          isBulkUpdatingPending={isBulkUpdatingPending}
-          onSearchChange={setPendingSearch}
-          onTypeFilterChange={setPendingTypeFilter}
-          onUserFilterChange={setPendingUserFilter}
-          onStatusFilterChange={setPendingStatusFilter}
-          onSelectVisible={selectVisiblePendingItems}
-          onSelectItems={setSelectedPendingIds}
-          onClearSelection={clearPendingSelection}
-          onToggleSelection={togglePendingSelection}
-          onBulkUpdate={(status) => void bulkUpdatePending(status)}
-          onResolveAlert={(alertId) => void resolveAlert(alertId)}
-          onUpdateReview={(type, key, status) => void updateReview(type, key, status)}
         />
       )}
 

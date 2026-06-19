@@ -228,9 +228,6 @@ export function ProjectComparisonPanel({
                         <button className="secondary-button compact" type="button" onClick={() => onOpenProject(item.importId)}>
                           Abrir
                         </button>
-                        <button className="secondary-button compact" type="button" onClick={() => onOpenProject(item.importId, "pending")}>
-                          Pendencias
-                        </button>
                       </div>
                     </td>
                   </tr>

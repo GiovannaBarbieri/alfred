@@ -98,13 +98,6 @@ export function ProjectEvolutionPanel({
             <button
               className="primary-button"
               type="button"
-              onClick={() => onOpenProject(latestPoint.importId, "pending")}
-            >
-              Abrir pendencias da ultima importacao
-            </button>
-            <button
-              className="secondary-button"
-              type="button"
               onClick={() => onOpenProject(latestPoint.importId)}
             >
               Ver projeto mais recente
@@ -139,15 +132,6 @@ export function ProjectEvolutionPanel({
                   <p>{insight.reason}</p>
                   <small>{insight.action}</small>
                   <div className="project-evolution-alert-actions">
-                    {(insight.source === "pendencias" || insight.source === "atencao") && (
-                      <button
-                        className="secondary-button compact"
-                        type="button"
-                        onClick={() => onOpenProject(latestPoint.importId, "pending")}
-                      >
-                        Abrir pendencias
-                      </button>
-                    )}
                     {insight.source === "consistencia" && (
                       <button
                         className="secondary-button compact"

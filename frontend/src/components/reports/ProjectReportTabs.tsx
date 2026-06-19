@@ -1,6 +1,6 @@
 import type { ProjectTabId } from "./reportsConfig";
 import { projectTabs } from "./reportsConfig";
-import { BarChart3, CheckSquare, ClipboardList, LayoutDashboard } from "lucide-react";
+import { BarChart3, ClipboardList, LayoutDashboard } from "lucide-react";
 import type { ReactNode } from "react";
 
 type ProjectReportTabsProps = {
@@ -12,7 +12,6 @@ export function ProjectReportTabs({ activeTab, onChange }: ProjectReportTabsProp
   const icons: Record<ProjectTabId, ReactNode> = {
     executive: <LayoutDashboard size={15} />,
     charts: <BarChart3 size={15} />,
-    pending: <CheckSquare size={15} />,
     tasks: <ClipboardList size={15} />,
   };
 
