@@ -5475,6 +5475,114 @@ input {
   text-align: center;
 }
 
+.collaborator-summary-card {
+  align-items: stretch;
+  background: linear-gradient(135deg, #f8fafc 0%, #eef6ff 100%);
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(220px, 1.15fr) minmax(320px, 1.7fr) minmax(220px, 1fr);
+  margin-bottom: 14px;
+  padding: 14px;
+}
+
+.collaborator-summary-identity,
+.collaborator-summary-kpis span,
+.collaborator-category-summary {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(200, 211, 223, 0.74);
+  border-radius: 8px;
+}
+
+.collaborator-summary-identity {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  min-width: 0;
+}
+
+.collaborator-avatar {
+  align-items: center;
+  background: #123c69;
+  border-radius: 8px;
+  color: #ffffff;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.collaborator-summary-identity small,
+.collaborator-summary-kpis small,
+.collaborator-category-summary span {
+  color: #637083;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.collaborator-summary-identity strong {
+  color: #172033;
+  display: block;
+  font-size: 18px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.collaborator-summary-kpis {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.collaborator-summary-kpis span {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+}
+
+.collaborator-summary-kpis svg {
+  color: #123c69;
+}
+
+.collaborator-summary-kpis strong {
+  color: #172033;
+  font-size: 18px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collaborator-category-summary {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.collaborator-category-summary > span {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.collaborator-category-summary div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.collaborator-category-summary strong {
+  background: #eef5ff;
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  border-radius: 999px;
+  color: #123c69;
+  font-size: 12px;
+  padding: 5px 8px;
+}
+
 .task-list-toolbar {
   align-items: center;
   display: grid;
@@ -5527,15 +5635,48 @@ input {
 .task-pagination {
   align-items: center;
   display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  margin-top: 12px;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 6px;
 }
 
-.task-pagination span {
+.task-pagination-summary {
   color: #455468;
   font-size: 13px;
   font-weight: 800;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.task-page-button {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #c8d3df;
+  border-radius: 7px;
+  color: #455468;
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 800;
+  height: 30px;
+  justify-content: center;
+  min-width: 30px;
+  padding: 0 9px;
+}
+
+.task-page-button.nav {
+  padding: 0;
+}
+
+.task-page-button.active,
+.task-page-button:hover:not(:disabled) {
+  background: #123c69;
+  border-color: #123c69;
+  color: #ffffff;
+}
+
+.task-page-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
 }
 
 .task-table td {
@@ -5566,6 +5707,35 @@ input {
 .task-table small {
   color: #637083;
   margin-top: 2px;
+}
+
+.duration-cell {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(72px, 1fr) auto;
+  min-width: 150px;
+}
+
+.duration-track {
+  background: #e5eaf0;
+  border-radius: 999px;
+  height: 9px;
+  overflow: hidden;
+}
+
+.duration-bar {
+  background: linear-gradient(90deg, #123c69, #2f80ed);
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+}
+
+.duration-cell > span {
+  color: #123c69;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .pdf-report-section {
@@ -7659,6 +7829,8 @@ input {
   .export-format-note,
   .pdf-executive-summary,
   .collaborator-tasks-header,
+  .collaborator-summary-card,
+  .collaborator-summary-kpis,
   .task-list-toolbar,
   .report-catalog,
   .results-grid,
@@ -7669,6 +7841,18 @@ input {
   .export-actions,
 .filters-grid {
     grid-template-columns: 1fr;
+  }
+
+  .collaborator-summary-card {
+    gap: 10px;
+  }
+
+  .task-pagination {
+    flex-wrap: wrap;
+  }
+
+  .duration-cell {
+    grid-template-columns: minmax(64px, 1fr) auto;
   }
 
   .classifier-version-note,

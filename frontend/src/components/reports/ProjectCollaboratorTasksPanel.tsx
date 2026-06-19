@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight, Clock3, Layers3, ListChecks, Trophy, UserRound } from "lucide-react";
 import type { ProjectCollaboratorTask } from "../../types";
 import type { TaskSortId } from "./reportsConfig";
 
@@ -48,6 +49,9 @@ export function ProjectCollaboratorTasksPanel({
 }: ProjectCollaboratorTasksPanelProps) {
   const firstVisibleTask = filteredCollaboratorTasks.length === 0 ? 0 : (taskPage - 1) * taskPageSize + 1;
   const lastVisibleTask = Math.min(taskPage * taskPageSize, filteredCollaboratorTasks.length);
+  const collaboratorSummary = buildCollaboratorSummary(collaboratorTasks);
+  const maxFilteredTaskSeconds = Math.max(...filteredCollaboratorTasks.map((task) => task.totalSeconds), 0);
+  const pageNumbers = compactPageNumbers(taskPage, totalTaskPages);
 
   return (
     <>
@@ -92,6 +96,41 @@ export function ProjectCollaboratorTasksPanel({
         )}
         {selectedCollaborator && !isLoadingTasks && !tasksError && collaboratorTasks.length > 0 && (
           <>
+            <section className="collaborator-summary-card" aria-label="Resumo do colaborador selecionado">
+              <div className="collaborator-summary-identity">
+                <span className="collaborator-avatar"><UserRound size={22} /></span>
+                <div>
+                  <small>Colaborador</small>
+                  <strong>{selectedCollaborator}</strong>
+                </div>
+              </div>
+              <div className="collaborator-summary-kpis">
+                <span>
+                  <Clock3 size={18} />
+                  <strong>{collaboratorSummary.totalDuration}</strong>
+                  <small>trabalhadas</small>
+                </span>
+                <span>
+                  <ListChecks size={18} />
+                  <strong>{collaboratorTasks.length}</strong>
+                  <small>Tasks executadas</small>
+                </span>
+                <span>
+                  <Trophy size={18} />
+                  <strong>{collaboratorSummary.predominantCategory}</strong>
+                  <small>Categoria predominante</small>
+                </span>
+              </div>
+              <div className="collaborator-category-summary">
+                <span><Layers3 size={16} /> Categorias principais</span>
+                <div>
+                  {collaboratorSummary.categories.map((category) => (
+                    <strong key={category.name}>{category.count} {category.name}</strong>
+                  ))}
+                </div>
+              </div>
+            </section>
+
             <div className="task-list-toolbar">
               <input
                 aria-label="Buscar Task"
@@ -121,7 +160,7 @@ export function ProjectCollaboratorTasksPanel({
                 <option value="title_asc">Titulo A-Z</option>
                 <option value="category_asc">Categoria A-Z</option>
               </select>
-              <span>{firstVisibleTask}-{lastVisibleTask} de {filteredCollaboratorTasks.length}</span>
+              <span>{taskPageSize} por pagina</span>
             </div>
             {filteredCollaboratorTasks.length === 0 ? (
               <div className="task-empty-state">Nenhuma Task encontrada com os filtros aplicados.</div>
@@ -145,7 +184,17 @@ export function ProjectCollaboratorTasksPanel({
                           <td>{task.tituloTask}</td>
                           <td>{task.categoria}</td>
                           <td>{task.subcategoria}</td>
-                          <td>{task.totalDuration}</td>
+                          <td>
+                            <div className="duration-cell">
+                              <div className="duration-track" aria-hidden="true">
+                                <span
+                                  className="duration-bar"
+                                  style={{ width: `${durationPercentage(task.totalSeconds, maxFilteredTaskSeconds)}%` }}
+                                />
+                              </div>
+                              <span>{formatDurationShort(task.totalSeconds)}</span>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -158,23 +207,38 @@ export function ProjectCollaboratorTasksPanel({
                     </tfoot>
                   </table>
                 </div>
-                <div className="task-pagination">
+                <div className="task-pagination-summary">
+                  Mostrando {firstVisibleTask}-{lastVisibleTask} de {filteredCollaboratorTasks.length} registros
+                </div>
+                <div className="task-pagination" aria-label="Paginacao de Tasks">
                   <button
-                    className="secondary-button compact"
+                    className="task-page-button nav"
                     type="button"
+                    aria-label="Pagina anterior"
                     disabled={taskPage <= 1}
                     onClick={() => onTaskPageChange(taskPage - 1)}
                   >
-                    Anterior
+                    <ChevronLeft size={16} />
                   </button>
-                  <span>Pagina {taskPage} de {totalTaskPages}</span>
+                  {pageNumbers.map((page) => (
+                    <button
+                      className={page === taskPage ? "task-page-button active" : "task-page-button"}
+                      type="button"
+                      key={page}
+                      aria-current={page === taskPage ? "page" : undefined}
+                      onClick={() => onTaskPageChange(page)}
+                    >
+                      {page}
+                    </button>
+                  ))}
                   <button
-                    className="secondary-button compact"
+                    className="task-page-button nav"
                     type="button"
+                    aria-label="Proxima pagina"
                     disabled={taskPage >= totalTaskPages}
                     onClick={() => onTaskPageChange(taskPage + 1)}
                   >
-                    Proxima
+                    <ChevronRight size={16} />
                   </button>
                 </div>
               </>
@@ -184,4 +248,53 @@ export function ProjectCollaboratorTasksPanel({
       </section>
     </>
   );
+}
+
+function buildCollaboratorSummary(tasks: ProjectCollaboratorTask[]) {
+  const totalSeconds = tasks.reduce((sum, task) => sum + task.totalSeconds, 0);
+  const categoryMap = new Map<string, { name: string; count: number; totalSeconds: number }>();
+
+  tasks.forEach((task) => {
+    const name = task.categoria || "Nao classificado";
+    const current = categoryMap.get(name) ?? { name, count: 0, totalSeconds: 0 };
+    current.count += 1;
+    current.totalSeconds += task.totalSeconds;
+    categoryMap.set(name, current);
+  });
+
+  const categories = Array.from(categoryMap.values()).sort((a, b) => b.count - a.count || b.totalSeconds - a.totalSeconds || a.name.localeCompare(b.name));
+  const predominant = [...categories].sort((a, b) => b.totalSeconds - a.totalSeconds || b.count - a.count)[0];
+
+  return {
+    totalDuration: formatDurationCompact(totalSeconds),
+    categories: categories.slice(0, 4),
+    predominantCategory: predominant?.name ?? "Sem dados",
+  };
+}
+
+function formatDurationCompact(totalSeconds: number) {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  return `${hours}h${String(minutes).padStart(2, "0")}`;
+}
+
+function formatDurationShort(totalSeconds: number) {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+function durationPercentage(totalSeconds: number, maxSeconds: number) {
+  if (maxSeconds <= 0 || totalSeconds <= 0) return 0;
+  return Math.max(6, Math.min(100, (totalSeconds / maxSeconds) * 100));
+}
+
+function compactPageNumbers(currentPage: number, totalPages: number) {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  if (currentPage <= 3) return [1, 2, 3, 4, 5];
+  if (currentPage >= totalPages - 2) return Array.from({ length: 5 }, (_, index) => totalPages - 4 + index);
+  return [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
 }
