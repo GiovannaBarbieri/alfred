@@ -3750,9 +3750,9 @@ input {
   display: grid;
   gap: 6px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: 0 auto 14px;
+  margin-bottom: 14px;
   padding: 5px;
-  width: min(100%, 720px);
+  width: 100%;
 }
 
 .project-tabs button {
