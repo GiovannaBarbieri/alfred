@@ -1,4 +1,4 @@
-import { AlertTriangle, ChevronDown, Gauge, Lightbulb, Target } from "lucide-react";
+import { AlertTriangle, ChevronDown, Gauge, Target } from "lucide-react";
 import type { ReactNode } from "react";
 
 import type { ProjectExecutiveSummary, ProjectInsightCard, ProjectInsights } from "../../types";
@@ -143,12 +143,8 @@ export function ProjectOverviewPanel({
 }
 
 function buildSmartSummary(projectExecutiveSummary: ProjectExecutiveSummary) {
-  const totalHours = projectExecutiveSummary.metrics.totalHours;
   const topCategory = projectExecutiveSummary.categories[0];
   const topUser = projectExecutiveSummary.topUsers[0];
-  const topTasks = projectExecutiveSummary.topTasks.slice(0, 3);
-  const topTasksHours = topTasks.reduce((total, task) => total + task.totalHours, 0);
-  const topTasksPercentage = totalHours > 0 ? (topTasksHours / totalHours) * 100 : 0;
   const retrabalho = projectExecutiveSummary.categories.find((item) =>
     `${item.key} ${item.label}`.toLowerCase().includes("retrabalho"),
   );
@@ -179,15 +175,6 @@ function buildSmartSummary(projectExecutiveSummary: ProjectExecutiveSummary) {
     });
   }
 
-  if (topTasks.length > 0) {
-    insights.push({
-      title: "Concentracao em Tasks",
-      description: `As ${topTasks.length} principais Tasks somam ${topTasksHours.toFixed(2)}h, equivalentes a ${topTasksPercentage.toFixed(1)}% do projeto.`,
-      tone: topTasksPercentage >= 45 ? "warning" : "success",
-      icon: <Lightbulb size={18} />,
-    });
-  }
-
   if (retrabalho && retrabalho.totalHours > 0) {
     insights.push({
       title: "Retrabalho/Bugs",
@@ -203,13 +190,6 @@ function buildSmartSummary(projectExecutiveSummary: ProjectExecutiveSummary) {
       description: `${pending.open} pendencia(s) aberta(s) podem afetar a leitura final. Revise antes de compartilhar o relatorio.`,
       tone: pending.open >= 10 ? "danger" : "warning",
       icon: <AlertTriangle size={18} />,
-    });
-  } else {
-    insights.push({
-      title: "Pendencias controladas",
-      description: "Nao ha pendencias abertas no resumo executivo deste projeto.",
-      tone: "success",
-      icon: <Lightbulb size={18} />,
     });
   }
 
