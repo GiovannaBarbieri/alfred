@@ -7,14 +7,22 @@ import { ExecutiveSummaryList } from "./ExecutiveSummaryList";
 type ProjectOverviewPanelProps = {
   projectInsights: ProjectInsights;
   projectExecutiveSummary: ProjectExecutiveSummary;
+  isSmartSummaryOpen: boolean;
+  isProjectInsightsOpen: boolean;
   isExecutiveSummaryOpen: boolean;
+  onToggleSmartSummary: () => void;
+  onToggleProjectInsights: () => void;
   onToggleExecutiveSummary: () => void;
 };
 
 export function ProjectOverviewPanel({
   projectInsights,
   projectExecutiveSummary,
+  isSmartSummaryOpen,
+  isProjectInsightsOpen,
   isExecutiveSummaryOpen,
+  onToggleSmartSummary,
+  onToggleProjectInsights,
   onToggleExecutiveSummary,
 }: ProjectOverviewPanelProps) {
   const smartSummary = buildSmartSummary(projectExecutiveSummary);
@@ -22,54 +30,70 @@ export function ProjectOverviewPanel({
   return (
     <>
       <section className="panel smart-summary-panel">
-        <div className="panel-heading compact-heading">
+        <button
+          className="executive-summary-toggle"
+          type="button"
+          aria-expanded={isSmartSummaryOpen}
+          onClick={onToggleSmartSummary}
+        >
           <div>
             <h2>Resumo inteligente</h2>
             <p className="muted">Leitura automatica baseada nos numeros do projeto.</p>
           </div>
-        </div>
-        {smartSummary.length === 0 ? (
-          <div className="chart-empty-state compact">
-            <strong>Sem dados suficientes</strong>
-            <span>Conclua uma importacao para gerar leituras automaticas do projeto.</span>
-          </div>
-        ) : (
-          <div className="smart-summary-grid">
-            {smartSummary.map((item) => (
-              <article className={`smart-summary-card ${item.tone}`} key={item.title}>
-                <span>{item.icon}</span>
-                <div>
-                  <strong>{item.title}</strong>
-                  <p>{item.description}</p>
-                </div>
-              </article>
-            ))}
-          </div>
+          <ChevronDown size={20} />
+        </button>
+        {isSmartSummaryOpen && (
+          smartSummary.length === 0 ? (
+            <div className="chart-empty-state compact">
+              <strong>Sem dados suficientes</strong>
+              <span>Conclua uma importacao para gerar leituras automaticas do projeto.</span>
+            </div>
+          ) : (
+            <div className="smart-summary-grid">
+              {smartSummary.map((item) => (
+                <article className={`smart-summary-card ${item.tone}`} key={item.title}>
+                  <span>{item.icon}</span>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <p>{item.description}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )
         )}
       </section>
 
       <section className="panel project-insights-panel">
-        <div className="panel-heading compact-heading">
+        <button
+          className="executive-summary-toggle"
+          type="button"
+          aria-expanded={isProjectInsightsOpen}
+          onClick={onToggleProjectInsights}
+        >
           <div>
             <h2>Analises principais</h2>
             <p className="muted">Resumo executivo dos pontos mais relevantes deste projeto.</p>
           </div>
-        </div>
-        {projectInsights.cards.length === 0 ? (
-          <div className="chart-empty-state compact">
-            <strong>Sem analises calculadas</strong>
-            <span>Conclua uma importacao com dados validos para exibir os destaques.</span>
-          </div>
-        ) : (
-          <div className="project-insights-grid">
-            {projectInsights.cards.map((insight) => (
-              <article className={`project-insight-card ${insight.tone}`} key={`${insight.kind}-${insight.title}`}>
-                <span>{insight.title}</span>
-                <strong title={insight.value}>{insight.value}</strong>
-                <small>{insight.detail}</small>
-              </article>
-            ))}
-          </div>
+          <ChevronDown size={20} />
+        </button>
+        {isProjectInsightsOpen && (
+          projectInsights.cards.length === 0 ? (
+            <div className="chart-empty-state compact">
+              <strong>Sem analises calculadas</strong>
+              <span>Conclua uma importacao com dados validos para exibir os destaques.</span>
+            </div>
+          ) : (
+            <div className="project-insights-grid">
+              {projectInsights.cards.map((insight) => (
+                <article className={`project-insight-card ${insight.tone}`} key={`${insight.kind}-${insight.title}`}>
+                  <span>{insight.title}</span>
+                  <strong title={insight.value}>{insight.value}</strong>
+                  <small>{insight.detail}</small>
+                </article>
+              ))}
+            </div>
+          )
         )}
       </section>
 

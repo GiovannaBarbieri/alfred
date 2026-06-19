@@ -93,7 +93,9 @@ export function ReportsPage({
   const [activeProjectTab, setActiveProjectTab] = useState<ProjectTabId>("executive");
   const [reportLandingTab, setReportLandingTab] = useState<ReportLandingTabId>("projects");
   const [nextProjectTab, setNextProjectTab] = useState<ProjectTabId | null>(null);
-  const [isExecutiveSummaryOpen, setIsExecutiveSummaryOpen] = useState(true);
+  const [isSmartSummaryOpen, setIsSmartSummaryOpen] = useState(false);
+  const [isProjectInsightsOpen, setIsProjectInsightsOpen] = useState(false);
+  const [isExecutiveSummaryOpen, setIsExecutiveSummaryOpen] = useState(false);
   const {
     showDownloadMenu,
     showPdfOptions,
@@ -260,7 +262,11 @@ export function ReportsPage({
         <ProjectOverviewPanel
           projectInsights={projectInsights}
           projectExecutiveSummary={projectExecutiveSummary}
+          isSmartSummaryOpen={isSmartSummaryOpen}
+          isProjectInsightsOpen={isProjectInsightsOpen}
           isExecutiveSummaryOpen={isExecutiveSummaryOpen}
+          onToggleSmartSummary={() => setIsSmartSummaryOpen((current) => !current)}
+          onToggleProjectInsights={() => setIsProjectInsightsOpen((current) => !current)}
           onToggleExecutiveSummary={() => setIsExecutiveSummaryOpen((current) => !current)}
         />
       )}
