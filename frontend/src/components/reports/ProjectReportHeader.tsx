@@ -44,7 +44,6 @@ export function ProjectReportHeader({
       <div className="report-project-metrics">
         <span><strong>{selectedImport.totalHours}h</strong><small>Horas</small></span>
         <span><strong>{selectedImport.validRows}</strong><small>Registros</small></span>
-        <span><strong>{selectedImport.alertRows}</strong><small>Alertas</small></span>
         <span><strong>{importedAt}</strong><small>{selectedImport.status}</small></span>
       </div>
       <ProjectDownloadMenu
