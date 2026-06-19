@@ -4,7 +4,6 @@ import type {
   ProjectCollaboratorTask,
   ProjectExecutiveSummary,
   ProjectInsights,
-  ProjectRecommendation,
   ProjectTimelineCharts,
 } from "../../types";
 import { ExecutiveSummaryList } from "./ExecutiveSummaryList";
@@ -18,7 +17,6 @@ type ProjectPdfReportProps = {
   importedAt: string;
   pdfOptions: ProjectPdfOptions;
   projectInsights: ProjectInsights;
-  projectRecommendations: ProjectRecommendation[];
   projectExecutiveSummary: ProjectExecutiveSummary;
   openPendingByType: {
     unclassified: number;
@@ -49,7 +47,6 @@ export function ProjectPdfReport({
   importedAt,
   pdfOptions,
   projectInsights,
-  projectRecommendations,
   projectExecutiveSummary,
   openPendingByType,
   pendingStatusSummary,
@@ -84,25 +81,6 @@ export function ProjectPdfReport({
                 <span>{insight.title}</span>
                 <strong title={insight.value}>{insight.value}</strong>
                 <small>{insight.detail}</small>
-              </article>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {projectRecommendations.length > 0 && (
-        <div className="pdf-recommendations-summary">
-          <h2>Recomendacoes operacionais</h2>
-          <div className="project-recommendations-list">
-            {projectRecommendations.map((recommendation) => (
-              <article
-                className={`project-recommendation-card ${recommendation.priority}`}
-                key={`pdf-${recommendation.source}-${recommendation.title}`}
-              >
-                <span>{recommendation.priority}</span>
-                <strong>{recommendation.title}</strong>
-                <p>{recommendation.reason}</p>
-                <small>{recommendation.action}</small>
               </article>
             ))}
           </div>

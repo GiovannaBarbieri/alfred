@@ -304,7 +304,6 @@ export function ReportsPage({
       {activeProjectTab === "executive" && (
         <ProjectOverviewPanel
           projectInsights={projectInsights}
-          projectRecommendations={projectRecommendations}
           projectExecutiveSummary={projectExecutiveSummary}
           isExecutiveSummaryOpen={isExecutiveSummaryOpen}
           onToggleExecutiveSummary={() => setIsExecutiveSummaryOpen((current) => !current)}
@@ -387,7 +386,6 @@ export function ReportsPage({
           importedAt={importedAt}
           pdfOptions={pdfOptions}
           projectInsights={projectInsights}
-          projectRecommendations={projectRecommendations}
           projectExecutiveSummary={projectExecutiveSummary}
           openPendingByType={openPendingByType}
           pendingStatusSummary={pendingStatusSummary}

@@ -1,12 +1,11 @@
 import { AlertTriangle, ChevronDown, Gauge, Lightbulb, Target } from "lucide-react";
 import type { ReactNode } from "react";
 
-import type { ProjectExecutiveSummary, ProjectInsights, ProjectRecommendation } from "../../types";
+import type { ProjectExecutiveSummary, ProjectInsights } from "../../types";
 import { ExecutiveSummaryList } from "./ExecutiveSummaryList";
 
 type ProjectOverviewPanelProps = {
   projectInsights: ProjectInsights;
-  projectRecommendations: ProjectRecommendation[];
   projectExecutiveSummary: ProjectExecutiveSummary;
   isExecutiveSummaryOpen: boolean;
   onToggleExecutiveSummary: () => void;
@@ -14,7 +13,6 @@ type ProjectOverviewPanelProps = {
 
 export function ProjectOverviewPanel({
   projectInsights,
-  projectRecommendations,
   projectExecutiveSummary,
   isExecutiveSummaryOpen,
   onToggleExecutiveSummary,
@@ -73,25 +71,6 @@ export function ProjectOverviewPanel({
             ))}
           </div>
         )}
-      </section>
-
-      <section className="panel project-recommendations-panel">
-        <div className="panel-heading compact-heading">
-          <div>
-            <h2>Recomendacoes operacionais</h2>
-            <p className="muted">Sinais objetivos para apoiar a leitura gerencial do projeto.</p>
-          </div>
-        </div>
-        <div className="project-recommendations-list">
-          {projectRecommendations.map((recommendation) => (
-            <article className={`project-recommendation-card ${recommendation.priority}`} key={`${recommendation.source}-${recommendation.title}`}>
-              <span>{recommendation.priority}</span>
-              <strong>{recommendation.title}</strong>
-              <p>{recommendation.reason}</p>
-              <small>{recommendation.action}</small>
-            </article>
-          ))}
-        </div>
       </section>
 
       <section className="panel executive-summary-panel">
