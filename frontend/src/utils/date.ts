@@ -61,3 +61,20 @@ export function formatDateTimeBR(value: string) {
 export function formatPeriodBR(value: string) {
   return formatDateBR(value);
 }
+
+export function formatWeekRangeBR(value: string) {
+  const parts = parseDateParts(value);
+  if (!parts) return value;
+
+  const start = new Date(Number(parts.year), Number(parts.month) - 1, Number(parts.day));
+  if (Number.isNaN(start.getTime())) return value;
+
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+
+  const endYear = String(end.getFullYear());
+  const endMonth = String(end.getMonth() + 1).padStart(2, "0");
+  const endDay = String(end.getDate()).padStart(2, "0");
+
+  return `${formatDateBR(value)} a ${endDay}/${endMonth}/${endYear}`;
+}

@@ -1,8 +1,8 @@
 import { AlertTriangle, ChevronDown, Gauge, Lightbulb, Target } from "lucide-react";
 import type { ReactNode } from "react";
 
-import type { ProjectExecutiveSummary, ProjectInsights } from "../../types";
-import { formatPeriodBR } from "../../utils/date";
+import type { ProjectExecutiveSummary, ProjectInsightCard, ProjectInsights } from "../../types";
+import { formatPeriodBR, formatWeekRangeBR } from "../../utils/date";
 import { ExecutiveSummaryList } from "./ExecutiveSummaryList";
 
 type ProjectOverviewPanelProps = {
@@ -89,7 +89,7 @@ export function ProjectOverviewPanel({
               {projectInsights.cards.map((insight) => (
                 <article className={`project-insight-card ${insight.tone}`} key={`${insight.kind}-${insight.title}`}>
                   <span>{insight.title}</span>
-                  <strong title={formatInsightValue(insight.value)}>{formatInsightValue(insight.value)}</strong>
+                  <strong title={formatInsightValue(insight)}>{formatInsightValue(insight)}</strong>
                   <small>{insight.detail}</small>
                 </article>
               ))}
@@ -225,6 +225,7 @@ function buildSmartSummary(projectExecutiveSummary: ProjectExecutiveSummary) {
   return insights.slice(0, 6);
 }
 
-function formatInsightValue(value: string) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? formatPeriodBR(value) : value;
+function formatInsightValue(insight: ProjectInsightCard) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(insight.value)) return insight.value;
+  return insight.kind === "peak_week" ? formatWeekRangeBR(insight.value) : formatPeriodBR(insight.value);
 }
