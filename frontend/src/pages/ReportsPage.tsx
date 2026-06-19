@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { ProjectChartsPanel } from "../components/reports/ProjectChartsPanel";
 import { ProjectCollaboratorTasksPanel } from "../components/reports/ProjectCollaboratorTasksPanel";
 import { ProjectDownloadMenu } from "../components/reports/ProjectDownloadMenu";
-import { ProjectOperationalPanel } from "../components/reports/ProjectOperationalPanel";
 import { ProjectOverviewPanel } from "../components/reports/ProjectOverviewPanel";
 import { ProjectPendingPanel } from "../components/reports/ProjectPendingPanel";
 import { ProjectPdfReport } from "../components/reports/ProjectPdfReport";
@@ -307,15 +306,6 @@ export function ReportsPage({
           projectExecutiveSummary={projectExecutiveSummary}
           isExecutiveSummaryOpen={isExecutiveSummaryOpen}
           onToggleExecutiveSummary={() => setIsExecutiveSummaryOpen((current) => !current)}
-        />
-      )}
-
-      {activeProjectTab === "operational" && (
-        <ProjectOperationalPanel
-          selectedImport={selectedImport}
-          projectExecutiveSummary={projectExecutiveSummary}
-          collaboratorOptionsCount={collaboratorOptions.length}
-          onOpenTab={setActiveProjectTab}
         />
       )}
 
