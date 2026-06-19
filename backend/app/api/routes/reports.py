@@ -1028,7 +1028,6 @@ def get_project_insights(import_id: int = Query(..., alias="importId")) -> dict:
     top_users = _query_project_rank(import_id=import_id, group_by="user", limit=3)
     top_tasks = _query_project_rank(import_id=import_id, group_by="task", limit=3)
     top_categories = _query_project_rank(import_id=import_id, group_by="category", limit=3)
-    pending_counts = _query_project_pending_counts(import_id)
 
     with get_connection() as connection:
         with connection.cursor() as cursor:
@@ -1076,7 +1075,6 @@ def get_project_insights(import_id: int = Query(..., alias="importId")) -> dict:
             metrics = cursor.fetchone()
 
     total_seconds = int(metrics["total_seconds"] or 0)
-    pending_total = pending_counts["totals"]["open"]
     top_user = top_users[0] if top_users else None
     top_task = top_tasks[0] if top_tasks else None
     top_category = top_categories[0] if top_categories else None
@@ -1132,15 +1130,6 @@ def get_project_insights(import_id: int = Query(..., alias="importId")) -> dict:
                 "tone": "success",
             }
         )
-    cards.append(
-        {
-            "kind": "pending",
-            "title": "Pendencias operacionais",
-            "value": str(pending_total),
-            "detail": f"{pending_counts['totals']['reviewed']} revisadas, {pending_counts['totals']['ignored']} ignoradas",
-            "tone": "danger" if pending_total > 0 else "success",
-        }
-    )
 
     return {
         "totalHours": round(total_seconds / 3600, 2),
@@ -1158,8 +1147,7 @@ def get_project_recommendations(import_id: int = Query(..., alias="importId")) -
     top_user = insights["topUsers"][0] if insights["topUsers"] else None
     top_task = insights["topTasks"][0] if insights["topTasks"] else None
     top_category = insights["topCategories"][0] if insights["topCategories"] else None
-    pending_card = next((card for card in insights["cards"] if card["kind"] == "pending"), None)
-    pending_total = int(pending_card["value"]) if pending_card else 0
+    pending_total = _query_project_pending_counts(import_id)["totals"]["open"]
 
     if pending_total > 0:
         recommendations.append(
