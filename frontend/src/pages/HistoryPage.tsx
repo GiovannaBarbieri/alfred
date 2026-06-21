@@ -6,7 +6,7 @@ import { applyImportReprocess, getImportReprocessHistory, getImportReprocessPrev
 import type { ImportDetail, ImportReprocessPreview, ImportSummary, ReprocessHistoryItem } from "../types";
 import { formatDateBR, formatDateTimeBR } from "../utils/date";
 
-const visibleRecordLimit = 100;
+const recordPageSize = 20;
 const visibleTaskGroupLimit = 80;
 
 export function HistoryPage({
@@ -42,6 +42,7 @@ export function HistoryPage({
   const [historyNewCategoryFilter, setHistoryNewCategoryFilter] = useState("");
   const [historyUserFilter, setHistoryUserFilter] = useState("");
   const [expandedReprocessRuns, setExpandedReprocessRuns] = useState<Set<string>>(new Set());
+  const [recordPage, setRecordPage] = useState(1);
 
   const filteredImports = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -53,8 +54,12 @@ export function HistoryPage({
         .includes(normalizedSearch),
     );
   }, [imports, search]);
-  const visibleRecords = selectedImport?.records.slice(0, visibleRecordLimit) ?? [];
-  const hiddenRecords = selectedImport ? Math.max(selectedImport.records.length - visibleRecords.length, 0) : 0;
+  const totalRecordPages = selectedImport ? Math.max(1, Math.ceil(selectedImport.records.length / recordPageSize)) : 1;
+  const safeRecordPage = Math.min(recordPage, totalRecordPages);
+  const firstVisibleRecord = selectedImport && selectedImport.records.length > 0 ? (safeRecordPage - 1) * recordPageSize + 1 : 0;
+  const lastVisibleRecord = selectedImport ? Math.min(safeRecordPage * recordPageSize, selectedImport.records.length) : 0;
+  const visibleRecords = selectedImport?.records.slice(firstVisibleRecord - 1, lastVisibleRecord) ?? [];
+  const recordPageNumbers = compactPageNumbers(safeRecordPage, totalRecordPages);
   const taskCurrentCategoryOptions = useMemo(() => {
     if (!reprocessPreview) return [];
     return Array.from(new Set(reprocessPreview.taskGroups.map((group) => group.currentCategory).filter(Boolean))).sort();
@@ -251,6 +256,7 @@ export function HistoryPage({
     setExpandedReprocessRuns(new Set());
     setIsLoadingReprocessPreview(false);
     setIsApplyingReprocess(false);
+    setRecordPage(1);
     if (!selectedImport?.id) {
       setReprocessHistory([]);
       setIsLoadingReprocessHistory(false);
@@ -875,11 +881,6 @@ export function HistoryPage({
 
             <div className="detail-subsection">
               <h3>Lancamentos</h3>
-              {hiddenRecords > 0 && (
-                <p className="muted">
-                  Mostrando os primeiros {visibleRecords.length} de {selectedImport.records.length} lancamentos para manter a tela leve.
-                </p>
-              )}
               <div className="detail-table-wrap">
                 <table className="detail-table">
                   <thead>
@@ -908,6 +909,44 @@ export function HistoryPage({
                   </tbody>
                 </table>
               </div>
+              {selectedImport.records.length > 0 && (
+                <>
+                  <div className="task-pagination-summary">
+                    Mostrando {firstVisibleRecord}-{lastVisibleRecord} de {selectedImport.records.length} lancamentos
+                  </div>
+                  <div className="task-pagination" aria-label="Paginacao de lancamentos">
+                    <button
+                      className="task-page-button nav"
+                      type="button"
+                      aria-label="Pagina anterior"
+                      disabled={safeRecordPage <= 1}
+                      onClick={() => setRecordPage(safeRecordPage - 1)}
+                    >
+                      {"<"}
+                    </button>
+                    {recordPageNumbers.map((page) => (
+                      <button
+                        className={page === safeRecordPage ? "task-page-button active" : "task-page-button"}
+                        type="button"
+                        key={page}
+                        aria-current={page === safeRecordPage ? "page" : undefined}
+                        onClick={() => setRecordPage(page)}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    <button
+                      className="task-page-button nav"
+                      type="button"
+                      aria-label="Proxima pagina"
+                      disabled={safeRecordPage >= totalRecordPages}
+                      onClick={() => setRecordPage(safeRecordPage + 1)}
+                    >
+                      {">"}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
 
           </div>
@@ -915,4 +954,14 @@ export function HistoryPage({
       </section>
     </>
   );
+}
+
+function compactPageNumbers(currentPage: number, totalPages: number) {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  if (currentPage <= 3) return [1, 2, 3, 4, 5];
+  if (currentPage >= totalPages - 2) return Array.from({ length: 5 }, (_, index) => totalPages - 4 + index);
+  return [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
 }
