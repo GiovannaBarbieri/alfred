@@ -42,8 +42,6 @@ export function SubcategoriesSettings({
         <div className="settings-table-header">
           <span>Nome</span>
           <span>Status</span>
-          <span>Categoria</span>
-          <span>Ultima alteracao</span>
           <span>Acoes</span>
         </div>
         {filteredSubcategories.map((subcategory) => (
@@ -53,8 +51,6 @@ export function SubcategoriesSettings({
               onChange={(event) => onSubcategoryDraftsChange((current) => ({ ...current, [subcategory.id]: event.target.value }))}
             />
             <span className={`settings-status ${subcategory.active ? "active" : "inactive"}`}>{subcategory.active ? "Ativa" : "Inativa"}</span>
-            <span className="settings-muted-cell">Nao vinculada</span>
-            <span className="settings-muted-cell">Nao informado</span>
             <div className="settings-row-actions">
               <button
                 className="secondary-button compact"
