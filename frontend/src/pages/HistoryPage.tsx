@@ -2,9 +2,9 @@ import { AlertTriangle, CheckCircle2, FileSpreadsheet, GitCompareArrows } from "
 import { useEffect, useMemo, useState } from "react";
 
 import { Metric } from "../components/Metric";
-import { applyImportReprocess, getImportReprocessHistory, getImportReprocessPreview } from "../services/api";
-import type { ImportDetail, ImportReprocessPreview, ImportSummary, ReprocessHistoryItem } from "../types";
-import { formatDateBR, formatDateTimeBR } from "../utils/date";
+import { applyImportReprocess, getImportReprocessPreview } from "../services/api";
+import type { ImportDetail, ImportReprocessPreview, ImportSummary } from "../types";
+import { formatDateTimeBR } from "../utils/date";
 
 const recordPageSize = 20;
 const visibleTaskGroupLimit = 80;
@@ -26,8 +26,6 @@ export function HistoryPage({
   const [reprocessPreview, setReprocessPreview] = useState<ImportReprocessPreview | null>(null);
   const [isLoadingReprocessPreview, setIsLoadingReprocessPreview] = useState(false);
   const [isApplyingReprocess, setIsApplyingReprocess] = useState(false);
-  const [reprocessHistory, setReprocessHistory] = useState<ReprocessHistoryItem[]>([]);
-  const [isLoadingReprocessHistory, setIsLoadingReprocessHistory] = useState(false);
   const [reprocessPreviewError, setReprocessPreviewError] = useState<string | null>(null);
   const [reprocessApplyMessage, setReprocessApplyMessage] = useState<string | null>(null);
   const [selectedTaskKeys, setSelectedTaskKeys] = useState<Set<string>>(new Set());
@@ -37,11 +35,6 @@ export function HistoryPage({
   const [taskSelectionFilter, setTaskSelectionFilter] = useState<"all" | "selected" | "unselected">("all");
   const [lowConfidenceOnly, setLowConfidenceOnly] = useState(false);
   const [isReprocessConfirmOpen, setIsReprocessConfirmOpen] = useState(false);
-  const [historySearch, setHistorySearch] = useState("");
-  const [historyPreviousCategoryFilter, setHistoryPreviousCategoryFilter] = useState("");
-  const [historyNewCategoryFilter, setHistoryNewCategoryFilter] = useState("");
-  const [historyUserFilter, setHistoryUserFilter] = useState("");
-  const [expandedReprocessRuns, setExpandedReprocessRuns] = useState<Set<string>>(new Set());
   const [recordPage, setRecordPage] = useState(1);
 
   const filteredImports = useMemo(() => {
@@ -138,113 +131,6 @@ export function HistoryPage({
       });
     return Array.from(changes.values()).sort((a, b) => b.totalRecords - a.totalRecords);
   }, [reprocessPreview, selectedTaskKeys]);
-  const historyPreviousCategoryOptions = useMemo(() => {
-    return Array.from(new Set(reprocessHistory.map((item) => item.previousCategory).filter(Boolean))).sort() as string[];
-  }, [reprocessHistory]);
-  const historyNewCategoryOptions = useMemo(() => {
-    return Array.from(new Set(reprocessHistory.map((item) => item.newCategory).filter(Boolean))).sort() as string[];
-  }, [reprocessHistory]);
-  const historyUserOptions = useMemo(() => {
-    return Array.from(new Set(reprocessHistory.map((item) => item.user).filter(Boolean))).sort();
-  }, [reprocessHistory]);
-  const filteredReprocessHistory = useMemo(() => {
-    const normalizedSearch = historySearch.trim().toLowerCase();
-    return reprocessHistory.filter((item) => {
-      const matchesSearch =
-        !normalizedSearch ||
-        [
-          item.idLancamento,
-          item.idTask,
-          item.tituloTask,
-          item.loginUsuario,
-          item.user,
-          item.previousCategory,
-          item.newCategory,
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(normalizedSearch);
-      const matchesPreviousCategory =
-        !historyPreviousCategoryFilter || item.previousCategory === historyPreviousCategoryFilter;
-      const matchesNewCategory = !historyNewCategoryFilter || item.newCategory === historyNewCategoryFilter;
-      const matchesUser = !historyUserFilter || item.user === historyUserFilter;
-
-      return matchesSearch && matchesPreviousCategory && matchesNewCategory && matchesUser;
-    });
-  }, [
-    historyNewCategoryFilter,
-    historyPreviousCategoryFilter,
-    historySearch,
-    historyUserFilter,
-    reprocessHistory,
-  ]);
-  const reprocessHistoryRuns = useMemo(() => {
-    const grouped = new Map<
-      string,
-      {
-        key: string;
-        createdAt: string;
-        user: string;
-        previousVersion: string | null;
-        newVersion: string | null;
-        items: ReprocessHistoryItem[];
-        changes: { fromCategory: string; toCategory: string; totalRecords: number }[];
-      }
-    >();
-
-    filteredReprocessHistory.forEach((item) => {
-      const createdAtKey = item.createdAt.slice(0, 19);
-      const key = `${createdAtKey}-${item.user}-${item.previousVersion ?? "-"}-${item.newVersion ?? "-"}`;
-      const current =
-        grouped.get(key) ??
-        {
-          key,
-          createdAt: item.createdAt,
-          user: item.user,
-          previousVersion: item.previousVersion,
-          newVersion: item.newVersion,
-          items: [],
-          changes: [],
-        };
-      current.items.push(item);
-      grouped.set(key, current);
-    });
-
-    return Array.from(grouped.values())
-      .map((run) => {
-        const changes = new Map<string, { fromCategory: string; toCategory: string; totalRecords: number }>();
-        run.items.forEach((item) => {
-          const fromCategory = item.previousCategory ?? "-";
-          const toCategory = item.newCategory ?? "-";
-          const key = `${fromCategory}->${toCategory}`;
-          const current = changes.get(key) ?? { fromCategory, toCategory, totalRecords: 0 };
-          current.totalRecords += 1;
-          changes.set(key, current);
-        });
-        return {
-          ...run,
-          changes: Array.from(changes.values()).sort((a, b) => b.totalRecords - a.totalRecords),
-        };
-      })
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [filteredReprocessHistory]);
-  const reprocessHistorySummary = useMemo(() => {
-    const latest = reprocessHistoryRuns[0];
-    const changedTasks = new Set(filteredReprocessHistory.map((item) => item.idTask || item.idLancamento)).size;
-    const changedUsers = new Set(filteredReprocessHistory.map((item) => item.loginUsuario).filter(Boolean)).size;
-    return {
-      latest,
-      changedTasks,
-      changedUsers,
-      totalRecords: filteredReprocessHistory.length,
-    };
-  }, [filteredReprocessHistory, reprocessHistoryRuns]);
-  const hasReprocessHistoryFilters =
-    historySearch.trim() !== "" ||
-    historyPreviousCategoryFilter !== "" ||
-    historyNewCategoryFilter !== "" ||
-    historyUserFilter !== "";
-
   useEffect(() => {
     setReprocessPreview(null);
     setReprocessPreviewError(null);
@@ -252,30 +138,10 @@ export function HistoryPage({
     setSelectedTaskKeys(new Set());
     setIsReprocessConfirmOpen(false);
     clearTaskFilters();
-    clearReprocessHistoryFilters();
-    setExpandedReprocessRuns(new Set());
     setIsLoadingReprocessPreview(false);
     setIsApplyingReprocess(false);
     setRecordPage(1);
-    if (!selectedImport?.id) {
-      setReprocessHistory([]);
-      setIsLoadingReprocessHistory(false);
-      return;
-    }
-
-    void refreshReprocessHistory(selectedImport.id);
   }, [selectedImport?.id]);
-
-  async function refreshReprocessHistory(importId: number) {
-    setIsLoadingReprocessHistory(true);
-    try {
-      setReprocessHistory(await getImportReprocessHistory(importId));
-    } catch {
-      setReprocessHistory([]);
-    } finally {
-      setIsLoadingReprocessHistory(false);
-    }
-  }
 
   async function handleReprocessPreview() {
     if (!selectedImport) return;
@@ -320,7 +186,6 @@ export function HistoryPage({
       setReprocessApplyMessage(response.message);
       setReprocessPreview(null);
       setIsReprocessConfirmOpen(false);
-      await refreshReprocessHistory(selectedImport.id);
       onOpenImport(selectedImport.id);
     } catch (err) {
       setReprocessPreviewError(err instanceof Error ? err.message : "Erro inesperado ao aplicar o reprocessamento.");
@@ -356,25 +221,6 @@ export function HistoryPage({
     setNewCategoryFilter("");
     setTaskSelectionFilter("all");
     setLowConfidenceOnly(false);
-  }
-
-  function clearReprocessHistoryFilters() {
-    setHistorySearch("");
-    setHistoryPreviousCategoryFilter("");
-    setHistoryNewCategoryFilter("");
-    setHistoryUserFilter("");
-  }
-
-  function handleToggleReprocessRun(runKey: string) {
-    setExpandedReprocessRuns((current) => {
-      const next = new Set(current);
-      if (next.has(runKey)) {
-        next.delete(runKey);
-      } else {
-        next.add(runKey);
-      }
-      return next;
-    });
   }
 
   return (
@@ -718,158 +564,6 @@ export function HistoryPage({
                 </section>
               </div>
             )}
-
-            <div className="detail-subsection reprocess-history-panel">
-              <div className="detail-subsection-heading">
-                <h3>Historico de reprocessamento</h3>
-                <span>{filteredReprocessHistory.length} de {reprocessHistory.length}</span>
-              </div>
-              {isLoadingReprocessHistory ? (
-                <p className="muted">Carregando historico de reprocessamento...</p>
-              ) : reprocessHistory.length === 0 ? (
-                <p className="muted">Nenhum reprocessamento aplicado nesta importacao ainda.</p>
-              ) : (
-                <>
-                  <div className="reprocess-history-summary">
-                    <span>
-                      <strong>{reprocessHistorySummary.totalRecords}</strong>
-                      <small>Lancamentos filtrados</small>
-                    </span>
-                    <span>
-                      <strong>{reprocessHistorySummary.changedTasks}</strong>
-                      <small>Tasks afetadas</small>
-                    </span>
-                    <span>
-                      <strong>{reprocessHistorySummary.changedUsers}</strong>
-                      <small>Colaboradores</small>
-                    </span>
-                    <span>
-                      <strong>
-                        {reprocessHistorySummary.latest
-                          ? formatDateBR(reprocessHistorySummary.latest.createdAt)
-                          : "-"}
-                      </strong>
-                      <small>Ultima execucao</small>
-                    </span>
-                  </div>
-                  <div className="reprocess-history-filters">
-                    <label className="reprocess-history-search">
-                      <span>Buscar</span>
-                      <input
-                        placeholder="Task, titulo, colaborador ou lancamento"
-                        value={historySearch}
-                        onChange={(event) => setHistorySearch(event.target.value)}
-                      />
-                    </label>
-                    <label>
-                      <span>Antes</span>
-                      <select
-                        value={historyPreviousCategoryFilter}
-                        onChange={(event) => setHistoryPreviousCategoryFilter(event.target.value)}
-                      >
-                        <option value="">Todas</option>
-                        {historyPreviousCategoryOptions.map((category) => (
-                          <option key={category} value={category}>
-                            {category}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      <span>Depois</span>
-                      <select value={historyNewCategoryFilter} onChange={(event) => setHistoryNewCategoryFilter(event.target.value)}>
-                        <option value="">Todas</option>
-                        {historyNewCategoryOptions.map((category) => (
-                          <option key={category} value={category}>
-                            {category}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      <span>Usuario</span>
-                      <select value={historyUserFilter} onChange={(event) => setHistoryUserFilter(event.target.value)}>
-                        <option value="">Todos</option>
-                        {historyUserOptions.map((user) => (
-                          <option key={user} value={user}>
-                            {user}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    {hasReprocessHistoryFilters && (
-                      <button className="reprocess-filter-clear" type="button" onClick={clearReprocessHistoryFilters}>
-                        Limpar
-                      </button>
-                    )}
-                  </div>
-                  {reprocessHistoryRuns.length === 0 ? (
-                    <p className="muted">Nenhum registro encontrado para os filtros aplicados.</p>
-                  ) : (
-                    <div className="reprocess-history-list">
-                      {reprocessHistoryRuns.map((run) => {
-                        const isExpanded = expandedReprocessRuns.has(run.key);
-                        return (
-                          <div className="reprocess-history-run" key={run.key}>
-                            <button
-                              className="reprocess-history-run-header"
-                              type="button"
-                              onClick={() => handleToggleReprocessRun(run.key)}
-                              aria-expanded={isExpanded}
-                            >
-                              <div>
-                                <strong>{formatDateTimeBR(run.createdAt)}</strong>
-                                <small>
-                                  {run.user} - v{run.previousVersion ?? "-"} {"->"} v{run.newVersion ?? "-"}
-                                </small>
-                              </div>
-                              <div className="reprocess-history-run-metrics">
-                                <span>{run.items.length} lancamento(s)</span>
-                                <span>{new Set(run.items.map((item) => item.idTask || item.idLancamento)).size} Task(s)</span>
-                              </div>
-                            </button>
-                            <div className="reprocess-history-run-changes">
-                              {run.changes.slice(0, 5).map((change) => (
-                                <span key={`${run.key}-${change.fromCategory}-${change.toCategory}`}>
-                                  {change.fromCategory} {"->"} {change.toCategory}
-                                  <strong>{change.totalRecords}</strong>
-                                </span>
-                              ))}
-                            </div>
-                            {isExpanded && (
-                              <div className="reprocess-history-items">
-                                {run.items.map((item) => (
-                                  <div className="reprocess-history-item" key={item.id}>
-                                    <div>
-                                      <span>
-                                        Lancamento {item.idLancamento} - {item.loginUsuario}
-                                      </span>
-                                      <strong>{item.tituloTask}</strong>
-                                      <small>Task {item.idTask || "sem ID"}</small>
-                                    </div>
-                                    <div className="reprocess-history-change">
-                                      <span>
-                                        Antes: <strong>{item.previousCategory ?? "-"} / {item.previousSubcategory ?? "-"}</strong>
-                                      </span>
-                                      <span>
-                                        Depois: <strong>{item.newCategory ?? "-"} / {item.newSubcategory ?? "-"}</strong>
-                                      </span>
-                                      <small>
-                                        Confianca: {item.previousConfidence !== null ? `${Math.round(item.previousConfidence * 100)}%` : "-"} {"->"} {item.newConfidence !== null ? `${Math.round(item.newConfidence * 100)}%` : "-"}
-                                      </small>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
 
             <div className="detail-subsection">
               <h3>Lancamentos</h3>
