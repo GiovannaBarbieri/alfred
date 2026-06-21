@@ -6594,7 +6594,7 @@ input {
 
 .settings-data-table.categories-table .settings-table-header,
 .settings-data-table.categories-table .settings-table-row {
-  grid-template-columns: minmax(220px, 1fr) 92px minmax(130px, 0.8fr) minmax(120px, 0.8fr) 176px;
+  grid-template-columns: minmax(220px, 1fr) 92px 176px;
 }
 
 .settings-data-table.collaborators-table .settings-table-header,

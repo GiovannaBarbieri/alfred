@@ -40,8 +40,6 @@ export function CategoriesSettings({
         <div className="settings-table-header">
           <span>Nome</span>
           <span>Status</span>
-          <span>Uso</span>
-          <span>Ultima alteracao</span>
           <span>Acoes</span>
         </div>
         {filteredCategories.map((category) => (
@@ -51,8 +49,6 @@ export function CategoriesSettings({
               onChange={(event) => onCategoryDraftsChange((current) => ({ ...current, [category.id]: event.target.value }))}
             />
             <span className={`settings-status ${category.active ? "active" : "inactive"}`}>{category.active ? "Ativa" : "Inativa"}</span>
-            <span className="settings-muted-cell">Uso real pendente</span>
-            <span className="settings-muted-cell">Nao informado</span>
             <div className="settings-row-actions">
               <button
                 className="secondary-button compact"
