@@ -6524,7 +6524,8 @@ input {
   border-top: 1px solid #e5eaf0;
   display: grid;
   gap: 8px;
-  grid-template-columns: minmax(0, 1fr) 180px 110px 96px;
+  grid-template-columns: minmax(160px, 280px) 150px 110px 96px;
+  justify-content: start;
   min-height: 54px;
   padding: 8px 0;
 }
@@ -6599,7 +6600,8 @@ input {
 
 .settings-data-table.collaborators-table .settings-table-header,
 .settings-data-table.collaborators-table .settings-table-row {
-  grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.8fr) 92px 176px;
+  grid-template-columns: minmax(180px, 280px) 150px 92px 176px;
+  justify-content: start;
 }
 
 .settings-data-table.keywords-table .settings-table-header,
@@ -6656,7 +6658,7 @@ input {
 }
 
 .collaborator-profile-row {
-  grid-template-columns: minmax(260px, 1fr) minmax(180px, 260px) 86px 86px;
+  grid-template-columns: minmax(180px, 280px) 150px 92px 176px;
 }
 
 .settings-item.inactive,
