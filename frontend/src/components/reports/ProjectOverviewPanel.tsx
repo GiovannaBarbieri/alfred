@@ -47,7 +47,7 @@ export function ProjectOverviewPanel({
           smartSummary.length === 0 ? (
             <div className="chart-empty-state compact">
               <strong>Sem dados suficientes</strong>
-              <span>Conclua uma importacao para gerar leituras automaticas do projeto.</span>
+              <span>Conclua uma importação para gerar leituras automaticas do projeto.</span>
             </div>
           ) : (
             <div className="smart-summary-grid">
@@ -81,8 +81,8 @@ export function ProjectOverviewPanel({
         {isProjectInsightsOpen && (
           projectInsights.cards.length === 0 ? (
             <div className="chart-empty-state compact">
-              <strong>Sem analises calculadas</strong>
-              <span>Conclua uma importacao com dados validos para exibir os destaques.</span>
+              <strong>Sem análises calculadas</strong>
+              <span>Conclua uma importação com dados validos para exibir os destaques.</span>
             </div>
           ) : (
             <div className="project-insights-grid">
@@ -185,8 +185,8 @@ function buildSmartSummary(projectExecutiveSummary: ProjectExecutiveSummary) {
 
   if (pending.lowConfidence > 0) {
     insights.push({
-      title: "Baixa confianca",
-      description: `${pending.lowConfidence} classificacao(oes) com baixa confianca merecem revisao para melhorar a precisao das categorias.`,
+      title: "Baixa confiança",
+      description: `${pending.lowConfidence} classificação(oes) com baixa confiança merecem revisão para melhorar a precisão das categorias.`,
       tone: "warning",
       icon: <Gauge size={18} />,
     });

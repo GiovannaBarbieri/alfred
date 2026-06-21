@@ -2,9 +2,9 @@ export type ImportWizardStep = "upload" | "preview" | "validation" | "duplicates
 
 const importWizardSteps: Array<{ id: ImportWizardStep; title: string }> = [
   { id: "upload", title: "Upload" },
-  { id: "preview", title: "Pre-visualizacao" },
+  { id: "preview", title: "Pré-visualização" },
   { id: "duplicates", title: "Duplicidades" },
-  { id: "classification", title: "Classificacao" },
+  { id: "classification", title: "Classificação" },
   { id: "confirm", title: "Confirmar" },
 ];
 
@@ -25,7 +25,7 @@ export function ImportWizard({
   const availableStepSet = new Set(availableSteps ?? importWizardSteps.map((step) => step.id));
 
   return (
-    <section className="panel import-wizard" aria-label="Etapas da importacao">
+    <section className="panel import-wizard" aria-label="Etapas da importação">
       {importWizardSteps.map((step, index) => {
         const isActive = step.id === activeStep;
         const isDone = completed && index < activeIndex;

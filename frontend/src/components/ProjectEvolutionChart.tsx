@@ -49,9 +49,9 @@ export function ProjectEvolutionChart({ points }: ProjectEvolutionChartProps) {
       <div className="project-evolution-chart-heading">
         <div>
           <BarChart3 size={18} />
-          <strong>Linha do tempo das importacoes</strong>
+          <strong>Linha do tempo das importações</strong>
         </div>
-        <div className="project-evolution-metric-tabs" aria-label="Metrica da evolucao">
+        <div className="project-evolution-metric-tabs" aria-label="Métrica da evolução">
           {metrics.map((metric) => (
             <button
               className={metric.id === selectedMetricId ? "active" : ""}

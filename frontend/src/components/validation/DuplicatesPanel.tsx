@@ -22,7 +22,7 @@ export function DuplicatesPanel({ duplicates, duplicateSelections, onDuplicateSe
           <div className="duplicate-group" key={duplicate.idLancamento}>
             <div className="duplicate-title">
               <strong>IdLancamento {duplicate.idLancamento}</strong>
-              <small>Escolha uma linha para manter na importacao.</small>
+              <small>Escolha uma linha para manter na importação.</small>
             </div>
             <div className="duplicate-records">
               {duplicate.records.map((record) => (

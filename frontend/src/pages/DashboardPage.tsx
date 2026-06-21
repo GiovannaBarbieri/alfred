@@ -16,20 +16,20 @@ export function DashboardPage({
   const topProject = [...overview.recentProjects].sort((a, b) => b.totalHours - a.totalHours)[0];
   const confidenceInsight =
     overview.pendingItems.lowConfidence > 0
-      ? `${overview.pendingItems.lowConfidence} classificacoes com baixa confianca merecem uma olhada.`
-      : "Classificacoes sem fila relevante de baixa confianca.";
+      ? `${overview.pendingItems.lowConfidence} classificações com baixa confiança merecem uma olhada.`
+      : "Classificações sem fila relevante de baixa confiança.";
   const profileInsight =
     overview.pendingItems.collaboratorsWithoutProfile > 0
       ? `${overview.pendingItems.collaboratorsWithoutProfile} colaborador${overview.pendingItems.collaboratorsWithoutProfile === 1 ? "" : "es"} sem perfil operacional cadastrado.`
       : "Todos os colaboradores importados possuem perfil operacional ativo.";
   const pendingCards = [
     {
-      label: "Classificacoes pendentes",
+      label: "Classificações pendentes",
       value: overview.pendingItems.classificationPending,
       icon: <CheckCircle2 size={18} />,
     },
     {
-      label: "Baixa confianca",
+      label: "Baixa confiança",
       value: overview.pendingItems.lowConfidence,
       icon: <AlertTriangle size={18} />,
     },
@@ -120,7 +120,7 @@ export function DashboardPage({
           ) : (
             <div className="dashboard-empty-state">
               <strong>Nenhum projeto importado ainda</strong>
-              <p className="muted">Conclua uma importacao para acompanhar projetos, pendencias e categorias neste painel.</p>
+              <p className="muted">Conclua uma importação para acompanhar projetos, pendências e categorias neste painel.</p>
             </div>
           )}
         </section>

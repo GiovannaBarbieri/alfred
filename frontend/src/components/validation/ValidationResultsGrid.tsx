@@ -33,7 +33,7 @@ export function ValidationResultsGrid({ result, blockingIssues }: ValidationResu
       {/*
       Modulo resumido de classificacoes ocultado por decisao de produto.
       A revisao operacional continua no componente ClassificationReviewPanel.
-      <ResultPanel title="Classificacoes" emptyText="Nenhuma classificacao sugerida." count={result.classifications.length}>
+      <ResultPanel title="Classificações" emptyText="Nenhuma classificação sugerida." count={result.classifications.length}>
         {result.classifications.slice(0, 8).map((item) => (
           <div className="classification-row" key={`${item.line}-${item.tituloTask}`}>
             <span>Linha {item.line}</span>

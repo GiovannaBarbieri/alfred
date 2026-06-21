@@ -82,7 +82,7 @@ export async function validateImport(file: File): Promise<ImportValidationRespon
 
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new Error(payload?.detail ?? "Nao foi possivel validar o arquivo.");
+    throw new Error(payload?.detail ?? "Não foi possível validar o arquivo.");
   }
 
   return response.json();
@@ -99,7 +99,7 @@ export async function createImportSession(file: File): Promise<ImportSessionResp
 
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new Error(payload?.detail ?? "Nao foi possivel criar a sessao de importacao.");
+    throw new Error(payload?.detail ?? "Não foi possível criar a sessão de importação.");
   }
 
   return response.json();
@@ -126,7 +126,7 @@ export async function completeImport(
 
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new Error(payload?.detail ?? "Nao foi possivel concluir a importacao.");
+    throw new Error(payload?.detail ?? "Não foi possível concluir a importação.");
   }
 
   return response.json();
@@ -145,7 +145,7 @@ export async function completeImportSession(
 
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new Error(payload?.detail ?? "Nao foi possivel concluir a importacao.");
+    throw new Error(payload?.detail ?? "Não foi possível concluir a importação.");
   }
 
   return response.json();
@@ -158,7 +158,7 @@ export async function reprocessImportSession(sessionId: number): Promise<ImportS
 
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new Error(payload?.detail ?? "Nao foi possivel reprocessar a importacao.");
+    throw new Error(payload?.detail ?? "Não foi possível reprocessar a importação.");
   }
 
   return response.json();
@@ -171,7 +171,7 @@ export async function cancelImportSession(sessionId: number): Promise<ImportSess
 
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new Error(payload?.detail ?? "Nao foi possivel cancelar a importacao.");
+    throw new Error(payload?.detail ?? "Não foi possível cancelar a importação.");
   }
 
   return response.json();
@@ -180,7 +180,7 @@ export async function cancelImportSession(sessionId: number): Promise<ImportSess
 export async function getImports(): Promise<ImportSummary[]> {
   const response = await fetch(`${API_BASE_URL}/imports`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar o historico.");
+    throw new Error("Não foi possível carregar o histórico.");
   }
   return response.json();
 }
@@ -188,7 +188,7 @@ export async function getImports(): Promise<ImportSummary[]> {
 export async function getImportDetail(importId: number): Promise<ImportDetail> {
   const response = await fetch(`${API_BASE_URL}/imports/${importId}`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar a importacao.");
+    throw new Error("Não foi possível carregar a importação.");
   }
   return response.json();
 }
@@ -196,7 +196,7 @@ export async function getImportDetail(importId: number): Promise<ImportDetail> {
 export async function getImportReprocessPreview(importId: number): Promise<ImportReprocessPreview> {
   const response = await fetch(`${API_BASE_URL}/imports/${importId}/reprocess-preview`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel gerar a previa de reprocessamento.");
+    throw new Error("Não foi possível gerar a prévia de reprocessamento.");
   }
   return response.json();
 }
@@ -209,7 +209,7 @@ export async function applyImportReprocess(importId: number, selectedTaskKeys?: 
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new Error(payload?.detail ?? "Nao foi possivel aplicar o reprocessamento.");
+    throw new Error(payload?.detail ?? "Não foi possível aplicar o reprocessamento.");
   }
   return response.json();
 }
@@ -217,7 +217,7 @@ export async function applyImportReprocess(importId: number, selectedTaskKeys?: 
 export async function getImportReprocessHistory(importId: number): Promise<ReprocessHistoryItem[]> {
   const response = await fetch(`${API_BASE_URL}/imports/${importId}/reprocess-history`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar o historico de reprocessamento.");
+    throw new Error("Não foi possível carregar o histórico de reprocessamento.");
   }
   return response.json();
 }
@@ -225,7 +225,7 @@ export async function getImportReprocessHistory(importId: number): Promise<Repro
 export async function getDashboardSummary(filters?: Partial<ReportFilters>): Promise<DashboardSummary> {
   const response = await fetch(`${API_BASE_URL}/dashboard/summary${buildQuery(filters)}`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar o dashboard.");
+    throw new Error("Não foi possível carregar o dashboard.");
   }
   return response.json();
 }
@@ -233,7 +233,7 @@ export async function getDashboardSummary(filters?: Partial<ReportFilters>): Pro
 export async function getDashboardOverview(filters?: Partial<ReportFilters>): Promise<DashboardOverview> {
   const response = await fetch(`${API_BASE_URL}/dashboard/overview${buildQuery(filters)}`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar a central operacional.");
+    throw new Error("Não foi possível carregar a central operacional.");
   }
   return response.json();
 }
@@ -241,7 +241,7 @@ export async function getDashboardOverview(filters?: Partial<ReportFilters>): Pr
 export async function getDashboardTimeline(filters?: Partial<ReportFilters>): Promise<TimelinePoint[]> {
   const response = await fetch(`${API_BASE_URL}/dashboard/timeline${buildQuery(filters)}`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar a linha do tempo.");
+    throw new Error("Não foi possível carregar a linha do tempo.");
   }
   return response.json();
 }
@@ -249,7 +249,7 @@ export async function getDashboardTimeline(filters?: Partial<ReportFilters>): Pr
 export async function getReportsOverview(filters?: Partial<ReportFilters>): Promise<ReportsOverview> {
   const response = await fetch(`${API_BASE_URL}/reports/overview${buildQuery(filters)}`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar os relatorios.");
+    throw new Error("Não foi possível carregar os relatórios.");
   }
   return response.json();
 }
@@ -257,7 +257,7 @@ export async function getReportsOverview(filters?: Partial<ReportFilters>): Prom
 export async function getProjectTimelineCharts(importId: number): Promise<ProjectTimelineCharts> {
   const response = await fetch(`${API_BASE_URL}/reports/project-timelines?importId=${importId}`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar as linhas do tempo do projeto.");
+    throw new Error("Não foi possível carregar as linhas do tempo do projeto.");
   }
   return response.json();
 }
@@ -268,7 +268,7 @@ export async function getProjectComparison(importIds: number[]): Promise<Project
   const response = await fetch(`${API_BASE_URL}/reports/project-comparison?${params.toString()}`);
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new Error(payload?.detail ?? "Nao foi possivel comparar os projetos.");
+    throw new Error(payload?.detail ?? "Não foi possível comparar os projetos.");
   }
   return response.json();
 }
@@ -276,7 +276,7 @@ export async function getProjectComparison(importIds: number[]): Promise<Project
 export async function getProjectEvolutionOptions(): Promise<ProjectEvolutionOption[]> {
   const response = await fetch(`${API_BASE_URL}/reports/project-evolution-options`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar projetos com historico.");
+    throw new Error("Não foi possível carregar projetos com histórico.");
   }
   return response.json();
 }
@@ -286,7 +286,7 @@ export async function getProjectEvolution(projectName: string): Promise<ProjectE
   const response = await fetch(`${API_BASE_URL}/reports/project-evolution?${params.toString()}`);
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new Error(payload?.detail ?? "Nao foi possivel carregar a evolucao do projeto.");
+    throw new Error(payload?.detail ?? "Não foi possível carregar a evolução do projeto.");
   }
   return response.json();
 }
@@ -294,7 +294,7 @@ export async function getProjectEvolution(projectName: string): Promise<ProjectE
 export async function getSavedProjectComparisons(): Promise<SavedProjectComparisonSummary[]> {
   const response = await fetch(`${API_BASE_URL}/reports/project-comparisons`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar os comparativos salvos.");
+    throw new Error("Não foi possível carregar os comparativos salvos.");
   }
   return response.json();
 }
@@ -307,7 +307,7 @@ export async function createSavedProjectComparison(name: string, importIds: numb
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new Error(payload?.detail ?? "Nao foi possivel salvar o comparativo.");
+    throw new Error(payload?.detail ?? "Não foi possível salvar o comparativo.");
   }
   return response.json();
 }
@@ -315,7 +315,7 @@ export async function createSavedProjectComparison(name: string, importIds: numb
 export async function getSavedProjectComparison(comparisonId: number): Promise<SavedProjectComparisonDetail> {
   const response = await fetch(`${API_BASE_URL}/reports/project-comparisons/${comparisonId}`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel abrir o comparativo salvo.");
+    throw new Error("Não foi possível abrir o comparativo salvo.");
   }
   return response.json();
 }
@@ -325,7 +325,7 @@ export async function deleteSavedProjectComparison(comparisonId: number): Promis
     method: "DELETE",
   });
   if (!response.ok) {
-    throw new Error("Nao foi possivel excluir o comparativo.");
+    throw new Error("Não foi possível excluir o comparativo.");
   }
   return response.json();
 }
@@ -333,7 +333,7 @@ export async function deleteSavedProjectComparison(comparisonId: number): Promis
 export async function getProjectExecutiveSummary(importId: number): Promise<ProjectExecutiveSummary> {
   const response = await fetch(`${API_BASE_URL}/reports/project-summary?importId=${importId}`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar o resumo executivo do projeto.");
+    throw new Error("Não foi possível carregar o resumo executivo do projeto.");
   }
   return response.json();
 }
@@ -341,7 +341,7 @@ export async function getProjectExecutiveSummary(importId: number): Promise<Proj
 export async function getProjectPendingItems(importId: number): Promise<ProjectPendingItems> {
   const response = await fetch(`${API_BASE_URL}/reports/project-pending-items?importId=${importId}`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar as pendencias do projeto.");
+    throw new Error("Não foi possível carregar as pendências do projeto.");
   }
   return response.json();
 }
@@ -353,7 +353,7 @@ export async function updateProjectPendingAlert(alertId: number, resolved = true
     body: JSON.stringify({ resolved }),
   });
   if (!response.ok) {
-    throw new Error("Nao foi possivel atualizar o alerta.");
+    throw new Error("Não foi possível atualizar o alerta.");
   }
   return response.json();
 }
@@ -370,7 +370,7 @@ export async function updateProjectPendingReview(
     body: JSON.stringify({ importId, type, key, status }),
   });
   if (!response.ok) {
-    throw new Error("Nao foi possivel atualizar a pendencia.");
+    throw new Error("Não foi possível atualizar a pendencia.");
   }
   return response.json();
 }
@@ -378,7 +378,7 @@ export async function updateProjectPendingReview(
 export async function getProjectInsights(importId: number): Promise<ProjectInsights> {
   const response = await fetch(`${API_BASE_URL}/reports/project-insights?importId=${importId}`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar as analises principais do projeto.");
+    throw new Error("Não foi possível carregar as análises principais do projeto.");
   }
   return response.json();
 }
@@ -386,7 +386,7 @@ export async function getProjectInsights(importId: number): Promise<ProjectInsig
 export async function getProjectRecommendations(importId: number): Promise<ProjectRecommendation[]> {
   const response = await fetch(`${API_BASE_URL}/reports/project-recommendations?importId=${importId}`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar as recomendacoes do projeto.");
+    throw new Error("Não foi possível carregar as recomendações do projeto.");
   }
   return response.json();
 }
@@ -395,7 +395,7 @@ export async function getProjectCollaboratorTasks(importId: number, user: string
   const params = new URLSearchParams({ importId: String(importId), user });
   const response = await fetch(`${API_BASE_URL}/reports/project-collaborator-tasks?${params.toString()}`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar as tasks do colaborador.");
+    throw new Error("Não foi possível carregar as tasks do colaborador.");
   }
   return response.json();
 }
@@ -403,14 +403,14 @@ export async function getProjectCollaboratorTasks(importId: number, user: string
 export async function getReportFilterOptions(): Promise<ReportFilterOptions> {
   const response = await fetch(`${API_BASE_URL}/reports/filters`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar os filtros.");
+    throw new Error("Não foi possível carregar os filtros.");
   }
   return response.json();
 }
 
 export async function getCategories(): Promise<SettingItem[]> {
   const response = await fetch(`${API_BASE_URL}/settings/categories`);
-  if (!response.ok) throw new Error("Nao foi possivel carregar categorias.");
+  if (!response.ok) throw new Error("Não foi possível carregar categorias.");
   return response.json();
 }
 
@@ -420,7 +420,7 @@ export async function createCategory(name: string): Promise<SettingItem> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
   });
-  if (!response.ok) throw new Error("Nao foi possivel criar a categoria.");
+  if (!response.ok) throw new Error("Não foi possível criar a categoria.");
   return response.json();
 }
 
@@ -433,13 +433,13 @@ export async function updateCategory(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error("Nao foi possivel atualizar a categoria.");
+  if (!response.ok) throw new Error("Não foi possível atualizar a categoria.");
   return response.json();
 }
 
 export async function getSubcategories(): Promise<SettingItem[]> {
   const response = await fetch(`${API_BASE_URL}/settings/subcategories`);
-  if (!response.ok) throw new Error("Nao foi possivel carregar subcategorias.");
+  if (!response.ok) throw new Error("Não foi possível carregar subcategorias.");
   return response.json();
 }
 
@@ -449,7 +449,7 @@ export async function createSubcategory(name: string): Promise<SettingItem> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
   });
-  if (!response.ok) throw new Error("Nao foi possivel criar a subcategoria.");
+  if (!response.ok) throw new Error("Não foi possível criar a subcategoria.");
   return response.json();
 }
 
@@ -462,13 +462,13 @@ export async function updateSubcategory(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error("Nao foi possivel atualizar a subcategoria.");
+  if (!response.ok) throw new Error("Não foi possível atualizar a subcategoria.");
   return response.json();
 }
 
 export async function getKeywords(): Promise<KeywordItem[]> {
   const response = await fetch(`${API_BASE_URL}/settings/keywords`);
-  if (!response.ok) throw new Error("Nao foi possivel carregar palavras-chave.");
+  if (!response.ok) throw new Error("Não foi possível carregar palavras-chave.");
   return response.json();
 }
 
@@ -478,7 +478,7 @@ export async function createKeyword(categoryId: number, keyword: string): Promis
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ categoryId, keyword }),
   });
-  if (!response.ok) throw new Error("Nao foi possivel criar a palavra-chave.");
+  if (!response.ok) throw new Error("Não foi possível criar a palavra-chave.");
   return response.json();
 }
 
@@ -491,13 +491,13 @@ export async function updateKeyword(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error("Nao foi possivel atualizar a palavra-chave.");
+  if (!response.ok) throw new Error("Não foi possível atualizar a palavra-chave.");
   return response.json();
 }
 
 export async function getClassificationRules(): Promise<ClassificationRuleItem[]> {
   const response = await fetch(`${API_BASE_URL}/settings/classification-rules`);
-  if (!response.ok) throw new Error("Nao foi possivel carregar regras de classificacao.");
+  if (!response.ok) throw new Error("Não foi possível carregar regras de classificação.");
   return response.json();
 }
 
@@ -516,7 +516,7 @@ export async function createClassificationRule(payload: {
   });
   if (!response.ok) {
     const error = await response.json().catch(() => null);
-    throw new Error(error?.detail ?? "Nao foi possivel criar a regra.");
+    throw new Error(error?.detail ?? "Não foi possível criar a regra.");
   }
   return response.json();
 }
@@ -540,14 +540,14 @@ export async function updateClassificationRule(
   });
   if (!response.ok) {
     const error = await response.json().catch(() => null);
-    throw new Error(error?.detail ?? "Nao foi possivel atualizar a regra.");
+    throw new Error(error?.detail ?? "Não foi possível atualizar a regra.");
   }
   return response.json();
 }
 
 export async function getCollaboratorProfiles(): Promise<CollaboratorProfileItem[]> {
   const response = await fetch(`${API_BASE_URL}/settings/collaborator-profiles`);
-  if (!response.ok) throw new Error("Nao foi possivel carregar perfis de colaboradores.");
+  if (!response.ok) throw new Error("Não foi possível carregar perfis de colaboradores.");
   return response.json();
 }
 
@@ -560,7 +560,7 @@ export async function createCollaboratorProfile(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ loginUsuario, subcategoryId }),
   });
-  if (!response.ok) throw new Error("Nao foi possivel criar o perfil do colaborador.");
+  if (!response.ok) throw new Error("Não foi possível criar o perfil do colaborador.");
   return response.json();
 }
 
@@ -573,13 +573,13 @@ export async function updateCollaboratorProfile(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error("Nao foi possivel atualizar o perfil do colaborador.");
+  if (!response.ok) throw new Error("Não foi possível atualizar o perfil do colaborador.");
   return response.json();
 }
 
 export async function getIgnoredCollaborators(): Promise<IgnoredCollaboratorItem[]> {
   const response = await fetch(`${API_BASE_URL}/settings/ignored-collaborators`);
-  if (!response.ok) throw new Error("Nao foi possivel carregar colaboradores ignorados.");
+  if (!response.ok) throw new Error("Não foi possível carregar colaboradores ignorados.");
   return response.json();
 }
 
@@ -589,7 +589,7 @@ export async function ignoreCollaborator(loginUsuario: string): Promise<IgnoredC
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ loginUsuario }),
   });
-  if (!response.ok) throw new Error("Nao foi possivel ignorar o colaborador.");
+  if (!response.ok) throw new Error("Não foi possível ignorar o colaborador.");
   return response.json();
 }
 
@@ -597,7 +597,7 @@ export async function restoreIgnoredCollaborator(ignoredId: number): Promise<Ign
   const response = await fetch(`${API_BASE_URL}/settings/ignored-collaborators/${ignoredId}`, {
     method: "DELETE",
   });
-  if (!response.ok) throw new Error("Nao foi possivel restaurar o colaborador.");
+  if (!response.ok) throw new Error("Não foi possível restaurar o colaborador.");
   return response.json();
 }
 
@@ -615,7 +615,7 @@ export async function getAuditLogs(filters: {
 
   const response = await fetch(`${API_BASE_URL}/audit${params.toString() ? `?${params.toString()}` : ""}`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar a auditoria.");
+    throw new Error("Não foi possível carregar a auditoria.");
   }
   return response.json();
 }
@@ -627,14 +627,14 @@ export async function getAnalyticsInsights(filters: {
   status?: string;
 } = {}): Promise<AnalyticsInsightsResponse> {
   const params = new URLSearchParams();
-  if (filters.importId) params.set("importacao_id", filters.importId);
+  if (filters.importId) params.set("importação_id", filters.importId);
   if (filters.type) params.set("type", filters.type);
   if (filters.severity) params.set("severity", filters.severity);
   if (filters.status) params.set("status", filters.status);
 
   const response = await fetch(`${API_BASE_URL}/analytics/insights${params.toString() ? `?${params.toString()}` : ""}`);
   if (!response.ok) {
-    throw new Error("Nao foi possivel carregar a inteligencia operacional.");
+    throw new Error("Não foi possível carregar a inteligência operacional.");
   }
   return response.json();
 }
@@ -643,11 +643,11 @@ export async function generateAnalyticsInsights(importId: number): Promise<Analy
   const response = await fetch(`${API_BASE_URL}/analytics/insights/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ importacao_id: importId }),
+    body: JSON.stringify({ importação_id: importId }),
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new Error(payload?.detail ?? "Nao foi possivel gerar os insights operacionais.");
+    throw new Error(payload?.detail ?? "Não foi possível gerar os insights operacionais.");
   }
   return response.json();
 }
@@ -664,7 +664,7 @@ export async function updateAnalyticsInsightStatus(
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new Error(payload?.detail ?? "Nao foi possivel atualizar o insight.");
+    throw new Error(payload?.detail ?? "Não foi possível atualizar o insight.");
   }
   return response.json();
 }

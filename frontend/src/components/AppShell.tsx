@@ -15,12 +15,12 @@ type AppShellProps = {
 
 const navItems: Array<{ id: SectionId; label: string; icon: ReactNode }> = [
   { id: "dashboard", label: "Dashboard", icon: <BarChart3 size={18} /> },
-  { id: "analytics", label: "Inteligencia", icon: <Brain size={18} /> },
-  { id: "import", label: "Importacao", icon: <Upload size={18} /> },
-  { id: "reports", label: "Relatorios", icon: <Layers3 size={18} /> },
-  { id: "history", label: "Historico", icon: <History size={18} /> },
+  { id: "analytics", label: "Inteligência", icon: <Brain size={18} /> },
+  { id: "import", label: "Importação", icon: <Upload size={18} /> },
+  { id: "reports", label: "Relatórios", icon: <Layers3 size={18} /> },
+  { id: "history", label: "Histórico", icon: <History size={18} /> },
   { id: "audit", label: "Auditoria", icon: <ScrollText size={18} /> },
-  { id: "settings", label: "Configuracoes", icon: <Settings size={18} /> },
+  { id: "settings", label: "Configurações", icon: <Settings size={18} /> },
 ];
 
 export function AppShell({ activeSection, onSectionChange, headerBackAction, children }: AppShellProps) {
@@ -33,11 +33,11 @@ export function AppShell({ activeSection, onSectionChange, headerBackAction, chi
           </div>
           <div>
             <strong>Gerenciador de Projetos</strong>
-            <span>Analise operacional</span>
+            <span>Análise operacional</span>
           </div>
         </div>
 
-        <nav className="nav-list" aria-label="Navegacao principal">
+        <nav className="nav-list" aria-label="Navegação principal">
           {navItems.map((item) => (
             <button
               key={item.id}

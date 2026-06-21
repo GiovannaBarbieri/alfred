@@ -38,39 +38,39 @@ export function ImportPreviewPanel({ result, onStepChange }: ImportPreviewPanelP
   const topCategories = preview?.topCategories ?? [];
   const nextStep = result.duplicates.length > 0 ? "duplicates" : pendingReview > 0 ? "classification" : "confirm";
   const previewStatus = hasBlocking
-    ? { tone: "warning", label: "Exige correcao", icon: <AlertTriangle size={16} /> }
+    ? { tone: "warning", label: "Exige correção", icon: <AlertTriangle size={16} /> }
     : result.duplicates.length > 0
       ? { tone: "warning", label: "Duplicidades para revisar", icon: <AlertTriangle size={16} /> }
       : pendingReview > 0
-        ? { tone: "warning", label: "Revisao necessaria", icon: <AlertTriangle size={16} /> }
+        ? { tone: "warning", label: "Revisão necessária", icon: <AlertTriangle size={16} /> }
         : { tone: "success", label: "Sem bloqueios", icon: <CheckCircle2 size={16} /> };
   const nextStepLabel =
     nextStep === "duplicates"
       ? "Resolver duplicidades"
       : nextStep === "classification"
-        ? "Revisar classificacoes"
-        : "Ir para confirmacao";
+        ? "Revisar classificações"
+        : "Ir para confirmação";
   const nextStepDetail =
     nextStep === "duplicates"
       ? "Existem registros duplicados para resolver antes de confirmar."
       : nextStep === "classification"
-        ? "Confira os itens que precisam de revisao antes de salvar."
+        ? "Confira os itens que precisam de revisão antes de salvar."
         : "Tudo pronto para revisar o resumo final e salvar.";
   const flowSteps = [
     { label: "Upload", status: "done" },
-    { label: "Validacao", status: hasBlocking ? "attention" : "done" },
+    { label: "Validação", status: hasBlocking ? "attention" : "done" },
     { label: "Duplicidades", status: result.duplicates.length > 0 ? "attention" : "done" },
-    { label: "Classificacao", status: pendingReview > 0 ? "attention" : "done" },
-    { label: "Confirmacao", status: "pending" },
+    { label: "Classificação", status: pendingReview > 0 ? "attention" : "done" },
+    { label: "Confirmação", status: "pending" },
   ] as const;
 
   return (
     <section className="panel import-preview-panel">
       <div className="import-preview-hero">
         <div className="import-preview-title">
-          <span className="eyebrow">Pre-validacao</span>
+          <span className="eyebrow">Pré-validação</span>
           <h2>{result.filename}</h2>
-          <p>Resumo analitico da planilha antes da persistencia final.</p>
+          <p>Resumo analítico da planilha antes da persistência final.</p>
         </div>
         <span className={`preview-status ${previewStatus.tone}`}>
           {previewStatus.icon}
@@ -83,7 +83,7 @@ export function ImportPreviewPanel({ result, onStepChange }: ImportPreviewPanelP
         <PreviewMetric icon={<ClipboardList size={17} />} label="Registros" value={result.totalRows.toString()} />
         <PreviewMetric icon={<Users size={17} />} label="Colaboradores" value={(preview?.collaboratorsCount ?? 0).toString()} />
         <PreviewMetric icon={<Tags size={17} />} label="Tasks" value={(preview?.tasksCount ?? 0).toString()} />
-        <PreviewMetric icon={<Gauge size={17} />} label="Confianca media" value={`${averageConfidence}%`} tone={averageConfidence < 70 ? "warning" : "default"} />
+        <PreviewMetric icon={<Gauge size={17} />} label="Confiança média" value={`${averageConfidence}%`} tone={averageConfidence < 70 ? "warning" : "default"} />
       </div>
 
       <div className="import-preview-layout">
@@ -96,15 +96,15 @@ export function ImportPreviewPanel({ result, onStepChange }: ImportPreviewPanelP
               <div>
                 <strong>
                   {fileHistory.exactDuplicate
-                    ? "Arquivo ja importado"
+                    ? "Arquivo já importado"
                     : fileHistory.status === "nova_versao"
-                      ? "Possivel atualizacao do projeto"
-                      : "Primeira importacao identificada"}
+                      ? "Possível atualização do projeto"
+                      : "Primeira importação identificada"}
                 </strong>
                 <p>{fileHistory.message}</p>
                 {fileHistory.latestImport && (
                   <small>
-                    Ultima importacao: #{fileHistory.latestImport.importId} em{" "}
+                    Última importação: #{fileHistory.latestImport.importId} em{" "}
                     {formatDateBR(fileHistory.latestImport.importedAt)} -{" "}
                     {fileHistory.latestImport.totalRows} registros - {fileHistory.latestImport.totalHours.toFixed(2)}h
                   </small>
@@ -125,15 +125,15 @@ export function ImportPreviewPanel({ result, onStepChange }: ImportPreviewPanelP
               <div className="preview-card-heading">
                 <span><ShieldCheck size={17} /></span>
                 <div>
-                  <h3>Saude da importacao</h3>
+                  <h3>Saúde da importação</h3>
                   <p>{validPercentage}% dos registros prontos para seguir.</p>
                 </div>
               </div>
-              <div className="preview-progress-track" aria-label={`${validPercentage}% de registros validos`}>
+              <div className="preview-progress-track" aria-label={`${validPercentage}% de registros válidos`}>
                 <span style={{ width: `${Math.min(validPercentage, 100)}%` }} />
               </div>
               <div className="preview-health-list">
-                <PreviewHealthItem label="Validos" value={result.validRows} tone="success" />
+                <PreviewHealthItem label="Válidos" value={result.validRows} tone="success" />
                 <PreviewHealthItem label="Alertas" value={result.alertRows} tone={result.alertRows > 0 ? "warning" : "neutral"} />
                 <PreviewHealthItem label="Bloqueios" value={result.blockedRows} tone={result.blockedRows > 0 ? "danger" : "neutral"} />
                 <PreviewHealthItem label="Duplicidades" value={result.duplicates.length} tone={result.duplicates.length > 0 ? "warning" : "neutral"} />
@@ -144,15 +144,15 @@ export function ImportPreviewPanel({ result, onStepChange }: ImportPreviewPanelP
               <div className="preview-card-heading">
                 <span><Sparkles size={17} /></span>
                 <div>
-                  <h3>Qualidade da classificacao</h3>
-                  <p>Checagens do padrao [Categoria] e perfis operacionais para priorizar a revisao.</p>
+                  <h3>Qualidade da classificação</h3>
+                  <p>Checagens do padrão [Categoria] e perfis operacionais para priorizar a revisão.</p>
                 </div>
               </div>
               <div className="preview-insight-list">
                 <InsightRow label="Registros classificados" value={classifiedRecords} tone="success" />
-                <InsightRow label="Nao classificados" value={preview?.unclassifiedCount ?? 0} tone={(preview?.unclassifiedCount ?? 0) > 0 ? "warning" : "neutral"} />
-                <InsightRow label="Baixa confianca" value={preview?.lowConfidenceCount ?? 0} tone={(preview?.lowConfidenceCount ?? 0) > 0 ? "warning" : "neutral"} />
-                <InsightRow label="Possiveis inconsistencias" value={possibleInconsistencies} tone={possibleInconsistencies > 0 ? "warning" : "neutral"} />
+                <InsightRow label="Não classificados" value={preview?.unclassifiedCount ?? 0} tone={(preview?.unclassifiedCount ?? 0) > 0 ? "warning" : "neutral"} />
+                <InsightRow label="Baixa confiança" value={preview?.lowConfidenceCount ?? 0} tone={(preview?.lowConfidenceCount ?? 0) > 0 ? "warning" : "neutral"} />
+                <InsightRow label="Possíveis inconsistências" value={possibleInconsistencies} tone={possibleInconsistencies > 0 ? "warning" : "neutral"} />
                 <InsightRow label="Duplicidades encontradas" value={result.duplicates.length} tone={result.duplicates.length > 0 ? "danger" : "neutral"} />
               </div>
             </section>
@@ -162,8 +162,8 @@ export function ImportPreviewPanel({ result, onStepChange }: ImportPreviewPanelP
             <div className="preview-card-heading">
               <span><BarChart3 size={17} /></span>
               <div>
-                <h3>Distribuicao por categoria</h3>
-                <p>Horas, participacao e volume de registros classificados.</p>
+                <h3>Distribuição por categoria</h3>
+                <p>Horas, participação e volume de registros classificados.</p>
               </div>
             </div>
             <div className="preview-category-bars">
@@ -199,8 +199,8 @@ export function ImportPreviewPanel({ result, onStepChange }: ImportPreviewPanelP
             <div className="preview-card-heading">
               <span><ClipboardCheck size={17} /></span>
               <div>
-                <h3>Status da importacao</h3>
-                <p>Fluxo ate a confirmacao final.</p>
+                <h3>Status da importação</h3>
+                <p>Fluxo até a confirmação final.</p>
               </div>
             </div>
             <div className="preview-flow-list">

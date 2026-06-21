@@ -72,7 +72,7 @@ export function ProjectComparisonPanel({
         <div>
           <span>Comparativo</span>
           <h2>Comparar projetos</h2>
-          <p className="muted">Selecione projetos importados para comparar volume, pendencias e concentracao operacional.</p>
+          <p className="muted">Selecione projetos importados para comparar volume, pendências e concentração operacional.</p>
         </div>
         <div className="project-comparison-actions">
           <button
@@ -116,7 +116,7 @@ export function ProjectComparisonPanel({
               <div>
                 <strong>{item.name}</strong>
                 <small>
-                  {item.projectsCount} projetos - {item.totalHours}h - {item.openPendings} pendencias
+                  {item.projectsCount} projetos - {item.totalHours}h - {item.openPendings} pendências
                 </small>
               </div>
               <div className="saved-comparison-actions">
@@ -188,7 +188,7 @@ export function ProjectComparisonPanel({
           </div>
           <div className="project-comparison-insights">
             <span><strong>Maior volume:</strong> {comparisonHighlights.byHours.projectName}</span>
-            <span><strong>Mais pendencias:</strong> {comparisonHighlights.byPendings.projectName}</span>
+            <span><strong>Mais pendências:</strong> {comparisonHighlights.byPendings.projectName}</span>
           </div>
           <ProjectComparisonChart projects={projectComparison.projects} />
           <div className="project-comparison-table-wrap">

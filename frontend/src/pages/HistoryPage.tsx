@@ -155,7 +155,7 @@ export function HistoryPage({
       clearTaskFilters();
       setReprocessApplyMessage(null);
     } catch (err) {
-      setReprocessPreviewError(err instanceof Error ? err.message : "Erro inesperado ao gerar a previa.");
+      setReprocessPreviewError(err instanceof Error ? err.message : "Erro inesperado ao gerar a prévia.");
     } finally {
       setIsLoadingReprocessPreview(false);
     }
@@ -227,7 +227,7 @@ export function HistoryPage({
     <>
       <section className="panel history-panel">
         <div className="result-heading">
-          <h2>Historico de importacoes</h2>
+          <h2>Histórico de importações</h2>
           <span>{filteredImports.length}</span>
         </div>
         <div className="history-toolbar">
@@ -244,9 +244,9 @@ export function HistoryPage({
         </div>
         <div className="history-list">
           {imports.length === 0 ? (
-            <p className="muted">Nenhuma importacao salva ainda.</p>
+            <p className="muted">Nenhuma importação salva ainda.</p>
           ) : filteredImports.length === 0 ? (
-            <p className="muted">Nenhuma importacao encontrada para esse filtro.</p>
+            <p className="muted">Nenhuma importação encontrada para esse filtro.</p>
           ) : (
             filteredImports.slice(0, 12).map((item) => (
               <div className={`history-row ${selectedImport?.id === item.id ? "active" : ""}`} key={item.id}>
@@ -262,14 +262,14 @@ export function HistoryPage({
             ))
           )}
           {filteredImports.length > 12 && (
-            <p className="muted">Mostrando 12 de {filteredImports.length} importacoes encontradas. Refine a busca para localizar um projeto especifico.</p>
+            <p className="muted">Mostrando 12 de {filteredImports.length} importações encontradas. Refine a busca para localizar um projeto específico.</p>
           )}
         </div>
       </section>
 
       <section className="panel import-detail-panel">
         <div className="result-heading">
-          <h2>Detalhe da importacao</h2>
+          <h2>Detalhe da importação</h2>
           {selectedImport ? (
             <div className="detail-heading-actions">
               <span>#{selectedImport.id}</span>
@@ -282,9 +282,9 @@ export function HistoryPage({
           )}
         </div>
         {isLoadingImportDetail ? (
-          <p className="muted">Carregando importacao...</p>
+          <p className="muted">Carregando importação...</p>
         ) : !selectedImport ? (
-          <p className="muted">Selecione uma importacao no historico para ver os lancamentos.</p>
+          <p className="muted">Selecione uma importação no histórico para ver os lançamentos.</p>
         ) : (
           <div className="import-detail-content">
             <div className="detail-summary">
@@ -297,9 +297,9 @@ export function HistoryPage({
               <div className="reprocess-preview-panel">
                 <div className="reprocess-preview-heading">
                   <div>
-                    <h3>Previa de reprocessamento</h3>
+                    <h3>Prévia de reprocessamento</h3>
                     <p>
-                      Comparacao sem persistencia: classificador v{reprocessPreview.currentClassifierVersion} para v{reprocessPreview.newClassifierVersion}.
+                      Comparação sem persistência: classificador v{reprocessPreview.currentClassifierVersion} para v{reprocessPreview.newClassifierVersion}.
                     </p>
                   </div>
                   <span>{reprocessPreview.changedRecords} mudanca(s)</span>
@@ -309,7 +309,7 @@ export function HistoryPage({
                   <Metric label="Registros mudariam" value={String(reprocessPreview.changedRecords)} icon={<GitCompareArrows size={18} />} />
                   <Metric label="Tasks impactadas" value={String(reprocessPreview.changedTasks)} icon={<AlertTriangle size={18} />} />
                   <Metric
-                    label="Confianca media"
+                    label="Confiança média"
                     value={`${Math.round(reprocessPreview.averageCurrentConfidence * 100)}% -> ${Math.round(reprocessPreview.averageNewConfidence * 100)}%`}
                     icon={<CheckCircle2 size={18} />}
                   />
@@ -325,7 +325,7 @@ export function HistoryPage({
                   </div>
                 )}
                 {reprocessPreview.changedRecords === 0 ? (
-                  <p className="muted">As regras atuais nao alterariam a classificacao consolidada deste projeto.</p>
+                  <p className="muted">As regras atuais não alterariam a classificação consolidada deste projeto.</p>
                 ) : (
                   <div className="reprocess-task-preview">
                     <div className="detail-subsection-heading">
@@ -333,13 +333,13 @@ export function HistoryPage({
                       <span>{selectedTaskCount} de {reprocessPreview.taskGroups.length}</span>
                     </div>
                     <div className="reprocess-selection-toolbar">
-                      <strong>{selectedRecordCount} lancamento(s) selecionado(s)</strong>
+                      <strong>{selectedRecordCount} lançamento(s) selecionado(s)</strong>
                       <div>
                         <button className="secondary-button compact" type="button" onClick={handleSelectAllTasks}>
                           Selecionar todas
                         </button>
                         <button className="secondary-button compact" type="button" onClick={handleClearSelectedTasks}>
-                          Limpar selecao
+                          Limpar seleção
                         </button>
                       </div>
                     </div>
@@ -378,14 +378,14 @@ export function HistoryPage({
                         </select>
                       </label>
                       <label>
-                        <span>Selecao</span>
+                        <span>Seleção</span>
                         <select
                           value={taskSelectionFilter}
                           onChange={(event) => setTaskSelectionFilter(event.target.value as "all" | "selected" | "unselected")}
                         >
                           <option value="all">Todas</option>
                           <option value="selected">Selecionadas</option>
-                          <option value="unselected">Nao selecionadas</option>
+                          <option value="unselected">Não selecionadas</option>
                         </select>
                       </label>
                       <button
@@ -393,11 +393,11 @@ export function HistoryPage({
                         type="button"
                         onClick={() => setLowConfidenceOnly((value) => !value)}
                       >
-                        Baixa confianca
+                        Baixa confiança
                       </button>
                       <div className="reprocess-filter-summary">
                         <strong>{filteredTaskGroups.length}</strong>
-                        <span>Task(s) / {filteredRecordCount} lancamento(s)</span>
+                        <span>Task(s) / {filteredRecordCount} lançamento(s)</span>
                       </div>
                       {hasTaskFilters && (
                         <button className="reprocess-filter-clear" type="button" onClick={clearTaskFilters}>
@@ -423,7 +423,7 @@ export function HistoryPage({
                           </label>
                           <div>
                             <span>
-                              Task {group.idTask || "sem ID"} - {group.totalRecords} lancamento(s) - Linha {group.firstLine}
+                              Task {group.idTask || "sem ID"} - {group.totalRecords} lançamento(s) - Linha {group.firstLine}
                             </span>
                             <strong>{group.tituloTask}</strong>
                             <small>
@@ -439,7 +439,7 @@ export function HistoryPage({
                               Novo: <strong>{group.newCategory} / {group.newSubcategory}</strong>
                             </span>
                             <small>
-                              Confianca media: {Math.round(group.averageCurrentConfidence * 100)}% {"->"} {Math.round(group.averageNewConfidence * 100)}%
+                              Confiança média: {Math.round(group.averageCurrentConfidence * 100)}% {"->"} {Math.round(group.averageNewConfidence * 100)}%
                             </small>
                           </div>
                         </div>
@@ -451,7 +451,7 @@ export function HistoryPage({
                       </p>
                     )}
                     <details className="reprocess-record-details">
-                      <summary>Ver amostra de lancamentos</summary>
+                      <summary>Ver amostra de lançamentos</summary>
                       <div className="reprocess-preview-list">
                         {reprocessPreview.items.slice(0, 40).map((item) => (
                           <div className="reprocess-preview-item" key={item.recordId}>
@@ -459,7 +459,7 @@ export function HistoryPage({
                               <span>Linha {item.line} - {item.loginUsuario} - Task {item.idTask || "sem ID"}</span>
                               <strong>{item.tituloTask}</strong>
                               <small>
-                                {item.confidenceFactors.slice(0, 2).join(" | ") || "Sem fator de confianca detalhado"}
+                                {item.confidenceFactors.slice(0, 2).join(" | ") || "Sem fator de confiança detalhado"}
                               </small>
                             </div>
                             <div className="reprocess-preview-change">
@@ -481,7 +481,7 @@ export function HistoryPage({
                 )}
                 <div className="reprocess-preview-actions">
                   <p className="muted">
-                    Revise as Tasks impactadas antes de aplicar. A acao cria historico de reprocessamento por lancamento.
+                    Revise as Tasks impactadas antes de aplicar. A ação cria histórico de reprocessamento por lançamento.
                   </p>
                   <button
                     className="primary-button compact"
@@ -510,7 +510,7 @@ export function HistoryPage({
                     </span>
                     <div>
                       <h3 id="reprocess-confirm-title">Confirmar reprocessamento</h3>
-                      <p>Revise o impacto antes de salvar a nova classificacao nos lancamentos consolidados.</p>
+                      <p>Revise o impacto antes de salvar a nova classificação nos lançamentos consolidados.</p>
                     </div>
                   </header>
                   <div className="reprocess-confirm-grid">
@@ -520,11 +520,11 @@ export function HistoryPage({
                     </span>
                     <span>
                       <strong>{selectedRecordCount}</strong>
-                      <small>Lancamentos afetados</small>
+                      <small>Lançamentos afetados</small>
                     </span>
                     <span>
                       <strong>v{reprocessPreview.currentClassifierVersion} {"->"} v{reprocessPreview.newClassifierVersion}</strong>
-                      <small>Versao do classificador</small>
+                      <small>Versão do classificador</small>
                     </span>
                   </div>
                   <div className="reprocess-confirm-changes">
@@ -598,9 +598,9 @@ export function HistoryPage({
               {selectedImport.records.length > 0 && (
                 <>
                   <div className="task-pagination-summary">
-                    Mostrando {firstVisibleRecord}-{lastVisibleRecord} de {selectedImport.records.length} lancamentos
+                    Mostrando {firstVisibleRecord}-{lastVisibleRecord} de {selectedImport.records.length} lançamentos
                   </div>
-                  <div className="task-pagination" aria-label="Paginacao de lancamentos">
+                  <div className="task-pagination" aria-label="Paginação de lançamentos">
                     <button
                       className="task-page-button nav"
                       type="button"

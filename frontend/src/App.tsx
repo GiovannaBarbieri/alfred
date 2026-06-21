@@ -140,7 +140,7 @@ function App() {
       onSectionChange={setActiveSection}
       headerBackAction={
         activeSection === "reports" && dashboard.selectedReportImportId
-          ? { label: "Relatorios", onClick: dashboard.handleBackToReportProjects }
+          ? { label: "Relatórios", onClick: dashboard.handleBackToReportProjects }
           : null
       }
     >

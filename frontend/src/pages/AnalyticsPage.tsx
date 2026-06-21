@@ -9,9 +9,9 @@ import type { AnalyticsInsight, AnalyticsInsightsResponse, AnalyticsInsightType 
 const typeOrder: AnalyticsInsightType[] = ["tendencia", "anomalia", "concentracao", "qualidade", "risco"];
 
 const typeTitles: Record<AnalyticsInsightType, string> = {
-  tendencia: "Tendencias",
+  tendencia: "Tendências",
   anomalia: "Anomalias",
-  concentracao: "Concentracoes",
+  concentracao: "Concentrações",
   qualidade: "Qualidade dos dados",
   risco: "Riscos operacionais",
 };
@@ -83,7 +83,7 @@ export function AnalyticsPage() {
   async function handleGenerateInsights() {
     const selectedImportId = Number(importId);
     if (!selectedImportId) {
-      setError("Selecione uma importacao para gerar os insights.");
+      setError("Selecione uma importação para gerar os insights.");
       return;
     }
     setIsGenerating(true);
@@ -114,10 +114,10 @@ export function AnalyticsPage() {
     <section className="analytics-page">
       <div className="analytics-hero">
         <div>
-          <span className="eyebrow">Modulo analitico</span>
-          <h2>Inteligencia Operacional</h2>
+          <span className="eyebrow">Módulo analítico</span>
+          <h2>Inteligência Operacional</h2>
           <p>
-            Analises automaticas sobre tendencias, concentracoes, anomalias e qualidade dos dados ja importados.
+            Análises automáticas sobre tendências, concentrações, anomalias e qualidade dos dados já importados.
           </p>
         </div>
         <span className="analytics-hero-icon">
@@ -144,9 +144,9 @@ export function AnalyticsPage() {
 
       <section className="analytics-action-card">
         <div>
-          <span className="eyebrow">Historico de insights</span>
-          <h3>Gerar analise operacional da importacao</h3>
-          <p>Os insights gerados ficam salvos para revisao, historico e auditoria.</p>
+          <span className="eyebrow">Histórico de insights</span>
+          <h3>Gerar análise operacional da importação</h3>
+          <p>Os insights gerados ficam salvos para revisão, histórico e auditoria.</p>
         </div>
         <button type="button" disabled={!importId || isGenerating} onClick={handleGenerateInsights}>
           {isGenerating ? "Gerando..." : "Gerar insights"}
@@ -182,7 +182,7 @@ export function AnalyticsPage() {
       {isLoading && (
         <section className="analytics-loading">
           <Sparkles size={18} />
-          Gerando analises operacionais...
+          Gerando análises operacionais...
         </section>
       )}
 

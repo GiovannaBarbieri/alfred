@@ -12,10 +12,10 @@ import type { ClassificationReviewGroup } from "../types/validation";
 
 export const importProcessingSteps = [
   "Enviando arquivo para processamento temporario",
-  "Lendo planilha e conferindo colunas obrigatorias",
-  "Validando registros, duracoes e duplicidades",
+  "Lendo planilha e conferindo colunas obrigatórias",
+  "Validando registros, durações e duplicidades",
   "Classificando categorias e subcategorias",
-  "Montando a sessao de revisao",
+  "Montando a sessão de revisão",
 ] as const;
 
 const CLASSIFICATION_REVIEW_THRESHOLD = 0.9;
@@ -223,7 +223,7 @@ export function useImportFlow({
       setCurrentSession(response.session);
       setResult(validation);
       setImportWizardStep("preview");
-      setProcessingMessage("Sessao temporaria criada. Revise os pontos encontrados antes de confirmar.");
+      setProcessingMessage("Sessão temporária criada. Revise os pontos encontrados antes de confirmar.");
       setInitialClassificationOverrides(validation);
       onValidationReady();
     } catch (err) {
@@ -239,7 +239,7 @@ export function useImportFlow({
     setIsCompleting(true);
     setError(null);
     setSuccessMessage(null);
-    setProcessingMessage("Salvando importacao e consolidando os lancamentos...");
+    setProcessingMessage("Salvando importação e consolidando os lançamentos...");
 
     try {
       const response = await completeImportSession(
@@ -269,7 +269,7 @@ export function useImportFlow({
     if (!currentSession) return;
     setIsLoading(true);
     setError(null);
-    setProcessingMessage("Reprocessando a sessao com categorias e perfis atuais...");
+    setProcessingMessage("Reprocessando a sessão com categorias e perfis atuais...");
 
     try {
       const response = await reprocessImportSession(currentSession.sessionId);
@@ -300,7 +300,7 @@ export function useImportFlow({
       setDuplicateSelections({});
       setClassificationOverrides({});
       setProcessingMessage(null);
-      setSuccessMessage("Importacao temporaria cancelada.");
+      setSuccessMessage("Importação temporária cancelada.");
       setImportWizardStep("upload");
       onCancelled();
     } catch (err) {

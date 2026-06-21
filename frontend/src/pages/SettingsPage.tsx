@@ -132,12 +132,16 @@ export function SettingsPage(props: SettingsPageProps) {
       <div className="settings-ai-hero">
         <div>
           <h2>Configurações</h2>
-          <p>Gerencie categorias, subcategorias e colaboradores utilizados na classificação das atividades.</p>
+          <p>Gerencie categorias, cargos e colaboradores utilizados na classificação das atividades.</p>
         </div>
       </div>
 
       <div className="settings-ai-workbench">
         <div className="settings-ai-main">
+      <div className="settings-inner-heading">
+        <h3>Configurações</h3>
+        <p>Gerencie categorias, cargos e colaboradores utilizados na classificação das atividades.</p>
+      </div>
       <div className="settings-tabs" role="tablist" aria-label="Configurações de classificação">
         {settingsTabs.map((tab) => (
           <button

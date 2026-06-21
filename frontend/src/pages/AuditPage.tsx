@@ -6,14 +6,14 @@ import type { AuditLogItem } from "../types";
 import { formatDateTimeBR } from "../utils/date";
 
 const entityLabels: Record<string, string> = {
-  import_session: "Sessao de importacao",
-  import: "Importacao",
+  import_session: "Sessão de importação",
+  import: "Importação",
   pending_alert: "Alerta",
-  pending_review: "Pendencia",
+  pending_review: "Pendência",
   category: "Categoria",
   subcategory: "Subcategoria",
   keyword: "Palavra-chave",
-  collaborator_profile: "Perfil tecnico",
+  collaborator_profile: "Perfil técnico",
   ignored_collaborator: "Colaborador ignorado",
 };
 
@@ -50,7 +50,7 @@ export function AuditPage() {
     try {
       setLogs(await getAuditLogs({ entity: entity || undefined, search: search || undefined, limit: 150 }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nao foi possivel carregar a auditoria.");
+      setError(err instanceof Error ? err.message : "Não foi possível carregar a auditoria.");
     } finally {
       setIsLoading(false);
     }

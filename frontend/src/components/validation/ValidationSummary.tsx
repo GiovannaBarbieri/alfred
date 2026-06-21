@@ -14,12 +14,12 @@ export function ValidationSummary({ totalRows, validRows, alertCount, blockingCo
     <>
       {classifierVersion && (
         <div className="classifier-version-note">
-          Classificador previsto para esta importacao: <strong>v{classifierVersion}</strong>
+          Classificador previsto para esta importação: <strong>v{classifierVersion}</strong>
         </div>
       )}
-      <section className="metrics-grid validation-summary" aria-label="Resumo da validacao">
+      <section className="metrics-grid validation-summary" aria-label="Resumo da validação">
         <Metric label="Registros lidos" value={String(totalRows)} icon={<FileSpreadsheet size={18} />} />
-        <Metric label="Validos" value={String(validRows)} icon={<CheckCircle2 size={18} />} />
+        <Metric label="Válidos" value={String(validRows)} icon={<CheckCircle2 size={18} />} />
         <Metric label="Alertas" value={String(alertCount)} icon={<AlertTriangle size={18} />} />
         <Metric label="Bloqueios" value={String(blockingCount)} icon={<XCircle size={18} />} />
       </section>

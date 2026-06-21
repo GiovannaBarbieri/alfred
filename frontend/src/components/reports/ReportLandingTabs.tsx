@@ -8,7 +8,7 @@ type ReportLandingTabsProps = {
 
 export function ReportLandingTabs({ activeTab, onChange }: ReportLandingTabsProps) {
   return (
-    <section className="report-landing-tabs" aria-label="Organizacao dos relatorios">
+    <section className="report-landing-tabs" aria-label="Organização dos relatórios">
       {reportLandingTabs.map((tab) => (
         <button
           className={activeTab === tab.id ? "active" : ""}

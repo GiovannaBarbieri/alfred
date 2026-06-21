@@ -39,7 +39,7 @@ export function useProjectComparisons({ imports, projectEvolution, onNotice }: U
     try {
       setSavedComparisons(await getSavedProjectComparisons());
     } catch (err) {
-      setSavedComparisonError(err instanceof Error ? err.message : "Nao foi possivel carregar os comparativos salvos.");
+      setSavedComparisonError(err instanceof Error ? err.message : "Não foi possível carregar os comparativos salvos.");
     } finally {
       setIsLoadingSavedComparisons(false);
     }
@@ -69,7 +69,7 @@ export function useProjectComparisons({ imports, projectEvolution, onNotice }: U
     try {
       setProjectComparison(await getProjectComparison(comparisonSelection));
     } catch (err) {
-      setComparisonError(err instanceof Error ? err.message : "Nao foi possivel comparar os projetos.");
+      setComparisonError(err instanceof Error ? err.message : "Não foi possível comparar os projetos.");
     } finally {
       setIsLoadingComparison(false);
     }
@@ -87,7 +87,7 @@ export function useProjectComparisons({ imports, projectEvolution, onNotice }: U
     try {
       setProjectComparison(await getProjectComparison(importIds));
     } catch (err) {
-      setComparisonError(err instanceof Error ? err.message : "Nao foi possivel comparar as importacoes.");
+      setComparisonError(err instanceof Error ? err.message : "Não foi possível comparar as importações.");
     } finally {
       setIsLoadingComparison(false);
     }
@@ -112,8 +112,8 @@ export function useProjectComparisons({ imports, projectEvolution, onNotice }: U
       await loadSavedComparisons();
       onNotice({ tone: "success", message: "Comparativo salvo." });
     } catch (err) {
-      setSavedComparisonError(err instanceof Error ? err.message : "Nao foi possivel salvar o comparativo.");
-      onNotice({ tone: "error", message: "Nao foi possivel salvar o comparativo." });
+      setSavedComparisonError(err instanceof Error ? err.message : "Não foi possível salvar o comparativo.");
+      onNotice({ tone: "error", message: "Não foi possível salvar o comparativo." });
     } finally {
       setIsSavingComparison(false);
     }
@@ -129,8 +129,8 @@ export function useProjectComparisons({ imports, projectEvolution, onNotice }: U
       setSaveComparisonName(detail.name);
       onNotice({ tone: "success", message: "Comparativo aberto." });
     } catch (err) {
-      setSavedComparisonError(err instanceof Error ? err.message : "Nao foi possivel abrir o comparativo salvo.");
-      onNotice({ tone: "error", message: "Nao foi possivel abrir o comparativo salvo." });
+      setSavedComparisonError(err instanceof Error ? err.message : "Não foi possível abrir o comparativo salvo.");
+      onNotice({ tone: "error", message: "Não foi possível abrir o comparativo salvo." });
     } finally {
       setSavedComparisonActionId(null);
     }
@@ -147,8 +147,8 @@ export function useProjectComparisons({ imports, projectEvolution, onNotice }: U
       await loadSavedComparisons();
       onNotice({ tone: "success", message: "Comparativo excluido." });
     } catch (err) {
-      setSavedComparisonError(err instanceof Error ? err.message : "Nao foi possivel excluir o comparativo.");
-      onNotice({ tone: "error", message: "Nao foi possivel excluir o comparativo." });
+      setSavedComparisonError(err instanceof Error ? err.message : "Não foi possível excluir o comparativo.");
+      onNotice({ tone: "error", message: "Não foi possível excluir o comparativo." });
     } finally {
       setSavedComparisonActionId(null);
     }

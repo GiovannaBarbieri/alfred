@@ -56,7 +56,7 @@ export function ProjectComparisonChart({ projects }: ProjectComparisonChartProps
           <BarChart3 size={18} />
           <strong>Grafico comparativo</strong>
         </div>
-        <div className="project-comparison-metric-tabs" aria-label="Metrica do comparativo">
+        <div className="project-comparison-metric-tabs" aria-label="Métrica do comparativo">
           {metrics.map((metric) => (
             <button
               className={metric.id === selectedMetricId ? "active" : ""}

@@ -68,7 +68,7 @@ export function AnalyticsFilters({
         ))}
       </select>
       <select value={importId} onChange={(event) => onImportIdChange(event.target.value)}>
-        <option value="">Importacao mais recente</option>
+        <option value="">Importação mais recente</option>
         {(filters?.imports ?? [])
           .filter((item) => !projectName || item.projectName === projectName)
           .map((item) => (

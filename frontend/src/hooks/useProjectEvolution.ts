@@ -23,13 +23,13 @@ export function useProjectEvolution() {
       setEvolutionOptions(options);
       if (options.length > 0) setSelectedEvolutionProject((current) => current || options[0].projectName);
     } catch (err) {
-      setEvolutionError(err instanceof Error ? err.message : "Nao foi possivel carregar projetos com historico.");
+      setEvolutionError(err instanceof Error ? err.message : "Não foi possível carregar projetos com histórico.");
     }
   }
 
   async function loadEvolution(projectName = selectedEvolutionProject) {
     if (!projectName) {
-      setEvolutionError("Selecione um projeto para analisar a evolucao.");
+      setEvolutionError("Selecione um projeto para analisar a evolução.");
       return;
     }
     setIsLoadingEvolution(true);
@@ -37,7 +37,7 @@ export function useProjectEvolution() {
     try {
       setProjectEvolution(await getProjectEvolution(projectName));
     } catch (err) {
-      setEvolutionError(err instanceof Error ? err.message : "Nao foi possivel carregar a evolucao.");
+      setEvolutionError(err instanceof Error ? err.message : "Não foi possível carregar a evolução.");
     } finally {
       setIsLoadingEvolution(false);
     }

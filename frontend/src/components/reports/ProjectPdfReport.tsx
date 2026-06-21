@@ -101,8 +101,8 @@ export function ProjectPdfReport({
         <div className="pdf-pending-summary">
           <h2>Pendencias do projeto</h2>
           <div className="pending-project-counts">
-            <span><strong>{openPendingByType.unclassified}</strong><small>Sem classificacao abertas</small></span>
-            <span><strong>{openPendingByType.lowConfidence}</strong><small>Baixa confianca abertas</small></span>
+            <span><strong>{openPendingByType.unclassified}</strong><small>Sem classificação abertas</small></span>
+            <span><strong>{openPendingByType.lowConfidence}</strong><small>Baixa confiança abertas</small></span>
             <span><strong>{openPendingByType.zeroDuration}</strong><small>Duracao zerada abertas</small></span>
             <span><strong>{openPendingByType.alerts}</strong><small>Alertas abertos</small></span>
           </div>

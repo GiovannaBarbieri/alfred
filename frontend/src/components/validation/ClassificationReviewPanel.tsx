@@ -279,8 +279,8 @@ export function ClassificationReviewPanel({
 
   const quickFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = [
     { id: "all", label: "Todas", count: summary.total, icon: <ListChecks size={15} /> },
-    { id: "smart", label: "Revisao inteligente", count: summary.attention, icon: <Sparkles size={15} /> },
-    { id: "low", label: "Baixa confianca", count: summary.lowConfidence, icon: <ShieldAlert size={15} /> },
+    { id: "smart", label: "Revisão inteligente", count: summary.attention, icon: <Sparkles size={15} /> },
+    { id: "low", label: "Baixa confiança", count: summary.lowConfidence, icon: <ShieldAlert size={15} /> },
     { id: "unclassified", label: "Sem categoria", count: summary.unclassified, icon: <AlertTriangle size={15} /> },
     { id: "conflict", label: "Conflitos", count: summary.conflicts, icon: <Layers3 size={15} /> },
     ...categoryQuickFilters,
@@ -290,11 +290,11 @@ export function ClassificationReviewPanel({
     <section className="classification-workspace">
       <div className="classification-hero">
         <div>
-          <span className="eyebrow">Fase 4 - Classificacao</span>
-          <h2>Revisao inteligente das atividades</h2>
+          <span className="eyebrow">Fase 4 - Classificação</span>
+          <h2>Revisão inteligente das atividades</h2>
           <p>
-            Priorize somente o que precisa de atencao. Alteracoes continuam sendo aplicadas por Task e, quando houver
-            colaborador filtrado, apenas nos lancamentos desse colaborador.
+            Priorize somente o que precisa de atenção. Alterações continuam sendo aplicadas por Task e, quando houver
+            colaborador filtrado, apenas nos lançamentos desse colaborador.
           </p>
         </div>
         <div className="classification-hero-actions">
@@ -549,7 +549,7 @@ export function ClassificationReviewPanel({
           <div className="classification-side-card">
             <span className="eyebrow">Resumo dinamico</span>
             <strong>{summary.attention} pendencia{summary.attention === 1 ? "" : "s"} de revisao</strong>
-            <p>Atividades com confianca abaixo de 90%, sem categoria ou com sinais conflitantes.</p>
+            <p>Atividades com confiança abaixo de 90%, sem categoria ou com sinais conflitantes.</p>
             <button
               className="primary-button compact"
               disabled={quickFilter === "smart"}

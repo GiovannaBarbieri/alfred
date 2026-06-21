@@ -169,7 +169,7 @@ export function ReportLandingView({
                 <FileSpreadsheet size={20} />
                 <h2>Nenhum projeto importado</h2>
               </div>
-              <p className="muted">Conclua uma importacao para visualizar suas analises aqui.</p>
+              <p className="muted">Conclua uma importação para visualizar suas análises aqui.</p>
             </section>
           )}
         </>

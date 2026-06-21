@@ -4,12 +4,12 @@ const statusLabels: Record<string, string> = {
   RECEBIDO: "Recebido",
   PROCESSANDO: "Processando",
   VALIDADO: "Validado",
-  AGUARDANDO_CONFIRMACAO: "Aguardando confirmacao",
+  AGUARDANDO_CONFIRMACAO: "Aguardando confirmação",
   CONFIRMADO: "Confirmado",
   CANCELADO: "Cancelado",
   ERRO: "Erro",
-  em_validacao: "Em validacao",
-  concluida: "Concluida",
+  em_validacao: "Em validação",
+  concluida: "Concluída",
   cancelada: "Cancelada",
   reprocessada: "Reprocessada",
 };
@@ -46,7 +46,7 @@ export function ValidationActions({
       <div>
         <strong>{fileName}</strong>
         <p className="muted">
-          Sessao {session?.sessionId ?? sessionId ?? "-"} em staging. Confira as pendencias e confirme para persistir nas tabelas finais.
+          Sessão {session?.sessionId ?? sessionId ?? "-"} em staging. Confira as pendências e confirme para persistir nas tabelas finais.
         </p>
         {session && (
           <span className={`status-badge import-status-${session.status.toLowerCase()}`}>
@@ -62,7 +62,7 @@ export function ValidationActions({
         {error && <p className="error-text">{error}</p>}
       </div>
       <div className="validation-button-stack">
-        <span className="tooltip-wrap" data-tooltip="Reprocessar refaz a validacao da sessao atual usando categorias e perfis mais recentes, sem reenviar a planilha.">
+        <span className="tooltip-wrap" data-tooltip="Reprocessar refaz a validação da sessão atual usando categorias e perfis mais recentes, sem reenviar a planilha.">
           <button className="secondary-button compact" disabled={isLoading || isCompleting} onClick={onReprocess} type="button">
             Reprocessar
           </button>

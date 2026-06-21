@@ -16,7 +16,7 @@ export function DashboardFilters({
   onClear,
 }: DashboardFiltersProps) {
   return (
-    <section className="panel filters-panel" aria-label="Filtros dos relatorios">
+    <section className="panel filters-panel" aria-label="Filtros dos relatórios">
       <div className="filters-grid">
         <label>
           <span>Data inicial</span>

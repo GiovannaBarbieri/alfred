@@ -65,7 +65,7 @@ export function useProjectPendingQueue({
     const unclassified = projectPendingItems.unclassifiedTasks.map((item) => ({
       id: `unclassified-${item.idTask}-${item.loginUsuario}`,
       type: "unclassified" as const,
-      typeLabel: "Sem classificacao",
+      typeLabel: "Sem classificação",
       priority: "alta" as const,
       title: `${item.idTask} - ${item.tituloTask}`,
       user: item.loginUsuario,
@@ -80,12 +80,12 @@ export function useProjectPendingQueue({
     const lowConfidence = projectPendingItems.lowConfidence.map((item) => ({
       id: `confidence-${item.idTask}-${item.loginUsuario}-${item.confidence}`,
       type: "low_confidence" as const,
-      typeLabel: "Baixa confianca",
+      typeLabel: "Baixa confiança",
       priority: "media" as const,
       title: `${item.idTask} - ${item.tituloTask}`,
       user: item.loginUsuario,
       detail: `${item.categoria} - ${(item.confidence * 100).toFixed(0)}% - ${item.impactDuration}`,
-      action: "Revisar se a classificacao sugerida faz sentido.",
+      action: "Revisar se a classificação sugerida faz sentido.",
       impactSeconds: item.impactSeconds,
       impactHours: item.impactHours,
       impactRecords: item.impactRecords,

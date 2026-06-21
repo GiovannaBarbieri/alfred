@@ -27,7 +27,7 @@ export function ReportsProjectList({ imports, search, onSearchChange, onOpenProj
       <div className="reports-projects-toolbar">
         <div>
           <h2>Projetos importados</h2>
-          <p className="muted">{imports.length} projeto(s) encontrados. Escolha um projeto para abrir as analises operacionais.</p>
+          <p className="muted">{imports.length} projeto(s) encontrados. Escolha um projeto para abrir as análises operacionais.</p>
         </div>
         <div className="reports-search-box">
           <Search size={16} />
@@ -61,7 +61,7 @@ export function ReportsProjectList({ imports, search, onSearchChange, onOpenProj
                 <small>{item.filename}</small>
                 {hasVersions && (
                   <small className="project-version-note">
-                    Mesmo projeto com {sameProjectImports.length} importacoes. Esta e a versao {versionNumber}.
+                    Mesmo projeto com {sameProjectImports.length} importações. Esta é a versão {versionNumber}.
                   </small>
                 )}
               </span>

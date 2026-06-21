@@ -39,9 +39,9 @@ export function ProjectEvolutionPanel({
       <section className="panel empty-state-panel">
         <div className="panel-heading">
           <FileSpreadsheet size={20} />
-          <h2>Nenhum projeto com historico</h2>
+          <h2>Nenhum projeto com histórico</h2>
         </div>
-        <p className="muted">Importe o mesmo projeto mais de uma vez para visualizar sua evolucao.</p>
+        <p className="muted">Importe o mesmo projeto mais de uma vez para visualizar sua evolução.</p>
       </section>
     );
   }
@@ -52,13 +52,13 @@ export function ProjectEvolutionPanel({
     <section className="panel project-evolution-panel">
       <div className="project-evolution-heading">
         <div>
-          <span>Evolucao</span>
-          <h2>Evolucao do projeto</h2>
-          <p className="muted">Acompanhe como horas, registros, pendencias e nivel de atencao mudaram entre importacoes do mesmo projeto.</p>
+          <span>Evolução</span>
+          <h2>Evolução do projeto</h2>
+          <p className="muted">Acompanhe como horas, registros, pendências e nível de atenção mudaram entre importações do mesmo projeto.</p>
         </div>
         <div className="project-evolution-controls">
           <select
-            aria-label="Selecionar projeto para evolucao"
+            aria-label="Selecionar projeto para evolução"
             value={selectedProject}
             onChange={(event) => {
               onSelectedProjectChange(event.target.value);
@@ -77,7 +77,7 @@ export function ProjectEvolutionPanel({
             onClick={onLoadEvolution}
             disabled={isLoadingEvolution || !selectedProject}
           >
-            {isLoadingEvolution ? "Carregando..." : "Analisar evolucao"}
+            {isLoadingEvolution ? "Carregando..." : "Analisar evolução"}
           </button>
           <a
             className={`secondary-button ${!projectEvolution ? "disabled-link" : ""}`}
@@ -109,20 +109,20 @@ export function ProjectEvolutionPanel({
               onClick={onCompareEvolutionImports}
               disabled={isLoadingComparison || projectEvolution.points.length < 2}
             >
-              Comparar primeira x ultima
+              Comparar primeira x última
             </button>
           </div>
           <div className="project-evolution-summary">
             <span><strong>{projectEvolution.importsCount}</strong><small>Importacoes</small></span>
-            <span><strong>{projectEvolution.summary.hoursDelta >= 0 ? "+" : ""}{projectEvolution.summary.hoursDelta}h</strong><small>Variacao horas</small></span>
-            <span><strong>{projectEvolution.summary.recordsDelta >= 0 ? "+" : ""}{projectEvolution.summary.recordsDelta}</strong><small>Variacao registros</small></span>
-            <span><strong>{projectEvolution.summary.pendingsDelta >= 0 ? "+" : ""}{projectEvolution.summary.pendingsDelta}</strong><small>Variacao pendencias</small></span>
+            <span><strong>{projectEvolution.summary.hoursDelta >= 0 ? "+" : ""}{projectEvolution.summary.hoursDelta}h</strong><small>Variação horas</small></span>
+            <span><strong>{projectEvolution.summary.recordsDelta >= 0 ? "+" : ""}{projectEvolution.summary.recordsDelta}</strong><small>Variação registros</small></span>
+            <span><strong>{projectEvolution.summary.pendingsDelta >= 0 ? "+" : ""}{projectEvolution.summary.pendingsDelta}</strong><small>Variação pendências</small></span>
             <span><strong>{projectEvolution.summary.trendLabel}</strong><small>{projectEvolution.summary.firstAttention} para {projectEvolution.summary.latestAttention}</small></span>
           </div>
           <ProjectEvolutionChart points={projectEvolution.points} />
           <div className="project-evolution-alerts">
             <div className="project-evolution-alerts-heading">
-              <strong>Alertas da evolucao</strong>
+              <strong>Alertas da evolução</strong>
               <small>{projectEvolution.insights.length} alerta(s)</small>
             </div>
             <div className="project-evolution-alert-list">
@@ -140,7 +140,7 @@ export function ProjectEvolutionPanel({
                         onClick={onCompareEvolutionImports}
                         disabled={isLoadingComparison}
                       >
-                        Comparar importacoes
+                        Comparar importações
                       </button>
                     )}
                     {insight.source === "geral" && (
@@ -157,11 +157,11 @@ export function ProjectEvolutionPanel({
             <table className="project-evolution-table">
               <thead>
                 <tr>
-                  <th>Importacao</th>
+                  <th>Importação</th>
                   <th>Horas</th>
                   <th>Registros</th>
-                  <th>Pendencias</th>
-                  <th>Atencao</th>
+                  <th>Pendências</th>
+                  <th>Atenção</th>
                   <th></th>
                 </tr>
               </thead>
