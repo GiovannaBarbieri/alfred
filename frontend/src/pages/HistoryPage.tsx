@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, FileSpreadsheet, GitCompareArrows, RefreshCw, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, FileSpreadsheet, GitCompareArrows, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Metric } from "../components/Metric";
@@ -407,7 +407,7 @@ export function HistoryPage({
                 </button>
                 <span>{formatDateTimeBR(item.importedAt)}</span>
                 <small>
-                  {item.validRows} validos, {item.alertRows} alertas, {item.blockedRows} bloqueios - classificador v{item.classifierVersion}
+                  {item.validRows} validos - classificador v{item.classifierVersion}
                 </small>
               </div>
             ))
@@ -441,8 +441,6 @@ export function HistoryPage({
             <div className="detail-summary">
               <Metric label="Registros" value={String(selectedImport.totalRows)} icon={<FileSpreadsheet size={18} />} />
               <Metric label="Validos" value={String(selectedImport.validRows)} icon={<CheckCircle2 size={18} />} />
-              <Metric label="Alertas" value={String(selectedImport.alertRows)} icon={<AlertTriangle size={18} />} />
-              <Metric label="Bloqueios" value={String(selectedImport.blockedRows)} icon={<XCircle size={18} />} />
             </div>
             <div className="classifier-version-note">
               <span>
