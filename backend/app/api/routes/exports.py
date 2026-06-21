@@ -802,10 +802,9 @@ def _append_timeline_chart_sheet(sheet, title: str, rows: list[dict], max_series
     chart.title = title
     chart.y_axis.title = "Horas"
     chart.x_axis.title = "Datas"
-    label_skip = max(1, len(periods) // 12)
     chart.x_axis.tickLblPos = "low"
-    chart.x_axis.tickLblSkip = label_skip
-    chart.x_axis.tickMarkSkip = label_skip
+    chart.x_axis.tickLblSkip = 1
+    chart.x_axis.tickMarkSkip = 1
     chart.x_axis.majorTickMark = "out"
     chart.height = 12
     chart.width = 26
