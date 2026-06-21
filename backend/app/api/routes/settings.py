@@ -202,6 +202,39 @@ def update_category(category_id: int, payload: SettingUpdatePayload) -> dict:
             return _setting_response(row)
 
 
+@router.delete("/categories/{category_id}")
+def delete_category(category_id: int) -> dict:
+    with get_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id, nome, ativa FROM categorias WHERE id = %s", (category_id,))
+            before = cursor.fetchone()
+            if not before:
+                raise HTTPException(status_code=404, detail="Categoria nao encontrada.")
+            try:
+                cursor.execute(
+                    """
+                    DELETE FROM categorias
+                    WHERE id = %s
+                    RETURNING id, nome, ativa
+                    """,
+                    (category_id,),
+                )
+            except errors.ForeignKeyViolation as exc:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Esta categoria esta vinculada a dados existentes e nao pode ser excluida.",
+                ) from exc
+            row = cursor.fetchone()
+            insert_audit_log(
+                connection,
+                entity="category",
+                record_id=category_id,
+                action="deleted",
+                before=_setting_response(before),
+            )
+            return {**_setting_response(row), "deleted": True}
+
+
 @router.get("/subcategories")
 def list_subcategories() -> list[dict]:
     with get_connection() as connection:

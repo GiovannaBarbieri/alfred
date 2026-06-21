@@ -205,6 +205,45 @@ def ensure_runtime_schema() -> None:
             )
             cursor.execute(
                 """
+                UPDATE subcategorias
+                SET
+                    nome = 'Desenvolvedor Back-end',
+                    grupo = COALESCE(grupo, 'Desenvolvimento'),
+                    alias_ia = COALESCE(alias_ia, 'back backend back-end')
+                WHERE nome = 'Back'
+                  AND NOT EXISTS (SELECT 1 FROM subcategorias WHERE nome = 'Desenvolvedor Back-end')
+                """
+            )
+            cursor.execute(
+                """
+                UPDATE subcategorias
+                SET
+                    nome = 'Desenvolvedor Front-end',
+                    grupo = COALESCE(grupo, 'Desenvolvimento'),
+                    alias_ia = COALESCE(alias_ia, 'front frontend front-end')
+                WHERE nome = 'Front'
+                  AND NOT EXISTS (SELECT 1 FROM subcategorias WHERE nome = 'Desenvolvedor Front-end')
+                """
+            )
+            cursor.execute(
+                """
+                INSERT INTO subcategorias (nome, grupo, alias_ia)
+                VALUES
+                    ('Analista', 'Gestão', 'analista funcional requisitos'),
+                    ('Desenvolvedor Back-end', 'Desenvolvimento', 'back backend back-end'),
+                    ('Desenvolvedor Front-end', 'Desenvolvimento', 'front frontend front-end'),
+                    ('QA', 'Qualidade', 'qa testes qualidade'),
+                    ('Infraestrutura', 'Operações', 'infraestrutura devops operacoes'),
+                    ('Banco de Dados', 'Dados', 'banco dados dba database'),
+                    ('DataOps', 'Dados', 'dataops dados pipelines')
+                ON CONFLICT (nome) DO UPDATE
+                SET
+                    grupo = COALESCE(subcategorias.grupo, EXCLUDED.grupo),
+                    alias_ia = COALESCE(subcategorias.alias_ia, EXCLUDED.alias_ia)
+                """
+            )
+            cursor.execute(
+                """
                 ALTER TABLE classificacoes_task
                 ADD COLUMN IF NOT EXISTS versao_classificador VARCHAR(40) NOT NULL DEFAULT '1.0.0'
                 """

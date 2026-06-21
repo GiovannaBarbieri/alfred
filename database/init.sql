@@ -245,11 +245,11 @@ INSERT INTO categorias (nome) VALUES
 ON CONFLICT (nome) DO NOTHING;
 
 INSERT INTO subcategorias (nome, grupo, alias_ia) VALUES
-    ('Analista', 'Gestao', 'analista funcional requisitos'),
+    ('Analista', 'Gestão', 'analista funcional requisitos'),
     ('Desenvolvedor Back-end', 'Desenvolvimento', 'back backend back-end'),
     ('Desenvolvedor Front-end', 'Desenvolvimento', 'front frontend front-end'),
     ('QA', 'Qualidade', 'qa testes qualidade'),
-    ('Infraestrutura', 'Operacoes', 'infraestrutura devops operacoes'),
+    ('Infraestrutura', 'Operações', 'infraestrutura devops operacoes'),
     ('Banco de Dados', 'Dados', 'banco dados dba database'),
     ('DataOps', 'Dados', 'dataops dados pipelines'),
     ('Nao aplicavel', NULL, NULL),

@@ -437,6 +437,17 @@ export async function updateCategory(
   return response.json();
 }
 
+export async function deleteCategory(categoryId: number): Promise<SettingItem & { deleted: boolean }> {
+  const response = await fetch(`${API_BASE_URL}/settings/categories/${categoryId}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail ?? "Não foi possível excluir a categoria.");
+  }
+  return response.json();
+}
+
 export async function getSubcategories(): Promise<SettingItem[]> {
   const response = await fetch(`${API_BASE_URL}/settings/subcategories`);
   if (!response.ok) throw new Error("Não foi possível carregar subcategorias.");

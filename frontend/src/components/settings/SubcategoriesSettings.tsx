@@ -36,6 +36,8 @@ export function SubcategoriesSettings({
   const filteredSubcategories = subcategories.filter((subcategory) =>
     subcategory.name.toLowerCase().includes(search.trim().toLowerCase()),
   );
+  const activeSubcategories = subcategories.filter((subcategory) => subcategory.active).length;
+  const inactiveSubcategories = subcategories.length - activeSubcategories;
 
   function handleOpenEdit(subcategory: SettingItem) {
     onSubcategoryDraftsChange((current) => ({ ...current, [subcategory.id]: current[subcategory.id] ?? subcategory.name }));
@@ -83,6 +85,20 @@ export function SubcategoriesSettings({
       </div>
       {cargoFeedback && <p className="settings-feedback" role="status">{cargoFeedback}</p>}
       {cargoError && <p className="settings-feedback error" role="alert">{cargoError}</p>}
+      <div className="settings-management-summary" aria-label="Resumo de cargos">
+        <div>
+          <span>Cargos</span>
+          <strong>{subcategories.length}</strong>
+        </div>
+        <div>
+          <span>Ativos</span>
+          <strong>{activeSubcategories}</strong>
+        </div>
+        <div>
+          <span>Inativos</span>
+          <strong>{inactiveSubcategories}</strong>
+        </div>
+      </div>
       <div className="settings-list settings-data-table roles-table">
         <div className="settings-table-header">
           <span>Cargo</span>
@@ -100,6 +116,7 @@ export function SubcategoriesSettings({
                 aria-expanded={activeActionId === subcategory.id}
                 aria-label={`Ações do cargo ${subcategory.name}`}
                 className="settings-menu-button"
+                title="Ações"
                 type="button"
                 onClick={() => setActiveActionId((current) => (current === subcategory.id ? null : subcategory.id))}
               >
@@ -111,7 +128,7 @@ export function SubcategoriesSettings({
                     Editar
                   </button>
                   <button type="button" onClick={() => void handleToggleSubcategory(subcategory)}>
-                    {subcategory.active ? "Inativar" : "Ativar"}
+                    Alterar situação
                   </button>
                   <button type="button" onClick={() => void handleDeleteSubcategory(subcategory)}>
                     Excluir

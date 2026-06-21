@@ -6,6 +6,7 @@ import {
   createCollaboratorProfile,
   createKeyword,
   createSubcategory,
+  deleteCategory,
   deleteSubcategory,
   getCategories,
   getClassificationRules,
@@ -181,6 +182,12 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
 
   async function handleToggleCategory(category: SettingItem) {
     await updateCategory(category.id, { active: !category.active });
+    await refreshSettings();
+    await onCategoryChanged();
+  }
+
+  async function handleDeleteCategory(category: SettingItem) {
+    await deleteCategory(category.id);
     await refreshSettings();
     await onCategoryChanged();
   }
@@ -368,6 +375,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     handleRestoreIgnoredCollaborator,
     handleRenameCategory,
     handleToggleCategory,
+    handleDeleteCategory,
     handleRenameSubcategory,
     handleToggleSubcategory,
     handleDeleteSubcategory,

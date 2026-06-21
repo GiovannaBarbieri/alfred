@@ -84,6 +84,7 @@ type SettingsPageProps = {
   onCreateCategory: () => Promise<void> | void;
   onRenameCategory: (category: SettingItem) => void;
   onToggleCategory: (category: SettingItem) => void;
+  onDeleteCategory: (category: SettingItem) => void;
   onCreateSubcategory: () => void;
   onRenameSubcategory: (subcategory: SettingItem) => void;
   onToggleSubcategory: (subcategory: SettingItem) => void;
@@ -168,10 +169,6 @@ export function SettingsPage(props: SettingsPageProps) {
 
       <div className="settings-ai-workbench">
         <div className="settings-ai-main">
-      <div className="settings-inner-heading">
-        <h3>Configurações</h3>
-        <p>Gerencie categorias, cargos e colaboradores utilizados na classificação das atividades.</p>
-      </div>
       <div className="settings-tabs" role="tablist" aria-label="Configurações de classificação">
         {settingsTabs.map((tab) => (
           <button
@@ -182,7 +179,7 @@ export function SettingsPage(props: SettingsPageProps) {
           >
             {tab.icon}
             {tab.label}
-            <span className="settings-tab-count">{tabCounts[tab.id]}</span>
+            <span className="settings-tab-count">({tabCounts[tab.id]})</span>
           </button>
         ))}
       </div>
@@ -214,6 +211,7 @@ export function SettingsPage(props: SettingsPageProps) {
             onCategoryDraftsChange={props.onCategoryDraftsChange}
             onRenameCategory={props.onRenameCategory}
             onToggleCategory={props.onToggleCategory}
+            onDeleteCategory={props.onDeleteCategory}
           />
         )}
 

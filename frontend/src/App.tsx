@@ -305,6 +305,7 @@ function App() {
             onCreateCategory={settings.handleCreateCategory}
             onRenameCategory={settings.handleRenameCategory}
             onToggleCategory={settings.handleToggleCategory}
+            onDeleteCategory={settings.handleDeleteCategory}
             onCreateSubcategory={settings.handleCreateSubcategory}
             onRenameSubcategory={settings.handleRenameSubcategory}
             onToggleSubcategory={settings.handleToggleSubcategory}

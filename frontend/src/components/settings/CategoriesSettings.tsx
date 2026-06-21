@@ -9,6 +9,7 @@ type CategoriesSettingsProps = {
   onCategoryDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onRenameCategory: (category: SettingItem) => Promise<void> | void;
   onToggleCategory: (category: SettingItem) => Promise<void> | void;
+  onDeleteCategory: (category: SettingItem) => Promise<void> | void;
 };
 
 export function CategoriesSettings({
@@ -18,16 +19,21 @@ export function CategoriesSettings({
   onCategoryDraftsChange,
   onRenameCategory,
   onToggleCategory,
+  onDeleteCategory,
 }: CategoriesSettingsProps) {
   const [activeActionId, setActiveActionId] = useState<number | null>(null);
   const [editingCategory, setEditingCategory] = useState<SettingItem | null>(null);
   const [categoryFeedback, setCategoryFeedback] = useState<string | null>(null);
+  const [categoryError, setCategoryError] = useState<string | null>(null);
   const filteredCategories = categories.filter((category) => category.name.toLowerCase().includes(search.trim().toLowerCase()));
+  const activeCategories = categories.filter((category) => category.active).length;
+  const inactiveCategories = categories.length - activeCategories;
 
   function handleOpenEdit(category: SettingItem) {
     onCategoryDraftsChange((current) => ({ ...current, [category.id]: current[category.id] ?? category.name }));
     setActiveActionId(null);
     setCategoryFeedback(null);
+    setCategoryError(null);
     setEditingCategory(category);
   }
 
@@ -40,17 +46,47 @@ export function CategoriesSettings({
 
   async function handleToggleCategory(category: SettingItem) {
     setActiveActionId(null);
+    setCategoryError(null);
     await onToggleCategory(category);
     setCategoryFeedback(category.active ? "Categoria inativada com sucesso." : "Categoria ativada com sucesso.");
+  }
+
+  async function handleDeleteCategory(category: SettingItem) {
+    setActiveActionId(null);
+    setCategoryFeedback(null);
+    setCategoryError(null);
+    const confirmed = window.confirm(`Excluir a categoria "${category.name}"? Esta ação só será concluída se ela não estiver vinculada a dados existentes.`);
+    if (!confirmed) return;
+    try {
+      await onDeleteCategory(category);
+      setCategoryFeedback("Categoria excluída com sucesso.");
+    } catch (error) {
+      setCategoryError(error instanceof Error ? error.message : "Não foi possível excluir a categoria.");
+    }
   }
 
   return (
     <div className="settings-column wide">
       <div className="settings-section-heading">
         <h3>Categorias</h3>
-        <p className="muted">Categorias principais usadas para classificar as atividades e montar os relatórios.</p>
+        <p className="muted">Defina as categorias utilizadas para classificar as atividades apontadas pelos colaboradores.</p>
       </div>
       {categoryFeedback && <p className="settings-feedback" role="status">{categoryFeedback}</p>}
+      {categoryError && <p className="settings-feedback error" role="alert">{categoryError}</p>}
+      <div className="settings-management-summary" aria-label="Resumo de categorias">
+        <div>
+          <span>Categorias</span>
+          <strong>{categories.length}</strong>
+        </div>
+        <div>
+          <span>Ativas</span>
+          <strong>{activeCategories}</strong>
+        </div>
+        <div>
+          <span>Inativas</span>
+          <strong>{inactiveCategories}</strong>
+        </div>
+      </div>
       <div className="settings-list settings-data-table categories-table">
         <div className="settings-table-header">
           <span>Categoria</span>
@@ -66,6 +102,7 @@ export function CategoriesSettings({
                 aria-expanded={activeActionId === category.id}
                 aria-label={`Ações da categoria ${category.name}`}
                 className="settings-menu-button"
+                title="Ações"
                 type="button"
                 onClick={() => setActiveActionId((current) => (current === category.id ? null : category.id))}
               >
@@ -77,7 +114,10 @@ export function CategoriesSettings({
                     Editar
                   </button>
                   <button type="button" onClick={() => void handleToggleCategory(category)}>
-                    {category.active ? "Inativar" : "Ativar"}
+                    Alterar situação
+                  </button>
+                  <button type="button" onClick={() => void handleDeleteCategory(category)}>
+                    Excluir
                   </button>
                 </div>
               )}
