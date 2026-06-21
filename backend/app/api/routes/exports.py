@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
 from openpyxl.chart import BarChart, LineChart, Reference
+from openpyxl.chart.axis import DateAxis
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
@@ -792,8 +793,10 @@ def _append_timeline_chart_sheet(sheet, title: str, rows: list[dict], max_series
     _append_sheet(
         sheet,
         ["Periodo", *series_names],
-        [[period, *[values.get((period, series), 0) for series in series_names]] for period in periods],
+        [[date.fromisoformat(period), *[values.get((period, series), 0) for series in series_names]] for period in periods],
     )
+    for cell in sheet["A"][1:]:
+        cell.number_format = "DD/MM/YYYY"
 
     if not periods or not series_names:
         return
@@ -801,7 +804,11 @@ def _append_timeline_chart_sheet(sheet, title: str, rows: list[dict], max_series
     chart = LineChart()
     chart.title = title
     chart.y_axis.title = "Horas"
-    chart.x_axis.title = "Periodo"
+    chart.x_axis = DateAxis()
+    chart.x_axis.title = "Datas"
+    chart.x_axis.number_format = "DD/MM/YYYY"
+    chart.x_axis.tickLblPos = "low"
+    chart.x_axis.majorTickMark = "out"
     chart.height = 12
     chart.width = 26
     data_ref = Reference(sheet, min_col=2, max_col=1 + len(series_names), min_row=1, max_row=1 + len(periods))
