@@ -435,7 +435,7 @@ export function HistoryPage({
         {isLoadingImportDetail ? (
           <p className="muted">Carregando importacao...</p>
         ) : !selectedImport ? (
-          <p className="muted">Selecione uma importacao no historico para ver os lancamentos e ocorrencias.</p>
+          <p className="muted">Selecione uma importacao no historico para ver os lancamentos.</p>
         ) : (
           <div className="import-detail-content">
             <div className="detail-summary">
@@ -910,41 +910,6 @@ export function HistoryPage({
               </div>
             </div>
 
-            <div className="detail-columns">
-              <div className="detail-subsection">
-                <h3>Ocorrencias</h3>
-                {selectedImport.issues.length === 0 ? (
-                  <p className="muted">Nenhuma ocorrencia registrada.</p>
-                ) : (
-                  <div className="result-list">
-                    {selectedImport.issues.map((issue, index) => (
-                      <div className="issue-row" key={`${issue.code}-${issue.line}-${index}`}>
-                        <span>{issue.line ? `Linha ${issue.line}` : "Arquivo"} - {issue.severity}</span>
-                        <strong>{issue.field}</strong>
-                        <small>{issue.message}</small>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="detail-subsection">
-                <h3>Duplicidades</h3>
-                {selectedImport.duplicates.length === 0 ? (
-                  <p className="muted">Nenhuma duplicidade resolvida.</p>
-                ) : (
-                  <div className="result-list">
-                    {selectedImport.duplicates.map((duplicate) => (
-                      <div className="issue-row" key={`${duplicate.idLancamento}-${duplicate.keptRecordId}`}>
-                        <span>IdLancamento {duplicate.idLancamento}</span>
-                        <strong>Linhas {duplicate.lines.join(", ")}</strong>
-                        <small>Removidas: {duplicate.removedLines.join(", ") || "nenhuma"}</small>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
         )}
       </section>
