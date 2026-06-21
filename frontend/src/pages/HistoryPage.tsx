@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, FileSpreadsheet, GitCompareArrows, RefreshCw } from "lucide-react";
+import { AlertTriangle, CheckCircle2, FileSpreadsheet, GitCompareArrows } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Metric } from "../components/Metric";
@@ -446,15 +446,6 @@ export function HistoryPage({
               <span>
                 Esta importacao foi consolidada com o classificador <strong>v{selectedImport.classifierVersion}</strong>.
               </span>
-              <button
-                className="secondary-button compact"
-                type="button"
-                onClick={handleReprocessPreview}
-                disabled={isLoadingReprocessPreview}
-              >
-                {isLoadingReprocessPreview ? <RefreshCw size={14} /> : <GitCompareArrows size={14} />}
-                {isLoadingReprocessPreview ? "Comparando..." : "Previa de reprocessamento"}
-              </button>
             </div>
             {reprocessPreviewError && <p className="error-message">{reprocessPreviewError}</p>}
             {reprocessApplyMessage && <p className="success-message">{reprocessApplyMessage}</p>}
