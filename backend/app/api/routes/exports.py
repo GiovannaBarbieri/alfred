@@ -7,6 +7,8 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
 from openpyxl.chart import BarChart, LineChart, Reference
+from openpyxl.chart.text import RichText
+from openpyxl.drawing.text import CharacterProperties, Paragraph, ParagraphProperties, RichTextProperties
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
@@ -412,7 +414,7 @@ def export_project_comparison_xlsx(import_ids: list[int] = Query(..., alias="imp
             ["TotalHoras", comparison["summary"]["totalHours"]],
             ["TotalRegistros", comparison["summary"]["recordsCount"]],
             ["PendenciasAbertas", comparison["summary"]["openPendings"]],
-            ["GeradoEm", datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+            ["GeradoEm", format_datetime_br(datetime.now())],
         ],
     )
     _append_sheet(
@@ -443,7 +445,7 @@ def export_project_comparison_xlsx(import_ids: list[int] = Query(..., alias="imp
                 project["importId"],
                 project["projectName"],
                 project["filename"],
-                project["importedAt"],
+                format_date_br(project["importedAt"]),
                 project["status"],
                 project["totalSeconds"],
                 project["totalHours"],
@@ -517,7 +519,7 @@ def export_project_evolution_xlsx(project_name: str = Query(..., alias="projectN
             ["AtencaoInicial", evolution["summary"]["firstAttention"]],
             ["AtencaoAtual", evolution["summary"]["latestAttention"]],
             ["Tendencia", evolution["summary"]["trendLabel"]],
-            ["GeradoEm", datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+            ["GeradoEm", format_datetime_br(datetime.now())],
         ],
     )
     _append_sheet(
@@ -541,7 +543,7 @@ def export_project_evolution_xlsx(project_name: str = Query(..., alias="projectN
             [
                 point["importId"],
                 point["filename"],
-                point["importedAt"],
+                format_date_br(point["importedAt"]),
                 point["status"],
                 point["totalHours"],
                 point["hoursDelta"],
@@ -636,7 +638,7 @@ def _append_index_sheet(index_sheet, worksheets, filename: str, user: str | None
     index_sheet.append(["Analise operacional de horas"])
     index_sheet.append(["Arquivo", filename])
     index_sheet.append(["Filtro colaborador", user or "Todos"])
-    index_sheet.append(["Gerado em", datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+    index_sheet.append(["Gerado em", format_datetime_br(datetime.now())])
     index_sheet.append([])
     index_sheet.append(["Aba", "Conteudo"])
 
@@ -676,7 +678,7 @@ def _append_index_sheet(index_sheet, worksheets, filename: str, user: str | None
 def _append_comparison_index_sheet(index_sheet, worksheets) -> None:
     index_sheet.sheet_view.showGridLines = False
     index_sheet.append(["Comparativo operacional de projetos"])
-    index_sheet.append(["Gerado em", datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+    index_sheet.append(["Gerado em", format_datetime_br(datetime.now())])
     index_sheet.append([])
     index_sheet.append(["Aba", "Conteudo"])
 
@@ -715,7 +717,7 @@ def _append_evolution_index_sheet(index_sheet, worksheets, project_name: str) ->
     index_sheet.sheet_view.showGridLines = False
     index_sheet.append(["Evolucao operacional do projeto"])
     index_sheet.append(["Projeto", project_name])
-    index_sheet.append(["Gerado em", datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+    index_sheet.append(["Gerado em", format_datetime_br(datetime.now())])
     index_sheet.append([])
     index_sheet.append(["Aba", "Conteudo"])
 
@@ -803,11 +805,14 @@ def _append_timeline_chart_sheet(sheet, title: str, rows: list[dict], max_series
     chart.y_axis.title = "Horas"
     chart.x_axis.title = None
     chart.x_axis.delete = False
-    chart.x_axis.tickLblPos = "nextTo"
-    label_skip = max(1, len(periods) // 12)
-    chart.x_axis.tickLblSkip = label_skip
-    chart.x_axis.tickMarkSkip = label_skip
+    chart.x_axis.tickLblPos = "low"
+    chart.x_axis.tickLblSkip = 1
+    chart.x_axis.tickMarkSkip = 1
     chart.x_axis.majorTickMark = "out"
+    chart.x_axis.txPr = RichText(
+        bodyPr=RichTextProperties(rot="-5400000"),
+        p=[Paragraph(pPr=ParagraphProperties(defRPr=CharacterProperties(sz=800)))],
+    )
     chart.y_axis.crosses = "min"
     chart.height = 14
     chart.width = 30
@@ -838,8 +843,36 @@ def _append_comparison_chart_sheet(sheet, title: str, value_header: str, rows: l
 
 
 def _evolution_point_label(index: int, point: dict) -> str:
-    imported_at = str(point.get("importedAt", ""))[:10]
+    imported_at = format_date_br(point.get("importedAt", ""))
     return f"{index + 1}a - {imported_at}"
+
+
+def format_date_br(value) -> str:
+    if isinstance(value, datetime):
+        return value.strftime("%d/%m/%Y")
+    if isinstance(value, date):
+        return value.strftime("%d/%m/%Y")
+
+    text = str(value or "")
+    try:
+        return datetime.fromisoformat(text.replace("Z", "+00:00")).strftime("%d/%m/%Y")
+    except ValueError:
+        pass
+
+    try:
+        return date.fromisoformat(text[:10]).strftime("%d/%m/%Y")
+    except ValueError:
+        return text
+
+
+def format_datetime_br(value) -> str:
+    if isinstance(value, datetime):
+        return value.strftime("%d/%m/%Y %H:%M:%S")
+    text = str(value or "")
+    try:
+        return datetime.fromisoformat(text.replace("Z", "+00:00")).strftime("%d/%m/%Y %H:%M:%S")
+    except ValueError:
+        return text
 
 
 def seconds_to_hhmmss(total_seconds: int) -> str:
