@@ -2697,10 +2697,6 @@ input {
     grid-template-columns: 1fr;
   }
 
-  .settings-ai-side {
-    position: static;
-  }
-
   .settings-ai-summary {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -6107,7 +6103,6 @@ input {
 
 .settings-ai-hero,
 .settings-ai-main,
-.settings-ai-side > section,
 .settings-ai-summary button {
   background: #ffffff;
   border: 1px solid rgba(203, 216, 230, 0.78);
@@ -6203,7 +6198,7 @@ input {
   align-items: start;
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .settings-ai-main {
@@ -6256,27 +6251,6 @@ input {
   font-weight: 800;
 }
 
-.settings-ai-side {
-  display: grid;
-  gap: 12px;
-  position: sticky;
-  top: 18px;
-}
-
-.settings-ai-side > section {
-  display: grid;
-  gap: 12px;
-  padding: 14px;
-}
-
-.settings-simulator-card textarea {
-  border: 1px solid #cbd8e6;
-  border-radius: 12px;
-  min-height: 96px;
-  padding: 10px;
-  resize: vertical;
-}
-
 .category-badge {
   background: #e8f1ff;
   border-radius: 999px;
@@ -6289,8 +6263,7 @@ input {
 }
 
 .simulator-result,
-.rule-flow,
-.settings-usage-card {
+.rule-flow {
   display: grid;
   gap: 9px;
 }
@@ -6317,8 +6290,7 @@ input {
   padding-left: 18px;
 }
 
-.rule-flow span,
-.settings-usage-card span {
+.rule-flow span {
   background: #f8fafc;
   border-radius: 10px;
   color: #455468;
