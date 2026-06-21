@@ -7,8 +7,6 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
 from openpyxl.chart import BarChart, LineChart, Reference
-from openpyxl.chart.text import RichText
-from openpyxl.drawing.text import CharacterProperties, Paragraph, ParagraphProperties, RichTextProperties
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
@@ -804,14 +802,13 @@ def _append_timeline_chart_sheet(sheet, title: str, rows: list[dict], max_series
     chart.title = title
     chart.y_axis.title = "Horas"
     chart.x_axis.title = None
-    chart.x_axis.tickLblPos = "low"
-    chart.x_axis.tickLblSkip = 1
-    chart.x_axis.tickMarkSkip = 1
+    chart.x_axis.delete = False
+    chart.x_axis.tickLblPos = "nextTo"
+    label_skip = max(1, len(periods) // 12)
+    chart.x_axis.tickLblSkip = label_skip
+    chart.x_axis.tickMarkSkip = label_skip
     chart.x_axis.majorTickMark = "out"
-    chart.x_axis.txPr = RichText(
-        bodyPr=RichTextProperties(rot="-2700000"),
-        p=[Paragraph(pPr=ParagraphProperties(defRPr=CharacterProperties(sz=800)))],
-    )
+    chart.y_axis.crosses = "min"
     chart.height = 14
     chart.width = 30
     data_ref = Reference(sheet, min_col=2, max_col=1 + len(series_names), min_row=1, max_row=1 + len(periods))
