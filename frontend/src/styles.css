@@ -6420,6 +6420,11 @@ input {
   grid-template-columns: 180px minmax(0, 1fr) 120px;
 }
 
+.collaborator-create-row {
+  grid-template-columns: minmax(180px, 280px) 150px 120px;
+  justify-content: start;
+}
+
 .keyword-toolbar {
   align-items: center;
   background: #f7f9fc;
@@ -6497,6 +6502,7 @@ input {
 }
 
 .settings-create-row input,
+.settings-create-row select,
 .settings-keyword-row input,
 .settings-keyword-row select,
 .keyword-toolbar select {

@@ -33,6 +33,8 @@ type SettingsPageProps = {
   newRuleKeywords: string;
   newRulePriority: string;
   newRuleVersion: string;
+  newCollaboratorLogin: string;
+  newCollaboratorSubcategoryId: string;
   categoryDrafts: Record<number, string>;
   subcategoryDrafts: Record<number, string>;
   keywordDrafts: Record<number, string>;
@@ -56,6 +58,8 @@ type SettingsPageProps = {
   onNewRuleKeywordsChange: (value: string) => void;
   onNewRulePriorityChange: (value: string) => void;
   onNewRuleVersionChange: (value: string) => void;
+  onNewCollaboratorLoginChange: (value: string) => void;
+  onNewCollaboratorSubcategoryIdChange: (value: string) => void;
   onCategoryDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onSubcategoryDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onKeywordDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
@@ -83,6 +87,7 @@ type SettingsPageProps = {
   onCreateClassificationRule: () => void;
   onUpdateClassificationRule: (rule: ClassificationRuleItem) => void;
   onToggleClassificationRule: (rule: ClassificationRuleItem) => void;
+  onCreateCollaboratorProfile: () => void;
   onCreateAvailableCollaboratorProfile: (loginUsuario: string) => void;
   onIgnoreAvailableCollaborator: (loginUsuario: string) => void;
   onRestoreIgnoredCollaborator: (ignoredId: number) => void;
@@ -204,9 +209,14 @@ export function SettingsPage(props: SettingsPageProps) {
             profileLoginDrafts={props.profileLoginDrafts}
             profileSubcategoryDrafts={props.profileSubcategoryDrafts}
             availableProfileSubcategoryDrafts={props.availableProfileSubcategoryDrafts}
+            newCollaboratorLogin={props.newCollaboratorLogin}
+            newCollaboratorSubcategoryId={props.newCollaboratorSubcategoryId}
+            onNewCollaboratorLoginChange={props.onNewCollaboratorLoginChange}
+            onNewCollaboratorSubcategoryIdChange={props.onNewCollaboratorSubcategoryIdChange}
             onProfileLoginDraftsChange={props.onProfileLoginDraftsChange}
             onProfileSubcategoryDraftsChange={props.onProfileSubcategoryDraftsChange}
             onAvailableProfileSubcategoryDraftsChange={props.onAvailableProfileSubcategoryDraftsChange}
+            onCreateCollaboratorProfile={props.onCreateCollaboratorProfile}
             onCreateAvailableCollaboratorProfile={props.onCreateAvailableCollaboratorProfile}
             onIgnoreAvailableCollaborator={props.onIgnoreAvailableCollaborator}
             onRestoreIgnoredCollaborator={props.onRestoreIgnoredCollaborator}

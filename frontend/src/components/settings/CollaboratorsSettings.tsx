@@ -10,9 +10,14 @@ type CollaboratorsSettingsProps = {
   profileLoginDrafts: Record<number, string>;
   profileSubcategoryDrafts: Record<number, string>;
   availableProfileSubcategoryDrafts: Record<string, string>;
+  newCollaboratorLogin: string;
+  newCollaboratorSubcategoryId: string;
+  onNewCollaboratorLoginChange: (value: string) => void;
+  onNewCollaboratorSubcategoryIdChange: (value: string) => void;
   onProfileLoginDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onProfileSubcategoryDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onAvailableProfileSubcategoryDraftsChange: (updater: SetStateAction<Record<string, string>>) => void;
+  onCreateCollaboratorProfile: () => void;
   onCreateAvailableCollaboratorProfile: (loginUsuario: string) => void;
   onIgnoreAvailableCollaborator: (loginUsuario: string) => void;
   onRestoreIgnoredCollaborator: (ignoredId: number) => void;
@@ -29,9 +34,14 @@ export function CollaboratorsSettings({
   profileLoginDrafts,
   profileSubcategoryDrafts,
   availableProfileSubcategoryDrafts,
+  newCollaboratorLogin,
+  newCollaboratorSubcategoryId,
+  onNewCollaboratorLoginChange,
+  onNewCollaboratorSubcategoryIdChange,
   onProfileLoginDraftsChange,
   onProfileSubcategoryDraftsChange,
   onAvailableProfileSubcategoryDraftsChange,
+  onCreateCollaboratorProfile,
   onCreateAvailableCollaboratorProfile,
   onIgnoreAvailableCollaborator,
   onRestoreIgnoredCollaborator,
@@ -53,6 +63,32 @@ export function CollaboratorsSettings({
     <div className="settings-column wide">
       <h3>Perfil dos colaboradores</h3>
       <p className="muted">Associe colaboradores a perfis operacionais para analisar horas por Back, Front, Analista ou QA.</p>
+      <div className="settings-create-row collaborator-create-row">
+        <input
+          placeholder="Login do colaborador"
+          value={newCollaboratorLogin}
+          onChange={(event) => onNewCollaboratorLoginChange(event.target.value)}
+        />
+        <select
+          value={newCollaboratorSubcategoryId}
+          onChange={(event) => onNewCollaboratorSubcategoryIdChange(event.target.value)}
+        >
+          <option value="">Perfil</option>
+          {subcategories
+            .filter((subcategory) => subcategory.active)
+            .map((subcategory) => (
+              <option key={subcategory.id} value={subcategory.id}>{subcategory.name}</option>
+            ))}
+        </select>
+        <button
+          className="primary-button compact"
+          disabled={!newCollaboratorLogin.trim() || !newCollaboratorSubcategoryId}
+          type="button"
+          onClick={onCreateCollaboratorProfile}
+        >
+          Adicionar
+        </button>
+      </div>
       {filteredUnprofiledCollaborators.length > 0 && (
         <div className="available-collaborators">
           <h4>Colaboradores sem perfil</h4>

@@ -254,6 +254,8 @@ function App() {
             newRuleKeywords={settings.newRuleKeywords}
             newRulePriority={settings.newRulePriority}
             newRuleVersion={settings.newRuleVersion}
+            newCollaboratorLogin={settings.newCollaboratorLogin}
+            newCollaboratorSubcategoryId={settings.newCollaboratorSubcategoryId}
             categoryDrafts={settings.categoryDrafts}
             subcategoryDrafts={settings.subcategoryDrafts}
             keywordDrafts={settings.keywordDrafts}
@@ -277,6 +279,8 @@ function App() {
             onNewRuleKeywordsChange={settings.setNewRuleKeywords}
             onNewRulePriorityChange={settings.setNewRulePriority}
             onNewRuleVersionChange={settings.setNewRuleVersion}
+            onNewCollaboratorLoginChange={settings.setNewCollaboratorLogin}
+            onNewCollaboratorSubcategoryIdChange={settings.setNewCollaboratorSubcategoryId}
             onCategoryDraftsChange={settings.setCategoryDrafts}
             onSubcategoryDraftsChange={settings.setSubcategoryDrafts}
             onKeywordDraftsChange={settings.setKeywordDrafts}
@@ -304,6 +308,7 @@ function App() {
             onCreateClassificationRule={settings.handleCreateClassificationRule}
             onUpdateClassificationRule={settings.handleUpdateClassificationRule}
             onToggleClassificationRule={settings.handleToggleClassificationRule}
+            onCreateCollaboratorProfile={settings.handleCreateCollaboratorProfile}
             onCreateAvailableCollaboratorProfile={settings.handleCreateAvailableCollaboratorProfile}
             onIgnoreAvailableCollaborator={settings.handleIgnoreAvailableCollaborator}
             onRestoreIgnoredCollaborator={settings.handleRestoreIgnoredCollaborator}

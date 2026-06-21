@@ -45,6 +45,8 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
   const [newRuleKeywords, setNewRuleKeywords] = useState("");
   const [newRulePriority, setNewRulePriority] = useState("10");
   const [newRuleVersion, setNewRuleVersion] = useState("1.0.0");
+  const [newCollaboratorLogin, setNewCollaboratorLogin] = useState("");
+  const [newCollaboratorSubcategoryId, setNewCollaboratorSubcategoryId] = useState("");
   const [categoryDrafts, setCategoryDrafts] = useState<Record<number, string>>({});
   const [subcategoryDrafts, setSubcategoryDrafts] = useState<Record<number, string>>({});
   const [keywordDrafts, setKeywordDrafts] = useState<Record<number, string>>({});
@@ -100,6 +102,10 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
       if (categories.some((category) => category.active && String(category.id) === current)) return current;
       return String(categories.find((category) => category.active)?.id ?? "");
     });
+    setNewCollaboratorSubcategoryId((current) => {
+      if (subcategories.some((subcategory) => subcategory.active && String(subcategory.id) === current)) return current;
+      return String(subcategories.find((subcategory) => subcategory.active)?.id ?? "");
+    });
   }
 
   async function handleCreateCategory() {
@@ -130,6 +136,15 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     const subcategoryId = Number(availableProfileSubcategoryDrafts[loginUsuario] || "");
     if (!loginUsuario || !subcategoryId) return;
     await createCollaboratorProfile(loginUsuario, subcategoryId);
+    await refreshSettings();
+  }
+
+  async function handleCreateCollaboratorProfile() {
+    const loginUsuario = newCollaboratorLogin.trim();
+    const subcategoryId = Number(newCollaboratorSubcategoryId || "");
+    if (!loginUsuario || !subcategoryId) return;
+    await createCollaboratorProfile(loginUsuario, subcategoryId);
+    setNewCollaboratorLogin("");
     await refreshSettings();
   }
 
@@ -273,6 +288,8 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     newRuleKeywords,
     newRulePriority,
     newRuleVersion,
+    newCollaboratorLogin,
+    newCollaboratorSubcategoryId,
     categoryDrafts,
     subcategoryDrafts,
     keywordDrafts,
@@ -296,6 +313,8 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     setNewRuleKeywords,
     setNewRulePriority,
     setNewRuleVersion,
+    setNewCollaboratorLogin,
+    setNewCollaboratorSubcategoryId,
     setCategoryDrafts,
     setSubcategoryDrafts,
     setKeywordDrafts,
@@ -313,6 +332,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     handleCreateCategory,
     handleCreateSubcategory,
     handleCreateKeyword,
+    handleCreateCollaboratorProfile,
     handleCreateAvailableCollaboratorProfile,
     handleIgnoreAvailableCollaborator,
     handleRestoreIgnoredCollaborator,
