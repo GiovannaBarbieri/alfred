@@ -320,11 +320,13 @@ def export_project_analysis_xlsx(
                 cursor.execute(sql, [import_id])
                 rows = cursor.fetchall()
                 max_series = None if title == "Diario_Total" else 5
+                show_date_labels = title != "Diario_Total"
                 _append_timeline_chart_sheet(
                     workbook.create_sheet(title),
                     title.replace("_", " "),
                     rows,
                     max_series=max_series,
+                    show_date_labels=show_date_labels,
                 )
 
             task_where = "WHERE l.importacao_id = %s"
@@ -775,7 +777,13 @@ def _autosize_columns(sheet) -> None:
         sheet.column_dimensions[letter].width = min(max(max_length + 2, 12), 52)
 
 
-def _append_timeline_chart_sheet(sheet, title: str, rows: list[dict], max_series: int | None = None) -> None:
+def _append_timeline_chart_sheet(
+    sheet,
+    title: str,
+    rows: list[dict],
+    max_series: int | None = None,
+    show_date_labels: bool = True,
+) -> None:
     periods = sorted({row["periodo"].isoformat() for row in rows})
     series_names = sorted(
         {row["serie"] or "Total" for row in rows},
@@ -805,7 +813,7 @@ def _append_timeline_chart_sheet(sheet, title: str, rows: list[dict], max_series
     chart.y_axis.title = "Horas"
     chart.x_axis.title = None
     chart.x_axis.delete = False
-    chart.x_axis.tickLblPos = "low"
+    chart.x_axis.tickLblPos = "low" if show_date_labels else "none"
     chart.x_axis.tickLblSkip = 1
     chart.x_axis.tickMarkSkip = 1
     chart.x_axis.majorTickMark = "out"
