@@ -110,7 +110,6 @@ export function DashboardPage({
                   <div className="recent-project-stats">
                     <span>{project.totalHours}h</span>
                     <span>{project.recordsCount} registros</span>
-                    <span>{project.alertsCount} alertas</span>
                   </div>
                   <button className="secondary-button compact recent-project-action" type="button" onClick={() => onOpenReport(project.importId)}>
                     Abrir <ArrowUpRight size={14} />
