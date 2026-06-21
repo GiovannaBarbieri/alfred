@@ -443,26 +443,42 @@ export async function getSubcategories(): Promise<SettingItem[]> {
   return response.json();
 }
 
-export async function createSubcategory(name: string): Promise<SettingItem> {
+export async function createSubcategory(payload: {
+  name: string;
+  active?: boolean;
+  group?: string | null;
+  aiAlias?: string | null;
+}): Promise<SettingItem> {
   const response = await fetch(`${API_BASE_URL}/settings/subcategories`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
+    body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error("Não foi possível criar a subcategoria.");
+  if (!response.ok) throw new Error("Não foi possível criar o cargo.");
   return response.json();
 }
 
 export async function updateSubcategory(
   subcategoryId: number,
-  payload: { name?: string; active?: boolean },
+  payload: { name?: string; active?: boolean; group?: string | null; aiAlias?: string | null },
 ): Promise<SettingItem> {
   const response = await fetch(`${API_BASE_URL}/settings/subcategories/${subcategoryId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error("Não foi possível atualizar a subcategoria.");
+  if (!response.ok) throw new Error("Não foi possível atualizar o cargo.");
+  return response.json();
+}
+
+export async function deleteSubcategory(subcategoryId: number): Promise<SettingItem & { deleted: boolean }> {
+  const response = await fetch(`${API_BASE_URL}/settings/subcategories/${subcategoryId}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail ?? "Não foi possível excluir o cargo.");
+  }
   return response.json();
 }
 

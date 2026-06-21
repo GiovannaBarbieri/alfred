@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from psycopg import errors
 from pydantic import BaseModel
 
 from app.db import get_connection
@@ -14,6 +15,20 @@ class NamePayload(BaseModel):
 class SettingUpdatePayload(BaseModel):
     name: str | None = None
     active: bool | None = None
+
+
+class SubcategoryPayload(BaseModel):
+    name: str
+    active: bool = True
+    group: str | None = None
+    aiAlias: str | None = None
+
+
+class SubcategoryUpdatePayload(BaseModel):
+    name: str | None = None
+    active: bool | None = None
+    group: str | None = None
+    aiAlias: str | None = None
 
 
 class KeywordPayload(BaseModel):
@@ -62,7 +77,12 @@ class ClassificationRuleUpdatePayload(BaseModel):
 
 
 def _setting_response(row: dict) -> dict:
-    return {"id": row["id"], "name": row["nome"], "active": row["ativa"]}
+    response = {"id": row["id"], "name": row["nome"], "active": row["ativa"]}
+    if "grupo" in row:
+        response["group"] = row["grupo"]
+    if "alias_ia" in row:
+        response["aiAlias"] = row["alias_ia"]
+    return response
 
 
 def _keyword_response(row: dict) -> dict:
@@ -186,26 +206,32 @@ def update_category(category_id: int, payload: SettingUpdatePayload) -> dict:
 def list_subcategories() -> list[dict]:
     with get_connection() as connection:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT id, nome, ativa FROM subcategorias ORDER BY nome")
+            cursor.execute("SELECT id, nome, ativa, grupo, alias_ia FROM subcategorias ORDER BY nome")
             return [_setting_response(row) for row in cursor.fetchall()]
 
 
 @router.post("/subcategories")
-def create_subcategory(payload: NamePayload) -> dict:
+def create_subcategory(payload: SubcategoryPayload) -> dict:
     name = payload.name.strip()
+    group = payload.group.strip() if payload.group else None
+    ai_alias = payload.aiAlias.strip() if payload.aiAlias else None
     if not name:
-        raise HTTPException(status_code=400, detail="Nome da subcategoria e obrigatorio.")
+        raise HTTPException(status_code=400, detail="Nome do cargo e obrigatorio.")
 
     with get_connection() as connection:
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                INSERT INTO subcategorias (nome)
-                VALUES (%s)
-                ON CONFLICT (nome) DO UPDATE SET ativa = TRUE
-                RETURNING id, nome, ativa
+                INSERT INTO subcategorias (nome, ativa, grupo, alias_ia)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (nome) DO UPDATE
+                SET
+                    ativa = EXCLUDED.ativa,
+                    grupo = EXCLUDED.grupo,
+                    alias_ia = COALESCE(EXCLUDED.alias_ia, subcategorias.alias_ia)
+                RETURNING id, nome, ativa, grupo, alias_ia
                 """,
-                (name,),
+                (name, payload.active, group, ai_alias),
             )
             row = cursor.fetchone()
             insert_audit_log(
@@ -219,30 +245,40 @@ def create_subcategory(payload: NamePayload) -> dict:
 
 
 @router.patch("/subcategories/{subcategory_id}")
-def update_subcategory(subcategory_id: int, payload: SettingUpdatePayload) -> dict:
+def update_subcategory(subcategory_id: int, payload: SubcategoryUpdatePayload) -> dict:
     name = payload.name.strip() if payload.name is not None else None
+    group = payload.group.strip() if payload.group else None
+    ai_alias = payload.aiAlias.strip() if payload.aiAlias else None
     if payload.name is not None and not name:
-        raise HTTPException(status_code=400, detail="Nome da subcategoria e obrigatorio.")
-    if name is None and payload.active is None:
+        raise HTTPException(status_code=400, detail="Nome do cargo e obrigatorio.")
+    if name is None and payload.active is None and payload.group is None and payload.aiAlias is None:
         raise HTTPException(status_code=400, detail="Informe nome ou status para atualizar.")
 
     with get_connection() as connection:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT id, nome, ativa FROM subcategorias WHERE id = %s", (subcategory_id,))
+            cursor.execute("SELECT id, nome, ativa, grupo, alias_ia FROM subcategorias WHERE id = %s", (subcategory_id,))
             before = cursor.fetchone()
             if not before:
-                raise HTTPException(status_code=404, detail="Subcategoria nao encontrada.")
+                raise HTTPException(status_code=404, detail="Cargo nao encontrado.")
 
             cursor.execute(
                 """
                 UPDATE subcategorias
                 SET
                     nome = COALESCE(%s, nome),
-                    ativa = COALESCE(%s, ativa)
+                    ativa = COALESCE(%s, ativa),
+                    grupo = %s,
+                    alias_ia = %s
                 WHERE id = %s
-                RETURNING id, nome, ativa
+                RETURNING id, nome, ativa, grupo, alias_ia
                 """,
-                (name, payload.active, subcategory_id),
+                (
+                    name,
+                    payload.active,
+                    group if payload.group is not None else before["grupo"],
+                    ai_alias if payload.aiAlias is not None else before["alias_ia"],
+                    subcategory_id,
+                ),
             )
             row = cursor.fetchone()
             insert_audit_log(
@@ -254,6 +290,39 @@ def update_subcategory(subcategory_id: int, payload: SettingUpdatePayload) -> di
                 after=_setting_response(row),
             )
             return _setting_response(row)
+
+
+@router.delete("/subcategories/{subcategory_id}")
+def delete_subcategory(subcategory_id: int) -> dict:
+    with get_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id, nome, ativa, grupo, alias_ia FROM subcategorias WHERE id = %s", (subcategory_id,))
+            before = cursor.fetchone()
+            if not before:
+                raise HTTPException(status_code=404, detail="Cargo nao encontrado.")
+            try:
+                cursor.execute(
+                    """
+                    DELETE FROM subcategorias
+                    WHERE id = %s
+                    RETURNING id, nome, ativa, grupo, alias_ia
+                    """,
+                    (subcategory_id,),
+                )
+            except errors.ForeignKeyViolation as exc:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Este cargo esta vinculado a dados existentes e nao pode ser excluido.",
+                ) from exc
+            row = cursor.fetchone()
+            insert_audit_log(
+                connection,
+                entity="subcategory",
+                record_id=subcategory_id,
+                action="deleted",
+                before=_setting_response(before),
+            )
+            return {**_setting_response(row), "deleted": True}
 
 
 @router.get("/keywords")

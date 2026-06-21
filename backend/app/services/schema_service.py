@@ -193,6 +193,18 @@ def ensure_runtime_schema() -> None:
             )
             cursor.execute(
                 """
+                ALTER TABLE subcategorias
+                ADD COLUMN IF NOT EXISTS grupo VARCHAR(120)
+                """
+            )
+            cursor.execute(
+                """
+                ALTER TABLE subcategorias
+                ADD COLUMN IF NOT EXISTS alias_ia VARCHAR(160)
+                """
+            )
+            cursor.execute(
+                """
                 ALTER TABLE classificacoes_task
                 ADD COLUMN IF NOT EXISTS versao_classificador VARCHAR(40) NOT NULL DEFAULT '1.0.0'
                 """

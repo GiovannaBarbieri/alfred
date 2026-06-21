@@ -6,6 +6,7 @@ import {
   createCollaboratorProfile,
   createKeyword,
   createSubcategory,
+  deleteSubcategory,
   getCategories,
   getClassificationRules,
   getCollaboratorProfiles,
@@ -37,6 +38,8 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
   const [ignoredCollaborators, setIgnoredCollaborators] = useState<IgnoredCollaboratorItem[]>([]);
   const [newCategory, setNewCategory] = useState("");
   const [newSubcategory, setNewSubcategory] = useState("");
+  const [newSubcategoryActive, setNewSubcategoryActive] = useState(true);
+  const [newSubcategoryGroup, setNewSubcategoryGroup] = useState("");
   const [newKeyword, setNewKeyword] = useState("");
   const [newKeywordCategoryId, setNewKeywordCategoryId] = useState("");
   const [newRuleName, setNewRuleName] = useState("");
@@ -49,6 +52,8 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
   const [newCollaboratorSubcategoryId, setNewCollaboratorSubcategoryId] = useState("");
   const [categoryDrafts, setCategoryDrafts] = useState<Record<number, string>>({});
   const [subcategoryDrafts, setSubcategoryDrafts] = useState<Record<number, string>>({});
+  const [subcategoryActiveDrafts, setSubcategoryActiveDrafts] = useState<Record<number, boolean>>({});
+  const [subcategoryGroupDrafts, setSubcategoryGroupDrafts] = useState<Record<number, string>>({});
   const [keywordDrafts, setKeywordDrafts] = useState<Record<number, string>>({});
   const [keywordCategoryDrafts, setKeywordCategoryDrafts] = useState<Record<number, string>>({});
   const [ruleNameDrafts, setRuleNameDrafts] = useState<Record<number, string>>({});
@@ -78,6 +83,8 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     setIgnoredCollaborators(ignored);
     setCategoryDrafts(Object.fromEntries(categories.map((category) => [category.id, category.name])));
     setSubcategoryDrafts(Object.fromEntries(subcategories.map((subcategory) => [subcategory.id, subcategory.name])));
+    setSubcategoryActiveDrafts(Object.fromEntries(subcategories.map((subcategory) => [subcategory.id, subcategory.active])));
+    setSubcategoryGroupDrafts(Object.fromEntries(subcategories.map((subcategory) => [subcategory.id, subcategory.group ?? ""])));
     setKeywordDrafts(Object.fromEntries(keywords.map((keyword) => [keyword.id, keyword.keyword])));
     setKeywordCategoryDrafts(
       Object.fromEntries(keywords.map((keyword) => [keyword.id, String(keyword.categoryId)])),
@@ -118,8 +125,14 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
 
   async function handleCreateSubcategory() {
     if (!newSubcategory.trim()) return;
-    await createSubcategory(newSubcategory);
+    await createSubcategory({
+      name: newSubcategory,
+      active: newSubcategoryActive,
+      group: newSubcategoryGroup.trim() || null,
+    });
     setNewSubcategory("");
+    setNewSubcategoryActive(true);
+    setNewSubcategoryGroup("");
     await refreshSettings();
   }
 
@@ -174,13 +187,22 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
 
   async function handleRenameSubcategory(subcategory: SettingItem) {
     const name = subcategoryDrafts[subcategory.id]?.trim();
-    if (!name || name === subcategory.name) return;
-    await updateSubcategory(subcategory.id, { name });
+    const active = subcategoryActiveDrafts[subcategory.id] ?? subcategory.active;
+    const group = subcategoryGroupDrafts[subcategory.id]?.trim() ?? subcategory.group ?? "";
+    const currentGroup = subcategory.group ?? "";
+    if (!name) return;
+    if (name === subcategory.name && active === subcategory.active && group === currentGroup) return;
+    await updateSubcategory(subcategory.id, { name, active, group: group || null });
     await refreshSettings();
   }
 
   async function handleToggleSubcategory(subcategory: SettingItem) {
     await updateSubcategory(subcategory.id, { active: !subcategory.active });
+    await refreshSettings();
+  }
+
+  async function handleDeleteSubcategory(subcategory: SettingItem) {
+    await deleteSubcategory(subcategory.id);
     await refreshSettings();
   }
 
@@ -280,6 +302,8 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     ignoredCollaborators,
     newCategory,
     newSubcategory,
+    newSubcategoryActive,
+    newSubcategoryGroup,
     newKeyword,
     newKeywordCategoryId,
     newRuleName,
@@ -292,6 +316,8 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     newCollaboratorSubcategoryId,
     categoryDrafts,
     subcategoryDrafts,
+    subcategoryActiveDrafts,
+    subcategoryGroupDrafts,
     keywordDrafts,
     keywordCategoryDrafts,
     ruleNameDrafts,
@@ -305,6 +331,8 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     availableProfileSubcategoryDrafts,
     setNewCategory,
     setNewSubcategory,
+    setNewSubcategoryActive,
+    setNewSubcategoryGroup,
     setNewKeyword,
     setNewKeywordCategoryId,
     setNewRuleName,
@@ -317,6 +345,8 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     setNewCollaboratorSubcategoryId,
     setCategoryDrafts,
     setSubcategoryDrafts,
+    setSubcategoryActiveDrafts,
+    setSubcategoryGroupDrafts,
     setKeywordDrafts,
     setKeywordCategoryDrafts,
     setRuleNameDrafts,
@@ -340,6 +370,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     handleToggleCategory,
     handleRenameSubcategory,
     handleToggleSubcategory,
+    handleDeleteSubcategory,
     handleUpdateKeyword,
     handleToggleKeyword,
     handleBulkToggleKeywords,

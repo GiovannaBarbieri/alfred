@@ -25,6 +25,8 @@ type SettingsPageProps = {
   unprofiledCollaborators: string[];
   newCategory: string;
   newSubcategory: string;
+  newSubcategoryActive: boolean;
+  newSubcategoryGroup: string;
   newKeyword: string;
   newKeywordCategoryId: string;
   newRuleName: string;
@@ -37,6 +39,8 @@ type SettingsPageProps = {
   newCollaboratorSubcategoryId: string;
   categoryDrafts: Record<number, string>;
   subcategoryDrafts: Record<number, string>;
+  subcategoryActiveDrafts: Record<number, boolean>;
+  subcategoryGroupDrafts: Record<number, string>;
   keywordDrafts: Record<number, string>;
   keywordCategoryDrafts: Record<number, string>;
   ruleNameDrafts: Record<number, string>;
@@ -50,6 +54,8 @@ type SettingsPageProps = {
   availableProfileSubcategoryDrafts: Record<string, string>;
   onNewCategoryChange: (value: string) => void;
   onNewSubcategoryChange: (value: string) => void;
+  onNewSubcategoryActiveChange: (value: boolean) => void;
+  onNewSubcategoryGroupChange: (value: string) => void;
   onNewKeywordChange: (value: string) => void;
   onNewKeywordCategoryIdChange: (value: string) => void;
   onNewRuleNameChange: (value: string) => void;
@@ -62,6 +68,8 @@ type SettingsPageProps = {
   onNewCollaboratorSubcategoryIdChange: (value: string) => void;
   onCategoryDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onSubcategoryDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
+  onSubcategoryActiveDraftsChange: (updater: SetStateAction<Record<number, boolean>>) => void;
+  onSubcategoryGroupDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onKeywordDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onKeywordCategoryDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onRuleNameDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
@@ -79,6 +87,7 @@ type SettingsPageProps = {
   onCreateSubcategory: () => void;
   onRenameSubcategory: (subcategory: SettingItem) => void;
   onToggleSubcategory: (subcategory: SettingItem) => void;
+  onDeleteSubcategory: (subcategory: SettingItem) => void;
   onCreateKeyword: () => void;
   onUpdateKeyword: (keyword: KeywordItem) => void;
   onToggleKeyword: (keyword: KeywordItem) => void;
@@ -97,16 +106,22 @@ type SettingsPageProps = {
 
 const settingsTabs: Array<{ id: SettingsTab; label: string; icon: ReactNode }> = [
   { id: "categories", label: "Categorias", icon: <FolderTree size={16} /> },
-  { id: "subcategories", label: "Subcategorias", icon: <Layers3 size={16} /> },
+  { id: "subcategories", label: "Cargos", icon: <Layers3 size={16} /> },
   { id: "collaborators", label: "Colaboradores", icon: <UsersRound size={16} /> },
 ];
 
 export function SettingsPage(props: SettingsPageProps) {
   const [settingsSearch, setSettingsSearch] = useState("");
   const [isCategoryCreateOpen, setIsCategoryCreateOpen] = useState(false);
+  const [isSubcategoryCreateOpen, setIsSubcategoryCreateOpen] = useState(false);
   const [settingsFeedback, setSettingsFeedback] = useState<string | null>(null);
   const activeTab = settingsTabs.find((tab) => tab.id === props.settingsTab) ?? settingsTabs[0];
-  const searchPlaceholder = props.settingsTab === "categories" ? "Buscar categoria..." : `Buscar em ${activeTab.label.toLowerCase()}`;
+  const searchPlaceholder =
+    props.settingsTab === "categories"
+      ? "Buscar categoria..."
+      : props.settingsTab === "subcategories"
+        ? "Buscar cargo..."
+        : `Buscar em ${activeTab.label.toLowerCase()}`;
 
   const tabCounts: Record<SettingsTab, number> = {
     categories: props.settingsCategories.length,
@@ -120,11 +135,26 @@ export function SettingsPage(props: SettingsPageProps) {
     setIsCategoryCreateOpen(true);
   }
 
+  function handleOpenSubcategoryCreate() {
+    props.onNewSubcategoryChange("");
+    props.onNewSubcategoryActiveChange(true);
+    props.onNewSubcategoryGroupChange("");
+    setSettingsFeedback(null);
+    setIsSubcategoryCreateOpen(true);
+  }
+
   async function handleSaveCategoryCreate() {
     if (!props.newCategory.trim()) return;
     await props.onCreateCategory();
     setIsCategoryCreateOpen(false);
     setSettingsFeedback("Categoria criada com sucesso.");
+  }
+
+  async function handleSaveSubcategoryCreate() {
+    if (!props.newSubcategory.trim()) return;
+    await props.onCreateSubcategory();
+    setIsSubcategoryCreateOpen(false);
+    setSettingsFeedback("Cargo criado com sucesso.");
   }
 
   return (
@@ -167,6 +197,12 @@ export function SettingsPage(props: SettingsPageProps) {
             Nova Categoria
           </button>
         )}
+        {props.settingsTab === "subcategories" && (
+          <button className="primary-button compact settings-add-button" type="button" onClick={handleOpenSubcategoryCreate}>
+            <Plus size={15} />
+            Novo Cargo
+          </button>
+        )}
       </div>
       {settingsFeedback && <p className="settings-feedback" role="status">{settingsFeedback}</p>}
       <div className="settings-grid">
@@ -185,13 +221,15 @@ export function SettingsPage(props: SettingsPageProps) {
           <SubcategoriesSettings
             subcategories={props.settingsSubcategories}
             search={settingsSearch}
-            newSubcategory={props.newSubcategory}
             subcategoryDrafts={props.subcategoryDrafts}
-            onNewSubcategoryChange={props.onNewSubcategoryChange}
+            subcategoryActiveDrafts={props.subcategoryActiveDrafts}
+            subcategoryGroupDrafts={props.subcategoryGroupDrafts}
             onSubcategoryDraftsChange={props.onSubcategoryDraftsChange}
-            onCreateSubcategory={props.onCreateSubcategory}
+            onSubcategoryActiveDraftsChange={props.onSubcategoryActiveDraftsChange}
+            onSubcategoryGroupDraftsChange={props.onSubcategoryGroupDraftsChange}
             onRenameSubcategory={props.onRenameSubcategory}
             onToggleSubcategory={props.onToggleSubcategory}
+            onDeleteSubcategory={props.onDeleteSubcategory}
           />
         )}
 
@@ -255,6 +293,62 @@ export function SettingsPage(props: SettingsPageProps) {
                 Cancelar
               </button>
               <button className="primary-button compact" disabled={!props.newCategory.trim()} type="submit">
+                Salvar
+              </button>
+            </footer>
+          </form>
+        </div>
+      )}
+
+      {isSubcategoryCreateOpen && (
+        <div className="settings-modal-backdrop" role="presentation" onClick={() => setIsSubcategoryCreateOpen(false)}>
+          <form
+            aria-labelledby="cargo-create-title"
+            aria-modal="true"
+            className="settings-modal-dialog"
+            role="dialog"
+            onClick={(event) => event.stopPropagation()}
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleSaveSubcategoryCreate();
+            }}
+          >
+            <header>
+              <h3 id="cargo-create-title">Novo Cargo</h3>
+              <p>Cadastre um cargo para segmentar as horas apontadas pelos colaboradores.</p>
+            </header>
+            <label>
+              <span>Nome do cargo</span>
+              <input
+                autoFocus
+                value={props.newSubcategory}
+                onChange={(event) => props.onNewSubcategoryChange(event.target.value)}
+                placeholder="Ex: Desenvolvedor Back-end"
+              />
+            </label>
+            <label>
+              <span>Situação</span>
+              <select
+                value={String(props.newSubcategoryActive)}
+                onChange={(event) => props.onNewSubcategoryActiveChange(event.target.value === "true")}
+              >
+                <option value="true">Ativo</option>
+                <option value="false">Inativo</option>
+              </select>
+            </label>
+            <label>
+              <span>Grupo (opcional)</span>
+              <input
+                value={props.newSubcategoryGroup}
+                onChange={(event) => props.onNewSubcategoryGroupChange(event.target.value)}
+                placeholder="Ex: Desenvolvimento"
+              />
+            </label>
+            <footer>
+              <button className="secondary-button compact" type="button" onClick={() => setIsSubcategoryCreateOpen(false)}>
+                Cancelar
+              </button>
+              <button className="primary-button compact" disabled={!props.newSubcategory.trim()} type="submit">
                 Salvar
               </button>
             </footer>

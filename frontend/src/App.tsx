@@ -246,6 +246,8 @@ function App() {
             unprofiledCollaborators={unprofiledCollaborators}
             newCategory={settings.newCategory}
             newSubcategory={settings.newSubcategory}
+            newSubcategoryActive={settings.newSubcategoryActive}
+            newSubcategoryGroup={settings.newSubcategoryGroup}
             newKeyword={settings.newKeyword}
             newKeywordCategoryId={settings.newKeywordCategoryId}
             newRuleName={settings.newRuleName}
@@ -258,6 +260,8 @@ function App() {
             newCollaboratorSubcategoryId={settings.newCollaboratorSubcategoryId}
             categoryDrafts={settings.categoryDrafts}
             subcategoryDrafts={settings.subcategoryDrafts}
+            subcategoryActiveDrafts={settings.subcategoryActiveDrafts}
+            subcategoryGroupDrafts={settings.subcategoryGroupDrafts}
             keywordDrafts={settings.keywordDrafts}
             keywordCategoryDrafts={settings.keywordCategoryDrafts}
             ruleNameDrafts={settings.ruleNameDrafts}
@@ -271,6 +275,8 @@ function App() {
             availableProfileSubcategoryDrafts={settings.availableProfileSubcategoryDrafts}
             onNewCategoryChange={settings.setNewCategory}
             onNewSubcategoryChange={settings.setNewSubcategory}
+            onNewSubcategoryActiveChange={settings.setNewSubcategoryActive}
+            onNewSubcategoryGroupChange={settings.setNewSubcategoryGroup}
             onNewKeywordChange={settings.setNewKeyword}
             onNewKeywordCategoryIdChange={settings.setNewKeywordCategoryId}
             onNewRuleNameChange={settings.setNewRuleName}
@@ -283,6 +289,8 @@ function App() {
             onNewCollaboratorSubcategoryIdChange={settings.setNewCollaboratorSubcategoryId}
             onCategoryDraftsChange={settings.setCategoryDrafts}
             onSubcategoryDraftsChange={settings.setSubcategoryDrafts}
+            onSubcategoryActiveDraftsChange={settings.setSubcategoryActiveDrafts}
+            onSubcategoryGroupDraftsChange={settings.setSubcategoryGroupDrafts}
             onKeywordDraftsChange={settings.setKeywordDrafts}
             onKeywordCategoryDraftsChange={settings.setKeywordCategoryDrafts}
             onRuleNameDraftsChange={settings.setRuleNameDrafts}
@@ -300,6 +308,7 @@ function App() {
             onCreateSubcategory={settings.handleCreateSubcategory}
             onRenameSubcategory={settings.handleRenameSubcategory}
             onToggleSubcategory={settings.handleToggleSubcategory}
+            onDeleteSubcategory={settings.handleDeleteSubcategory}
             onCreateKeyword={settings.handleCreateKeyword}
             onUpdateKeyword={settings.handleUpdateKeyword}
             onToggleKeyword={settings.handleToggleKeyword}

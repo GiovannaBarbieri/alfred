@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS subcategorias (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(120) NOT NULL UNIQUE,
     ativa BOOLEAN NOT NULL DEFAULT TRUE,
+    grupo VARCHAR(120),
+    alias_ia VARCHAR(160),
     criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 

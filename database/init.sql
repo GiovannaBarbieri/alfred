@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS subcategorias (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(120) NOT NULL UNIQUE,
     ativa BOOLEAN NOT NULL DEFAULT TRUE,
+    grupo VARCHAR(120),
+    alias_ia VARCHAR(160),
     criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
@@ -242,12 +244,16 @@ INSERT INTO categorias (nome) VALUES
     ('Nao classificado')
 ON CONFLICT (nome) DO NOTHING;
 
-INSERT INTO subcategorias (nome) VALUES
-    ('Back'),
-    ('Front'),
-    ('QA'),
-    ('Nao aplicavel'),
-    ('Nao classificado')
+INSERT INTO subcategorias (nome, grupo, alias_ia) VALUES
+    ('Analista', 'Gestao', 'analista funcional requisitos'),
+    ('Desenvolvedor Back-end', 'Desenvolvimento', 'back backend back-end'),
+    ('Desenvolvedor Front-end', 'Desenvolvimento', 'front frontend front-end'),
+    ('QA', 'Qualidade', 'qa testes qualidade'),
+    ('Infraestrutura', 'Operacoes', 'infraestrutura devops operacoes'),
+    ('Banco de Dados', 'Dados', 'banco dados dba database'),
+    ('DataOps', 'Dados', 'dataops dados pipelines'),
+    ('Nao aplicavel', NULL, NULL),
+    ('Nao classificado', NULL, NULL)
 ON CONFLICT (nome) DO NOTHING;
 
 INSERT INTO palavras_chave_categoria (categoria_id, palavra)

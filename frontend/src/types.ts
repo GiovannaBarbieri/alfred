@@ -601,6 +601,8 @@ export type SettingItem = {
   id: number;
   name: string;
   active: boolean;
+  group?: string | null;
+  aiAlias?: string | null;
 };
 
 export type KeywordItem = {

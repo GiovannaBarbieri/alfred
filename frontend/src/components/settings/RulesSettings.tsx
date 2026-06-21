@@ -110,7 +110,7 @@ export function RulesSettings({
           ))}
         </select>
         <select value={newRuleSubcategoryId} onChange={(event) => onNewRuleSubcategoryIdChange(event.target.value)}>
-          <option value="">Subcategoria opcional</option>
+          <option value="">Cargo opcional</option>
           {activeSubcategories.map((subcategory) => (
             <option key={subcategory.id} value={subcategory.id}>{subcategory.name}</option>
           ))}
@@ -186,7 +186,7 @@ export function RulesSettings({
                     ))}
                   </select>
                   <select value={ruleSubcategoryDrafts[rule.id] ?? String(rule.subcategoryId ?? "")} onChange={(event) => onRuleSubcategoryDraftsChange((current) => ({ ...current, [rule.id]: event.target.value }))}>
-                    <option value="">Sem subcategoria</option>
+                    <option value="">Sem cargo</option>
                     {activeSubcategories.map((subcategory) => (
                       <option key={subcategory.id} value={subcategory.id}>{subcategory.name}</option>
                     ))}
