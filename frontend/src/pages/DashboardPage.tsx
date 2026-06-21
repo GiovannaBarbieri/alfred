@@ -13,16 +13,7 @@ export function DashboardPage({
   onOpenReport,
 }: DashboardPageProps) {
   const hasProjects = overview.recentProjects.length > 0;
-  const totalPendings =
-    overview.pendingItems.classificationPending +
-    overview.pendingItems.lowConfidence +
-    overview.pendingItems.collaboratorsWithoutProfile +
-    overview.pendingItems.alertsPending;
   const topProject = [...overview.recentProjects].sort((a, b) => b.totalHours - a.totalHours)[0];
-  const criticalInsight =
-    overview.pendingItems.alertsPending > 0
-      ? `${overview.pendingItems.alertsPending} alertas operacionais ainda estao pendentes.`
-      : "Sem alertas operacionais pendentes nos projetos consolidados.";
   const confidenceInsight =
     overview.pendingItems.lowConfidence > 0
       ? `${overview.pendingItems.lowConfidence} classificacoes com baixa confianca merecem uma olhada.`
@@ -47,35 +38,14 @@ export function DashboardPage({
       value: overview.pendingItems.collaboratorsWithoutProfile,
       icon: <UserRoundX size={18} />,
     },
-    {
-      label: "Alertas operacionais",
-      value: overview.pendingItems.alertsPending,
-      icon: <AlertTriangle size={18} />,
-    },
   ];
 
   return (
     <>
-      <section className="dashboard-hero panel">
-        <div>
-          <span className="eyebrow">Central operacional</span>
-          <h2>Visao executiva das horas analisadas</h2>
-          <p className="muted">
-            Acompanhe volume importado, pendencias e acesso rapido aos projetos mais recentes.
-          </p>
-        </div>
-        <div className={`dashboard-health ${totalPendings > 0 ? "attention" : "ok"}`}>
-          {totalPendings > 0 ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />}
-          <strong>{totalPendings > 0 ? "Requer atencao" : "Operacao saudavel"}</strong>
-          <small>{totalPendings} {totalPendings === 1 ? "item" : "itens"} na fila de revisao</small>
-        </div>
-      </section>
-
       <section className="metrics-grid" aria-label="Indicadores principais">
         <Metric label="Total de horas importadas" value={String(overview.summary.totalHours)} icon={<Clock3 size={18} />} />
         <Metric label="Projetos analisados" value={String(overview.summary.projectsCount)} icon={<Layers3 size={18} />} />
         <Metric label="Colaboradores" value={String(overview.summary.collaboratorsCount)} icon={<UsersRound size={18} />} />
-        <Metric label="Alertas operacionais" value={String(overview.summary.pendingAlerts)} icon={<AlertTriangle size={18} />} />
       </section>
 
       <section className="dashboard-insights-grid">
@@ -88,10 +58,6 @@ export function DashboardPage({
             <span>{hasProjects ? "ativo" : "vazio"}</span>
           </div>
           <div className="insight-list">
-            <div className="insight-item warning">
-              <AlertTriangle size={17} />
-              <span>{criticalInsight}</span>
-            </div>
             <div className="insight-item info">
               <CheckCircle2 size={17} />
               <span>{confidenceInsight}</span>
