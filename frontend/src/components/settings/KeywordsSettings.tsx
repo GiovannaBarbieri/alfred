@@ -162,7 +162,7 @@ export function KeywordsSettings({
           <span>Categoria</span>
           <span>Palavra-chave</span>
           <span>Uso</span>
-          <span>Acoes</span>
+          <span>Ações</span>
         </div>
         {visibleKeywords.map((keyword) => (
           <div className={`keyword-item settings-table-row ${keyword.active ? "" : "inactive"}`} key={keyword.id}>

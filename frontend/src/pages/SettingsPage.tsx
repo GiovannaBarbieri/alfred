@@ -1,4 +1,4 @@
-import { FolderTree, Layers3, Search, UsersRound } from "lucide-react";
+import { FolderTree, Layers3, Plus, Search, UsersRound } from "lucide-react";
 import { useState, type ReactNode, type SetStateAction } from "react";
 import { CategoriesSettings } from "../components/settings/CategoriesSettings";
 import { CollaboratorsSettings } from "../components/settings/CollaboratorsSettings";
@@ -73,7 +73,7 @@ type SettingsPageProps = {
   onProfileLoginDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onProfileSubcategoryDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onAvailableProfileSubcategoryDraftsChange: (updater: SetStateAction<Record<string, string>>) => void;
-  onCreateCategory: () => void;
+  onCreateCategory: () => Promise<void> | void;
   onRenameCategory: (category: SettingItem) => void;
   onToggleCategory: (category: SettingItem) => void;
   onCreateSubcategory: () => void;
@@ -103,8 +103,10 @@ const settingsTabs: Array<{ id: SettingsTab; label: string; icon: ReactNode }> =
 
 export function SettingsPage(props: SettingsPageProps) {
   const [settingsSearch, setSettingsSearch] = useState("");
+  const [isCategoryCreateOpen, setIsCategoryCreateOpen] = useState(false);
+  const [settingsFeedback, setSettingsFeedback] = useState<string | null>(null);
   const activeTab = settingsTabs.find((tab) => tab.id === props.settingsTab) ?? settingsTabs[0];
-  const searchPlaceholder = `Buscar em ${activeTab.label.toLowerCase()}`;
+  const searchPlaceholder = props.settingsTab === "categories" ? "Buscar categoria..." : `Buscar em ${activeTab.label.toLowerCase()}`;
 
   const tabCounts: Record<SettingsTab, number> = {
     categories: props.settingsCategories.length,
@@ -112,20 +114,31 @@ export function SettingsPage(props: SettingsPageProps) {
     collaborators: props.collaboratorProfiles.length,
   };
 
+  function handleOpenCategoryCreate() {
+    props.onNewCategoryChange("");
+    setSettingsFeedback(null);
+    setIsCategoryCreateOpen(true);
+  }
+
+  async function handleSaveCategoryCreate() {
+    if (!props.newCategory.trim()) return;
+    await props.onCreateCategory();
+    setIsCategoryCreateOpen(false);
+    setSettingsFeedback("Categoria criada com sucesso.");
+  }
+
   return (
     <section className="settings-ai-page">
       <div className="settings-ai-hero">
         <div>
-          <span className="eyebrow">Padrao operacional de classificacao</span>
-          <h2>Configuracoes de Classificacao</h2>
-          <p>Gerencie as categorias aceitas no primeiro colchete e os perfis operacionais usados nas analises por colaborador.</p>
+          <h2>Configurações</h2>
+          <p>Gerencie categorias, subcategorias e colaboradores utilizados na classificação das atividades.</p>
         </div>
-        <span className="settings-base-badge">base</span>
       </div>
 
       <div className="settings-ai-workbench">
         <div className="settings-ai-main">
-      <div className="settings-tabs" role="tablist" aria-label="Configuracoes de classificacao">
+      <div className="settings-tabs" role="tablist" aria-label="Configurações de classificação">
         {settingsTabs.map((tab) => (
           <button
             className={props.settingsTab === tab.id ? "active" : ""}
@@ -144,17 +157,21 @@ export function SettingsPage(props: SettingsPageProps) {
           <Search size={16} />
           <input value={settingsSearch} onChange={(event) => setSettingsSearch(event.target.value)} placeholder={searchPlaceholder} />
         </label>
+        {props.settingsTab === "categories" && (
+          <button className="primary-button compact settings-add-button" type="button" onClick={handleOpenCategoryCreate}>
+            <Plus size={15} />
+            Nova Categoria
+          </button>
+        )}
       </div>
+      {settingsFeedback && <p className="settings-feedback" role="status">{settingsFeedback}</p>}
       <div className="settings-grid">
         {props.settingsTab === "categories" && (
           <CategoriesSettings
             categories={props.settingsCategories}
             search={settingsSearch}
-            newCategory={props.newCategory}
             categoryDrafts={props.categoryDrafts}
-            onNewCategoryChange={props.onNewCategoryChange}
             onCategoryDraftsChange={props.onCategoryDraftsChange}
-            onCreateCategory={props.onCreateCategory}
             onRenameCategory={props.onRenameCategory}
             onToggleCategory={props.onToggleCategory}
           />
@@ -202,6 +219,44 @@ export function SettingsPage(props: SettingsPageProps) {
       </div>
         </div>
       </div>
+
+      {isCategoryCreateOpen && (
+        <div className="settings-modal-backdrop" role="presentation" onClick={() => setIsCategoryCreateOpen(false)}>
+          <form
+            aria-labelledby="category-create-title"
+            aria-modal="true"
+            className="settings-modal-dialog"
+            role="dialog"
+            onClick={(event) => event.stopPropagation()}
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleSaveCategoryCreate();
+            }}
+          >
+            <header>
+              <h3 id="category-create-title">Nova Categoria</h3>
+              <p>Informe o nome da categoria que será usada na classificação das atividades.</p>
+            </header>
+            <label>
+              <span>Nome da categoria</span>
+              <input
+                autoFocus
+                value={props.newCategory}
+                onChange={(event) => props.onNewCategoryChange(event.target.value)}
+                placeholder="Ex: Desenvolvimento"
+              />
+            </label>
+            <footer>
+              <button className="secondary-button compact" type="button" onClick={() => setIsCategoryCreateOpen(false)}>
+                Cancelar
+              </button>
+              <button className="primary-button compact" disabled={!props.newCategory.trim()} type="submit">
+                Salvar
+              </button>
+            </footer>
+          </form>
+        </div>
+      )}
 
     </section>
   );

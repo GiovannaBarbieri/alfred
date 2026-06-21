@@ -93,7 +93,7 @@ export function RulesSettings({
     <div className="settings-column wide">
       <div className="rules-heading">
         <div>
-          <h3>Regras de classificacao</h3>
+          <h3>Regras de classificação</h3>
           <p className="muted">
             Regras combinam palavras-chave, prioridade, categoria e versao do classificador.
           </p>

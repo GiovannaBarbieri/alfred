@@ -42,7 +42,7 @@ export function SubcategoriesSettings({
         <div className="settings-table-header">
           <span>Nome</span>
           <span>Status</span>
-          <span>Acoes</span>
+          <span>Ações</span>
         </div>
         {filteredSubcategories.map((subcategory) => (
           <div className={`settings-item settings-table-row ${subcategory.active ? "" : "inactive"}`} key={subcategory.id}>

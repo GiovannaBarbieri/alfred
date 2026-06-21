@@ -130,7 +130,7 @@ export function CollaboratorsSettings({
           {filteredIgnoredCollaborators.map((item) => (
             <div className="available-collaborator-row ignored-row" key={item.id}>
               <strong>{item.loginUsuario}</strong>
-              <span className="muted">Fora da fila de classificacao</span>
+              <span className="muted">Fora da fila de classificação</span>
               <button className="secondary-button compact" type="button" onClick={() => onRestoreIgnoredCollaborator(item.id)}>
                 Restaurar
               </button>
@@ -144,7 +144,7 @@ export function CollaboratorsSettings({
           <span>Colaborador</span>
           <span>Perfil</span>
           <span>Status</span>
-          <span>Acoes</span>
+          <span>Ações</span>
         </div>
         {filteredProfiles.map((profile) => (
           <div className={`collaborator-profile-row settings-table-row ${profile.active ? "" : "inactive"}`} key={profile.id}>
