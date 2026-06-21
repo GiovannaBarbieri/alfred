@@ -38,6 +38,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
   const [collaboratorProfiles, setCollaboratorProfiles] = useState<CollaboratorProfileItem[]>([]);
   const [ignoredCollaborators, setIgnoredCollaborators] = useState<IgnoredCollaboratorItem[]>([]);
   const [newCategory, setNewCategory] = useState("");
+  const [newCategoryDescription, setNewCategoryDescription] = useState("");
   const [newSubcategory, setNewSubcategory] = useState("");
   const [newSubcategoryActive, setNewSubcategoryActive] = useState(true);
   const [newSubcategoryGroup, setNewSubcategoryGroup] = useState("");
@@ -52,6 +53,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
   const [newCollaboratorLogin, setNewCollaboratorLogin] = useState("");
   const [newCollaboratorSubcategoryId, setNewCollaboratorSubcategoryId] = useState("");
   const [categoryDrafts, setCategoryDrafts] = useState<Record<number, string>>({});
+  const [categoryDescriptionDrafts, setCategoryDescriptionDrafts] = useState<Record<number, string>>({});
   const [subcategoryDrafts, setSubcategoryDrafts] = useState<Record<number, string>>({});
   const [subcategoryActiveDrafts, setSubcategoryActiveDrafts] = useState<Record<number, boolean>>({});
   const [subcategoryGroupDrafts, setSubcategoryGroupDrafts] = useState<Record<number, string>>({});
@@ -83,6 +85,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     setCollaboratorProfiles(profiles);
     setIgnoredCollaborators(ignored);
     setCategoryDrafts(Object.fromEntries(categories.map((category) => [category.id, category.name])));
+    setCategoryDescriptionDrafts(Object.fromEntries(categories.map((category) => [category.id, category.description ?? ""])));
     setSubcategoryDrafts(Object.fromEntries(subcategories.map((subcategory) => [subcategory.id, subcategory.name])));
     setSubcategoryActiveDrafts(Object.fromEntries(subcategories.map((subcategory) => [subcategory.id, subcategory.active])));
     setSubcategoryGroupDrafts(Object.fromEntries(subcategories.map((subcategory) => [subcategory.id, subcategory.group ?? ""])));
@@ -118,8 +121,12 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
 
   async function handleCreateCategory() {
     if (!newCategory.trim()) return;
-    await createCategory(newCategory);
+    await createCategory({
+      name: newCategory,
+      description: newCategoryDescription.trim() || null,
+    });
     setNewCategory("");
+    setNewCategoryDescription("");
     await refreshSettings();
     await onCategoryChanged();
   }
@@ -174,8 +181,11 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
 
   async function handleRenameCategory(category: SettingItem) {
     const name = categoryDrafts[category.id]?.trim();
-    if (!name || name === category.name) return;
-    await updateCategory(category.id, { name });
+    const description = categoryDescriptionDrafts[category.id]?.trim() ?? category.description ?? "";
+    const currentDescription = category.description ?? "";
+    if (!name) return;
+    if (name === category.name && description === currentDescription) return;
+    await updateCategory(category.id, { name, description: description || null });
     await refreshSettings();
     await onCategoryChanged();
   }
@@ -308,6 +318,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     collaboratorProfiles,
     ignoredCollaborators,
     newCategory,
+    newCategoryDescription,
     newSubcategory,
     newSubcategoryActive,
     newSubcategoryGroup,
@@ -322,6 +333,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     newCollaboratorLogin,
     newCollaboratorSubcategoryId,
     categoryDrafts,
+    categoryDescriptionDrafts,
     subcategoryDrafts,
     subcategoryActiveDrafts,
     subcategoryGroupDrafts,
@@ -337,6 +349,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     profileSubcategoryDrafts,
     availableProfileSubcategoryDrafts,
     setNewCategory,
+    setNewCategoryDescription,
     setNewSubcategory,
     setNewSubcategoryActive,
     setNewSubcategoryGroup,
@@ -351,6 +364,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     setNewCollaboratorLogin,
     setNewCollaboratorSubcategoryId,
     setCategoryDrafts,
+    setCategoryDescriptionDrafts,
     setSubcategoryDrafts,
     setSubcategoryActiveDrafts,
     setSubcategoryGroupDrafts,

@@ -601,8 +601,10 @@ export type SettingItem = {
   id: number;
   name: string;
   active: boolean;
+  description?: string | null;
   group?: string | null;
   aiAlias?: string | null;
+  displayOrder?: number | null;
 };
 
 export type KeywordItem = {

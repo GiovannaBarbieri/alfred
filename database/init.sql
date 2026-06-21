@@ -1,7 +1,9 @@
-CREATE TABLE IF NOT EXISTS categorias (
+﻿CREATE TABLE IF NOT EXISTS categorias (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(120) NOT NULL UNIQUE,
     ativa BOOLEAN NOT NULL DEFAULT TRUE,
+    descricao VARCHAR(255),
+    ordem_exibicao INTEGER,
     criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
@@ -11,6 +13,7 @@ CREATE TABLE IF NOT EXISTS subcategorias (
     ativa BOOLEAN NOT NULL DEFAULT TRUE,
     grupo VARCHAR(120),
     alias_ia VARCHAR(160),
+    ordem_exibicao INTEGER,
     criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
@@ -231,29 +234,26 @@ CREATE INDEX IF NOT EXISTS idx_analytics_insights_status ON analytics_insights(s
 CREATE UNIQUE INDEX IF NOT EXISTS idx_analytics_insights_unique_simple
     ON analytics_insights(importacao_id, tipo, titulo, descricao);
 
-INSERT INTO categorias (nome) VALUES
-    ('Desenvolvimento'),
-    ('Reuniao'),
-    ('Alinhamento'),
-    ('Definicao'),
-    ('Homologacao'),
-    ('Testes cruzados'),
-    ('Retrabalho'),
-    ('Analise'),
-    ('Outros'),
-    ('Nao classificado')
+INSERT INTO categorias (nome, ordem_exibicao) VALUES
+    ('Acompanhamento', 1),
+    ('Definição', 2),
+    ('Desenvolvimento', 3),
+    ('Homologação', 4),
+    ('Impedimento', 5),
+    ('Retrabalho', 6),
+    ('Nao classificado', 99)
 ON CONFLICT (nome) DO NOTHING;
 
-INSERT INTO subcategorias (nome, grupo, alias_ia) VALUES
-    ('Analista', 'Gestão', 'analista funcional requisitos'),
-    ('Desenvolvedor Back-end', 'Desenvolvimento', 'back backend back-end'),
-    ('Desenvolvedor Front-end', 'Desenvolvimento', 'front frontend front-end'),
-    ('QA', 'Qualidade', 'qa testes qualidade'),
-    ('Infraestrutura', 'Operações', 'infraestrutura devops operacoes'),
-    ('Banco de Dados', 'Dados', 'banco dados dba database'),
-    ('DataOps', 'Dados', 'dataops dados pipelines'),
-    ('Nao aplicavel', NULL, NULL),
-    ('Nao classificado', NULL, NULL)
+INSERT INTO subcategorias (nome, grupo, alias_ia, ordem_exibicao) VALUES
+    ('Analista', 'Gestão', 'analista funcional requisitos', 1),
+    ('Desenvolvedor Back-end', 'Desenvolvimento', 'back backend back-end', 2),
+    ('Desenvolvedor Front-end', 'Desenvolvimento', 'front frontend front-end', 3),
+    ('QA', 'Qualidade', 'qa testes qualidade', 4),
+    ('Banco de Dados', 'Dados', 'banco dados dba database', 5),
+    ('Infraestrutura', 'Operações', 'infraestrutura devops operacoes', 6),
+    ('DataOps', 'Dados', 'dataops dados pipelines', 7),
+    ('Nao aplicavel', NULL, NULL, 98),
+    ('Nao classificado', NULL, NULL, 99)
 ON CONFLICT (nome) DO NOTHING;
 
 INSERT INTO palavras_chave_categoria (categoria_id, palavra)
@@ -288,29 +288,29 @@ JOIN (
         ('Reuniao', 'daily'),
         ('Alinhamento', 'alinhamento'),
         ('Alinhamento', 'alinhar'),
-        ('Definicao', 'definir'),
-        ('Definicao', 'levant'),
-        ('Definicao', 'levantamento'),
-        ('Definicao', 'mapeando'),
-        ('Definicao', 'regra'),
-        ('Definicao', 'refinamento'),
-        ('Definicao', 'documentacao'),
-        ('Definicao', 'documento'),
-        ('Definicao', 'estudo'),
-        ('Definicao', 'analise'),
-        ('Definicao', 'analis'),
-        ('Definicao', 'analisando'),
-        ('Definicao', 'analisar'),
-        ('Definicao', 'avaliando'),
-        ('Definicao', 'estud'),
-        ('Definicao', 'estudando'),
-        ('Homologacao', 'homologacao'),
-        ('Homologacao', 'homologar'),
-        ('Homologacao', 'validacao'),
-        ('Homologacao', 'validando'),
-        ('Homologacao', 'validar'),
-        ('Homologacao', 'testes'),
-        ('Homologacao', 'testando'),
+        ('Definição', 'definir'),
+        ('Definição', 'levant'),
+        ('Definição', 'levantamento'),
+        ('Definição', 'mapeando'),
+        ('Definição', 'regra'),
+        ('Definição', 'refinamento'),
+        ('Definição', 'documentacao'),
+        ('Definição', 'documento'),
+        ('Definição', 'estudo'),
+        ('Definição', 'analise'),
+        ('Definição', 'analis'),
+        ('Definição', 'analisando'),
+        ('Definição', 'analisar'),
+        ('Definição', 'avaliando'),
+        ('Definição', 'estud'),
+        ('Definição', 'estudando'),
+        ('Homologação', 'homologacao'),
+        ('Homologação', 'homologar'),
+        ('Homologação', 'validacao'),
+        ('Homologação', 'validando'),
+        ('Homologação', 'validar'),
+        ('Homologação', 'testes'),
+        ('Homologação', 'testando'),
         ('Testes cruzados', 'teste cruzado'),
         ('Testes cruzados', 'testes cruzados'),
         ('Retrabalho', 'retrabalho'),

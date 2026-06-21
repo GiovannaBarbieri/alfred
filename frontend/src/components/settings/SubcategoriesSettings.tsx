@@ -1,6 +1,9 @@
 import { MoreVertical } from "lucide-react";
 import { useState, type SetStateAction } from "react";
 import type { SettingItem } from "../../types";
+import { hasSimilarSettingName } from "../../utils/settingsValidation";
+
+const CUSTOM_GROUP_VALUE = "__custom_group__";
 
 type SubcategoriesSettingsProps = {
   subcategories: SettingItem[];
@@ -8,6 +11,7 @@ type SubcategoriesSettingsProps = {
   subcategoryDrafts: Record<number, string>;
   subcategoryActiveDrafts: Record<number, boolean>;
   subcategoryGroupDrafts: Record<number, string>;
+  availableGroups: string[];
   onSubcategoryDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onSubcategoryActiveDraftsChange: (updater: SetStateAction<Record<number, boolean>>) => void;
   onSubcategoryGroupDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
@@ -22,6 +26,7 @@ export function SubcategoriesSettings({
   subcategoryDrafts,
   subcategoryActiveDrafts,
   subcategoryGroupDrafts,
+  availableGroups,
   onSubcategoryDraftsChange,
   onSubcategoryActiveDraftsChange,
   onSubcategoryGroupDraftsChange,
@@ -31,6 +36,7 @@ export function SubcategoriesSettings({
 }: SubcategoriesSettingsProps) {
   const [activeActionId, setActiveActionId] = useState<number | null>(null);
   const [editingSubcategory, setEditingSubcategory] = useState<SettingItem | null>(null);
+  const [isCustomGroup, setIsCustomGroup] = useState(false);
   const [cargoFeedback, setCargoFeedback] = useState<string | null>(null);
   const [cargoError, setCargoError] = useState<string | null>(null);
   const filteredSubcategories = subcategories.filter((subcategory) =>
@@ -38,6 +44,7 @@ export function SubcategoriesSettings({
   );
   const activeSubcategories = subcategories.filter((subcategory) => subcategory.active).length;
   const inactiveSubcategories = subcategories.length - activeSubcategories;
+  const groupsCount = new Set(subcategories.map((subcategory) => subcategory.group).filter(Boolean)).size;
 
   function handleOpenEdit(subcategory: SettingItem) {
     onSubcategoryDraftsChange((current) => ({ ...current, [subcategory.id]: current[subcategory.id] ?? subcategory.name }));
@@ -46,11 +53,17 @@ export function SubcategoriesSettings({
     setActiveActionId(null);
     setCargoFeedback(null);
     setCargoError(null);
+    setIsCustomGroup(Boolean(subcategory.group) && !availableGroups.includes(subcategory.group ?? ""));
     setEditingSubcategory(subcategory);
   }
 
   async function handleSaveEdit() {
     if (!editingSubcategory) return;
+    const nextName = subcategoryDrafts[editingSubcategory.id] ?? editingSubcategory.name;
+    if (hasSimilarSettingName(subcategories, nextName, editingSubcategory.id)) {
+      const confirmed = window.confirm("Já existe um registro semelhante cadastrado.\n\nDeseja continuar?");
+      if (!confirmed) return;
+    }
     await onRenameSubcategory(editingSubcategory);
     setEditingSubcategory(null);
     setCargoFeedback("Cargo atualizado com sucesso.");
@@ -87,16 +100,20 @@ export function SubcategoriesSettings({
       {cargoError && <p className="settings-feedback error" role="alert">{cargoError}</p>}
       <div className="settings-management-summary" aria-label="Resumo de cargos">
         <div>
-          <span>Cargos</span>
           <strong>{subcategories.length}</strong>
+          <span>Cargos</span>
         </div>
         <div>
-          <span>Ativos</span>
+          <strong>{groupsCount}</strong>
+          <span>Grupos</span>
+        </div>
+        <div>
           <strong>{activeSubcategories}</strong>
+          <span>Ativos</span>
         </div>
         <div>
-          <span>Inativos</span>
           <strong>{inactiveSubcategories}</strong>
+          <span>Inativos</span>
         </div>
       </div>
       <div className="settings-list settings-data-table roles-table">
@@ -109,6 +126,7 @@ export function SubcategoriesSettings({
           <div className={`settings-item settings-table-row ${subcategory.active ? "" : "inactive"}`} key={subcategory.id}>
             <strong className="settings-primary-cell">{subcategory.name}</strong>
             <span className={`settings-status ${subcategory.active ? "active" : "inactive"}`}>
+              <i aria-hidden="true" />
               {subcategory.active ? "Ativo" : "Inativo"}
             </span>
             <div className="settings-action-menu">
@@ -166,7 +184,7 @@ export function SubcategoriesSettings({
                 onChange={(event) =>
                   onSubcategoryDraftsChange((current) => ({ ...current, [editingSubcategory.id]: event.target.value }))
                 }
-                placeholder="Ex: Desenvolvedor Back-end"
+                placeholder="Digite o nome do cargo"
               />
             </label>
             <label>
@@ -186,14 +204,39 @@ export function SubcategoriesSettings({
             </label>
             <label>
               <span>Grupo (opcional)</span>
-              <input
-                value={subcategoryGroupDrafts[editingSubcategory.id] ?? editingSubcategory.group ?? ""}
-                onChange={(event) =>
-                  onSubcategoryGroupDraftsChange((current) => ({ ...current, [editingSubcategory.id]: event.target.value }))
-                }
-                placeholder="Ex: Desenvolvimento"
-              />
+              <select
+                value={isCustomGroup ? CUSTOM_GROUP_VALUE : subcategoryGroupDrafts[editingSubcategory.id] ?? editingSubcategory.group ?? ""}
+                onChange={(event) => {
+                  if (event.target.value === CUSTOM_GROUP_VALUE) {
+                    setIsCustomGroup(true);
+                    onSubcategoryGroupDraftsChange((current) => ({ ...current, [editingSubcategory.id]: "" }));
+                    return;
+                  }
+                  setIsCustomGroup(false);
+                  onSubcategoryGroupDraftsChange((current) => ({ ...current, [editingSubcategory.id]: event.target.value }));
+                }}
+              >
+                <option value="">Sem grupo</option>
+                {availableGroups.map((group) => (
+                  <option key={group} value={group}>
+                    {group}
+                  </option>
+                ))}
+                <option value={CUSTOM_GROUP_VALUE}>Adicionar novo grupo</option>
+              </select>
             </label>
+            {isCustomGroup && (
+              <label>
+                <span>Novo grupo</span>
+                <input
+                  value={subcategoryGroupDrafts[editingSubcategory.id] ?? ""}
+                  onChange={(event) =>
+                    onSubcategoryGroupDraftsChange((current) => ({ ...current, [editingSubcategory.id]: event.target.value }))
+                  }
+                  placeholder="Digite o nome do grupo"
+                />
+              </label>
+            )}
             <footer>
               <button className="secondary-button compact" type="button" onClick={() => setEditingSubcategory(null)}>
                 Cancelar

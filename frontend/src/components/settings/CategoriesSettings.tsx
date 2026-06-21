@@ -1,12 +1,15 @@
 import { MoreVertical } from "lucide-react";
 import { useState, type SetStateAction } from "react";
 import type { SettingItem } from "../../types";
+import { hasSimilarSettingName } from "../../utils/settingsValidation";
 
 type CategoriesSettingsProps = {
   categories: SettingItem[];
   search: string;
   categoryDrafts: Record<number, string>;
+  categoryDescriptionDrafts: Record<number, string>;
   onCategoryDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
+  onCategoryDescriptionDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onRenameCategory: (category: SettingItem) => Promise<void> | void;
   onToggleCategory: (category: SettingItem) => Promise<void> | void;
   onDeleteCategory: (category: SettingItem) => Promise<void> | void;
@@ -16,7 +19,9 @@ export function CategoriesSettings({
   categories,
   search,
   categoryDrafts,
+  categoryDescriptionDrafts,
   onCategoryDraftsChange,
+  onCategoryDescriptionDraftsChange,
   onRenameCategory,
   onToggleCategory,
   onDeleteCategory,
@@ -31,6 +36,7 @@ export function CategoriesSettings({
 
   function handleOpenEdit(category: SettingItem) {
     onCategoryDraftsChange((current) => ({ ...current, [category.id]: current[category.id] ?? category.name }));
+    onCategoryDescriptionDraftsChange((current) => ({ ...current, [category.id]: current[category.id] ?? category.description ?? "" }));
     setActiveActionId(null);
     setCategoryFeedback(null);
     setCategoryError(null);
@@ -39,6 +45,11 @@ export function CategoriesSettings({
 
   async function handleSaveEdit() {
     if (!editingCategory) return;
+    const nextName = categoryDrafts[editingCategory.id] ?? editingCategory.name;
+    if (hasSimilarSettingName(categories, nextName, editingCategory.id)) {
+      const confirmed = window.confirm("Já existe um registro semelhante cadastrado.\n\nDeseja continuar?");
+      if (!confirmed) return;
+    }
     await onRenameCategory(editingCategory);
     setEditingCategory(null);
     setCategoryFeedback("Categoria atualizada com sucesso.");
@@ -75,16 +86,16 @@ export function CategoriesSettings({
       {categoryError && <p className="settings-feedback error" role="alert">{categoryError}</p>}
       <div className="settings-management-summary" aria-label="Resumo de categorias">
         <div>
-          <span>Categorias</span>
           <strong>{categories.length}</strong>
+          <span>Categorias</span>
         </div>
         <div>
-          <span>Ativas</span>
           <strong>{activeCategories}</strong>
+          <span>Ativas</span>
         </div>
         <div>
-          <span>Inativas</span>
           <strong>{inactiveCategories}</strong>
+          <span>Inativas</span>
         </div>
       </div>
       <div className="settings-list settings-data-table categories-table">
@@ -96,7 +107,10 @@ export function CategoriesSettings({
         {filteredCategories.map((category) => (
           <div className={`settings-item settings-table-row ${category.active ? "" : "inactive"}`} key={category.id}>
             <strong className="settings-primary-cell">{category.name}</strong>
-            <span className={`settings-status ${category.active ? "active" : "inactive"}`}>{category.active ? "Ativa" : "Inativa"}</span>
+            <span className={`settings-status ${category.active ? "active" : "inactive"}`}>
+              <i aria-hidden="true" />
+              {category.active ? "Ativa" : "Inativa"}
+            </span>
             <div className="settings-action-menu">
               <button
                 aria-expanded={activeActionId === category.id}
@@ -152,6 +166,18 @@ export function CategoriesSettings({
                 onChange={(event) =>
                   onCategoryDraftsChange((current) => ({ ...current, [editingCategory.id]: event.target.value }))
                 }
+                placeholder="Digite o nome da categoria"
+              />
+            </label>
+            <label>
+              <span>Descrição (opcional)</span>
+              <textarea
+                maxLength={255}
+                value={categoryDescriptionDrafts[editingCategory.id] ?? editingCategory.description ?? ""}
+                onChange={(event) =>
+                  onCategoryDescriptionDraftsChange((current) => ({ ...current, [editingCategory.id]: event.target.value }))
+                }
+                placeholder="Utilizada para apontamentos relacionados ao desenvolvimento de funcionalidades."
               />
             </label>
             <footer>

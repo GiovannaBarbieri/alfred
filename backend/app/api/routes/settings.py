@@ -12,9 +12,17 @@ class NamePayload(BaseModel):
     name: str
 
 
+class CategoryPayload(BaseModel):
+    name: str
+    description: str | None = None
+    displayOrder: int | None = None
+
+
 class SettingUpdatePayload(BaseModel):
     name: str | None = None
     active: bool | None = None
+    description: str | None = None
+    displayOrder: int | None = None
 
 
 class SubcategoryPayload(BaseModel):
@@ -22,6 +30,7 @@ class SubcategoryPayload(BaseModel):
     active: bool = True
     group: str | None = None
     aiAlias: str | None = None
+    displayOrder: int | None = None
 
 
 class SubcategoryUpdatePayload(BaseModel):
@@ -29,6 +38,7 @@ class SubcategoryUpdatePayload(BaseModel):
     active: bool | None = None
     group: str | None = None
     aiAlias: str | None = None
+    displayOrder: int | None = None
 
 
 class KeywordPayload(BaseModel):
@@ -78,10 +88,14 @@ class ClassificationRuleUpdatePayload(BaseModel):
 
 def _setting_response(row: dict) -> dict:
     response = {"id": row["id"], "name": row["nome"], "active": row["ativa"]}
+    if "descricao" in row:
+        response["description"] = row["descricao"]
     if "grupo" in row:
         response["group"] = row["grupo"]
     if "alias_ia" in row:
         response["aiAlias"] = row["alias_ia"]
+    if "ordem_exibicao" in row:
+        response["displayOrder"] = row["ordem_exibicao"]
     return response
 
 
@@ -132,26 +146,33 @@ def _classification_rule_response(row: dict) -> dict:
 def list_categories() -> list[dict]:
     with get_connection() as connection:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT id, nome, ativa FROM categorias ORDER BY nome")
+            cursor.execute("SELECT id, nome, ativa, descricao, ordem_exibicao FROM categorias ORDER BY ordem_exibicao NULLS LAST, nome")
             return [_setting_response(row) for row in cursor.fetchall()]
 
 
 @router.post("/categories")
-def create_category(payload: NamePayload) -> dict:
+def create_category(payload: CategoryPayload) -> dict:
     name = payload.name.strip()
+    description = payload.description.strip() if payload.description else None
     if not name:
         raise HTTPException(status_code=400, detail="Nome da categoria e obrigatorio.")
+    if description and len(description) > 255:
+        raise HTTPException(status_code=400, detail="Descricao deve ter no maximo 255 caracteres.")
 
     with get_connection() as connection:
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                INSERT INTO categorias (nome)
-                VALUES (%s)
-                ON CONFLICT (nome) DO UPDATE SET ativa = TRUE
-                RETURNING id, nome, ativa
+                INSERT INTO categorias (nome, descricao, ordem_exibicao)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (nome) DO UPDATE
+                SET
+                    ativa = TRUE,
+                    descricao = COALESCE(EXCLUDED.descricao, categorias.descricao),
+                    ordem_exibicao = COALESCE(EXCLUDED.ordem_exibicao, categorias.ordem_exibicao)
+                RETURNING id, nome, ativa, descricao, ordem_exibicao
                 """,
-                (name,),
+                (name, description, payload.displayOrder),
             )
             row = cursor.fetchone()
             insert_audit_log(
@@ -167,14 +188,17 @@ def create_category(payload: NamePayload) -> dict:
 @router.patch("/categories/{category_id}")
 def update_category(category_id: int, payload: SettingUpdatePayload) -> dict:
     name = payload.name.strip() if payload.name is not None else None
+    description = payload.description.strip() if payload.description else None
     if payload.name is not None and not name:
         raise HTTPException(status_code=400, detail="Nome da categoria e obrigatorio.")
-    if name is None and payload.active is None:
+    if description and len(description) > 255:
+        raise HTTPException(status_code=400, detail="Descricao deve ter no maximo 255 caracteres.")
+    if name is None and payload.active is None and payload.description is None and payload.displayOrder is None:
         raise HTTPException(status_code=400, detail="Informe nome ou status para atualizar.")
 
     with get_connection() as connection:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT id, nome, ativa FROM categorias WHERE id = %s", (category_id,))
+            cursor.execute("SELECT id, nome, ativa, descricao, ordem_exibicao FROM categorias WHERE id = %s", (category_id,))
             before = cursor.fetchone()
             if not before:
                 raise HTTPException(status_code=404, detail="Categoria nao encontrada.")
@@ -184,11 +208,19 @@ def update_category(category_id: int, payload: SettingUpdatePayload) -> dict:
                 UPDATE categorias
                 SET
                     nome = COALESCE(%s, nome),
-                    ativa = COALESCE(%s, ativa)
+                    ativa = COALESCE(%s, ativa),
+                    descricao = %s,
+                    ordem_exibicao = COALESCE(%s, ordem_exibicao)
                 WHERE id = %s
-                RETURNING id, nome, ativa
+                RETURNING id, nome, ativa, descricao, ordem_exibicao
                 """,
-                (name, payload.active, category_id),
+                (
+                    name,
+                    payload.active,
+                    description if payload.description is not None else before["descricao"],
+                    payload.displayOrder,
+                    category_id,
+                ),
             )
             row = cursor.fetchone()
             insert_audit_log(
@@ -206,7 +238,7 @@ def update_category(category_id: int, payload: SettingUpdatePayload) -> dict:
 def delete_category(category_id: int) -> dict:
     with get_connection() as connection:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT id, nome, ativa FROM categorias WHERE id = %s", (category_id,))
+            cursor.execute("SELECT id, nome, ativa, descricao, ordem_exibicao FROM categorias WHERE id = %s", (category_id,))
             before = cursor.fetchone()
             if not before:
                 raise HTTPException(status_code=404, detail="Categoria nao encontrada.")
@@ -215,7 +247,7 @@ def delete_category(category_id: int) -> dict:
                     """
                     DELETE FROM categorias
                     WHERE id = %s
-                    RETURNING id, nome, ativa
+                    RETURNING id, nome, ativa, descricao, ordem_exibicao
                     """,
                     (category_id,),
                 )
@@ -239,7 +271,7 @@ def delete_category(category_id: int) -> dict:
 def list_subcategories() -> list[dict]:
     with get_connection() as connection:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT id, nome, ativa, grupo, alias_ia FROM subcategorias ORDER BY nome")
+            cursor.execute("SELECT id, nome, ativa, grupo, alias_ia, ordem_exibicao FROM subcategorias ORDER BY ordem_exibicao NULLS LAST, nome")
             return [_setting_response(row) for row in cursor.fetchall()]
 
 
@@ -255,16 +287,17 @@ def create_subcategory(payload: SubcategoryPayload) -> dict:
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                INSERT INTO subcategorias (nome, ativa, grupo, alias_ia)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO subcategorias (nome, ativa, grupo, alias_ia, ordem_exibicao)
+                VALUES (%s, %s, %s, %s, %s)
                 ON CONFLICT (nome) DO UPDATE
                 SET
                     ativa = EXCLUDED.ativa,
                     grupo = EXCLUDED.grupo,
-                    alias_ia = COALESCE(EXCLUDED.alias_ia, subcategorias.alias_ia)
-                RETURNING id, nome, ativa, grupo, alias_ia
+                    alias_ia = COALESCE(EXCLUDED.alias_ia, subcategorias.alias_ia),
+                    ordem_exibicao = COALESCE(EXCLUDED.ordem_exibicao, subcategorias.ordem_exibicao)
+                RETURNING id, nome, ativa, grupo, alias_ia, ordem_exibicao
                 """,
-                (name, payload.active, group, ai_alias),
+                (name, payload.active, group, ai_alias, payload.displayOrder),
             )
             row = cursor.fetchone()
             insert_audit_log(
@@ -284,12 +317,12 @@ def update_subcategory(subcategory_id: int, payload: SubcategoryUpdatePayload) -
     ai_alias = payload.aiAlias.strip() if payload.aiAlias else None
     if payload.name is not None and not name:
         raise HTTPException(status_code=400, detail="Nome do cargo e obrigatorio.")
-    if name is None and payload.active is None and payload.group is None and payload.aiAlias is None:
+    if name is None and payload.active is None and payload.group is None and payload.aiAlias is None and payload.displayOrder is None:
         raise HTTPException(status_code=400, detail="Informe nome ou status para atualizar.")
 
     with get_connection() as connection:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT id, nome, ativa, grupo, alias_ia FROM subcategorias WHERE id = %s", (subcategory_id,))
+            cursor.execute("SELECT id, nome, ativa, grupo, alias_ia, ordem_exibicao FROM subcategorias WHERE id = %s", (subcategory_id,))
             before = cursor.fetchone()
             if not before:
                 raise HTTPException(status_code=404, detail="Cargo nao encontrado.")
@@ -301,15 +334,17 @@ def update_subcategory(subcategory_id: int, payload: SubcategoryUpdatePayload) -
                     nome = COALESCE(%s, nome),
                     ativa = COALESCE(%s, ativa),
                     grupo = %s,
-                    alias_ia = %s
+                    alias_ia = %s,
+                    ordem_exibicao = COALESCE(%s, ordem_exibicao)
                 WHERE id = %s
-                RETURNING id, nome, ativa, grupo, alias_ia
+                RETURNING id, nome, ativa, grupo, alias_ia, ordem_exibicao
                 """,
                 (
                     name,
                     payload.active,
                     group if payload.group is not None else before["grupo"],
                     ai_alias if payload.aiAlias is not None else before["alias_ia"],
+                    payload.displayOrder,
                     subcategory_id,
                 ),
             )
@@ -329,7 +364,7 @@ def update_subcategory(subcategory_id: int, payload: SubcategoryUpdatePayload) -
 def delete_subcategory(subcategory_id: int) -> dict:
     with get_connection() as connection:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT id, nome, ativa, grupo, alias_ia FROM subcategorias WHERE id = %s", (subcategory_id,))
+            cursor.execute("SELECT id, nome, ativa, grupo, alias_ia, ordem_exibicao FROM subcategorias WHERE id = %s", (subcategory_id,))
             before = cursor.fetchone()
             if not before:
                 raise HTTPException(status_code=404, detail="Cargo nao encontrado.")
@@ -338,7 +373,7 @@ def delete_subcategory(subcategory_id: int) -> dict:
                     """
                     DELETE FROM subcategorias
                     WHERE id = %s
-                    RETURNING id, nome, ativa, grupo, alias_ia
+                    RETURNING id, nome, ativa, grupo, alias_ia, ordem_exibicao
                     """,
                     (subcategory_id,),
                 )

@@ -245,6 +245,7 @@ function App() {
             ignoredCollaborators={settings.ignoredCollaborators}
             unprofiledCollaborators={unprofiledCollaborators}
             newCategory={settings.newCategory}
+            newCategoryDescription={settings.newCategoryDescription}
             newSubcategory={settings.newSubcategory}
             newSubcategoryActive={settings.newSubcategoryActive}
             newSubcategoryGroup={settings.newSubcategoryGroup}
@@ -259,6 +260,7 @@ function App() {
             newCollaboratorLogin={settings.newCollaboratorLogin}
             newCollaboratorSubcategoryId={settings.newCollaboratorSubcategoryId}
             categoryDrafts={settings.categoryDrafts}
+            categoryDescriptionDrafts={settings.categoryDescriptionDrafts}
             subcategoryDrafts={settings.subcategoryDrafts}
             subcategoryActiveDrafts={settings.subcategoryActiveDrafts}
             subcategoryGroupDrafts={settings.subcategoryGroupDrafts}
@@ -274,6 +276,7 @@ function App() {
             profileSubcategoryDrafts={settings.profileSubcategoryDrafts}
             availableProfileSubcategoryDrafts={settings.availableProfileSubcategoryDrafts}
             onNewCategoryChange={settings.setNewCategory}
+            onNewCategoryDescriptionChange={settings.setNewCategoryDescription}
             onNewSubcategoryChange={settings.setNewSubcategory}
             onNewSubcategoryActiveChange={settings.setNewSubcategoryActive}
             onNewSubcategoryGroupChange={settings.setNewSubcategoryGroup}
@@ -288,6 +291,7 @@ function App() {
             onNewCollaboratorLoginChange={settings.setNewCollaboratorLogin}
             onNewCollaboratorSubcategoryIdChange={settings.setNewCollaboratorSubcategoryId}
             onCategoryDraftsChange={settings.setCategoryDrafts}
+            onCategoryDescriptionDraftsChange={settings.setCategoryDescriptionDrafts}
             onSubcategoryDraftsChange={settings.setSubcategoryDrafts}
             onSubcategoryActiveDraftsChange={settings.setSubcategoryActiveDrafts}
             onSubcategoryGroupDraftsChange={settings.setSubcategoryGroupDrafts}

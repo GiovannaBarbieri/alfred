@@ -3,6 +3,7 @@ import { useState, type ReactNode, type SetStateAction } from "react";
 import { CategoriesSettings } from "../components/settings/CategoriesSettings";
 import { CollaboratorsSettings } from "../components/settings/CollaboratorsSettings";
 import { SubcategoriesSettings } from "../components/settings/SubcategoriesSettings";
+import { hasSimilarSettingName } from "../utils/settingsValidation";
 import type {
   ClassificationRuleItem,
   CollaboratorProfileItem,
@@ -24,6 +25,7 @@ type SettingsPageProps = {
   ignoredCollaborators: IgnoredCollaboratorItem[];
   unprofiledCollaborators: string[];
   newCategory: string;
+  newCategoryDescription: string;
   newSubcategory: string;
   newSubcategoryActive: boolean;
   newSubcategoryGroup: string;
@@ -38,6 +40,7 @@ type SettingsPageProps = {
   newCollaboratorLogin: string;
   newCollaboratorSubcategoryId: string;
   categoryDrafts: Record<number, string>;
+  categoryDescriptionDrafts: Record<number, string>;
   subcategoryDrafts: Record<number, string>;
   subcategoryActiveDrafts: Record<number, boolean>;
   subcategoryGroupDrafts: Record<number, string>;
@@ -53,6 +56,7 @@ type SettingsPageProps = {
   profileSubcategoryDrafts: Record<number, string>;
   availableProfileSubcategoryDrafts: Record<string, string>;
   onNewCategoryChange: (value: string) => void;
+  onNewCategoryDescriptionChange: (value: string) => void;
   onNewSubcategoryChange: (value: string) => void;
   onNewSubcategoryActiveChange: (value: boolean) => void;
   onNewSubcategoryGroupChange: (value: string) => void;
@@ -67,6 +71,7 @@ type SettingsPageProps = {
   onNewCollaboratorLoginChange: (value: string) => void;
   onNewCollaboratorSubcategoryIdChange: (value: string) => void;
   onCategoryDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
+  onCategoryDescriptionDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onSubcategoryDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onSubcategoryActiveDraftsChange: (updater: SetStateAction<Record<number, boolean>>) => void;
   onSubcategoryGroupDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
@@ -111,10 +116,14 @@ const settingsTabs: Array<{ id: SettingsTab; label: string; icon: ReactNode }> =
   { id: "collaborators", label: "Colaboradores", icon: <UsersRound size={16} /> },
 ];
 
+const DEFAULT_ROLE_GROUPS = ["Desenvolvimento", "Gestão", "Qualidade", "Dados", "Operações", "Infraestrutura"];
+const CUSTOM_GROUP_VALUE = "__custom_group__";
+
 export function SettingsPage(props: SettingsPageProps) {
   const [settingsSearch, setSettingsSearch] = useState("");
   const [isCategoryCreateOpen, setIsCategoryCreateOpen] = useState(false);
   const [isSubcategoryCreateOpen, setIsSubcategoryCreateOpen] = useState(false);
+  const [isCustomSubcategoryGroup, setIsCustomSubcategoryGroup] = useState(false);
   const [settingsFeedback, setSettingsFeedback] = useState<string | null>(null);
   const activeTab = settingsTabs.find((tab) => tab.id === props.settingsTab) ?? settingsTabs[0];
   const searchPlaceholder =
@@ -129,9 +138,13 @@ export function SettingsPage(props: SettingsPageProps) {
     subcategories: props.settingsSubcategories.length,
     collaborators: props.collaboratorProfiles.length,
   };
+  const roleGroups = Array.from(
+    new Set([...DEFAULT_ROLE_GROUPS, ...props.settingsSubcategories.map((subcategory) => subcategory.group).filter(Boolean) as string[]]),
+  ).sort((first, second) => first.localeCompare(second, "pt-BR"));
 
   function handleOpenCategoryCreate() {
     props.onNewCategoryChange("");
+    props.onNewCategoryDescriptionChange("");
     setSettingsFeedback(null);
     setIsCategoryCreateOpen(true);
   }
@@ -140,12 +153,17 @@ export function SettingsPage(props: SettingsPageProps) {
     props.onNewSubcategoryChange("");
     props.onNewSubcategoryActiveChange(true);
     props.onNewSubcategoryGroupChange("");
+    setIsCustomSubcategoryGroup(false);
     setSettingsFeedback(null);
     setIsSubcategoryCreateOpen(true);
   }
 
   async function handleSaveCategoryCreate() {
     if (!props.newCategory.trim()) return;
+    if (hasSimilarSettingName(props.settingsCategories, props.newCategory)) {
+      const confirmed = window.confirm("Já existe um registro semelhante cadastrado.\n\nDeseja continuar?");
+      if (!confirmed) return;
+    }
     await props.onCreateCategory();
     setIsCategoryCreateOpen(false);
     setSettingsFeedback("Categoria criada com sucesso.");
@@ -153,6 +171,10 @@ export function SettingsPage(props: SettingsPageProps) {
 
   async function handleSaveSubcategoryCreate() {
     if (!props.newSubcategory.trim()) return;
+    if (hasSimilarSettingName(props.settingsSubcategories, props.newSubcategory)) {
+      const confirmed = window.confirm("Já existe um registro semelhante cadastrado.\n\nDeseja continuar?");
+      if (!confirmed) return;
+    }
     await props.onCreateSubcategory();
     setIsSubcategoryCreateOpen(false);
     setSettingsFeedback("Cargo criado com sucesso.");
@@ -208,7 +230,9 @@ export function SettingsPage(props: SettingsPageProps) {
             categories={props.settingsCategories}
             search={settingsSearch}
             categoryDrafts={props.categoryDrafts}
+            categoryDescriptionDrafts={props.categoryDescriptionDrafts}
             onCategoryDraftsChange={props.onCategoryDraftsChange}
+            onCategoryDescriptionDraftsChange={props.onCategoryDescriptionDraftsChange}
             onRenameCategory={props.onRenameCategory}
             onToggleCategory={props.onToggleCategory}
             onDeleteCategory={props.onDeleteCategory}
@@ -222,6 +246,7 @@ export function SettingsPage(props: SettingsPageProps) {
             subcategoryDrafts={props.subcategoryDrafts}
             subcategoryActiveDrafts={props.subcategoryActiveDrafts}
             subcategoryGroupDrafts={props.subcategoryGroupDrafts}
+            availableGroups={roleGroups}
             onSubcategoryDraftsChange={props.onSubcategoryDraftsChange}
             onSubcategoryActiveDraftsChange={props.onSubcategoryActiveDraftsChange}
             onSubcategoryGroupDraftsChange={props.onSubcategoryGroupDraftsChange}
@@ -283,7 +308,16 @@ export function SettingsPage(props: SettingsPageProps) {
                 autoFocus
                 value={props.newCategory}
                 onChange={(event) => props.onNewCategoryChange(event.target.value)}
-                placeholder="Ex: Desenvolvimento"
+                placeholder="Digite o nome da categoria"
+              />
+            </label>
+            <label>
+              <span>Descrição (opcional)</span>
+              <textarea
+                maxLength={255}
+                value={props.newCategoryDescription}
+                onChange={(event) => props.onNewCategoryDescriptionChange(event.target.value)}
+                placeholder="Utilizada para apontamentos relacionados ao desenvolvimento de funcionalidades."
               />
             </label>
             <footer>
@@ -321,7 +355,7 @@ export function SettingsPage(props: SettingsPageProps) {
                 autoFocus
                 value={props.newSubcategory}
                 onChange={(event) => props.onNewSubcategoryChange(event.target.value)}
-                placeholder="Ex: Desenvolvedor Back-end"
+                placeholder="Digite o nome do cargo"
               />
             </label>
             <label>
@@ -336,12 +370,37 @@ export function SettingsPage(props: SettingsPageProps) {
             </label>
             <label>
               <span>Grupo (opcional)</span>
-              <input
-                value={props.newSubcategoryGroup}
-                onChange={(event) => props.onNewSubcategoryGroupChange(event.target.value)}
-                placeholder="Ex: Desenvolvimento"
-              />
+              <select
+                value={isCustomSubcategoryGroup ? CUSTOM_GROUP_VALUE : props.newSubcategoryGroup}
+                onChange={(event) => {
+                  if (event.target.value === CUSTOM_GROUP_VALUE) {
+                    setIsCustomSubcategoryGroup(true);
+                    props.onNewSubcategoryGroupChange("");
+                    return;
+                  }
+                  setIsCustomSubcategoryGroup(false);
+                  props.onNewSubcategoryGroupChange(event.target.value);
+                }}
+              >
+                <option value="">Sem grupo</option>
+                {roleGroups.map((group) => (
+                  <option key={group} value={group}>
+                    {group}
+                  </option>
+                ))}
+                <option value={CUSTOM_GROUP_VALUE}>Adicionar novo grupo</option>
+              </select>
             </label>
+            {isCustomSubcategoryGroup && (
+              <label>
+                <span>Novo grupo</span>
+                <input
+                  value={props.newSubcategoryGroup}
+                  onChange={(event) => props.onNewSubcategoryGroupChange(event.target.value)}
+                  placeholder="Digite o nome do grupo"
+                />
+              </label>
+            )}
             <footer>
               <button className="secondary-button compact" type="button" onClick={() => setIsSubcategoryCreateOpen(false)}>
                 Cancelar

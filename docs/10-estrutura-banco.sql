@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS categorias (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(120) NOT NULL UNIQUE,
     ativa BOOLEAN NOT NULL DEFAULT TRUE,
+    descricao VARCHAR(255),
+    ordem_exibicao INTEGER,
     criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
@@ -16,6 +18,7 @@ CREATE TABLE IF NOT EXISTS subcategorias (
     ativa BOOLEAN NOT NULL DEFAULT TRUE,
     grupo VARCHAR(120),
     alias_ia VARCHAR(160),
+    ordem_exibicao INTEGER,
     criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 

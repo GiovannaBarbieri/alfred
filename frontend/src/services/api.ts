@@ -414,11 +414,15 @@ export async function getCategories(): Promise<SettingItem[]> {
   return response.json();
 }
 
-export async function createCategory(name: string): Promise<SettingItem> {
+export async function createCategory(payload: {
+  name: string;
+  description?: string | null;
+  displayOrder?: number | null;
+}): Promise<SettingItem> {
   const response = await fetch(`${API_BASE_URL}/settings/categories`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
+    body: JSON.stringify(payload),
   });
   if (!response.ok) throw new Error("Não foi possível criar a categoria.");
   return response.json();
@@ -426,7 +430,7 @@ export async function createCategory(name: string): Promise<SettingItem> {
 
 export async function updateCategory(
   categoryId: number,
-  payload: { name?: string; active?: boolean },
+  payload: { name?: string; active?: boolean; description?: string | null; displayOrder?: number | null },
 ): Promise<SettingItem> {
   const response = await fetch(`${API_BASE_URL}/settings/categories/${categoryId}`, {
     method: "PATCH",
@@ -459,6 +463,7 @@ export async function createSubcategory(payload: {
   active?: boolean;
   group?: string | null;
   aiAlias?: string | null;
+  displayOrder?: number | null;
 }): Promise<SettingItem> {
   const response = await fetch(`${API_BASE_URL}/settings/subcategories`, {
     method: "POST",
@@ -471,7 +476,7 @@ export async function createSubcategory(payload: {
 
 export async function updateSubcategory(
   subcategoryId: number,
-  payload: { name?: string; active?: boolean; group?: string | null; aiAlias?: string | null },
+  payload: { name?: string; active?: boolean; group?: string | null; aiAlias?: string | null; displayOrder?: number | null },
 ): Promise<SettingItem> {
   const response = await fetch(`${API_BASE_URL}/settings/subcategories/${subcategoryId}`, {
     method: "PATCH",

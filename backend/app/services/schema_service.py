@@ -193,6 +193,18 @@ def ensure_runtime_schema() -> None:
             )
             cursor.execute(
                 """
+                ALTER TABLE categorias
+                ADD COLUMN IF NOT EXISTS descricao VARCHAR(255)
+                """
+            )
+            cursor.execute(
+                """
+                ALTER TABLE categorias
+                ADD COLUMN IF NOT EXISTS ordem_exibicao INTEGER
+                """
+            )
+            cursor.execute(
+                """
                 ALTER TABLE subcategorias
                 ADD COLUMN IF NOT EXISTS grupo VARCHAR(120)
                 """
@@ -201,6 +213,59 @@ def ensure_runtime_schema() -> None:
                 """
                 ALTER TABLE subcategorias
                 ADD COLUMN IF NOT EXISTS alias_ia VARCHAR(160)
+                """
+            )
+            cursor.execute(
+                """
+                ALTER TABLE subcategorias
+                ADD COLUMN IF NOT EXISTS ordem_exibicao INTEGER
+                """
+            )
+            cursor.execute(
+                """
+                UPDATE categorias
+                SET nome = 'Definição'
+                WHERE nome = 'Definicao'
+                  AND NOT EXISTS (SELECT 1 FROM categorias WHERE nome = 'Definição')
+                """
+            )
+            cursor.execute(
+                """
+                UPDATE categorias
+                SET nome = 'Homologação'
+                WHERE nome = 'Homologacao'
+                  AND NOT EXISTS (SELECT 1 FROM categorias WHERE nome = 'Homologação')
+                """
+            )
+            cursor.execute(
+                """
+                INSERT INTO categorias (nome, ordem_exibicao)
+                VALUES
+                    ('Acompanhamento', 1),
+                    ('Definição', 2),
+                    ('Desenvolvimento', 3),
+                    ('Homologação', 4),
+                    ('Impedimento', 5),
+                    ('Retrabalho', 6)
+                ON CONFLICT (nome) DO UPDATE
+                SET ordem_exibicao = COALESCE(categorias.ordem_exibicao, EXCLUDED.ordem_exibicao)
+                """
+            )
+            cursor.execute(
+                """
+                UPDATE categorias
+                SET ordem_exibicao = CASE nome
+                    WHEN 'Acompanhamento' THEN 1
+                    WHEN 'Definicao' THEN 2
+                    WHEN 'Definição' THEN 2
+                    WHEN 'Desenvolvimento' THEN 3
+                    WHEN 'Homologacao' THEN 4
+                    WHEN 'Homologação' THEN 4
+                    WHEN 'Impedimento' THEN 5
+                    WHEN 'Retrabalho' THEN 6
+                    ELSE ordem_exibicao
+                END
+                WHERE ordem_exibicao IS NULL
                 """
             )
             cursor.execute(
@@ -240,6 +305,22 @@ def ensure_runtime_schema() -> None:
                 SET
                     grupo = COALESCE(subcategorias.grupo, EXCLUDED.grupo),
                     alias_ia = COALESCE(subcategorias.alias_ia, EXCLUDED.alias_ia)
+                """
+            )
+            cursor.execute(
+                """
+                UPDATE subcategorias
+                SET ordem_exibicao = CASE nome
+                    WHEN 'Analista' THEN 1
+                    WHEN 'Desenvolvedor Back-end' THEN 2
+                    WHEN 'Desenvolvedor Front-end' THEN 3
+                    WHEN 'QA' THEN 4
+                    WHEN 'Banco de Dados' THEN 5
+                    WHEN 'Infraestrutura' THEN 6
+                    WHEN 'DataOps' THEN 7
+                    ELSE ordem_exibicao
+                END
+                WHERE ordem_exibicao IS NULL
                 """
             )
             cursor.execute(

@@ -6358,18 +6358,17 @@ input {
 .settings-management-summary {
   display: grid;
   gap: 8px;
-  grid-template-columns: repeat(3, minmax(0, 150px));
+  grid-template-columns: repeat(auto-fit, minmax(112px, 140px));
 }
 
 .settings-management-summary div {
-  align-items: center;
+  align-items: flex-start;
   background: #f8fafc;
   border: 1px solid #dce7f2;
   border-radius: 8px;
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
-  min-height: 42px;
+  display: grid;
+  gap: 3px;
+  min-height: 50px;
   padding: 8px 10px;
 }
 
@@ -6381,7 +6380,7 @@ input {
 
 .settings-management-summary strong {
   color: #061a35;
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1;
 }
 
@@ -6676,11 +6675,19 @@ input {
 .settings-status {
   border-radius: 999px;
   display: inline-flex;
+  gap: 5px;
+  align-items: center;
   font-size: 12px;
   font-weight: 900;
   justify-content: center;
   max-width: max-content;
-  padding: 4px 8px;
+  padding: 3px 7px;
+}
+
+.settings-status i {
+  border-radius: 999px;
+  height: 6px;
+  width: 6px;
 }
 
 .settings-status.active {
@@ -6688,9 +6695,17 @@ input {
   color: #147a3b;
 }
 
+.settings-status.active i {
+  background: #16a34a;
+}
+
 .settings-status.inactive {
   background: #eef2f7;
   color: #64748b;
+}
+
+.settings-status.inactive i {
+  background: #94a3b8;
 }
 
 .settings-primary-cell {
@@ -6854,11 +6869,17 @@ input {
   font-weight: 850;
 }
 
-.settings-modal-dialog input {
+.settings-modal-dialog input,
+.settings-modal-dialog textarea {
   border: 1px solid #c8d3df;
   border-radius: 8px;
   min-height: 40px;
   padding: 8px 10px;
+}
+
+.settings-modal-dialog textarea {
+  min-height: 82px;
+  resize: vertical;
 }
 
 .settings-modal-dialog select {
@@ -6870,6 +6891,7 @@ input {
 }
 
 .settings-modal-dialog input:focus,
+.settings-modal-dialog textarea:focus,
 .settings-modal-dialog select:focus {
   border-color: #8bbcf7;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
