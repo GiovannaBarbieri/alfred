@@ -412,9 +412,6 @@ export function HistoryPage({
                   #{item.id} - {item.filename}
                 </button>
                 <span>{formatDateTimeBR(item.importedAt)}</span>
-                <small>
-                  {item.validRows} validos - classificador v{item.classifierVersion}
-                </small>
               </div>
             ))
           )}
@@ -447,11 +444,6 @@ export function HistoryPage({
             <div className="detail-summary">
               <Metric label="Registros" value={String(selectedImport.totalRows)} icon={<FileSpreadsheet size={18} />} />
               <Metric label="Validos" value={String(selectedImport.validRows)} icon={<CheckCircle2 size={18} />} />
-            </div>
-            <div className="classifier-version-note">
-              <span>
-                Esta importacao foi consolidada com o classificador <strong>v{selectedImport.classifierVersion}</strong>.
-              </span>
             </div>
             {reprocessPreviewError && <p className="error-message">{reprocessPreviewError}</p>}
             {reprocessApplyMessage && <p className="success-message">{reprocessApplyMessage}</p>}
