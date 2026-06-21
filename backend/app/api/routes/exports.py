@@ -317,10 +317,12 @@ def export_project_analysis_xlsx(
             for title, sql in sheets:
                 cursor.execute(sql, [import_id])
                 rows = cursor.fetchall()
+                max_series = None if title == "Diario_Total" else 5
                 _append_timeline_chart_sheet(
                     workbook.create_sheet(title),
                     title.replace("_", " "),
                     rows,
+                    max_series=max_series,
                 )
 
             task_where = "WHERE l.importacao_id = %s"
@@ -771,7 +773,7 @@ def _autosize_columns(sheet) -> None:
         sheet.column_dimensions[letter].width = min(max(max_length + 2, 12), 52)
 
 
-def _append_timeline_chart_sheet(sheet, title: str, rows: list[dict]) -> None:
+def _append_timeline_chart_sheet(sheet, title: str, rows: list[dict], max_series: int | None = None) -> None:
     periods = sorted({row["periodo"].isoformat() for row in rows})
     series_names = sorted(
         {row["serie"] or "Total" for row in rows},
@@ -780,6 +782,8 @@ def _append_timeline_chart_sheet(sheet, title: str, rows: list[dict]) -> None:
             series,
         ),
     )
+    if max_series is not None:
+        series_names = series_names[:max_series]
     values = {
         (row["periodo"].isoformat(), row["serie"] or "Total"): float(row["total_horas"])
         for row in rows
