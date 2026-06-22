@@ -6640,6 +6640,11 @@ input {
   z-index: 35;
 }
 
+.settings-item:has(.settings-info-tooltip:hover),
+.settings-item:has(.settings-info-tooltip:focus-within) {
+  z-index: 90;
+}
+
 .settings-data-table.categories-table .settings-table-header,
 .settings-data-table.categories-table .settings-table-row {
   grid-template-columns: minmax(0, 8fr) minmax(82px, 1fr) minmax(64px, 1fr);
@@ -6785,7 +6790,7 @@ input {
   transition: opacity 160ms ease, transform 160ms ease;
   visibility: hidden;
   white-space: normal;
-  z-index: 30;
+  z-index: 100;
 }
 
 .settings-tooltip-panel strong {
