@@ -1,4 +1,4 @@
-import { BarChart3, Clock3, FileSpreadsheet, Search, X } from "lucide-react";
+import { BarChart3, Clock3, FileSpreadsheet, Search, UsersRound, X } from "lucide-react";
 
 import type { ImportSummary } from "../../types";
 import { formatDateBR, formatDateTimeBR } from "../../utils/date";
@@ -6,12 +6,13 @@ import { projectIdentityFromFilename, projectTitleFromFilename } from "../../uti
 
 type ReportsProjectListProps = {
   imports: ImportSummary[];
+  collaboratorCount?: number;
   search: string;
   onSearchChange: (value: string) => void;
   onOpenProject: (importId: number) => void;
 };
 
-export function ReportsProjectList({ imports, search, onSearchChange, onOpenProject }: ReportsProjectListProps) {
+export function ReportsProjectList({ imports, collaboratorCount, search, onSearchChange, onOpenProject }: ReportsProjectListProps) {
   const projectVersions = imports.reduce<Record<string, ImportSummary[]>>((grouped, item) => {
     const key = projectIdentityFromFilename(item.filename);
     grouped[key] = [...(grouped[key] ?? []), item];
@@ -63,7 +64,7 @@ export function ReportsProjectList({ imports, search, onSearchChange, onOpenProj
                     <span className={`status-badge ${status.className}`}>{status.label}</span>
                     {hasVersions && <em>v{versionNumber}</em>}
                   </strong>
-                  <small>{item.id} - {item.filename}</small>
+                  <small className="reports-project-file">{item.id} - {item.filename}</small>
                   {hasVersions && (
                     <small className="project-version-note">
                       Mesmo projeto com {sameProjectImports.length} importações. Esta é a versão {versionNumber}.
@@ -76,14 +77,17 @@ export function ReportsProjectList({ imports, search, onSearchChange, onOpenProj
                 </div>
               </div>
 
-              <div className="reports-project-kpis">
-                <span><strong>{item.totalHours}h</strong><small>Horas</small></span>
-                <span><strong>{item.validRows}</strong><small>Registros</small></span>
-                <span><strong>{item.alertRows}</strong><small>Alertas</small></span>
-                <span><strong>{formatDateBR(item.importedAt)}</strong><small>Importação</small></span>
-              </div>
-
-              <div className="reports-project-actions">
+              <div className="reports-project-insights">
+                <div className="reports-project-kpis">
+                  <span><strong>{item.totalHours}h</strong><small>Horas</small></span>
+                  <span><strong>{item.validRows}</strong><small>Registros</small></span>
+                  <span><strong>{item.alertRows}</strong><small>Alertas</small></span>
+                  <span>
+                    <UsersRound size={16} />
+                    <strong>{typeof collaboratorCount === "number" ? collaboratorCount : "-"}</strong>
+                    <small>Colaboradores</small>
+                  </span>
+                </div>
                 <button className="secondary-button compact" type="button" onClick={() => onOpenProject(item.id)}>
                   <BarChart3 size={16} />
                   Abrir análise →

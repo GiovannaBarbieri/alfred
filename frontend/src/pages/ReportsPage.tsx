@@ -39,6 +39,7 @@ const taskPageSize = 20;
 
 export function ReportsPage({
   imports,
+  landingCollaboratorsCount,
   selectedImportId,
   projectTimelineCharts,
   projectExecutiveSummary,
@@ -48,6 +49,7 @@ export function ReportsPage({
   onOpenProject,
 }: {
   imports: ImportSummary[];
+  landingCollaboratorsCount: number;
   selectedImportId: number | null;
   projectTimelineCharts: ProjectTimelineCharts;
   projectExecutiveSummary: ProjectExecutiveSummary;
@@ -224,6 +226,7 @@ export function ReportsPage({
           saveComparisonName={saveComparisonName}
           isSavingComparison={isSavingComparison}
           comparisonExportUrl={comparisonExportUrl}
+          landingCollaboratorsCount={landingCollaboratorsCount}
           onLandingTabChange={setReportLandingTab}
           onProjectSearchChange={setProjectSearch}
           onOpenProject={handleOpenProject}

@@ -211,6 +211,7 @@ function App() {
         {activeSection === "reports" && (
           <ReportsPage
             imports={dashboard.imports}
+            landingCollaboratorsCount={dashboard.overview.summary.collaboratorsCount}
             selectedImportId={dashboard.selectedReportImportId}
             projectTimelineCharts={dashboard.projectTimelineCharts}
             projectExecutiveSummary={dashboard.projectExecutiveSummary}

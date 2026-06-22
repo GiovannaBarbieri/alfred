@@ -2608,7 +2608,7 @@ input {
   background: #ffffff;
   border: 1px solid #d9e2ec;
   border-radius: 10px;
-  box-shadow: 0 8px 20px rgba(18, 60, 105, 0.05);
+  box-shadow: 0 10px 22px rgba(18, 60, 105, 0.06);
   display: grid;
   gap: 8px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2630,7 +2630,7 @@ input {
   font-weight: 800;
   min-height: 46px;
   padding: 8px 12px;
-  transition: background 180ms ease, box-shadow 180ms ease, color 180ms ease;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease, transform 180ms ease;
 }
 
 .report-landing-tabs button small {
@@ -2647,12 +2647,13 @@ input {
 .report-landing-tabs button.active,
 .report-landing-tabs button:hover {
   background: #eef5ff;
-  box-shadow: 0 6px 14px rgba(18, 60, 105, 0.08);
+  box-shadow: 0 7px 16px rgba(18, 60, 105, 0.1);
   color: #123c69;
 }
 
 .report-landing-tabs button.active {
   border-bottom-color: #2563eb;
+  transform: translateY(-1px);
 }
 
 .project-evolution-panel {
@@ -3426,10 +3427,10 @@ input {
   box-shadow: 0 8px 20px rgba(18, 60, 105, 0.04);
   color: #172033;
   display: grid;
-  gap: 14px;
-  grid-template-columns: minmax(360px, 1fr) minmax(420px, 0.78fr) auto;
-  min-height: 104px;
-  padding: 14px;
+  gap: 16px;
+  grid-template-columns: minmax(360px, 0.92fr) minmax(520px, 1fr);
+  min-height: 112px;
+  padding: 14px 16px;
   text-align: left;
 }
 
@@ -3444,7 +3445,7 @@ input {
 }
 
 .reports-project-main {
-  align-items: flex-start;
+  align-items: center;
   display: grid;
   gap: 12px;
   grid-template-columns: 44px minmax(0, 1fr);
@@ -3481,9 +3482,23 @@ input {
 .reports-project-name strong {
   align-items: center;
   display: flex;
-  font-size: 18px;
+  flex-wrap: wrap;
+  font-size: 22px;
   gap: 8px;
   margin-bottom: 4px;
+}
+
+.reports-project-file {
+  color: #637083;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.reports-project-insights {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .reports-project-name strong em {
@@ -3513,6 +3528,7 @@ input {
 
 .reports-project-kpis > span {
   align-content: center;
+  align-items: center;
   background: #f7f9fc;
   border: 1px solid #e5eaf0;
   border-radius: 8px;
@@ -3521,6 +3537,13 @@ input {
   min-height: 68px;
   min-width: 0;
   padding: 10px 12px;
+}
+
+.reports-project-kpis svg {
+  color: #2563eb;
+  height: 16px;
+  margin-bottom: -2px;
+  width: 16px;
 }
 
 .reports-project-kpis strong,
@@ -3539,14 +3562,7 @@ input {
   font-weight: 800;
 }
 
-.reports-project-actions {
-  align-items: center;
-  display: flex;
-  justify-content: flex-end;
-  min-width: max-content;
-}
-
-.reports-project-actions .secondary-button {
+.reports-project-insights .secondary-button {
   justify-content: center;
   margin: 0;
   min-height: 38px;

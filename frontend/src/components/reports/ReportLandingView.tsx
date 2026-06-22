@@ -36,6 +36,7 @@ type ReportLandingViewProps = {
   saveComparisonName: string;
   isSavingComparison: boolean;
   comparisonExportUrl: string;
+  landingCollaboratorsCount: number;
   onLandingTabChange: (tab: ReportLandingTabId) => void;
   onProjectSearchChange: (search: string) => void;
   onOpenProject: (importId: number, tab?: ProjectTabId) => void;
@@ -75,6 +76,7 @@ export function ReportLandingView({
   saveComparisonName,
   isSavingComparison,
   comparisonExportUrl,
+  landingCollaboratorsCount,
   onLandingTabChange,
   onProjectSearchChange,
   onOpenProject,
@@ -150,6 +152,7 @@ export function ReportLandingView({
         <>
           <ReportsProjectList
             imports={filteredImports}
+            collaboratorCount={imports.length === 1 ? landingCollaboratorsCount : undefined}
             search={projectSearch}
             onSearchChange={onProjectSearchChange}
             onOpenProject={(importId) => onOpenProject(importId)}
