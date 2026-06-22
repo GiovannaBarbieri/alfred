@@ -1,7 +1,7 @@
 import { BarChart3, Clock3, FileSpreadsheet, Search, UsersRound, X } from "lucide-react";
 
 import type { ImportSummary } from "../../types";
-import { formatDateBR, formatDateTimeBR } from "../../utils/date";
+import { formatDateTimeBR } from "../../utils/date";
 import { projectIdentityFromFilename, projectTitleFromFilename } from "../../utils/project";
 
 type ReportsProjectListProps = {
@@ -18,7 +18,6 @@ export function ReportsProjectList({ imports, collaboratorCount, search, onSearc
     grouped[key] = [...(grouped[key] ?? []), item];
     return grouped;
   }, {});
-  const projectCountLabel = `${imports.length} ${imports.length === 1 ? "Projeto Disponível" : "Projetos Disponíveis"}`;
 
   Object.values(projectVersions).forEach((items) => {
     items.sort((a, b) => new Date(a.importedAt).getTime() - new Date(b.importedAt).getTime());
@@ -27,10 +26,10 @@ export function ReportsProjectList({ imports, collaboratorCount, search, onSearc
   return (
     <section className="panel reports-projects-panel">
       <div className="reports-projects-toolbar">
-        <div>
-          <span>Projetos Importados</span>
-          <h2>{projectCountLabel}</h2>
-        </div>
+        <h2>
+          Projetos Importados
+          <span>{imports.length}</span>
+        </h2>
         <div className="reports-search-box">
           <Search size={16} />
           <input
@@ -53,44 +52,51 @@ export function ReportsProjectList({ imports, collaboratorCount, search, onSearc
           const hasVersions = sameProjectImports.length > 1;
           const versionNumber = hasVersions ? sameProjectImports.findIndex((version) => version.id === item.id) + 1 : 0;
           const status = getStatusPresentation(item);
+          const alertKpi = getAlertKpi(item.alertRows);
 
           return (
             <article className={`reports-project-row ${hasVersions ? "has-versions" : ""}`} key={item.id}>
-              <div className="reports-project-main">
-                <span className="reports-project-icon"><FileSpreadsheet size={22} /></span>
-                <div className="reports-project-name">
+              <div className="reports-project-header-line">
+                <div className="reports-project-title">
+                  <span className="reports-project-icon"><FileSpreadsheet size={22} /></span>
                   <strong>
                     {projectTitleFromFilename(item.filename)}
-                    <span className={`status-badge ${status.className}`}>{status.label}</span>
                     {hasVersions && <em>v{versionNumber}</em>}
                   </strong>
-                  <small className="reports-project-file">{item.id} - {item.filename}</small>
-                  {hasVersions && (
-                    <small className="project-version-note">
-                      Mesmo projeto com {sameProjectImports.length} importações. Esta é a versão {versionNumber}.
-                    </small>
-                  )}
-                  <small className="reports-project-updated">
-                    <Clock3 size={14} />
-                    Última atualização: {formatDateTimeBR(item.importedAt)}
-                  </small>
                 </div>
+                <span className={`status-badge ${status.className}`}>{status.label}</span>
               </div>
 
-              <div className="reports-project-insights">
+              <div className="reports-project-meta-line">
+                <small className="reports-project-file">{item.filename}</small>
+                {hasVersions && (
+                  <small className="project-version-note">
+                    Mesmo projeto com {sameProjectImports.length} importações. Esta é a versão {versionNumber}.
+                  </small>
+                )}
+                <small className="reports-project-updated">
+                  <Clock3 size={14} />
+                  Atualizado em {formatDateTimeBR(item.importedAt)}
+                </small>
+              </div>
+
+              <div className="reports-project-bottom-line">
                 <div className="reports-project-kpis">
                   <span><strong>{item.totalHours}h</strong><small>Horas</small></span>
                   <span><strong>{item.validRows}</strong><small>Registros</small></span>
-                  <span><strong>{item.alertRows}</strong><small>Alertas</small></span>
                   <span>
                     <UsersRound size={16} />
                     <strong>{typeof collaboratorCount === "number" ? collaboratorCount : "-"}</strong>
                     <small>Colaboradores</small>
                   </span>
+                  <span className={alertKpi.className}>
+                    <strong>{alertKpi.value}</strong>
+                    <small>{alertKpi.label}</small>
+                  </span>
                 </div>
                 <button className="secondary-button compact" type="button" onClick={() => onOpenProject(item.id)}>
                   <BarChart3 size={16} />
-                  Abrir análise →
+                  Visualizar Análise
                 </button>
               </div>
             </article>
@@ -99,6 +105,13 @@ export function ReportsProjectList({ imports, collaboratorCount, search, onSearc
       </div>
     </section>
   );
+}
+
+function getAlertKpi(alertRows: number) {
+  if (alertRows > 0) {
+    return { value: String(alertRows), label: "Alertas", className: "has-alerts" };
+  }
+  return { value: "✓", label: "Sem alertas", className: "no-alerts" };
 }
 
 function getStatusPresentation(item: ImportSummary) {
