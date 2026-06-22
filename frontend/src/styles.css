@@ -6894,6 +6894,31 @@ input {
   color: #64748b;
 }
 
+.collaborators-table .settings-table-row.inactive {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.collaborators-table .settings-table-row.inactive .settings-collaborator-avatar {
+  background: #eef2f7;
+  border-color: #d9e2ec;
+  color: #64748b;
+}
+
+.collaborators-table .settings-table-row.inactive .settings-collaborator-identity strong {
+  color: #64748b;
+}
+
+.collaborators-table .settings-table-row.inactive .settings-collaborator-identity span,
+.collaborators-table .settings-table-row.inactive .settings-muted-cell {
+  color: #8796a8;
+}
+
+.collaborators-table .settings-table-row.inactive .settings-group-badge {
+  background: #eef2f7;
+  color: #64748b;
+}
+
 .settings-row-actions {
   display: grid;
   gap: 8px;
