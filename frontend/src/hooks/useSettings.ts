@@ -7,6 +7,7 @@ import {
   createKeyword,
   createSubcategory,
   deleteCategory,
+  deleteCollaboratorProfile,
   deleteSubcategory,
   getCategories,
   getClassificationRules,
@@ -52,6 +53,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
   const [newRuleVersion, setNewRuleVersion] = useState("1.0.0");
   const [newCollaboratorLogin, setNewCollaboratorLogin] = useState("");
   const [newCollaboratorSubcategoryId, setNewCollaboratorSubcategoryId] = useState("");
+  const [newCollaboratorActive, setNewCollaboratorActive] = useState(true);
   const [categoryDrafts, setCategoryDrafts] = useState<Record<number, string>>({});
   const [categoryDescriptionDrafts, setCategoryDescriptionDrafts] = useState<Record<number, string>>({});
   const [subcategoryDrafts, setSubcategoryDrafts] = useState<Record<number, string>>({});
@@ -67,6 +69,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
   const [ruleVersionDrafts, setRuleVersionDrafts] = useState<Record<number, string>>({});
   const [profileLoginDrafts, setProfileLoginDrafts] = useState<Record<number, string>>({});
   const [profileSubcategoryDrafts, setProfileSubcategoryDrafts] = useState<Record<number, string>>({});
+  const [profileActiveDrafts, setProfileActiveDrafts] = useState<Record<number, boolean>>({});
   const [availableProfileSubcategoryDrafts, setAvailableProfileSubcategoryDrafts] = useState<Record<string, string>>({});
 
   async function refreshSettings() {
@@ -105,6 +108,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     setProfileSubcategoryDrafts(
       Object.fromEntries(profiles.map((profile) => [profile.id, String(profile.subcategoryId)])),
     );
+    setProfileActiveDrafts(Object.fromEntries(profiles.map((profile) => [profile.id, profile.active])));
     setNewKeywordCategoryId((current) => {
       if (categories.some((category) => category.active && String(category.id) === current)) return current;
       return String(categories.find((category) => category.active)?.id ?? "");
@@ -164,8 +168,9 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     const loginUsuario = newCollaboratorLogin.trim();
     const subcategoryId = Number(newCollaboratorSubcategoryId || "");
     if (!loginUsuario || !subcategoryId) return;
-    await createCollaboratorProfile(loginUsuario, subcategoryId);
+    await createCollaboratorProfile(loginUsuario, subcategoryId, newCollaboratorActive);
     setNewCollaboratorLogin("");
+    setNewCollaboratorActive(true);
     await refreshSettings();
   }
 
@@ -299,14 +304,20 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
   async function handleUpdateCollaboratorProfile(profile: CollaboratorProfileItem) {
     const loginUsuario = profileLoginDrafts[profile.id]?.trim();
     const subcategoryId = Number(profileSubcategoryDrafts[profile.id] || profile.subcategoryId);
+    const active = profileActiveDrafts[profile.id] ?? profile.active;
     if (!loginUsuario || !subcategoryId) return;
-    if (loginUsuario === profile.loginUsuario && subcategoryId === profile.subcategoryId) return;
-    await updateCollaboratorProfile(profile.id, { loginUsuario, subcategoryId });
+    if (loginUsuario === profile.loginUsuario && subcategoryId === profile.subcategoryId && active === profile.active) return;
+    await updateCollaboratorProfile(profile.id, { loginUsuario, subcategoryId, active });
     await refreshSettings();
   }
 
   async function handleToggleCollaboratorProfile(profile: CollaboratorProfileItem) {
     await updateCollaboratorProfile(profile.id, { active: !profile.active });
+    await refreshSettings();
+  }
+
+  async function handleDeleteCollaboratorProfile(profile: CollaboratorProfileItem) {
+    await deleteCollaboratorProfile(profile.id);
     await refreshSettings();
   }
 
@@ -332,6 +343,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     newRuleVersion,
     newCollaboratorLogin,
     newCollaboratorSubcategoryId,
+    newCollaboratorActive,
     categoryDrafts,
     categoryDescriptionDrafts,
     subcategoryDrafts,
@@ -347,6 +359,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     ruleVersionDrafts,
     profileLoginDrafts,
     profileSubcategoryDrafts,
+    profileActiveDrafts,
     availableProfileSubcategoryDrafts,
     setNewCategory,
     setNewCategoryDescription,
@@ -363,6 +376,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     setNewRuleVersion,
     setNewCollaboratorLogin,
     setNewCollaboratorSubcategoryId,
+    setNewCollaboratorActive,
     setCategoryDrafts,
     setCategoryDescriptionDrafts,
     setSubcategoryDrafts,
@@ -378,6 +392,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     setRuleVersionDrafts,
     setProfileLoginDrafts,
     setProfileSubcategoryDrafts,
+    setProfileActiveDrafts,
     setAvailableProfileSubcategoryDrafts,
     refreshSettings,
     handleCreateCategory,
@@ -402,6 +417,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     handleToggleClassificationRule,
     handleUpdateCollaboratorProfile,
     handleToggleCollaboratorProfile,
+    handleDeleteCollaboratorProfile,
   };
 }
 

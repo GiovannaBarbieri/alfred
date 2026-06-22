@@ -6657,8 +6657,7 @@ input {
 
 .settings-data-table.collaborators-table .settings-table-header,
 .settings-data-table.collaborators-table .settings-table-row {
-  grid-template-columns: minmax(180px, 280px) 150px 92px 176px;
-  justify-content: start;
+  grid-template-columns: minmax(0, 3fr) minmax(140px, 2fr) minmax(120px, 1.5fr) minmax(82px, 1fr) minmax(64px, 1fr);
 }
 
 .settings-data-table.keywords-table .settings-table-header,

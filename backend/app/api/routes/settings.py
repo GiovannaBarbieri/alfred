@@ -57,6 +57,7 @@ class KeywordUpdatePayload(BaseModel):
 class CollaboratorProfilePayload(BaseModel):
     loginUsuario: str
     subcategoryId: int
+    active: bool = True
 
 
 class CollaboratorProfileUpdatePayload(BaseModel):
@@ -566,13 +567,13 @@ def create_collaborator_profile(payload: CollaboratorProfilePayload) -> dict:
 
             cursor.execute(
                 """
-                INSERT INTO perfis_colaborador (login_usuario, subcategoria_id)
-                VALUES (%s, %s)
+                INSERT INTO perfis_colaborador (login_usuario, subcategoria_id, ativo)
+                VALUES (%s, %s, %s)
                 ON CONFLICT (login_usuario)
-                DO UPDATE SET subcategoria_id = EXCLUDED.subcategoria_id, ativo = TRUE
+                DO UPDATE SET subcategoria_id = EXCLUDED.subcategoria_id, ativo = EXCLUDED.ativo
                 RETURNING id, login_usuario, subcategoria_id, ativo
                 """,
-                (login_usuario, payload.subcategoryId),
+                (login_usuario, payload.subcategoryId, payload.active),
             )
             row = cursor.fetchone()
             cursor.execute("SELECT nome FROM subcategorias WHERE id = %s", (row["subcategoria_id"],))
@@ -650,6 +651,48 @@ def update_collaborator_profile(profile_id: int, payload: CollaboratorProfileUpd
                 after=response,
             )
             return response
+
+
+@router.delete("/collaborator-profiles/{profile_id}")
+def delete_collaborator_profile(profile_id: int) -> dict:
+    with get_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    p.id,
+                    p.login_usuario,
+                    p.subcategoria_id,
+                    p.ativo,
+                    s.nome AS subcategoria
+                FROM perfis_colaborador p
+                JOIN subcategorias s ON s.id = p.subcategoria_id
+                WHERE p.id = %s
+                """,
+                (profile_id,),
+            )
+            before = cursor.fetchone()
+            if not before:
+                raise HTTPException(status_code=404, detail="Perfil de colaborador nao encontrado.")
+
+            cursor.execute(
+                """
+                DELETE FROM perfis_colaborador
+                WHERE id = %s
+                RETURNING id, login_usuario, subcategoria_id, ativo
+                """,
+                (profile_id,),
+            )
+            row = cursor.fetchone()
+            response = _collaborator_profile_response({**row, "subcategoria": before["subcategoria"]})
+            insert_audit_log(
+                connection,
+                entity="collaborator_profile",
+                record_id=profile_id,
+                action="deleted",
+                before=_collaborator_profile_response(before),
+            )
+            return {**response, "deleted": True}
 
 
 @router.get("/ignored-collaborators")

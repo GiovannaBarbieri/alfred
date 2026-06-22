@@ -39,6 +39,7 @@ type SettingsPageProps = {
   newRuleVersion: string;
   newCollaboratorLogin: string;
   newCollaboratorSubcategoryId: string;
+  newCollaboratorActive: boolean;
   categoryDrafts: Record<number, string>;
   categoryDescriptionDrafts: Record<number, string>;
   subcategoryDrafts: Record<number, string>;
@@ -54,6 +55,7 @@ type SettingsPageProps = {
   ruleVersionDrafts: Record<number, string>;
   profileLoginDrafts: Record<number, string>;
   profileSubcategoryDrafts: Record<number, string>;
+  profileActiveDrafts: Record<number, boolean>;
   availableProfileSubcategoryDrafts: Record<string, string>;
   onNewCategoryChange: (value: string) => void;
   onNewCategoryDescriptionChange: (value: string) => void;
@@ -70,6 +72,7 @@ type SettingsPageProps = {
   onNewRuleVersionChange: (value: string) => void;
   onNewCollaboratorLoginChange: (value: string) => void;
   onNewCollaboratorSubcategoryIdChange: (value: string) => void;
+  onNewCollaboratorActiveChange: (value: boolean) => void;
   onCategoryDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onCategoryDescriptionDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onSubcategoryDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
@@ -85,6 +88,7 @@ type SettingsPageProps = {
   onRuleVersionDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onProfileLoginDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onProfileSubcategoryDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
+  onProfileActiveDraftsChange: (updater: SetStateAction<Record<number, boolean>>) => void;
   onAvailableProfileSubcategoryDraftsChange: (updater: SetStateAction<Record<string, string>>) => void;
   onCreateCategory: () => Promise<void> | void;
   onRenameCategory: (category: SettingItem) => void;
@@ -108,6 +112,7 @@ type SettingsPageProps = {
   onRestoreIgnoredCollaborator: (ignoredId: number) => void;
   onUpdateCollaboratorProfile: (profile: CollaboratorProfileItem) => void;
   onToggleCollaboratorProfile: (profile: CollaboratorProfileItem) => void;
+  onDeleteCollaboratorProfile: (profile: CollaboratorProfileItem) => void;
 };
 
 const settingsTabs: Array<{ id: SettingsTab; label: string; icon: ReactNode }> = [
@@ -124,6 +129,7 @@ export function SettingsPage(props: SettingsPageProps) {
   const [settingsSearch, setSettingsSearch] = useState("");
   const [isCategoryCreateOpen, setIsCategoryCreateOpen] = useState(false);
   const [isSubcategoryCreateOpen, setIsSubcategoryCreateOpen] = useState(false);
+  const [isCollaboratorCreateOpen, setIsCollaboratorCreateOpen] = useState(false);
   const [isCustomSubcategoryGroup, setIsCustomSubcategoryGroup] = useState(false);
   const [settingsFeedback, setSettingsFeedback] = useState<string | null>(null);
   const activeTab = settingsTabs.find((tab) => tab.id === props.settingsTab) ?? settingsTabs[0];
@@ -132,7 +138,7 @@ export function SettingsPage(props: SettingsPageProps) {
       ? "Buscar categoria..."
       : props.settingsTab === "subcategories"
         ? "Buscar cargo..."
-        : `Buscar em ${activeTab.label.toLowerCase()}`;
+        : "Buscar colaborador...";
 
   const tabCounts: Record<SettingsTab, number> = {
     categories: props.settingsCategories.length,
@@ -165,6 +171,14 @@ export function SettingsPage(props: SettingsPageProps) {
     setIsSubcategoryCreateOpen(true);
   }
 
+  function handleOpenCollaboratorCreate() {
+    props.onNewCollaboratorLoginChange("");
+    props.onNewCollaboratorSubcategoryIdChange("");
+    props.onNewCollaboratorActiveChange(true);
+    setSettingsFeedback(null);
+    setIsCollaboratorCreateOpen(true);
+  }
+
   async function handleSaveCategoryCreate() {
     if (!props.newCategory.trim()) return;
     if (hasSimilarSettingName(props.settingsCategories, props.newCategory)) {
@@ -185,6 +199,13 @@ export function SettingsPage(props: SettingsPageProps) {
     await props.onCreateSubcategory();
     setIsSubcategoryCreateOpen(false);
     setSettingsFeedback("Cargo criado com sucesso.");
+  }
+
+  async function handleSaveCollaboratorCreate() {
+    if (!props.newCollaboratorLogin.trim() || !props.newCollaboratorSubcategoryId) return;
+    await props.onCreateCollaboratorProfile();
+    setIsCollaboratorCreateOpen(false);
+    setSettingsFeedback("Colaborador criado com sucesso.");
   }
 
   return (
@@ -220,6 +241,12 @@ export function SettingsPage(props: SettingsPageProps) {
           <button className="primary-button compact settings-add-button" type="button" onClick={handleOpenSubcategoryCreate}>
             <Plus size={15} />
             Novo Cargo
+          </button>
+        )}
+        {props.settingsTab === "collaborators" && (
+          <button className="primary-button compact settings-add-button" type="button" onClick={handleOpenCollaboratorCreate}>
+            <Plus size={15} />
+            Novo Colaborador
           </button>
         )}
       </div>
@@ -260,25 +287,16 @@ export function SettingsPage(props: SettingsPageProps) {
           <CollaboratorsSettings
             subcategories={props.settingsSubcategories}
             collaboratorProfiles={props.collaboratorProfiles}
-            ignoredCollaborators={props.ignoredCollaborators}
-            unprofiledCollaborators={props.unprofiledCollaborators}
             search={settingsSearch}
             profileLoginDrafts={props.profileLoginDrafts}
             profileSubcategoryDrafts={props.profileSubcategoryDrafts}
-            availableProfileSubcategoryDrafts={props.availableProfileSubcategoryDrafts}
-            newCollaboratorLogin={props.newCollaboratorLogin}
-            newCollaboratorSubcategoryId={props.newCollaboratorSubcategoryId}
-            onNewCollaboratorLoginChange={props.onNewCollaboratorLoginChange}
-            onNewCollaboratorSubcategoryIdChange={props.onNewCollaboratorSubcategoryIdChange}
+            profileActiveDrafts={props.profileActiveDrafts}
             onProfileLoginDraftsChange={props.onProfileLoginDraftsChange}
             onProfileSubcategoryDraftsChange={props.onProfileSubcategoryDraftsChange}
-            onAvailableProfileSubcategoryDraftsChange={props.onAvailableProfileSubcategoryDraftsChange}
-            onCreateCollaboratorProfile={props.onCreateCollaboratorProfile}
-            onCreateAvailableCollaboratorProfile={props.onCreateAvailableCollaboratorProfile}
-            onIgnoreAvailableCollaborator={props.onIgnoreAvailableCollaborator}
-            onRestoreIgnoredCollaborator={props.onRestoreIgnoredCollaborator}
+            onProfileActiveDraftsChange={props.onProfileActiveDraftsChange}
             onUpdateCollaboratorProfile={props.onUpdateCollaboratorProfile}
             onToggleCollaboratorProfile={props.onToggleCollaboratorProfile}
+            onDeleteCollaboratorProfile={props.onDeleteCollaboratorProfile}
           />
         )}
       </div>
@@ -406,6 +424,74 @@ export function SettingsPage(props: SettingsPageProps) {
                 Cancelar
               </button>
               <button className="primary-button compact" disabled={!props.newSubcategory.trim()} type="submit">
+                Salvar
+              </button>
+            </footer>
+          </form>
+        </div>
+      )}
+
+      {isCollaboratorCreateOpen && (
+        <div className="settings-modal-backdrop" role="presentation" onClick={() => setIsCollaboratorCreateOpen(false)}>
+          <form
+            aria-labelledby="collaborator-create-title"
+            aria-modal="true"
+            className="settings-modal-dialog"
+            role="dialog"
+            onClick={(event) => event.stopPropagation()}
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleSaveCollaboratorCreate();
+            }}
+          >
+            <header>
+              <h3 id="collaborator-create-title">👤 Novo Colaborador</h3>
+              <p>Associe colaboradores aos cargos utilizados na classificação e análise das horas apontadas.</p>
+            </header>
+            <label>
+              <span>Nome/Login do colaborador</span>
+              <input
+                autoFocus
+                value={props.newCollaboratorLogin}
+                onChange={(event) => props.onNewCollaboratorLoginChange(event.target.value)}
+                placeholder="Digite o nome ou login do colaborador"
+              />
+            </label>
+            <label>
+              <span>Cargo</span>
+              <select
+                value={props.newCollaboratorSubcategoryId}
+                onChange={(event) => props.onNewCollaboratorSubcategoryIdChange(event.target.value)}
+              >
+                <option value="">Selecione um cargo</option>
+                {props.settingsSubcategories
+                  .filter((subcategory) => subcategory.active)
+                  .map((subcategory) => (
+                    <option key={subcategory.id} value={subcategory.id}>
+                      {subcategory.name}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <label>
+              <span>Situação</span>
+              <select
+                value={String(props.newCollaboratorActive)}
+                onChange={(event) => props.onNewCollaboratorActiveChange(event.target.value === "true")}
+              >
+                <option value="true">Ativo</option>
+                <option value="false">Inativo</option>
+              </select>
+            </label>
+            <footer>
+              <button className="secondary-button compact" type="button" onClick={() => setIsCollaboratorCreateOpen(false)}>
+                Cancelar
+              </button>
+              <button
+                className="primary-button compact"
+                disabled={!props.newCollaboratorLogin.trim() || !props.newCollaboratorSubcategoryId}
+                type="submit"
+              >
                 Salvar
               </button>
             </footer>

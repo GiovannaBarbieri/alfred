@@ -259,6 +259,7 @@ function App() {
             newRuleVersion={settings.newRuleVersion}
             newCollaboratorLogin={settings.newCollaboratorLogin}
             newCollaboratorSubcategoryId={settings.newCollaboratorSubcategoryId}
+            newCollaboratorActive={settings.newCollaboratorActive}
             categoryDrafts={settings.categoryDrafts}
             categoryDescriptionDrafts={settings.categoryDescriptionDrafts}
             subcategoryDrafts={settings.subcategoryDrafts}
@@ -274,6 +275,7 @@ function App() {
             ruleVersionDrafts={settings.ruleVersionDrafts}
             profileLoginDrafts={settings.profileLoginDrafts}
             profileSubcategoryDrafts={settings.profileSubcategoryDrafts}
+            profileActiveDrafts={settings.profileActiveDrafts}
             availableProfileSubcategoryDrafts={settings.availableProfileSubcategoryDrafts}
             onNewCategoryChange={settings.setNewCategory}
             onNewCategoryDescriptionChange={settings.setNewCategoryDescription}
@@ -290,6 +292,7 @@ function App() {
             onNewRuleVersionChange={settings.setNewRuleVersion}
             onNewCollaboratorLoginChange={settings.setNewCollaboratorLogin}
             onNewCollaboratorSubcategoryIdChange={settings.setNewCollaboratorSubcategoryId}
+            onNewCollaboratorActiveChange={settings.setNewCollaboratorActive}
             onCategoryDraftsChange={settings.setCategoryDrafts}
             onCategoryDescriptionDraftsChange={settings.setCategoryDescriptionDrafts}
             onSubcategoryDraftsChange={settings.setSubcategoryDrafts}
@@ -305,6 +308,7 @@ function App() {
             onRuleVersionDraftsChange={settings.setRuleVersionDrafts}
             onProfileLoginDraftsChange={settings.setProfileLoginDrafts}
             onProfileSubcategoryDraftsChange={settings.setProfileSubcategoryDrafts}
+            onProfileActiveDraftsChange={settings.setProfileActiveDrafts}
             onAvailableProfileSubcategoryDraftsChange={settings.setAvailableProfileSubcategoryDrafts}
             onCreateCategory={settings.handleCreateCategory}
             onRenameCategory={settings.handleRenameCategory}
@@ -328,6 +332,7 @@ function App() {
             onRestoreIgnoredCollaborator={settings.handleRestoreIgnoredCollaborator}
             onUpdateCollaboratorProfile={settings.handleUpdateCollaboratorProfile}
             onToggleCollaboratorProfile={settings.handleToggleCollaboratorProfile}
+            onDeleteCollaboratorProfile={settings.handleDeleteCollaboratorProfile}
           />
         )}
       </Suspense>

@@ -592,11 +592,12 @@ export async function getCollaboratorProfiles(): Promise<CollaboratorProfileItem
 export async function createCollaboratorProfile(
   loginUsuario: string,
   subcategoryId: number,
+  active = true,
 ): Promise<CollaboratorProfileItem> {
   const response = await fetch(`${API_BASE_URL}/settings/collaborator-profiles`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ loginUsuario, subcategoryId }),
+    body: JSON.stringify({ loginUsuario, subcategoryId, active }),
   });
   if (!response.ok) throw new Error("Não foi possível criar o perfil do colaborador.");
   return response.json();
@@ -612,6 +613,17 @@ export async function updateCollaboratorProfile(
     body: JSON.stringify(payload),
   });
   if (!response.ok) throw new Error("Não foi possível atualizar o perfil do colaborador.");
+  return response.json();
+}
+
+export async function deleteCollaboratorProfile(profileId: number): Promise<CollaboratorProfileItem & { deleted: boolean }> {
+  const response = await fetch(`${API_BASE_URL}/settings/collaborator-profiles/${profileId}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail ?? "Não foi possível excluir o perfil do colaborador.");
+  }
   return response.json();
 }
 
