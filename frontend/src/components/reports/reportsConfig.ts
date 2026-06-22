@@ -21,12 +21,12 @@ export const timelineCharts: Array<{
   {
     id: "dailyByUser",
     title: "Horas por dia e colaborador",
-    description: "Comparativo diario de horas apontadas por pessoa.",
+    description: "Comparativo diário de horas apontadas por pessoa.",
   },
   {
     id: "weeklyByUser",
     title: "Horas por semana e colaborador",
-    description: "Evolucao semanal do esforco por colaborador.",
+    description: "Evolução semanal do esforço por colaborador.",
   },
   {
     id: "dailyByCategory",
@@ -47,12 +47,12 @@ export const timelineCharts: Array<{
 
 export const projectTabs: Array<{ id: ProjectTabId; label: string }> = [
   { id: "executive", label: "Executivo" },
-  { id: "charts", label: "Graficos" },
+  { id: "charts", label: "Gráficos" },
   { id: "tasks", label: "Tasks" },
 ];
 
 export const reportLandingTabs: Array<{ id: ReportLandingTabId; label: string }> = [
   { id: "projects", label: "Projetos" },
-  { id: "evolution", label: "Evolucao" },
+  { id: "evolution", label: "Evolução" },
   { id: "comparisons", label: "Comparativos" },
 ];

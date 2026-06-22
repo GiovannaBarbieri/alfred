@@ -158,8 +158,8 @@ function buildSmartSummary(projectExecutiveSummary: ProjectExecutiveSummary) {
 
   if (topUser) {
     insights.push({
-      title: "Maior participacao",
-      description: `${topUser.label || topUser.key} representa ${topUser.percentage.toFixed(1)}% do esforco total apontado.`,
+      title: "Maior participação",
+      description: `${topUser.label || topUser.key} representa ${topUser.percentage.toFixed(1)}% do esforço total apontado.`,
       tone: topUser.percentage >= 40 ? "warning" : "info",
       icon: <Gauge size={18} />,
     });
@@ -176,8 +176,8 @@ function buildSmartSummary(projectExecutiveSummary: ProjectExecutiveSummary) {
 
   if (pending.open > 0) {
     insights.push({
-      title: "Confiabilidade da analise",
-      description: `${pending.open} pendencia(s) aberta(s) podem afetar a leitura final. Revise antes de compartilhar o relatorio.`,
+      title: "Confiabilidade da análise",
+      description: `${pending.open} pendência(s) aberta(s) podem afetar a leitura final. Revise antes de compartilhar o relatório.`,
       tone: pending.open >= 10 ? "danger" : "warning",
       icon: <AlertTriangle size={18} />,
     });

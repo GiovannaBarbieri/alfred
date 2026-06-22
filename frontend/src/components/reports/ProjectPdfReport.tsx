@@ -60,9 +60,9 @@ export function ProjectPdfReport({
   collaboratorTasksTotal,
 }: ProjectPdfReportProps) {
   return (
-    <section className="pdf-report-section" aria-label="Relatorio PDF">
+    <section className="pdf-report-section" aria-label="Relatório PDF">
       <div className="pdf-report-cover">
-        <span>Relatorio operacional de horas</span>
+        <span>Relatório operacional de horas</span>
         <h1>{projectTitle}</h1>
         <p>{selectedImport.filename}</p>
       </div>
@@ -76,7 +76,7 @@ export function ProjectPdfReport({
 
       {projectInsights.cards.length > 0 && (
         <div className="pdf-insights-summary">
-          <h2>Analises principais</h2>
+          <h2>Análises principais</h2>
           <div className="project-insights-grid">
             {projectInsights.cards.map((insight) => (
               <article className={`project-insight-card ${insight.tone}`} key={`pdf-${insight.kind}-${insight.title}`}>
@@ -99,7 +99,7 @@ export function ProjectPdfReport({
 
       {pdfOptions.pendingItems && (
         <div className="pdf-pending-summary">
-          <h2>Pendencias do projeto</h2>
+          <h2>Pendências do projeto</h2>
           <div className="pending-project-counts">
             <span><strong>{openPendingByType.unclassified}</strong><small>Sem classificação abertas</small></span>
             <span><strong>{openPendingByType.lowConfidence}</strong><small>Baixa confiança abertas</small></span>

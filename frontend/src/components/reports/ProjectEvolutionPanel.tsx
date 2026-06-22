@@ -1,8 +1,8 @@
-import { FileSpreadsheet } from "lucide-react";
+import { BarChart3, FileSpreadsheet } from "lucide-react";
 
-import { ProjectEvolutionChart } from "../ProjectEvolutionChart";
 import type { ProjectEvolution, ProjectEvolutionOption } from "../../types";
 import { formatDateBR } from "../../utils/date";
+import { ProjectEvolutionChart } from "../ProjectEvolutionChart";
 import type { ProjectTabId } from "./reportsConfig";
 
 type ProjectEvolutionPanelProps = {
@@ -36,12 +36,12 @@ export function ProjectEvolutionPanel({
 }: ProjectEvolutionPanelProps) {
   if (evolutionOptions.length === 0) {
     return (
-      <section className="panel empty-state-panel">
+      <section className="panel empty-state-panel report-empty-state-panel">
         <div className="panel-heading">
-          <FileSpreadsheet size={20} />
-          <h2>Nenhum projeto com histórico</h2>
+          <BarChart3 size={20} />
+          <h2>Dados insuficientes para evolução</h2>
         </div>
-        <p className="muted">Importe o mesmo projeto mais de uma vez para visualizar sua evolução.</p>
+        <p className="muted">Importe novas versões deste projeto para acompanhar a evolução.</p>
       </section>
     );
   }
@@ -96,11 +96,7 @@ export function ProjectEvolutionPanel({
       {projectEvolution && latestPoint && (
         <div className="project-evolution-results">
           <div className="project-evolution-guided-actions">
-            <button
-              className="primary-button"
-              type="button"
-              onClick={() => onOpenProject(latestPoint.importId)}
-            >
+            <button className="primary-button" type="button" onClick={() => onOpenProject(latestPoint.importId)}>
               Ver projeto mais recente
             </button>
             <button
@@ -113,7 +109,7 @@ export function ProjectEvolutionPanel({
             </button>
           </div>
           <div className="project-evolution-summary">
-            <span><strong>{projectEvolution.importsCount}</strong><small>Importacoes</small></span>
+            <span><strong>{projectEvolution.importsCount}</strong><small>Importações</small></span>
             <span><strong>{projectEvolution.summary.hoursDelta >= 0 ? "+" : ""}{projectEvolution.summary.hoursDelta}h</strong><small>Variação horas</small></span>
             <span><strong>{projectEvolution.summary.recordsDelta >= 0 ? "+" : ""}{projectEvolution.summary.recordsDelta}</strong><small>Variação registros</small></span>
             <span><strong>{projectEvolution.summary.pendingsDelta >= 0 ? "+" : ""}{projectEvolution.summary.pendingsDelta}</strong><small>Variação pendências</small></span>

@@ -183,7 +183,7 @@ export function ProjectComparisonPanel({
             <span><strong>{projectComparison.summary.projectsCount}</strong><small>Projetos</small></span>
             <span><strong>{projectComparison.summary.totalHours}h</strong><small>Horas totais</small></span>
             <span><strong>{comparisonHighlights.avgHours}h</strong><small>Media por projeto</small></span>
-            <span><strong>{projectComparison.summary.openPendings}</strong><small>Pendencias abertas</small></span>
+            <span><strong>{projectComparison.summary.openPendings}</strong><small>Pendências abertas</small></span>
             <span><strong>{projectComparison.summary.highAttentionProjects}</strong><small>Alta atencao</small></span>
           </div>
           <div className="project-comparison-insights">
@@ -200,7 +200,7 @@ export function ProjectComparisonPanel({
                   <th>Registros</th>
                   <th>Colab.</th>
                   <th>Tasks</th>
-                  <th>Pendencias</th>
+                  <th>Pendências</th>
                   <th>Atencao</th>
                   <th>Categoria principal</th>
                   <th>Colaborador principal</th>

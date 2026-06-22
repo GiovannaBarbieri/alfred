@@ -46,9 +46,9 @@ export function ProjectDownloadMenu({
         <div className="download-menu-wrap">
           <button
             aria-expanded={showDownloadMenu}
-            aria-label="Baixar relatorio"
+            aria-label="Baixar relatório"
             className="report-download-icon-button"
-            title="Baixar relatorio"
+            title="Baixar relatório"
             type="button"
             disabled={isPreparingPdf}
             onClick={onToggleDownloadMenu}
@@ -97,18 +97,18 @@ export function ProjectDownloadMenu({
                 checked={pdfOptions.pendingItems}
                 onChange={(event) => onPdfOptionsChange({ ...pdfOptions, pendingItems: event.target.checked })}
               />
-              Pendencias resumidas
+              Pendências resumidas
             </label>
             <label className="pdf-chart-mode-field">
-              <span>Graficos executivos</span>
+              <span>Gráficos executivos</span>
               <select
-                aria-label="Graficos executivos"
+                aria-label="Gráficos executivos"
                 value={pdfOptions.chartMode}
                 onChange={(event) => onPdfOptionsChange({ ...pdfOptions, chartMode: event.target.value as PdfChartMode })}
               >
                 <option value="none">Nenhum</option>
-                <option value="current">Grafico atual</option>
-                <option value="all">Todos os graficos</option>
+                <option value="current">Gráfico atual</option>
+                <option value="all">Todos os gráficos</option>
               </select>
             </label>
             <label className={!hasSelectedCollaborator ? "disabled" : ""}>
@@ -124,11 +124,11 @@ export function ProjectDownloadMenu({
           <div className="export-format-note">
             <span>
               <FileText size={15} />
-              PDF para apresentacao executiva.
+              PDF para apresentação executiva.
             </span>
             <span>
               <FileSpreadsheet size={15} />
-              Excel operacional fica no menu de download para analise detalhada.
+              Excel operacional fica no menu de download para análise detalhada.
             </span>
           </div>
           <div className="pdf-options-actions">

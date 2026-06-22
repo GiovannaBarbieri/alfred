@@ -1,4 +1,4 @@
-import { FileSpreadsheet } from "lucide-react";
+import { FileSpreadsheet, FolderOpen, Scale } from "lucide-react";
 
 import type {
   ImportSummary,
@@ -92,7 +92,7 @@ export function ReportLandingView({
 }: ReportLandingViewProps) {
   return (
     <>
-      <ReportLandingTabs activeTab={reportLandingTab} onChange={onLandingTabChange} />
+      <ReportLandingTabs activeTab={reportLandingTab} projectCount={imports.length} onChange={onLandingTabChange} />
 
       {reportLandingTab === "evolution" && (
         <ProjectEvolutionPanel
@@ -137,12 +137,12 @@ export function ReportLandingView({
       )}
 
       {reportLandingTab === "comparisons" && imports.length < 2 && (
-        <section className="panel empty-state-panel">
+        <section className="panel empty-state-panel report-empty-state-panel">
           <div className="panel-heading">
-            <FileSpreadsheet size={20} />
-            <h2>Comparativo indisponivel</h2>
+            <Scale size={20} />
+            <h2>Comparativos indisponíveis</h2>
           </div>
-          <p className="muted">Importe pelo menos dois projetos para criar comparativos.</p>
+          <p className="muted">Importe pelo menos dois projetos para visualizar comparações.</p>
         </section>
       )}
 
@@ -155,7 +155,7 @@ export function ReportLandingView({
             onOpenProject={(importId) => onOpenProject(importId)}
           />
           {filteredImports.length === 0 && imports.length > 0 && (
-            <section className="panel empty-state-panel">
+            <section className="panel empty-state-panel report-empty-state-panel">
               <div className="panel-heading">
                 <FileSpreadsheet size={20} />
                 <h2>Nenhum projeto encontrado</h2>
@@ -164,12 +164,12 @@ export function ReportLandingView({
             </section>
           )}
           {imports.length === 0 && (
-            <section className="panel empty-state-panel">
+            <section className="panel empty-state-panel report-empty-state-panel">
               <div className="panel-heading">
-                <FileSpreadsheet size={20} />
+                <FolderOpen size={20} />
                 <h2>Nenhum projeto importado</h2>
               </div>
-              <p className="muted">Conclua uma importação para visualizar suas análises aqui.</p>
+              <p className="muted">Importe um arquivo para começar suas análises.</p>
             </section>
           )}
         </>
