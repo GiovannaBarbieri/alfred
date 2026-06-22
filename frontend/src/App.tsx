@@ -38,7 +38,7 @@ const defaultCategoryOptions = [
 
 const defaultSubcategoryOptions = ["Back", "Front", "QA", "Nao aplicavel", "Nao classificado"];
 const activeSectionStorageKey = "analise-horas:active-section";
-const restorableSections: SectionId[] = ["dashboard", "analytics", "import", "reports", "history", "settings"];
+const restorableSections: SectionId[] = ["dashboard", "analytics", "import", "reports", "settings"];
 
 function getInitialActiveSection(): SectionId {
   const storedSection = window.localStorage.getItem(activeSectionStorageKey) as SectionId | null;
