@@ -239,16 +239,18 @@ def ensure_runtime_schema() -> None:
             )
             cursor.execute(
                 """
-                INSERT INTO categorias (nome, ordem_exibicao)
+                INSERT INTO categorias (nome, descricao, ordem_exibicao)
                 VALUES
-                    ('Acompanhamento', 1),
-                    ('Definição', 2),
-                    ('Desenvolvimento', 3),
-                    ('Homologação', 4),
-                    ('Impedimento', 5),
-                    ('Retrabalho', 6)
+                    ('Acompanhamento', 'Utilizada para atividades de acompanhamento, reuniões, alinhamentos e suporte ao andamento do projeto.', 1),
+                    ('Definição', 'Utilizada para análise, levantamento, refinamento e definição de regras ou requisitos.', 2),
+                    ('Desenvolvimento', 'Utilizada para apontamentos relacionados ao desenvolvimento de funcionalidades, integrações e ajustes técnicos.', 3),
+                    ('Homologação', 'Utilizada para validações, testes, homologações e conferências antes da conclusão da entrega.', 4),
+                    ('Impedimento', 'Utilizada para registrar bloqueios, dependências ou situações que impediram a evolução da atividade.', 5),
+                    ('Retrabalho', 'Utilizada para correções, ajustes, revisões e reexecuções necessárias após validações ou mudanças.', 6)
                 ON CONFLICT (nome) DO UPDATE
-                SET ordem_exibicao = COALESCE(categorias.ordem_exibicao, EXCLUDED.ordem_exibicao)
+                SET
+                    descricao = COALESCE(categorias.descricao, EXCLUDED.descricao),
+                    ordem_exibicao = COALESCE(categorias.ordem_exibicao, EXCLUDED.ordem_exibicao)
                 """
             )
             cursor.execute(
