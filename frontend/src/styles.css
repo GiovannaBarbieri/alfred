@@ -6812,12 +6812,34 @@ input {
 }
 
 .settings-collaborator-cell {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+}
+
+.settings-collaborator-avatar {
+  align-items: center;
+  background: #e8f1ff;
+  border: 1px solid #cde2ff;
+  border-radius: 999px;
+  color: #0f4c8a;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 900;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.settings-collaborator-identity {
   display: grid;
   gap: 2px;
   min-width: 0;
 }
 
-.settings-collaborator-cell strong {
+.settings-collaborator-identity strong {
   color: #172033;
   font-size: 14px;
   font-weight: 900;
@@ -6826,13 +6848,50 @@ input {
   white-space: nowrap;
 }
 
-.settings-collaborator-cell span {
+.settings-collaborator-identity span {
   color: #64748b;
   font-size: 12px;
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.settings-group-badge {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 900;
+  justify-content: center;
+  max-width: max-content;
+  padding: 3px 8px;
+}
+
+.settings-group-badge.management {
+  background: #e8f1ff;
+  color: #0f4c8a;
+}
+
+.settings-group-badge.development {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.settings-group-badge.quality {
+  background: #e8f7ed;
+  color: #147a3b;
+}
+
+.settings-group-badge.data {
+  background: #ecfeff;
+  color: #0e7490;
+}
+
+.settings-group-badge.infrastructure,
+.settings-group-badge.neutral {
+  background: #eef2f7;
+  color: #64748b;
 }
 
 .settings-row-actions {

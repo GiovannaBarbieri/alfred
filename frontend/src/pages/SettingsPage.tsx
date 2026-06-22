@@ -147,7 +147,7 @@ export function SettingsPage(props: SettingsPageProps) {
       ? "Buscar categoria..."
       : props.settingsTab === "subcategories"
         ? "Buscar cargo..."
-        : "Buscar colaborador...";
+        : "Buscar colaborador por nome ou login...";
 
   const tabCounts: Record<SettingsTab, number> = {
     categories: props.settingsCategories.length,
@@ -470,7 +470,7 @@ export function SettingsPage(props: SettingsPageProps) {
               <p>Vincule um colaborador ao cargo utilizado na classificação e análise das horas apontadas.</p>
             </header>
             <label>
-              <span>Colaborador</span>
+              <span>Selecione um colaborador</span>
               <input
                 autoFocus
                 value={props.newCollaboratorLogin}

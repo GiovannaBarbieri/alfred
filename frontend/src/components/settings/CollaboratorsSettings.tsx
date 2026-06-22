@@ -27,6 +27,26 @@ function formatCollaboratorName(login: string): string {
     .join(" ");
 }
 
+function getCollaboratorInitials(login: string): string {
+  const nameParts = formatCollaboratorName(login).split(" ").filter(Boolean);
+  const first = nameParts[0]?.charAt(0) ?? "";
+  const second = nameParts.length > 1 ? nameParts[nameParts.length - 1]?.charAt(0) : nameParts[0]?.charAt(1);
+  return `${first}${second ?? ""}`.toUpperCase();
+}
+
+function getGroupBadgeClass(group: string): string {
+  const normalized = group
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+  if (normalized.includes("gestao")) return "management";
+  if (normalized.includes("desenvolvimento")) return "development";
+  if (normalized.includes("qualidade")) return "quality";
+  if (normalized.includes("dados")) return "data";
+  if (normalized.includes("infraestrutura")) return "infrastructure";
+  return "neutral";
+}
+
 export function CollaboratorsSettings({
   subcategories,
   collaboratorProfiles,
@@ -62,6 +82,16 @@ export function CollaboratorsSettings({
       .map((profile) => subcategoryById.get(profile.subcategoryId)?.group)
       .filter(Boolean),
   ).size;
+  const groupDistribution = Array.from(
+    collaboratorProfiles.reduce((totals, profile) => {
+      const group = subcategoryById.get(profile.subcategoryId)?.group || "Não informado";
+      totals.set(group, (totals.get(group) ?? 0) + 1);
+      return totals;
+    }, new Map<string, number>()),
+  )
+    .sort(([firstGroup], [secondGroup]) => firstGroup.localeCompare(secondGroup, "pt-BR"))
+    .map(([group, total]) => `${group}: ${total}`)
+    .join("\n");
 
   useEffect(() => {
     if (!collaboratorFeedback) return;
@@ -138,7 +168,7 @@ export function CollaboratorsSettings({
           <strong>{inactiveProfiles}</strong>
           <span>Inativos</span>
         </div>
-        <div>
+        <div title={groupDistribution || undefined}>
           <strong>{groupsCount}</strong>
           <span>Grupos</span>
         </div>
@@ -154,15 +184,19 @@ export function CollaboratorsSettings({
         {filteredProfiles.map((profile) => {
           const cargo = subcategoryById.get(profile.subcategoryId);
           const group = cargo?.group || "Não informado";
+          const collaboratorName = formatCollaboratorName(profile.loginUsuario);
 
           return (
             <div className={`settings-item settings-table-row ${profile.active ? "" : "inactive"}`} key={profile.id}>
               <span className="settings-collaborator-cell">
-                <strong>{formatCollaboratorName(profile.loginUsuario)}</strong>
-                <span>{profile.loginUsuario}</span>
+                <span className="settings-collaborator-avatar">{getCollaboratorInitials(profile.loginUsuario)}</span>
+                <span className="settings-collaborator-identity">
+                  <strong>{collaboratorName}</strong>
+                  <span>{profile.loginUsuario}</span>
+                </span>
               </span>
               <span className="settings-muted-cell">{profile.subcategory}</span>
-              <span className="settings-muted-cell">{group}</span>
+              <span className={`settings-group-badge ${getGroupBadgeClass(group)}`}>{group}</span>
               <span className={`settings-status ${profile.active ? "active" : "inactive"}`}>
                 <i aria-hidden="true" />
                 {profile.active ? "Ativo" : "Inativo"}
@@ -216,7 +250,7 @@ export function CollaboratorsSettings({
               <p>Vincule um colaborador ao cargo utilizado na classificação e análise das horas apontadas.</p>
             </header>
             <label>
-              <span>Colaborador</span>
+              <span>Selecione um colaborador</span>
               <input
                 autoFocus
                 value={profileLoginDrafts[editingProfile.id] ?? editingProfile.loginUsuario}
