@@ -6837,20 +6837,30 @@ input {
   border-radius: 12px;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
   display: grid;
-  gap: 16px;
-  max-width: 420px;
-  padding: 18px;
-  width: min(420px, 100%);
+  gap: 18px;
+  max-width: 520px;
+  padding: 22px;
+  width: min(520px, 100%);
 }
 
 .settings-modal-dialog header {
   display: grid;
-  gap: 5px;
+  gap: 7px;
 }
 
 .settings-modal-dialog h3,
 .settings-modal-dialog p {
   margin: 0;
+}
+
+.settings-modal-dialog h3 {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.settings-modal-dialog h3 svg {
+  color: #0f4c8a;
 }
 
 .settings-modal-dialog p {
@@ -6902,6 +6912,7 @@ input {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+  padding-top: 6px;
 }
 
 .settings-modal-dialog footer .primary-button,

@@ -323,6 +323,62 @@ def ensure_runtime_schema() -> None:
                 WHERE ordem_exibicao IS NULL
                 """
             )
+            _merge_subcategory_aliases(
+                cursor,
+                "Analista",
+                ["Análista", "Analista ", "analista", "ANALISTA"],
+            )
+            _merge_subcategory_aliases(
+                cursor,
+                "Desenvolvedor Back-end",
+                ["Back", "Back-end", "Back End", "Backend", "backend", "back-end"],
+            )
+            _merge_subcategory_aliases(
+                cursor,
+                "Desenvolvedor Front-end",
+                ["Front", "Front-end", "Front End", "Frontend", "frontend", "front-end"],
+            )
+            _merge_subcategory_aliases(
+                cursor,
+                "Banco de Dados",
+                ["Banco de dados", "banco de dados", "BANCO DE DADOS"],
+            )
+            cursor.execute(
+                """
+                UPDATE subcategorias
+                SET
+                    ativa = TRUE,
+                    grupo = CASE nome
+                        WHEN 'Analista' THEN 'Gestão'
+                        WHEN 'Desenvolvedor Back-end' THEN 'Desenvolvimento'
+                        WHEN 'Desenvolvedor Front-end' THEN 'Desenvolvimento'
+                        WHEN 'QA' THEN 'Qualidade'
+                        WHEN 'Banco de Dados' THEN 'Dados'
+                        WHEN 'Infraestrutura' THEN 'Operações'
+                        WHEN 'DataOps' THEN 'Dados'
+                        ELSE grupo
+                    END,
+                    alias_ia = CASE nome
+                        WHEN 'Analista' THEN COALESCE(alias_ia, 'analista funcional requisitos')
+                        WHEN 'Desenvolvedor Back-end' THEN COALESCE(alias_ia, 'back backend back-end')
+                        WHEN 'Desenvolvedor Front-end' THEN COALESCE(alias_ia, 'front frontend front-end')
+                        WHEN 'QA' THEN COALESCE(alias_ia, 'qa testes qualidade')
+                        WHEN 'Banco de Dados' THEN COALESCE(alias_ia, 'banco dados dba database')
+                        WHEN 'Infraestrutura' THEN COALESCE(alias_ia, 'infraestrutura devops operacoes')
+                        WHEN 'DataOps' THEN COALESCE(alias_ia, 'dataops dados pipelines')
+                        ELSE alias_ia
+                    END
+                WHERE nome IN (
+                    'Analista',
+                    'Desenvolvedor Back-end',
+                    'Desenvolvedor Front-end',
+                    'QA',
+                    'Banco de Dados',
+                    'Infraestrutura',
+                    'DataOps'
+                )
+                """
+            )
             cursor.execute(
                 """
                 ALTER TABLE classificacoes_task
@@ -395,3 +451,58 @@ def ensure_runtime_schema() -> None:
                 ON analytics_insights(importacao_id, tipo, titulo, descricao)
                 """
             )
+
+
+def _merge_subcategory_aliases(cursor, canonical_name: str, aliases: list[str]) -> None:
+    cursor.execute("SELECT id FROM subcategorias WHERE nome = %s", (canonical_name,))
+    canonical = cursor.fetchone()
+    if not canonical:
+        return
+
+    canonical_id = canonical["id"]
+    cursor.execute("SELECT id FROM subcategorias WHERE nome = ANY(%s) AND id <> %s", (aliases, canonical_id))
+    alias_ids = [row["id"] for row in cursor.fetchall()]
+    if not alias_ids:
+        return
+
+    for table_name, column_name in (
+        ("perfis_colaborador", "subcategoria_id"),
+        ("lancamentos_horas", "subcategoria_id"),
+        ("classificacoes_task", "subcategoria_sugerida_id"),
+        ("classificacoes_task", "subcategoria_final_id"),
+        ("classification_rules", "subcategoria_id"),
+    ):
+        cursor.execute(
+            f"""
+            UPDATE {table_name}
+            SET {column_name} = %s
+            WHERE {column_name} = ANY(%s)
+            """,
+            (canonical_id, alias_ids),
+        )
+
+    cursor.execute(
+        """
+        UPDATE staging_rows
+        SET subcategoria_sugerida = %s
+        WHERE subcategoria_sugerida = ANY(%s)
+        """,
+        (canonical_name, aliases),
+    )
+    cursor.execute(
+        """
+        UPDATE classification_reprocess_history
+        SET subcategoria_anterior = %s
+        WHERE subcategoria_anterior = ANY(%s)
+        """,
+        (canonical_name, aliases),
+    )
+    cursor.execute(
+        """
+        UPDATE classification_reprocess_history
+        SET subcategoria_nova = %s
+        WHERE subcategoria_nova = ANY(%s)
+        """,
+        (canonical_name, aliases),
+    )
+    cursor.execute("DELETE FROM subcategorias WHERE id = ANY(%s)", (alias_ids,))

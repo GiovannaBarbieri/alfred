@@ -1,4 +1,4 @@
-import { FolderTree, Layers3, Plus, Search, UsersRound } from "lucide-react";
+import { FolderTree, Layers3, Plus, Search, UserRound, UsersRound } from "lucide-react";
 import { useState, type ReactNode, type SetStateAction } from "react";
 import { CategoriesSettings } from "../components/settings/CategoriesSettings";
 import { CollaboratorsSettings } from "../components/settings/CollaboratorsSettings";
@@ -299,7 +299,10 @@ export function SettingsPage(props: SettingsPageProps) {
             }}
           >
             <header>
-              <h3 id="category-create-title">Nova Categoria</h3>
+              <h3 id="category-create-title">
+                <FolderTree size={18} />
+                Nova Categoria
+              </h3>
               <p>Informe o nome da categoria que será usada na classificação das atividades.</p>
             </header>
             <label>
@@ -346,7 +349,10 @@ export function SettingsPage(props: SettingsPageProps) {
             }}
           >
             <header>
-              <h3 id="cargo-create-title">Novo Cargo</h3>
+              <h3 id="cargo-create-title">
+                <UserRound size={18} />
+                Novo Cargo
+              </h3>
               <p>Cadastre um cargo para segmentar as horas apontadas pelos colaboradores.</p>
             </header>
             <label>

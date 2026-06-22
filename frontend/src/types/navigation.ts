@@ -27,7 +27,7 @@ export const sectionMeta: Record<SectionId, { title: string; description: string
   },
   settings: {
     title: "Configurações",
-    description: "Mantenha categorias aceitas no título e perfis operacionais de colaboradores.",
+    description: "Gerencie categorias, cargos e colaboradores utilizados na classificação das atividades.",
   },
   audit: {
     title: "Auditoria",
