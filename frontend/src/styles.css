@@ -6642,7 +6642,7 @@ input {
 
 .settings-data-table.roles-table .settings-table-header,
 .settings-data-table.roles-table .settings-table-row {
-  grid-template-columns: minmax(0, 8fr) minmax(82px, 1fr) minmax(64px, 1fr);
+  grid-template-columns: minmax(0, 5.5fr) minmax(140px, 2.5fr) minmax(82px, 1fr) minmax(64px, 1fr);
 }
 
 .settings-data-table.collaborators-table .settings-table-header,

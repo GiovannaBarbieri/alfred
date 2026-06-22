@@ -119,12 +119,14 @@ export function SubcategoriesSettings({
       <div className="settings-list settings-data-table roles-table">
         <div className="settings-table-header">
           <span>Cargo</span>
+          <span>Grupo</span>
           <span>Situação</span>
           <span>Ações</span>
         </div>
         {filteredSubcategories.map((subcategory) => (
           <div className={`settings-item settings-table-row ${subcategory.active ? "" : "inactive"}`} key={subcategory.id}>
             <strong className="settings-primary-cell">{subcategory.name}</strong>
+            <span className="settings-muted-cell">{subcategory.group || "Não informado"}</span>
             <span className={`settings-status ${subcategory.active ? "active" : "inactive"}`}>
               <i aria-hidden="true" />
               {subcategory.active ? "Ativo" : "Inativo"}
