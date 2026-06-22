@@ -6621,6 +6621,7 @@ input {
   gap: 8px;
   min-height: 42px;
   padding: 5px 8px;
+  position: relative;
   transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
@@ -6633,6 +6634,10 @@ input {
 
 .settings-item {
   grid-template-columns: minmax(0, 1fr) 86px 86px;
+}
+
+.settings-item:has(.settings-menu-list) {
+  z-index: 35;
 }
 
 .settings-data-table.categories-table .settings-table-header,
@@ -6846,7 +6851,7 @@ input {
   position: absolute;
   right: 0;
   top: 38px;
-  z-index: 20;
+  z-index: 80;
 }
 
 .settings-menu-list button {
