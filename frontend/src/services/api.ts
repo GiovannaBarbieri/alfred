@@ -470,7 +470,10 @@ export async function createSubcategory(payload: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error("Não foi possível criar o cargo.");
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail ?? "Não foi possível criar o cargo.");
+  }
   return response.json();
 }
 
@@ -483,7 +486,10 @@ export async function updateSubcategory(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error("Não foi possível atualizar o cargo.");
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail ?? "Não foi possível atualizar o cargo.");
+  }
   return response.json();
 }
 

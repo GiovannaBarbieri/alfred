@@ -1,3 +1,5 @@
+import unicodedata
+
 from fastapi import APIRouter, HTTPException
 from psycopg import errors
 from pydantic import BaseModel
@@ -97,6 +99,22 @@ def _setting_response(row: dict) -> dict:
     if "ordem_exibicao" in row:
         response["displayOrder"] = row["ordem_exibicao"]
     return response
+
+
+def _normalize_setting_name(value: str) -> str:
+    normalized = unicodedata.normalize("NFD", value.strip())
+    without_accents = "".join(char for char in normalized if unicodedata.category(char) != "Mn")
+    return " ".join(without_accents.lower().split())
+
+
+def _ensure_unique_subcategory_name(cursor, name: str, current_id: int | None = None) -> None:
+    cursor.execute("SELECT id, nome FROM subcategorias")
+    normalized_name = _normalize_setting_name(name)
+    for row in cursor.fetchall():
+        if current_id is not None and row["id"] == current_id:
+            continue
+        if _normalize_setting_name(row["nome"]) == normalized_name:
+            raise HTTPException(status_code=409, detail="Já existe um cargo semelhante cadastrado.")
 
 
 def _keyword_response(row: dict) -> dict:
@@ -285,6 +303,7 @@ def create_subcategory(payload: SubcategoryPayload) -> dict:
 
     with get_connection() as connection:
         with connection.cursor() as cursor:
+            _ensure_unique_subcategory_name(cursor, name)
             cursor.execute(
                 """
                 INSERT INTO subcategorias (nome, ativa, grupo, alias_ia, ordem_exibicao)
@@ -326,6 +345,8 @@ def update_subcategory(subcategory_id: int, payload: SubcategoryUpdatePayload) -
             before = cursor.fetchone()
             if not before:
                 raise HTTPException(status_code=404, detail="Cargo nao encontrado.")
+            if name is not None:
+                _ensure_unique_subcategory_name(cursor, name, subcategory_id)
 
             cursor.execute(
                 """

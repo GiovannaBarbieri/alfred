@@ -61,8 +61,8 @@ export function SubcategoriesSettings({
     if (!editingSubcategory) return;
     const nextName = subcategoryDrafts[editingSubcategory.id] ?? editingSubcategory.name;
     if (hasSimilarSettingName(subcategories, nextName, editingSubcategory.id)) {
-      const confirmed = window.confirm("Já existe um registro semelhante cadastrado.\n\nDeseja continuar?");
-      if (!confirmed) return;
+      window.alert("Já existe um cargo semelhante cadastrado.");
+      return;
     }
     await onRenameSubcategory(editingSubcategory);
     setEditingSubcategory(null);
@@ -203,7 +203,7 @@ export function SubcategoriesSettings({
               </select>
             </label>
             <label>
-              <span>Grupo (opcional)</span>
+              <span>Grupo</span>
               <select
                 value={isCustomGroup ? CUSTOM_GROUP_VALUE : subcategoryGroupDrafts[editingSubcategory.id] ?? editingSubcategory.group ?? ""}
                 onChange={(event) => {
@@ -216,7 +216,7 @@ export function SubcategoriesSettings({
                   onSubcategoryGroupDraftsChange((current) => ({ ...current, [editingSubcategory.id]: event.target.value }));
                 }}
               >
-                <option value="">Sem grupo</option>
+                <option value="">Selecione um grupo</option>
                 {availableGroups.map((group) => (
                   <option key={group} value={group}>
                     {group}

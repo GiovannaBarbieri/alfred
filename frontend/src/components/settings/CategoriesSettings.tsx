@@ -177,7 +177,7 @@ export function CategoriesSettings({
                 onChange={(event) =>
                   onCategoryDescriptionDraftsChange((current) => ({ ...current, [editingCategory.id]: event.target.value }))
                 }
-                placeholder="Utilizada para apontamentos relacionados ao desenvolvimento de funcionalidades."
+                placeholder="Descreva quando esta categoria deve ser utilizada."
               />
             </label>
             <footer>

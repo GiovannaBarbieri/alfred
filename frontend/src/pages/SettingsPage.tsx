@@ -1,4 +1,4 @@
-import { FolderTree, Layers3, Plus, Search, UserRound, UsersRound } from "lucide-react";
+import { FolderTree, Layers3, Plus, Search, UsersRound } from "lucide-react";
 import { useState, type ReactNode, type SetStateAction } from "react";
 import { CategoriesSettings } from "../components/settings/CategoriesSettings";
 import { CollaboratorsSettings } from "../components/settings/CollaboratorsSettings";
@@ -172,8 +172,8 @@ export function SettingsPage(props: SettingsPageProps) {
   async function handleSaveSubcategoryCreate() {
     if (!props.newSubcategory.trim()) return;
     if (hasSimilarSettingName(props.settingsSubcategories, props.newSubcategory)) {
-      const confirmed = window.confirm("Já existe um registro semelhante cadastrado.\n\nDeseja continuar?");
-      if (!confirmed) return;
+      window.alert("Já existe um cargo semelhante cadastrado.");
+      return;
     }
     await props.onCreateSubcategory();
     setIsSubcategoryCreateOpen(false);
@@ -182,13 +182,6 @@ export function SettingsPage(props: SettingsPageProps) {
 
   return (
     <section className="settings-ai-page">
-      <div className="settings-ai-hero">
-        <div>
-          <h2>Configurações</h2>
-          <p>Gerencie categorias, cargos e colaboradores utilizados na classificação das atividades.</p>
-        </div>
-      </div>
-
       <div className="settings-ai-workbench">
         <div className="settings-ai-main">
       <div className="settings-tabs" role="tablist" aria-label="Configurações de classificação">
@@ -299,11 +292,8 @@ export function SettingsPage(props: SettingsPageProps) {
             }}
           >
             <header>
-              <h3 id="category-create-title">
-                <FolderTree size={18} />
-                Nova Categoria
-              </h3>
-              <p>Informe o nome da categoria que será usada na classificação das atividades.</p>
+              <h3 id="category-create-title">📂 Nova Categoria</h3>
+              <p>Defina uma categoria para organizar e classificar as atividades apontadas pelos colaboradores.</p>
             </header>
             <label>
               <span>Nome da categoria</span>
@@ -320,7 +310,7 @@ export function SettingsPage(props: SettingsPageProps) {
                 maxLength={255}
                 value={props.newCategoryDescription}
                 onChange={(event) => props.onNewCategoryDescriptionChange(event.target.value)}
-                placeholder="Utilizada para apontamentos relacionados ao desenvolvimento de funcionalidades."
+                placeholder="Descreva quando esta categoria deve ser utilizada."
               />
             </label>
             <footer>
@@ -349,11 +339,8 @@ export function SettingsPage(props: SettingsPageProps) {
             }}
           >
             <header>
-              <h3 id="cargo-create-title">
-                <UserRound size={18} />
-                Novo Cargo
-              </h3>
-              <p>Cadastre um cargo para segmentar as horas apontadas pelos colaboradores.</p>
+              <h3 id="cargo-create-title">👤 Novo Cargo</h3>
+              <p>Defina os cargos utilizados para classificar e segmentar as horas apontadas pelos colaboradores.</p>
             </header>
             <label>
               <span>Nome do cargo</span>
@@ -375,7 +362,7 @@ export function SettingsPage(props: SettingsPageProps) {
               </select>
             </label>
             <label>
-              <span>Grupo (opcional)</span>
+              <span>Grupo</span>
               <select
                 value={isCustomSubcategoryGroup ? CUSTOM_GROUP_VALUE : props.newSubcategoryGroup}
                 onChange={(event) => {
@@ -388,7 +375,7 @@ export function SettingsPage(props: SettingsPageProps) {
                   props.onNewSubcategoryGroupChange(event.target.value);
                 }}
               >
-                <option value="">Sem grupo</option>
+                <option value="">Selecione um grupo</option>
                 {roleGroups.map((group) => (
                   <option key={group} value={group}>
                     {group}
