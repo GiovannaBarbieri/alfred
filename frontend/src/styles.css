@@ -6879,7 +6879,6 @@ input {
   grid-template-columns: minmax(180px, 280px) 150px 92px 176px;
 }
 
-.settings-item.inactive,
 .keyword-item.inactive,
 .collaborator-profile-row.inactive {
   background: #f7f9fc;
