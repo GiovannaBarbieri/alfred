@@ -1,4 +1,4 @@
-import { BarChart3, Clock3, FileSpreadsheet, FolderOpen, Search, X } from "lucide-react";
+import { BarChart3, Clock3, FileSpreadsheet, Search, X } from "lucide-react";
 
 import type { ImportSummary } from "../../types";
 import { formatDateBR, formatDateTimeBR } from "../../utils/date";
@@ -60,17 +60,19 @@ export function ReportsProjectList({ imports, search, onSearchChange, onOpenProj
                 <div className="reports-project-name">
                   <strong>
                     {projectTitleFromFilename(item.filename)}
+                    <span className={`status-badge ${status.className}`}>{status.label}</span>
                     {hasVersions && <em>v{versionNumber}</em>}
                   </strong>
-                  <small>{item.id} • {item.filename}</small>
+                  <small>{item.id} - {item.filename}</small>
                   {hasVersions && (
                     <small className="project-version-note">
                       Mesmo projeto com {sameProjectImports.length} importações. Esta é a versão {versionNumber}.
                     </small>
                   )}
-                  <div className="reports-project-badges">
-                    <span><FolderOpen size={13} /> Projeto #{item.id}</span>
-                  </div>
+                  <small className="reports-project-updated">
+                    <Clock3 size={14} />
+                    Última atualização: {formatDateTimeBR(item.importedAt)}
+                  </small>
                 </div>
               </div>
 
@@ -82,15 +84,9 @@ export function ReportsProjectList({ imports, search, onSearchChange, onOpenProj
               </div>
 
               <div className="reports-project-actions">
-                <span className={`status-badge ${status.className}`}>{status.label}</span>
-                <span className="reports-project-updated">
-                  <Clock3 size={14} />
-                  <small>Última atualização</small>
-                  <strong>{formatDateTimeBR(item.importedAt)}</strong>
-                </span>
-                <button className="primary-button compact" type="button" onClick={() => onOpenProject(item.id)}>
+                <button className="secondary-button compact" type="button" onClick={() => onOpenProject(item.id)}>
                   <BarChart3 size={16} />
-                  Abrir Análise
+                  Abrir análise →
                 </button>
               </div>
             </article>

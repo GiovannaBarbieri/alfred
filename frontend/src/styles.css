@@ -3426,9 +3426,9 @@ input {
   box-shadow: 0 8px 20px rgba(18, 60, 105, 0.04);
   color: #172033;
   display: grid;
-  gap: 16px;
-  grid-template-columns: minmax(320px, 1fr) minmax(440px, 0.9fr) minmax(210px, 0.34fr);
-  min-height: 118px;
+  gap: 14px;
+  grid-template-columns: minmax(360px, 1fr) minmax(420px, 0.78fr) auto;
+  min-height: 104px;
   padding: 14px;
   text-align: left;
 }
@@ -3483,6 +3483,7 @@ input {
   display: flex;
   font-size: 18px;
   gap: 8px;
+  margin-bottom: 4px;
 }
 
 .reports-project-name strong em {
@@ -3503,32 +3504,6 @@ input {
   font-weight: 800;
 }
 
-.reports-project-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.reports-project-badges span {
-  align-items: center;
-  background: #f7f9fc;
-  border: 1px solid #e5eaf0;
-  border-radius: 999px;
-  color: #455468;
-  display: inline-flex;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 850;
-  padding: 5px 9px;
-}
-
-.reports-project-badges span.warning {
-  background: #fff7ed;
-  border-color: #fed7aa;
-  color: #c2410c;
-}
-
 .reports-project-kpis {
   align-self: center;
   display: grid;
@@ -3543,9 +3518,9 @@ input {
   border-radius: 8px;
   display: grid;
   gap: 4px;
-  min-height: 72px;
+  min-height: 68px;
   min-width: 0;
-  padding: 11px 12px;
+  padding: 10px 12px;
 }
 
 .reports-project-kpis strong,
@@ -3565,45 +3540,33 @@ input {
 }
 
 .reports-project-actions {
-  align-items: stretch;
-  display: grid;
-  gap: 10px;
-  grid-template-rows: auto 1fr auto;
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
+  min-width: max-content;
 }
 
-.reports-project-actions .primary-button {
+.reports-project-actions .secondary-button {
   justify-content: center;
   margin: 0;
+  min-height: 38px;
+  padding-inline: 12px;
+  width: auto;
 }
 
 .reports-project-updated {
   align-items: center;
-  background: #ffffff;
-  border: 1px solid #e5eaf0;
-  border-radius: 8px;
-  color: #455468;
-  display: grid;
-  gap: 2px 8px;
-  grid-template-columns: auto minmax(0, 1fr);
-  padding: 9px 10px;
+  color: #637083;
+  display: inline-flex;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 750;
+  margin-top: 6px;
 }
 
 .reports-project-updated svg {
   color: #2563eb;
-  grid-row: span 2;
-}
-
-.reports-project-updated small {
-  color: #637083;
-  font-size: 11px;
-  font-weight: 800;
-  margin: 0;
-  text-transform: uppercase;
-}
-
-.reports-project-updated strong {
-  color: #172033;
-  font-size: 13px;
+  flex: 0 0 auto;
 }
 
 .status-badge {
