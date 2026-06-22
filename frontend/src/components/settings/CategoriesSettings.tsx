@@ -1,4 +1,4 @@
-import { MoreVertical } from "lucide-react";
+import { Info, MoreVertical } from "lucide-react";
 import { useState, type SetStateAction } from "react";
 import type { SettingItem } from "../../types";
 import { hasSimilarSettingName } from "../../utils/settingsValidation";
@@ -104,40 +104,61 @@ export function CategoriesSettings({
           <span>Situação</span>
           <span>Ações</span>
         </div>
-        {filteredCategories.map((category) => (
-          <div className={`settings-item settings-table-row ${category.active ? "" : "inactive"}`} key={category.id}>
-            <strong className="settings-primary-cell">{category.name}</strong>
-            <span className={`settings-status ${category.active ? "active" : "inactive"}`}>
-              <i aria-hidden="true" />
-              {category.active ? "Ativa" : "Inativa"}
-            </span>
-            <div className="settings-action-menu">
-              <button
-                aria-expanded={activeActionId === category.id}
-                aria-label={`Ações da categoria ${category.name}`}
-                className="settings-menu-button"
-                title="Ações"
-                type="button"
-                onClick={() => setActiveActionId((current) => (current === category.id ? null : category.id))}
-              >
-                <MoreVertical size={17} />
-              </button>
-              {activeActionId === category.id && (
-                <div className="settings-menu-list">
-                  <button type="button" onClick={() => handleOpenEdit(category)}>
-                    Editar
-                  </button>
-                  <button type="button" onClick={() => void handleToggleCategory(category)}>
-                    Alterar situação
-                  </button>
-                  <button type="button" onClick={() => void handleDeleteCategory(category)}>
-                    Excluir
-                  </button>
-                </div>
-              )}
+        {filteredCategories.map((category) => {
+          const description = category.description?.trim();
+
+          return (
+            <div className={`settings-item settings-table-row ${category.active ? "" : "inactive"}`} key={category.id}>
+              <div className="settings-primary-cell settings-category-name-cell">
+                <strong>{category.name}</strong>
+                {description && (
+                  <span className="settings-info-tooltip">
+                    <button
+                      aria-label={`Ver descrição da categoria ${category.name}`}
+                      className="settings-info-button"
+                      type="button"
+                    >
+                      <Info size={14} />
+                    </button>
+                    <span className="settings-tooltip-panel" role="tooltip">
+                      <strong>{category.name}</strong>
+                      <span>{description}</span>
+                    </span>
+                  </span>
+                )}
+              </div>
+              <span className={`settings-status ${category.active ? "active" : "inactive"}`}>
+                <i aria-hidden="true" />
+                {category.active ? "Ativa" : "Inativa"}
+              </span>
+              <div className="settings-action-menu">
+                <button
+                  aria-expanded={activeActionId === category.id}
+                  aria-label={`Ações da categoria ${category.name}`}
+                  className="settings-menu-button"
+                  title="Ações"
+                  type="button"
+                  onClick={() => setActiveActionId((current) => (current === category.id ? null : category.id))}
+                >
+                  <MoreVertical size={17} />
+                </button>
+                {activeActionId === category.id && (
+                  <div className="settings-menu-list">
+                    <button type="button" onClick={() => handleOpenEdit(category)}>
+                      Editar
+                    </button>
+                    <button type="button" onClick={() => void handleToggleCategory(category)}>
+                      Alterar situação
+                    </button>
+                    <button type="button" onClick={() => void handleDeleteCategory(category)}>
+                      Excluir
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {filteredCategories.length === 0 && <p className="muted">Nenhuma categoria encontrada.</p>}
       </div>
 
