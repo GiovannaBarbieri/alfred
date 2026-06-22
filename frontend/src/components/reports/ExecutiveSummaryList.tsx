@@ -7,6 +7,8 @@ type ExecutiveSummaryListProps = {
 };
 
 export function ExecutiveSummaryList({ title, items, showKey = false }: ExecutiveSummaryListProps) {
+  const isCategoryList = title.toLowerCase().includes("categoria");
+
   return (
     <div className="executive-summary-card">
       <h3>{title}</h3>
@@ -17,7 +19,15 @@ export function ExecutiveSummaryList({ title, items, showKey = false }: Executiv
           {items.map((item) => (
             <li key={`${title}-${item.key}`}>
               <span title={item.label}>
-                {showKey ? `${item.key} - ${item.label || item.key}` : item.label || item.key}
+                {isCategoryList ? (
+                  <span className={`report-category-chip ${categoryClassName(item.label || item.key)}`}>
+                    {item.label || item.key}
+                  </span>
+                ) : showKey ? (
+                  `${item.key} - ${item.label || item.key}`
+                ) : (
+                  item.label || item.key
+                )}
               </span>
               <strong>{item.totalHours.toFixed(2)}h</strong>
             </li>
@@ -26,4 +36,18 @@ export function ExecutiveSummaryList({ title, items, showKey = false }: Executiv
       )}
     </div>
   );
+}
+
+function categoryClassName(value: string) {
+  const normalized = value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+  if (normalized.includes("desenvolvimento")) return "development";
+  if (normalized.includes("homologacao")) return "quality";
+  if (normalized.includes("definicao")) return "definition";
+  if (normalized.includes("acompanhamento")) return "followup";
+  if (normalized.includes("impedimento")) return "blocked";
+  if (normalized.includes("retrabalho")) return "rework";
+  return "neutral";
 }

@@ -125,7 +125,9 @@ export function ProjectCollaboratorTasksPanel({
                 <span><Layers3 size={16} /> Categorias principais</span>
                 <div>
                   {collaboratorSummary.categories.map((category) => (
-                    <strong key={category.name}>{category.count} {category.name}</strong>
+                    <strong key={category.name}>
+                      {category.count} <span className={`report-category-chip ${categoryClassName(category.name)}`}>{category.name}</span>
+                    </strong>
                   ))}
                 </div>
               </div>
@@ -182,7 +184,11 @@ export function ProjectCollaboratorTasksPanel({
                         <tr key={`${task.idTask}-${task.categoria}-${task.subcategoria}`}>
                           <td>{task.idTask}</td>
                           <td>{task.tituloTask}</td>
-                          <td>{task.categoria}</td>
+                          <td>
+                            <span className={`report-category-chip ${categoryClassName(task.categoria)}`}>
+                              {task.categoria || "Não classificado"}
+                            </span>
+                          </td>
                           <td>{task.subcategoria}</td>
                           <td>
                             <div className="duration-cell">
@@ -297,4 +303,18 @@ function compactPageNumbers(currentPage: number, totalPages: number) {
   if (currentPage <= 3) return [1, 2, 3, 4, 5];
   if (currentPage >= totalPages - 2) return Array.from({ length: 5 }, (_, index) => totalPages - 4 + index);
   return [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
+}
+
+function categoryClassName(value: string) {
+  const normalized = value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+  if (normalized.includes("desenvolvimento")) return "development";
+  if (normalized.includes("homologacao")) return "quality";
+  if (normalized.includes("definicao")) return "definition";
+  if (normalized.includes("acompanhamento")) return "followup";
+  if (normalized.includes("impedimento")) return "blocked";
+  if (normalized.includes("retrabalho")) return "rework";
+  return "neutral";
 }

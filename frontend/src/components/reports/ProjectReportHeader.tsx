@@ -1,9 +1,11 @@
 import type { ImportSummary } from "../../types";
 import { ProjectDownloadMenu, type ProjectPdfOptions } from "./ProjectDownloadMenu";
+import type { ProjectExecutiveSummary } from "../../types";
 
 type ProjectReportHeaderProps = {
   projectTitle: string;
   selectedImport: ImportSummary;
+  projectExecutiveSummary: ProjectExecutiveSummary;
   importedAt: string;
   excelExportUrl: string;
   showDownloadMenu: boolean;
@@ -21,6 +23,7 @@ type ProjectReportHeaderProps = {
 export function ProjectReportHeader({
   projectTitle,
   selectedImport,
+  projectExecutiveSummary,
   importedAt,
   excelExportUrl,
   showDownloadMenu,
@@ -44,6 +47,8 @@ export function ProjectReportHeader({
       <div className="report-project-metrics">
         <span><strong>{selectedImport.totalHours}h</strong><small>Horas</small></span>
         <span><strong>{selectedImport.validRows}</strong><small>Registros</small></span>
+        <span><strong>{projectExecutiveSummary.metrics.collaboratorsCount}</strong><small>Colaboradores</small></span>
+        <span><strong>{projectExecutiveSummary.categories.length}</strong><small>Categorias</small></span>
         <span><strong>{importedAt}</strong><small>{selectedImport.status}</small></span>
       </div>
       <ProjectDownloadMenu

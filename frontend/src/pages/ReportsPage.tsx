@@ -14,6 +14,7 @@ import {
   type ReportLandingTabId,
   type TaskSortId,
   type TimelineChartId,
+  timelineCharts,
 } from "../components/reports/reportsConfig";
 import { useProjectCollaboratorTaskLoader } from "../hooks/useProjectCollaboratorTaskLoader";
 import { useProjectCollaboratorTasks } from "../hooks/useProjectCollaboratorTasks";
@@ -163,6 +164,12 @@ export function ReportsPage({
     projectSearch,
     selectedChartId,
   });
+  const activeProjectTabLabel = activeProjectTab === "executive" ? "Executivo" : activeProjectTab === "charts" ? "Gráficos" : "Tasks";
+  const averageHoursByCollaborator =
+    projectExecutiveSummary.metrics.collaboratorsCount > 0
+      ? projectExecutiveSummary.metrics.totalHours / projectExecutiveSummary.metrics.collaboratorsCount
+      : 0;
+  const topCollaborator = projectExecutiveSummary.topUsers[0];
 
   useEffect(() => {
     if (!reportNotice) return;
@@ -239,9 +246,18 @@ export function ReportsPage({
   return (
     <>
       <ReportNotice notice={reportNotice} />
+      <nav className="report-breadcrumb" aria-label="Localização do relatório">
+        <span>Relatórios</span>
+        <span aria-hidden="true">/</span>
+        <strong>{projectTitle}</strong>
+        <span aria-hidden="true">/</span>
+        <span>{activeProjectTabLabel}</span>
+      </nav>
+
       <ProjectReportHeader
         projectTitle={projectTitle}
         selectedImport={selectedImport}
+        projectExecutiveSummary={projectExecutiveSummary}
         importedAt={importedAt}
         excelExportUrl={excelExportUrl}
         showDownloadMenu={showDownloadMenu}
@@ -255,6 +271,18 @@ export function ReportsPage({
         onPdfOptionsChange={setPdfOptions}
         onPreparePdf={preparePdf}
       />
+
+      <section className="report-executive-kpis" aria-label="Indicadores executivos do projeto">
+        <span><strong>{projectExecutiveSummary.metrics.totalHours.toFixed(2)}h</strong><small>Horas totais</small></span>
+        <span><strong>{selectedImport.validRows}</strong><small>Registros</small></span>
+        <span><strong>{projectExecutiveSummary.metrics.collaboratorsCount}</strong><small>Colaboradores</small></span>
+        <span><strong>{projectExecutiveSummary.categories.length}</strong><small>Categorias</small></span>
+        <span><strong>{averageHoursByCollaborator.toFixed(1)}h</strong><small>Média por colaborador</small></span>
+        <span>
+          <strong>{topCollaborator ? topCollaborator.totalHours.toFixed(1) : "0"}h</strong>
+          <small>{topCollaborator?.label || topCollaborator?.key || "Maior colaborador"}</small>
+        </span>
+      </section>
 
       <ProjectDownloadMenu
         excelExportUrl={excelExportUrl}
@@ -272,7 +300,12 @@ export function ReportsPage({
         onPreparePdf={preparePdf}
       />
 
-      <ProjectReportTabs activeTab={activeProjectTab} onChange={setActiveProjectTab} />
+      <ProjectReportTabs
+        activeTab={activeProjectTab}
+        chartCount={timelineCharts.length}
+        taskCount={projectExecutiveSummary.metrics.tasksCount}
+        onChange={setActiveProjectTab}
+      />
 
       {activeProjectTab === "executive" && (
         <ProjectOverviewPanel
@@ -290,6 +323,7 @@ export function ReportsPage({
       {activeProjectTab === "charts" && (
         <ProjectChartsPanel
           selectedChartId={selectedChartId}
+          projectExecutiveSummary={projectExecutiveSummary}
           projectTimelineCharts={projectTimelineCharts}
           onSelectedChartChange={setSelectedChartId}
         />
