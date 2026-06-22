@@ -3346,23 +3346,10 @@ input {
 }
 
 .reports-projects-toolbar h2 {
-  align-items: center;
   color: #0f172a;
-  display: inline-flex;
   font-size: 20px;
-  gap: 8px;
+  font-weight: 800;
   margin: 0;
-}
-
-.reports-projects-toolbar h2 span {
-  background: #eef5ff;
-  border: 1px solid rgba(37, 99, 235, 0.12);
-  border-radius: 999px;
-  color: #123c69;
-  font-size: 12px;
-  font-weight: 900;
-  line-height: 1;
-  padding: 5px 9px;
 }
 
 .reports-search-box {
@@ -3432,9 +3419,9 @@ input {
   box-shadow: 0 8px 18px rgba(18, 60, 105, 0.035);
   color: #172033;
   display: grid;
-  gap: 12px;
+  gap: 10px;
   min-height: 0;
-  padding: 16px;
+  padding: 14px 16px;
   text-align: left;
 }
 
@@ -3470,9 +3457,9 @@ input {
   border-radius: 10px;
   color: #2563eb;
   display: grid;
-  height: 42px;
+  height: 48px;
   justify-content: center;
-  width: 42px;
+  width: 48px;
 }
 
 .reports-project-row span {
@@ -3502,6 +3489,15 @@ input {
   min-width: 0;
 }
 
+.reports-project-status-group {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .reports-project-file {
   color: #637083;
   font-size: 12px;
@@ -3526,12 +3522,18 @@ input {
   color: #637083;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 16px;
-  padding-left: 54px;
+  gap: 6px;
+  padding-left: 60px;
 }
 
 .reports-project-meta-line small {
   margin: 0;
+}
+
+.reports-project-meta-line small + small::before {
+  color: #94a3b8;
+  content: "•";
+  margin-right: 6px;
 }
 
 .reports-project-meta-line .project-version-note {
@@ -3543,7 +3545,7 @@ input {
   display: grid;
   flex: 1 1 auto;
   gap: 8px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(160px, 1.1fr) repeat(2, minmax(120px, 0.8fr));
 }
 
 .reports-project-kpis > span {
@@ -3554,29 +3556,9 @@ input {
   border-radius: 12px;
   display: grid;
   gap: 4px;
-  min-height: 62px;
+  min-height: 58px;
   min-width: 0;
   padding: 9px 11px;
-}
-
-.reports-project-kpis > span.no-alerts {
-  background: #ecfdf3;
-  border-color: #bbf7d0;
-}
-
-.reports-project-kpis > span.no-alerts strong,
-.reports-project-kpis > span.no-alerts small {
-  color: #15803d;
-}
-
-.reports-project-kpis > span.has-alerts {
-  background: #fff7ed;
-  border-color: #fed7aa;
-}
-
-.reports-project-kpis > span.has-alerts strong,
-.reports-project-kpis > span.has-alerts small {
-  color: #c2410c;
 }
 
 .reports-project-kpis svg {
@@ -3596,10 +3578,16 @@ input {
   font-size: 15px;
 }
 
+.reports-project-kpis .primary-hours strong {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+}
+
 .reports-project-kpis small {
   color: #637083;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 500;
 }
 
 .reports-project-bottom-line .secondary-button {
@@ -3640,6 +3628,27 @@ input {
   max-width: max-content;
   padding: 6px 11px;
   white-space: nowrap;
+}
+
+.alert-status-badge {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 5px;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+.alert-status-badge.no-alerts {
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+.alert-status-badge.has-alerts {
+  background: #fff7ed;
+  color: #c2410c;
 }
 
 .status-badge::before {

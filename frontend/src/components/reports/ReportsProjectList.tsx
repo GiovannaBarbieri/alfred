@@ -26,15 +26,12 @@ export function ReportsProjectList({ imports, collaboratorCount, search, onSearc
   return (
     <section className="panel reports-projects-panel">
       <div className="reports-projects-toolbar">
-        <h2>
-          Projetos Importados
-          <span>{imports.length}</span>
-        </h2>
+        <h2>Projetos Importados ({imports.length})</h2>
         <div className="reports-search-box">
           <Search size={16} />
           <input
             aria-label="Buscar projeto"
-            placeholder="Buscar projeto"
+            placeholder="Buscar por nome ou ID do projeto"
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
           />
@@ -52,19 +49,22 @@ export function ReportsProjectList({ imports, collaboratorCount, search, onSearc
           const hasVersions = sameProjectImports.length > 1;
           const versionNumber = hasVersions ? sameProjectImports.findIndex((version) => version.id === item.id) + 1 : 0;
           const status = getStatusPresentation(item);
-          const alertKpi = getAlertKpi(item.alertRows);
+          const alertBadge = getAlertBadge(item.alertRows);
 
           return (
             <article className={`reports-project-row ${hasVersions ? "has-versions" : ""}`} key={item.id}>
               <div className="reports-project-header-line">
                 <div className="reports-project-title">
-                  <span className="reports-project-icon"><FileSpreadsheet size={22} /></span>
+                  <span className="reports-project-icon"><FileSpreadsheet size={24} /></span>
                   <strong>
                     {projectTitleFromFilename(item.filename)}
                     {hasVersions && <em>v{versionNumber}</em>}
                   </strong>
                 </div>
-                <span className={`status-badge ${status.className}`}>{status.label}</span>
+                <div className="reports-project-status-group">
+                  <span className={`status-badge ${status.className}`}>{status.label}</span>
+                  <span className={`alert-status-badge ${alertBadge.className}`}>{alertBadge.label}</span>
+                </div>
               </div>
 
               <div className="reports-project-meta-line">
@@ -82,16 +82,12 @@ export function ReportsProjectList({ imports, collaboratorCount, search, onSearc
 
               <div className="reports-project-bottom-line">
                 <div className="reports-project-kpis">
-                  <span><strong>{item.totalHours}h</strong><small>Horas</small></span>
+                  <span className="primary-hours"><strong>{item.totalHours}h</strong><small>Horas</small></span>
                   <span><strong>{item.validRows}</strong><small>Registros</small></span>
                   <span>
                     <UsersRound size={16} />
                     <strong>{typeof collaboratorCount === "number" ? collaboratorCount : "-"}</strong>
                     <small>Colaboradores</small>
-                  </span>
-                  <span className={alertKpi.className}>
-                    <strong>{alertKpi.value}</strong>
-                    <small>{alertKpi.label}</small>
                   </span>
                 </div>
                 <button className="secondary-button compact" type="button" onClick={() => onOpenProject(item.id)}>
@@ -107,11 +103,11 @@ export function ReportsProjectList({ imports, collaboratorCount, search, onSearc
   );
 }
 
-function getAlertKpi(alertRows: number) {
+function getAlertBadge(alertRows: number) {
   if (alertRows > 0) {
-    return { value: String(alertRows), label: "Alertas", className: "has-alerts" };
+    return { label: `⚠ ${alertRows} Alertas`, className: "has-alerts" };
   }
-  return { value: "✓", label: "Sem alertas", className: "no-alerts" };
+  return { label: "✓ Sem alertas", className: "no-alerts" };
 }
 
 function getStatusPresentation(item: ImportSummary) {
