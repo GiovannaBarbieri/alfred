@@ -28,7 +28,7 @@ export function ReportLandingTabs({ activeTab, projectCount, onChange }: ReportL
         >
           {icons[tab.id]}
           <span>{tab.label}</span>
-          {tab.id === "projects" && <small>{projectCount}</small>}
+          {tab.id === "projects" && <small>({projectCount})</small>}
         </button>
       ))}
     </section>

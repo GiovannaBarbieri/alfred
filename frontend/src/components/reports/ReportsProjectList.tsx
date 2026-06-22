@@ -1,4 +1,4 @@
-import { BarChart3, Clock3, FileSpreadsheet, Search, X } from "lucide-react";
+import { BarChart3, Clock3, FileSpreadsheet, FolderOpen, Search, X } from "lucide-react";
 
 import type { ImportSummary } from "../../types";
 import { formatDateBR, formatDateTimeBR } from "../../utils/date";
@@ -69,8 +69,7 @@ export function ReportsProjectList({ imports, search, onSearchChange, onOpenProj
                     </small>
                   )}
                   <div className="reports-project-badges">
-                    <span><FileSpreadsheet size={13} /> {item.validRows} registros</span>
-                    {item.alertRows > 0 && <span className="warning">{item.alertRows} alertas</span>}
+                    <span><FolderOpen size={13} /> Projeto #{item.id}</span>
                   </div>
                 </div>
               </div>
@@ -79,13 +78,11 @@ export function ReportsProjectList({ imports, search, onSearchChange, onOpenProj
                 <span><strong>{item.totalHours}h</strong><small>Horas</small></span>
                 <span><strong>{item.validRows}</strong><small>Registros</small></span>
                 <span><strong>{item.alertRows}</strong><small>Alertas</small></span>
-                <span>
-                  <strong>{formatDateBR(item.importedAt)}</strong>
-                  <small className={`status-badge ${status.className}`}>{status.label}</small>
-                </span>
+                <span><strong>{formatDateBR(item.importedAt)}</strong><small>Importação</small></span>
               </div>
 
               <div className="reports-project-actions">
+                <span className={`status-badge ${status.className}`}>{status.label}</span>
                 <span className="reports-project-updated">
                   <Clock3 size={14} />
                   <small>Última atualização</small>
@@ -93,7 +90,7 @@ export function ReportsProjectList({ imports, search, onSearchChange, onOpenProj
                 </span>
                 <button className="primary-button compact" type="button" onClick={() => onOpenProject(item.id)}>
                   <BarChart3 size={16} />
-                  Abrir Relatório
+                  Abrir Análise
                 </button>
               </div>
             </article>
@@ -111,16 +108,16 @@ function getStatusPresentation(item: ImportSummary) {
     .toLowerCase();
 
   if (item.alertRows > 0) {
-    return { label: "Com alertas", className: "warning" };
+    return { label: "COM ALERTAS", className: "warning" };
   }
 
   if (normalized.includes("process")) {
-    return { label: "Em processamento", className: "processing" };
+    return { label: "PROCESSANDO", className: "processing" };
   }
 
   if (normalized.includes("conclu")) {
-    return { label: "Concluído", className: "success" };
+    return { label: "CONCLUÍDO", className: "success" };
   }
 
-  return { label: item.status || "Não informado", className: "neutral" };
+  return { label: (item.status || "Não informado").toUpperCase(), className: "neutral" };
 }

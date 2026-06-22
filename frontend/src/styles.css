@@ -2634,7 +2634,8 @@ input {
 }
 
 .report-landing-tabs button small {
-  background: #eef5ff;
+  background: #dcecff;
+  border: 1px solid rgba(37, 99, 235, 0.12);
   border-radius: 999px;
   color: #123c69;
   font-size: 11px;
@@ -3339,7 +3340,7 @@ input {
   align-items: center;
   display: grid;
   gap: 18px;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
   margin-bottom: 16px;
 }
 
@@ -3358,6 +3359,7 @@ input {
 }
 
 .reports-search-box {
+  justify-self: end;
   align-items: center;
   background: #ffffff;
   border: 1px solid #c8d3df;
@@ -3367,6 +3369,7 @@ input {
   min-height: 40px;
   padding: 0 8px 0 12px;
   transition: border-color 180ms ease, box-shadow 180ms ease;
+  width: min(100%, 400px);
 }
 
 .reports-search-box:focus-within {
@@ -3424,7 +3427,7 @@ input {
   color: #172033;
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(280px, 1fr) minmax(420px, 0.9fr) minmax(210px, 0.34fr);
+  grid-template-columns: minmax(320px, 1fr) minmax(440px, 0.9fr) minmax(210px, 0.34fr);
   min-height: 118px;
   padding: 14px;
   text-align: left;
@@ -3534,11 +3537,15 @@ input {
 }
 
 .reports-project-kpis > span {
+  align-content: center;
   background: #f7f9fc;
   border: 1px solid #e5eaf0;
   border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  min-height: 72px;
   min-width: 0;
-  padding: 10px;
+  padding: 11px 12px;
 }
 
 .reports-project-kpis strong,
@@ -3551,10 +3558,17 @@ input {
   font-size: 15px;
 }
 
+.reports-project-kpis small {
+  color: #637083;
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .reports-project-actions {
   align-items: stretch;
   display: grid;
   gap: 10px;
+  grid-template-rows: auto 1fr auto;
 }
 
 .reports-project-actions .primary-button {
@@ -3597,12 +3611,21 @@ input {
   border-radius: 999px;
   color: #455468;
   display: inline-flex;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 950;
+  gap: 6px;
   justify-content: center;
-  margin-top: 6px;
+  letter-spacing: 0;
+  margin-top: 0;
   max-width: max-content;
-  padding: 3px 8px;
+  padding: 6px 10px;
+}
+
+.status-badge::before {
+  border-radius: 999px;
+  content: "";
+  height: 7px;
+  width: 7px;
 }
 
 .status-badge.success {
@@ -3610,9 +3633,17 @@ input {
   color: #027a48;
 }
 
+.status-badge.success::before {
+  background: #16a34a;
+}
+
 .status-badge.processing {
   background: #fffbeb;
   color: #a16207;
+}
+
+.status-badge.processing::before {
+  background: #f59e0b;
 }
 
 .status-badge.warning {
@@ -3620,9 +3651,17 @@ input {
   color: #c2410c;
 }
 
+.status-badge.warning::before {
+  background: #ef4444;
+}
+
 .status-badge.neutral {
   background: #eef2f6;
   color: #455468;
+}
+
+.status-badge.neutral::before {
+  background: #94a3b8;
 }
 
 .report-empty-state-panel {
