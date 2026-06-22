@@ -1,4 +1,4 @@
-import { BarChart3, Clock3, FileSpreadsheet, Search, UsersRound, X } from "lucide-react";
+import { BarChart3, Clock3, FileSpreadsheet, Search, X } from "lucide-react";
 
 import type { ImportSummary } from "../../types";
 import { formatDateTimeBR } from "../../utils/date";
@@ -53,46 +53,48 @@ export function ReportsProjectList({ imports, collaboratorCount, search, onSearc
 
           return (
             <article className={`reports-project-row ${hasVersions ? "has-versions" : ""}`} key={item.id}>
-              <div className="reports-project-header-line">
+              <div className="reports-project-info">
                 <div className="reports-project-title">
-                  <span className="reports-project-icon"><FileSpreadsheet size={24} /></span>
-                  <strong>
-                    {projectTitleFromFilename(item.filename)}
-                    {hasVersions && <em>v{versionNumber}</em>}
-                  </strong>
+                  <span className="reports-project-icon"><FileSpreadsheet size={22} /></span>
+                  <div>
+                    <strong>
+                      {projectTitleFromFilename(item.filename)}
+                      {hasVersions && <em>v{versionNumber}</em>}
+                    </strong>
+                    <small className="reports-project-file">{item.filename}</small>
+                  </div>
                 </div>
+                <div className="reports-project-meta-line">
+                  {hasVersions && (
+                    <small className="project-version-note">
+                      Mesmo projeto com {sameProjectImports.length} importações. Esta é a versão {versionNumber}.
+                    </small>
+                  )}
+                  <small className="reports-project-updated">
+                    <Clock3 size={14} />
+                    Atualizado em {formatDateTimeBR(item.importedAt)}
+                  </small>
+                </div>
+                <div className="reports-project-metric-line">
+                  <strong>{item.totalHours}h</strong>
+                  <span>Horas</span>
+                  <i aria-hidden="true">•</i>
+                  <strong>{item.validRows}</strong>
+                  <span>Registros</span>
+                  <i aria-hidden="true">•</i>
+                  <strong>{typeof collaboratorCount === "number" ? collaboratorCount : "-"}</strong>
+                  <span>Colaboradores</span>
+                </div>
+              </div>
+
+              <div className="reports-project-actions">
                 <div className="reports-project-status-group">
                   <span className={`status-badge ${status.className}`}>{status.label}</span>
                   <span className={`alert-status-badge ${alertBadge.className}`}>{alertBadge.label}</span>
                 </div>
-              </div>
-
-              <div className="reports-project-meta-line">
-                <small className="reports-project-file">{item.filename}</small>
-                {hasVersions && (
-                  <small className="project-version-note">
-                    Mesmo projeto com {sameProjectImports.length} importações. Esta é a versão {versionNumber}.
-                  </small>
-                )}
-                <small className="reports-project-updated">
-                  <Clock3 size={14} />
-                  Atualizado em {formatDateTimeBR(item.importedAt)}
-                </small>
-              </div>
-
-              <div className="reports-project-bottom-line">
-                <div className="reports-project-kpis">
-                  <span className="primary-hours"><strong>{item.totalHours}h</strong><small>Horas</small></span>
-                  <span><strong>{item.validRows}</strong><small>Registros</small></span>
-                  <span>
-                    <UsersRound size={16} />
-                    <strong>{typeof collaboratorCount === "number" ? collaboratorCount : "-"}</strong>
-                    <small>Colaboradores</small>
-                  </span>
-                </div>
                 <button className="secondary-button compact" type="button" onClick={() => onOpenProject(item.id)}>
                   <BarChart3 size={16} />
-                  Visualizar Análise
+                  Visualizar análise
                 </button>
               </div>
             </article>
