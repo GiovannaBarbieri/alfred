@@ -1,4 +1,4 @@
-import { ArrowLeft, BarChart3, Brain, Clock3, History, Layers3, ScrollText, Settings, Upload } from "lucide-react";
+import { ArrowLeft, BarChart3, Brain, Clock3, History, Layers3, Settings, Upload } from "lucide-react";
 import type { ReactNode } from "react";
 import { sectionMeta } from "../types/navigation";
 import type { SectionId } from "../types/navigation";
@@ -19,7 +19,6 @@ const navItems: Array<{ id: SectionId; label: string; icon: ReactNode }> = [
   { id: "import", label: "Importação", icon: <Upload size={18} /> },
   { id: "reports", label: "Relatórios", icon: <Layers3 size={18} /> },
   { id: "history", label: "Histórico", icon: <History size={18} /> },
-  { id: "audit", label: "Auditoria", icon: <ScrollText size={18} /> },
   { id: "settings", label: "Configurações", icon: <Settings size={18} /> },
 ];
 
