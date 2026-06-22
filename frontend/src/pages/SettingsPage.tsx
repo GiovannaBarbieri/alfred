@@ -125,6 +125,15 @@ const DEFAULT_ROLE_GROUPS = ["Desenvolvimento", "Gestão", "Qualidade", "Dados",
 const CUSTOM_GROUP_VALUE = "__custom_group__";
 const FEEDBACK_DISMISS_MS = 4000;
 
+function normalizeCollaboratorLogin(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
+
 export function SettingsPage(props: SettingsPageProps) {
   const [settingsSearch, setSettingsSearch] = useState("");
   const [isCategoryCreateOpen, setIsCategoryCreateOpen] = useState(false);
@@ -203,9 +212,21 @@ export function SettingsPage(props: SettingsPageProps) {
 
   async function handleSaveCollaboratorCreate() {
     if (!props.newCollaboratorLogin.trim() || !props.newCollaboratorSubcategoryId) return;
-    await props.onCreateCollaboratorProfile();
-    setIsCollaboratorCreateOpen(false);
-    setSettingsFeedback("Colaborador criado com sucesso.");
+    const normalizedLogin = normalizeCollaboratorLogin(props.newCollaboratorLogin);
+    const hasActiveLink = props.collaboratorProfiles.some(
+      (profile) => profile.active && normalizeCollaboratorLogin(profile.loginUsuario) === normalizedLogin,
+    );
+    if (hasActiveLink) {
+      window.alert("Este colaborador já possui um vínculo ativo cadastrado.");
+      return;
+    }
+    try {
+      await props.onCreateCollaboratorProfile();
+      setIsCollaboratorCreateOpen(false);
+      setSettingsFeedback("Vínculo criado com sucesso.");
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Não foi possível criar o vínculo.");
+    }
   }
 
   return (
@@ -446,15 +467,15 @@ export function SettingsPage(props: SettingsPageProps) {
           >
             <header>
               <h3 id="collaborator-create-title">👤 Novo Colaborador</h3>
-              <p>Associe colaboradores aos cargos utilizados na classificação e análise das horas apontadas.</p>
+              <p>Vincule um colaborador ao cargo utilizado na classificação e análise das horas apontadas.</p>
             </header>
             <label>
-              <span>Nome/Login do colaborador</span>
+              <span>Colaborador</span>
               <input
                 autoFocus
                 value={props.newCollaboratorLogin}
                 onChange={(event) => props.onNewCollaboratorLoginChange(event.target.value)}
-                placeholder="Digite o nome ou login do colaborador"
+                placeholder="Buscar colaborador..."
               />
             </label>
             <label>

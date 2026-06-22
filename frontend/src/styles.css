@@ -6811,6 +6811,30 @@ input {
   font-weight: 750;
 }
 
+.settings-collaborator-cell {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settings-collaborator-cell strong {
+  color: #172033;
+  font-size: 14px;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-collaborator-cell span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .settings-row-actions {
   display: grid;
   gap: 8px;

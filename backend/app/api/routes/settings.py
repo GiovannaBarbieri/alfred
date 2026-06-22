@@ -118,6 +118,16 @@ def _ensure_unique_subcategory_name(cursor, name: str, current_id: int | None = 
             raise HTTPException(status_code=409, detail="Já existe um cargo semelhante cadastrado.")
 
 
+def _ensure_no_active_collaborator_link(cursor, login_usuario: str, current_id: int | None = None) -> None:
+    normalized_login = _normalize_setting_name(login_usuario)
+    cursor.execute("SELECT id, login_usuario FROM perfis_colaborador WHERE ativo = TRUE")
+    for row in cursor.fetchall():
+        if current_id is not None and row["id"] == current_id:
+            continue
+        if _normalize_setting_name(row["login_usuario"]) == normalized_login:
+            raise HTTPException(status_code=409, detail="Este colaborador já possui um vínculo ativo cadastrado.")
+
+
 def _keyword_response(row: dict) -> dict:
     return {
         "id": row["id"],
@@ -564,6 +574,7 @@ def create_collaborator_profile(payload: CollaboratorProfilePayload) -> dict:
             cursor.execute("SELECT id FROM subcategorias WHERE id = %s", (payload.subcategoryId,))
             if not cursor.fetchone():
                 raise HTTPException(status_code=404, detail="Subcategoria nao encontrada.")
+            _ensure_no_active_collaborator_link(cursor, login_usuario)
 
             cursor.execute(
                 """
@@ -623,6 +634,10 @@ def update_collaborator_profile(profile_id: int, payload: CollaboratorProfileUpd
                 cursor.execute("SELECT id FROM subcategorias WHERE id = %s", (payload.subcategoryId,))
                 if not cursor.fetchone():
                     raise HTTPException(status_code=404, detail="Subcategoria nao encontrada.")
+            next_active = payload.active if payload.active is not None else before["ativo"]
+            next_login = login_usuario if login_usuario is not None else before["login_usuario"]
+            if next_active:
+                _ensure_no_active_collaborator_link(cursor, next_login, profile_id)
 
             cursor.execute(
                 """

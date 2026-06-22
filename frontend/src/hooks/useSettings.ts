@@ -306,6 +306,11 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     const subcategoryId = Number(profileSubcategoryDrafts[profile.id] || profile.subcategoryId);
     const active = profileActiveDrafts[profile.id] ?? profile.active;
     if (!loginUsuario || !subcategoryId) return;
+    const normalizedLogin = normalizeCollaboratorLogin(loginUsuario);
+    const hasActiveLink = collaboratorProfiles.some(
+      (item) => item.id !== profile.id && item.active && normalizeCollaboratorLogin(item.loginUsuario) === normalizedLogin,
+    );
+    if (active && hasActiveLink) throw new Error("Este colaborador já possui um vínculo ativo cadastrado.");
     if (loginUsuario === profile.loginUsuario && subcategoryId === profile.subcategoryId && active === profile.active) return;
     await updateCollaboratorProfile(profile.id, { loginUsuario, subcategoryId, active });
     await refreshSettings();
@@ -427,4 +432,13 @@ function splitKeywords(value: string): string[] {
     .map((item) => item.trim().toLowerCase())
     .filter(Boolean)
     .filter((item, index, array) => array.indexOf(item) === index);
+}
+
+function normalizeCollaboratorLogin(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
 }

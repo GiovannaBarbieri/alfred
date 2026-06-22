@@ -19,6 +19,14 @@ type CollaboratorsSettingsProps = {
 
 const FEEDBACK_DISMISS_MS = 4000;
 
+function formatCollaboratorName(login: string): string {
+  return login
+    .split(/[._\-\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
 export function CollaboratorsSettings({
   subcategories,
   collaboratorProfiles,
@@ -79,29 +87,33 @@ export function CollaboratorsSettings({
 
   async function handleSaveEdit() {
     if (!editingProfile) return;
-    await onUpdateCollaboratorProfile(editingProfile);
-    setEditingProfile(null);
-    setCollaboratorFeedback("Colaborador atualizado com sucesso.");
+    try {
+      await onUpdateCollaboratorProfile(editingProfile);
+      setEditingProfile(null);
+      setCollaboratorFeedback("Vínculo atualizado com sucesso.");
+    } catch (error) {
+      setCollaboratorError(error instanceof Error ? error.message : "Não foi possível atualizar o vínculo.");
+    }
   }
 
   async function handleToggleProfile(profile: CollaboratorProfileItem) {
     setActiveActionId(null);
     setCollaboratorError(null);
     await onToggleCollaboratorProfile(profile);
-    setCollaboratorFeedback(profile.active ? "Colaborador inativado com sucesso." : "Colaborador ativado com sucesso.");
+    setCollaboratorFeedback(profile.active ? "Vínculo inativado com sucesso." : "Vínculo ativado com sucesso.");
   }
 
   async function handleDeleteProfile(profile: CollaboratorProfileItem) {
     setActiveActionId(null);
     setCollaboratorFeedback(null);
     setCollaboratorError(null);
-    const confirmed = window.confirm(`Excluir o colaborador "${profile.loginUsuario}"?`);
+    const confirmed = window.confirm(`Excluir o vínculo de "${profile.loginUsuario}"?`);
     if (!confirmed) return;
     try {
       await onDeleteCollaboratorProfile(profile);
-      setCollaboratorFeedback("Colaborador excluído com sucesso.");
+      setCollaboratorFeedback("Vínculo excluído com sucesso.");
     } catch (error) {
-      setCollaboratorError(error instanceof Error ? error.message : "Não foi possível excluir o colaborador.");
+      setCollaboratorError(error instanceof Error ? error.message : "Não foi possível excluir o vínculo.");
     }
   }
 
@@ -145,7 +157,10 @@ export function CollaboratorsSettings({
 
           return (
             <div className={`settings-item settings-table-row ${profile.active ? "" : "inactive"}`} key={profile.id}>
-              <strong className="settings-primary-cell">{profile.loginUsuario}</strong>
+              <span className="settings-collaborator-cell">
+                <strong>{formatCollaboratorName(profile.loginUsuario)}</strong>
+                <span>{profile.loginUsuario}</span>
+              </span>
               <span className="settings-muted-cell">{profile.subcategory}</span>
               <span className="settings-muted-cell">{group}</span>
               <span className={`settings-status ${profile.active ? "active" : "inactive"}`}>
@@ -166,13 +181,13 @@ export function CollaboratorsSettings({
                 {activeActionId === profile.id && (
                   <div className="settings-menu-list">
                     <button type="button" onClick={() => handleOpenEdit(profile)}>
-                      Editar
+                      Editar vínculo
                     </button>
                     <button type="button" onClick={() => void handleToggleProfile(profile)}>
                       Alterar situação
                     </button>
                     <button type="button" onClick={() => void handleDeleteProfile(profile)}>
-                      Excluir
+                      Excluir vínculo
                     </button>
                   </div>
                 )}
@@ -198,15 +213,15 @@ export function CollaboratorsSettings({
           >
             <header>
               <h3 id="collaborator-edit-title">Editar Colaborador</h3>
-              <p>Atualize o colaborador, cargo e situação utilizados na análise das horas.</p>
+              <p>Vincule um colaborador ao cargo utilizado na classificação e análise das horas apontadas.</p>
             </header>
             <label>
-              <span>Nome/Login do colaborador</span>
+              <span>Colaborador</span>
               <input
                 autoFocus
                 value={profileLoginDrafts[editingProfile.id] ?? editingProfile.loginUsuario}
                 onChange={(event) => onProfileLoginDraftsChange((current) => ({ ...current, [editingProfile.id]: event.target.value }))}
-                placeholder="Digite o nome ou login do colaborador"
+                placeholder="Buscar colaborador..."
               />
             </label>
             <label>

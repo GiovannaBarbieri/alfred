@@ -599,7 +599,10 @@ export async function createCollaboratorProfile(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ loginUsuario, subcategoryId, active }),
   });
-  if (!response.ok) throw new Error("Não foi possível criar o perfil do colaborador.");
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail ?? "Não foi possível criar o perfil do colaborador.");
+  }
   return response.json();
 }
 
@@ -612,7 +615,10 @@ export async function updateCollaboratorProfile(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error("Não foi possível atualizar o perfil do colaborador.");
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail ?? "Não foi possível atualizar o perfil do colaborador.");
+  }
   return response.json();
 }
 
