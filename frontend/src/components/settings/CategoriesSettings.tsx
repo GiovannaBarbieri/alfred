@@ -1,5 +1,5 @@
 import { Info, MoreVertical } from "lucide-react";
-import { useState, type SetStateAction } from "react";
+import { useEffect, useState, type SetStateAction } from "react";
 import type { SettingItem } from "../../types";
 import { hasSimilarSettingName } from "../../utils/settingsValidation";
 
@@ -14,6 +14,8 @@ type CategoriesSettingsProps = {
   onToggleCategory: (category: SettingItem) => Promise<void> | void;
   onDeleteCategory: (category: SettingItem) => Promise<void> | void;
 };
+
+const FEEDBACK_DISMISS_MS = 4000;
 
 export function CategoriesSettings({
   categories,
@@ -33,6 +35,18 @@ export function CategoriesSettings({
   const filteredCategories = categories.filter((category) => category.name.toLowerCase().includes(search.trim().toLowerCase()));
   const activeCategories = categories.filter((category) => category.active).length;
   const inactiveCategories = categories.length - activeCategories;
+
+  useEffect(() => {
+    if (!categoryFeedback) return;
+    const timeout = window.setTimeout(() => setCategoryFeedback(null), FEEDBACK_DISMISS_MS);
+    return () => window.clearTimeout(timeout);
+  }, [categoryFeedback]);
+
+  useEffect(() => {
+    if (!categoryError) return;
+    const timeout = window.setTimeout(() => setCategoryError(null), FEEDBACK_DISMISS_MS);
+    return () => window.clearTimeout(timeout);
+  }, [categoryError]);
 
   function handleOpenEdit(category: SettingItem) {
     onCategoryDraftsChange((current) => ({ ...current, [category.id]: current[category.id] ?? category.name }));

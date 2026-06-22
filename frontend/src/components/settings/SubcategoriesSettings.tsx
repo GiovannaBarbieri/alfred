@@ -1,9 +1,10 @@
 import { MoreVertical } from "lucide-react";
-import { useState, type SetStateAction } from "react";
+import { useEffect, useState, type SetStateAction } from "react";
 import type { SettingItem } from "../../types";
 import { hasSimilarSettingName } from "../../utils/settingsValidation";
 
 const CUSTOM_GROUP_VALUE = "__custom_group__";
+const FEEDBACK_DISMISS_MS = 4000;
 
 type SubcategoriesSettingsProps = {
   subcategories: SettingItem[];
@@ -45,6 +46,18 @@ export function SubcategoriesSettings({
   const activeSubcategories = subcategories.filter((subcategory) => subcategory.active).length;
   const inactiveSubcategories = subcategories.length - activeSubcategories;
   const groupsCount = new Set(subcategories.map((subcategory) => subcategory.group).filter(Boolean)).size;
+
+  useEffect(() => {
+    if (!cargoFeedback) return;
+    const timeout = window.setTimeout(() => setCargoFeedback(null), FEEDBACK_DISMISS_MS);
+    return () => window.clearTimeout(timeout);
+  }, [cargoFeedback]);
+
+  useEffect(() => {
+    if (!cargoError) return;
+    const timeout = window.setTimeout(() => setCargoError(null), FEEDBACK_DISMISS_MS);
+    return () => window.clearTimeout(timeout);
+  }, [cargoError]);
 
   function handleOpenEdit(subcategory: SettingItem) {
     onSubcategoryDraftsChange((current) => ({ ...current, [subcategory.id]: current[subcategory.id] ?? subcategory.name }));

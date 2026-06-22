@@ -1,5 +1,5 @@
 import { FolderTree, Layers3, Plus, Search, UsersRound } from "lucide-react";
-import { useState, type ReactNode, type SetStateAction } from "react";
+import { useEffect, useState, type ReactNode, type SetStateAction } from "react";
 import { CategoriesSettings } from "../components/settings/CategoriesSettings";
 import { CollaboratorsSettings } from "../components/settings/CollaboratorsSettings";
 import { SubcategoriesSettings } from "../components/settings/SubcategoriesSettings";
@@ -118,6 +118,7 @@ const settingsTabs: Array<{ id: SettingsTab; label: string; icon: ReactNode }> =
 
 const DEFAULT_ROLE_GROUPS = ["Desenvolvimento", "Gestão", "Qualidade", "Dados", "Operações", "Infraestrutura"];
 const CUSTOM_GROUP_VALUE = "__custom_group__";
+const FEEDBACK_DISMISS_MS = 4000;
 
 export function SettingsPage(props: SettingsPageProps) {
   const [settingsSearch, setSettingsSearch] = useState("");
@@ -141,6 +142,12 @@ export function SettingsPage(props: SettingsPageProps) {
   const roleGroups = Array.from(
     new Set([...DEFAULT_ROLE_GROUPS, ...props.settingsSubcategories.map((subcategory) => subcategory.group).filter(Boolean) as string[]]),
   ).sort((first, second) => first.localeCompare(second, "pt-BR"));
+
+  useEffect(() => {
+    if (!settingsFeedback) return;
+    const timeout = window.setTimeout(() => setSettingsFeedback(null), FEEDBACK_DISMISS_MS);
+    return () => window.clearTimeout(timeout);
+  }, [settingsFeedback]);
 
   function handleOpenCategoryCreate() {
     props.onNewCategoryChange("");
