@@ -23,8 +23,6 @@ type ProjectReportHeaderProps = {
 export function ProjectReportHeader({
   projectTitle,
   selectedImport,
-  projectExecutiveSummary,
-  importedAt,
   excelExportUrl,
   showDownloadMenu,
   isPreparingPdf,
@@ -43,13 +41,6 @@ export function ProjectReportHeader({
         <span>Projeto</span>
         <strong>{projectTitle}</strong>
         <small>{selectedImport.filename}</small>
-      </div>
-      <div className="report-project-metrics">
-        <span><strong>{selectedImport.totalHours}h</strong><small>Horas</small></span>
-        <span><strong>{selectedImport.validRows}</strong><small>Registros</small></span>
-        <span><strong>{projectExecutiveSummary.metrics.collaboratorsCount}</strong><small>Colaboradores</small></span>
-        <span><strong>{projectExecutiveSummary.categories.length}</strong><small>Categorias</small></span>
-        <span><strong>{importedAt}</strong><small>{selectedImport.status}</small></span>
       </div>
       <ProjectDownloadMenu
         excelExportUrl={excelExportUrl}

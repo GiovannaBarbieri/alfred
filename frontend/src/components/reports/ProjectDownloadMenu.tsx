@@ -46,14 +46,15 @@ export function ProjectDownloadMenu({
         <div className="download-menu-wrap">
           <button
             aria-expanded={showDownloadMenu}
-            aria-label="Baixar relatório"
+            aria-label="Exportar relatório"
             className="report-download-icon-button"
-            title="Baixar relatório"
+            title="Exportar relatório"
             type="button"
             disabled={isPreparingPdf}
             onClick={onToggleDownloadMenu}
           >
-            <Download size={20} />
+            <Download size={18} />
+            <span>Exportar</span>
           </button>
           {showDownloadMenu && (
             <div className="download-menu">
@@ -65,11 +66,11 @@ export function ProjectDownloadMenu({
                 }}
               >
                 <FileText size={16} />
-                Baixar PDF executivo
+                PDF Executivo
               </button>
               <a href={excelExportUrl} onClick={onCloseDownloadMenu}>
                 <FileSpreadsheet size={16} />
-                Exportar Excel operacional
+                Excel Operacional
               </a>
             </div>
           )}
