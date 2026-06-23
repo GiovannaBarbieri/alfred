@@ -172,10 +172,6 @@ export function ReportsPage({
       ? projectExecutiveSummary.metrics.totalHours / projectExecutiveSummary.metrics.collaboratorsCount
       : 0;
   const topCollaborator = projectExecutiveSummary.topUsers[0];
-  const topCategory = projectExecutiveSummary.categories[0];
-  const reworkCategory = projectExecutiveSummary.categories.find((item) =>
-    `${item.key} ${item.label}`.toLowerCase().includes("retrabalho"),
-  );
 
   useEffect(() => {
     if (!reportNotice) return;
@@ -278,24 +274,6 @@ export function ReportsPage({
         onPdfOptionsChange={setPdfOptions}
         onPreparePdf={preparePdf}
       />
-
-      <section className="panel executive-status-card" aria-label="Status executivo do projeto">
-        <div>
-          <span>Status Executivo</span>
-          <strong>{topCategory ? `${topCategory.label || topCategory.key} (${topCategory.percentage.toFixed(1)}%)` : "Sem categoria predominante"}</strong>
-          <small>Categoria predominante</small>
-        </div>
-        <div>
-          <strong>{topCollaborator ? `${topCollaborator.label || topCollaborator.key} (${topCollaborator.percentage.toFixed(1)}%)` : "Sem colaborador predominante"}</strong>
-          <small>Colaborador com maior participação</small>
-        </div>
-        {reworkCategory && reworkCategory.totalHours > 0 && (
-          <div>
-            <strong>{reworkCategory.percentage.toFixed(1)}% do esforço total</strong>
-            <small>Retrabalho</small>
-          </div>
-        )}
-      </section>
 
       <section className="report-executive-kpis" aria-label="Indicadores executivos do projeto">
         <span><strong>{projectExecutiveSummary.metrics.totalHours.toFixed(2)}h</strong><small>Horas</small></span>

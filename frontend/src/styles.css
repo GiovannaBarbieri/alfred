@@ -3861,51 +3861,6 @@ input {
   white-space: nowrap;
 }
 
-.executive-status-card {
-  align-items: stretch;
-  display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-bottom: 12px;
-  padding: 12px;
-}
-
-.executive-status-card div {
-  background: #f8fafc;
-  border: 1px solid #e5eaf0;
-  border-radius: 8px;
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-  padding: 10px 12px;
-}
-
-.executive-status-card span {
-  color: #123c69;
-  font-size: 12px;
-  font-weight: 850;
-  text-transform: uppercase;
-}
-
-.executive-status-card strong,
-.executive-status-card small {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.executive-status-card strong {
-  color: #0f172a;
-  font-size: 14px;
-}
-
-.executive-status-card small {
-  color: #637083;
-  font-size: 12px;
-  font-weight: 650;
-}
-
 .report-executive-kpis {
   display: grid;
   gap: 10px;
@@ -8812,7 +8767,6 @@ input {
   .validation-actions-panel,
   .report-project-header,
   .report-executive-kpis,
-  .executive-status-card,
   .project-tabs,
   .reports-analytics-layout,
   .reports-bi-grid,
