@@ -60,6 +60,10 @@ export function ReportsProjectList({ imports, collaboratorCount, search, onSearc
                     <strong>
                       {projectTitleFromFilename(item.filename)}
                       {hasVersions && <em>v{versionNumber}</em>}
+                      <span className="reports-project-status-group">
+                        <span className={`status-badge ${status.className}`}>{status.label}</span>
+                        <span className={`alert-status-badge ${alertBadge.className}`}>{alertBadge.label}</span>
+                      </span>
                     </strong>
                     <small className="reports-project-file">{item.filename}</small>
                   </div>
@@ -76,28 +80,18 @@ export function ReportsProjectList({ imports, collaboratorCount, search, onSearc
                   </small>
                 </div>
                 <div className="reports-project-metric-line">
-                  <span className="reports-project-metric">
-                    <strong>{item.totalHours}h</strong>
-                    <small>Horas</small>
-                  </span>
+                  <strong>{item.totalHours}h</strong>
+                  <span>Horas</span>
                   <i aria-hidden="true">•</i>
-                  <span className="reports-project-metric">
-                    <strong>{item.validRows}</strong>
-                    <small>Registros</small>
-                  </span>
+                  <strong>{item.validRows}</strong>
+                  <span>Registros</span>
                   <i aria-hidden="true">•</i>
-                  <span className="reports-project-metric">
-                    <strong>{typeof collaboratorCount === "number" ? collaboratorCount : "-"}</strong>
-                    <small>Colaboradores</small>
-                  </span>
+                  <strong>{typeof collaboratorCount === "number" ? collaboratorCount : "-"}</strong>
+                  <span>Colaboradores</span>
                 </div>
               </div>
 
               <div className="reports-project-actions">
-                <div className="reports-project-status-group">
-                  <span className={`status-badge ${status.className}`}>{status.label}</span>
-                  <span className={`alert-status-badge ${alertBadge.className}`}>{alertBadge.label}</span>
-                </div>
                 <button className="secondary-button compact" type="button" onClick={() => onOpenProject(item.id)}>
                   <BarChart3 size={16} />
                   Visualizar análise
