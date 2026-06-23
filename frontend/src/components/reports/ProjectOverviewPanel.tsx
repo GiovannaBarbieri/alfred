@@ -1,4 +1,4 @@
-import { AlertTriangle, BriefcaseBusiness, CalendarDays, CalendarRange, ChevronDown, Gauge, Target, Trophy } from "lucide-react";
+import { AlertTriangle, BriefcaseBusiness, CalendarDays, CalendarRange, ChevronDown, Target, Trophy } from "lucide-react";
 import type { ReactNode } from "react";
 
 import type { ProjectExecutiveSummary, ProjectInsightCard, ProjectInsights } from "../../types";
@@ -42,7 +42,7 @@ export function ProjectOverviewPanel({
         >
           <div>
             <h2>Resumo Inteligente <span className="accordion-badge">IA</span></h2>
-            <p className="muted">Leitura automática baseada nos números do projeto.</p>
+            <p className="muted">Interpretação automática baseada nos números do projeto.</p>
           </div>
           <ChevronDown size={20} />
         </button>
@@ -50,18 +50,12 @@ export function ProjectOverviewPanel({
           smartSummary.length === 0 ? (
             <div className="chart-empty-state compact">
               <strong>Sem dados suficientes</strong>
-              <span>Conclua uma importação para gerar leituras automaticas do projeto.</span>
+              <span>Conclua uma importação para gerar leituras automáticas do projeto.</span>
             </div>
           ) : (
-            <div className="smart-summary-grid">
-              {smartSummary.map((item) => (
-                <article className={`smart-summary-card ${item.tone}`} key={item.title}>
-                  <span>{item.icon}</span>
-                  <div>
-                    <strong>{item.title}</strong>
-                    <p>{item.description}</p>
-                  </div>
-                </article>
+            <div className="smart-summary-text-block">
+              {smartSummary.map((sentence) => (
+                <p key={sentence}>{sentence}</p>
               ))}
             </div>
           )
@@ -212,60 +206,52 @@ function buildSmartSummary(projectExecutiveSummary: ProjectExecutiveSummary) {
     `${item.key} ${item.label}`.toLowerCase().includes("retrabalho"),
   );
   const pending = projectExecutiveSummary.pending;
+  const metrics = projectExecutiveSummary.metrics;
+  const sentences: string[] = [];
 
-  const insights: Array<{
-    title: string;
-    description: string;
-    tone: "info" | "success" | "warning" | "danger";
-    icon: ReactNode;
-  }> = [];
+  sentences.push(
+    `O projeto possui ${metrics.totalHours.toFixed(2)}h apontadas distribuídas entre ${metrics.collaboratorsCount} colaboradores e ${metrics.tasksCount} tasks analisadas.`,
+  );
 
   if (topCategory) {
-    insights.push({
-      title: "Categoria dominante",
-      description: `${topCategory.label || topCategory.key} concentra ${topCategory.percentage.toFixed(1)}% das horas do projeto.`,
-      tone: topCategory.percentage >= 60 ? "warning" : "info",
-      icon: <Target size={18} />,
-    });
+    const categoryLabel = topCategory.label || topCategory.key;
+    const categoryReading =
+      topCategory.percentage >= 55
+        ? "indicando forte concentração da atuação nessa frente."
+        : "sendo a principal frente de atuação do período.";
+    sentences.push(
+      `A categoria ${categoryLabel} concentra ${topCategory.percentage.toFixed(1)}% do esforço total, ${categoryReading}`,
+    );
   }
 
   if (topUser) {
-    insights.push({
-      title: "Maior participação",
-      description: `${topUser.label || topUser.key} representa ${topUser.percentage.toFixed(1)}% do esforço total apontado.`,
-      tone: topUser.percentage >= 40 ? "warning" : "info",
-      icon: <Gauge size={18} />,
-    });
+    const userLabel = topUser.label || topUser.key;
+    const userReading =
+      topUser.percentage >= 35
+        ? "sugerindo dependência relevante dessa participação individual."
+        : "sem indicar concentração individual crítica.";
+    sentences.push(
+      `${userLabel} possui a maior participação individual, representando ${topUser.percentage.toFixed(1)}% das horas registradas, ${userReading}`,
+    );
   }
 
   if (retrabalho && retrabalho.totalHours > 0) {
-    insights.push({
-      title: "Retrabalho/Bugs",
-      description: `Retrabalho/Bugs consumiu ${retrabalho.totalHours.toFixed(2)}h (${retrabalho.percentage.toFixed(1)}%). Vale validar o impacto operacional.`,
-      tone: retrabalho.percentage >= 15 ? "danger" : "warning",
-      icon: <AlertTriangle size={18} />,
-    });
-  }
-
-  if (pending.open > 0) {
-    insights.push({
-      title: "Confiabilidade da análise",
-      description: `${pending.open} pendência(s) aberta(s) podem afetar a leitura final. Revise antes de compartilhar o relatório.`,
-      tone: pending.open >= 10 ? "danger" : "warning",
-      icon: <AlertTriangle size={18} />,
-    });
+    const reworkReading =
+      retrabalho.percentage >= 10
+        ? "merecendo acompanhamento por representar uma fatia relevante do esforço."
+        : "indicando um nível controlado de reexecução de atividades.";
+    sentences.push(
+      `O volume de retrabalho corresponde a ${retrabalho.percentage.toFixed(1)}% das horas do projeto, ${reworkReading}`,
+    );
   }
 
   if (pending.lowConfidence > 0) {
-    insights.push({
-      title: "Baixa confiança",
-      description: `${pending.lowConfidence} classificação(oes) com baixa confiança merecem revisão para melhorar a precisão das categorias.`,
-      tone: "warning",
-      icon: <Gauge size={18} />,
-    });
+    sentences.push(
+      `${pending.lowConfidence} classificação(ões) com baixa confiança podem afetar a precisão das categorias e devem ser revisadas antes do compartilhamento executivo.`,
+    );
   }
 
-  return insights.slice(0, 6);
+  return sentences.slice(0, 5);
 }
 
 function formatInsightValue(insight: ProjectInsightCard) {

@@ -4284,86 +4284,21 @@ input {
   margin-bottom: 12px;
 }
 
-.smart-summary-grid {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.smart-summary-card {
-  align-items: start;
-  background: #ffffff;
+.smart-summary-text-block {
+  background: #f8fafc;
   border: 1px solid #e5eaf0;
   border-left: 4px solid #2563eb;
   border-radius: 10px;
   display: grid;
   gap: 9px;
-  grid-template-columns: auto minmax(0, 1fr);
-  min-height: 82px;
-  padding: 10px;
-  transition: all 180ms ease;
+  padding: 14px 16px;
 }
 
-.smart-summary-card:hover {
-  border-color: #bfd8ff;
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.07);
-  transform: translateY(-1px);
-}
-
-.smart-summary-card > span {
-  align-items: center;
-  background: #eef5ff;
-  border-radius: 9px;
-  color: #2563eb;
-  display: inline-flex;
-  height: 34px;
-  justify-content: center;
-  width: 34px;
-}
-
-.smart-summary-card strong,
-.smart-summary-card p {
-  display: block;
-}
-
-.smart-summary-card strong {
-  color: #172033;
+.smart-summary-text-block p {
+  color: #334155;
   font-size: 14px;
-  margin-bottom: 4px;
-}
-
-.smart-summary-card p {
-  color: #637083;
-  font-size: 13px;
-  line-height: 1.38;
+  line-height: 1.48;
   margin: 0;
-}
-
-.smart-summary-card.success {
-  border-left-color: #147a3b;
-}
-
-.smart-summary-card.success > span {
-  background: #ecfdf3;
-  color: #027a48;
-}
-
-.smart-summary-card.warning {
-  border-left-color: #d97706;
-}
-
-.smart-summary-card.warning > span {
-  background: #fff7ed;
-  color: #c2410c;
-}
-
-.smart-summary-card.danger {
-  border-left-color: #b42318;
-}
-
-.smart-summary-card.danger > span {
-  background: #fff1f0;
-  color: #b42318;
 }
 
 .project-insights-panel {
@@ -8886,7 +8821,6 @@ input {
   .operational-action-grid,
   .operational-context-grid,
   .operational-context-row,
-  .smart-summary-grid,
   .executive-summary-grid,
   .pending-project-counts,
   .pending-filter-bar,
