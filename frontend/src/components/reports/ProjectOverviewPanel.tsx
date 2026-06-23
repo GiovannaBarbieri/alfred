@@ -179,19 +179,19 @@ function buildExecutiveAlerts(projectExecutiveSummary: ProjectExecutiveSummary) 
 
 function getInsightIdentity(kind: string): { className: string; label: string; icon: ReactNode } {
   if (kind === "top_user" || kind === "concentration") {
-    return { className: "collaborator", label: "🏆 Maior Participação", icon: <Trophy size={15} /> };
+    return { className: "collaborator", label: "Maior Participação", icon: <Trophy size={15} /> };
   }
   if (kind === "top_category") {
-    return { className: "category", label: "🎯 Categoria Predominante", icon: <Target size={15} /> };
+    return { className: "category", label: "Categoria Predominante", icon: <Target size={15} /> };
   }
   if (kind === "top_task") {
-    return { className: "task", label: "📌 Task com Maior Esforço", icon: <BriefcaseBusiness size={15} /> };
+    return { className: "task", label: "Task com Maior Esforço", icon: <BriefcaseBusiness size={15} /> };
   }
   if (kind === "peak_day" || kind === "top_day" || kind === "daily_peak") {
-    return { className: "day", label: "📅 Dia com Maior Volume", icon: <CalendarDays size={15} /> };
+    return { className: "day", label: "Dia com Maior Volume", icon: <CalendarDays size={15} /> };
   }
   if (kind === "peak_week") {
-    return { className: "week", label: "📆 Semana com Maior Volume", icon: <CalendarRange size={15} /> };
+    return { className: "week", label: "Semana com Maior Volume", icon: <CalendarRange size={15} /> };
   }
   if (kind.toLowerCase().includes("retrabalho")) {
     return { className: "rework", label: "Retrabalho", icon: <AlertTriangle size={15} /> };
