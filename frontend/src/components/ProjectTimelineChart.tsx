@@ -5,6 +5,7 @@ import {
   Legend,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -42,6 +43,16 @@ export function ProjectTimelineChart({ title, description, data }: ProjectTimeli
   const [visibleSeries, setVisibleSeries] = useState<string[]>(defaultVisibleSeries);
   const rowsByPeriod = new Map<string, Record<string, string | number>>();
   const activeSeries = seriesNames.length > 1 ? visibleSeries : seriesNames;
+  const visibleValues = useMemo(() => {
+    const selected = seriesNames.length > 1 ? visibleSeries : seriesNames;
+    return data
+      .filter((item) => selected.includes(item.series ?? "Total"))
+      .map((item) => item.horas)
+      .filter((value) => value > 0);
+  }, [data, seriesNames, visibleSeries]);
+  const averageValue = visibleValues.length > 0
+    ? visibleValues.reduce((sum, value) => sum + value, 0) / visibleValues.length
+    : 0;
 
   useEffect(() => {
     setVisibleSeries(defaultVisibleSeries);
@@ -83,11 +94,11 @@ export function ProjectTimelineChart({ title, description, data }: ProjectTimeli
             <div className="chart-series-controls">
               <div className="chart-series-header">
                 <strong>Linhas exibidas no grafico</strong>
-                <span>Clique nos nomes abaixo para mostrar ou ocultar colaboradores/categorias.</span>
+                <span>Exibindo os 5 itens com maior volume por padrão. Clique nos nomes abaixo para ajustar.</span>
               </div>
               <div className="chart-series-actions">
                 <button type="button" onClick={() => setVisibleSeries(seriesNames.slice(0, 5))}>Top 5</button>
-                <button type="button" onClick={() => setVisibleSeries(seriesNames)}>Mostrar todas</button>
+                <button type="button" onClick={() => setVisibleSeries(seriesNames)}>Mostrar Todos</button>
                 <button type="button" onClick={() => setVisibleSeries([])}>Limpar</button>
               </div>
               <div className="chart-series-list" aria-label="Series do grafico">
@@ -122,9 +133,26 @@ export function ProjectTimelineChart({ title, description, data }: ProjectTimeli
                   <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={18} />
                   <YAxis tickLine={false} axisLine={false} />
                   <Tooltip
-                    formatter={(value) => [`${Number(value).toFixed(2)}h`, "Horas"]}
+                    formatter={(value) => {
+                      const hours = Number(value);
+                      const difference = hours - averageValue;
+                      const variation = averageValue > 0 ? (difference / averageValue) * 100 : 0;
+                      const signal = difference >= 0 ? "+" : "";
+                      return [
+                        `${hours.toFixed(2)}h | média ${averageValue.toFixed(2)}h | ${signal}${difference.toFixed(2)}h (${signal}${variation.toFixed(1)}%)`,
+                        "Horas",
+                      ];
+                    }}
                     labelFormatter={(_, payload) => formatPeriodBR(String(payload?.[0]?.payload?.period ?? ""))}
                   />
+                  {averageValue > 0 && (
+                    <ReferenceLine
+                      y={averageValue}
+                      stroke="#94a3b8"
+                      strokeDasharray="6 4"
+                      label={{ value: "Média do período", position: "insideTopRight", fill: "#64748b", fontSize: 12 }}
+                    />
+                  )}
                   {activeSeries.length > 1 && <Legend verticalAlign="bottom" height={32} />}
                   {activeSeries.map((series, index) => (
                     <Line

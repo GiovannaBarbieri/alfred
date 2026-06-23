@@ -15,33 +15,33 @@ export const timelineCharts: Array<{
 }> = [
   {
     id: "dailyTotal",
-    title: "Linha do tempo diaria - total do projeto",
+    title: "Evolução Diária do Projeto",
     description: "Volume total apontado por dia no projeto.",
   },
   {
     id: "dailyByUser",
-    title: "Horas por dia e colaborador",
+    title: "Produtividade Diária por Colaborador",
     description: "Comparativo diário de horas apontadas por pessoa.",
   },
   {
     id: "weeklyByUser",
-    title: "Horas por semana e colaborador",
+    title: "Produtividade Semanal por Colaborador",
     description: "Evolução semanal do esforço por colaborador.",
   },
   {
     id: "dailyByCategory",
-    title: "Horas diarias por categoria",
-    description: "Distribuicao diaria entre desenvolvimento, definicao, homologacao, retrabalho e outras categorias.",
+    title: "Evolução Diária por Categoria",
+    description: "Distribuição diária entre desenvolvimento, definição, homologação, retrabalho e outras categorias.",
   },
   {
     id: "weeklyByCategory",
-    title: "Horas semanais por categoria",
+    title: "Evolução Semanal por Categoria",
     description: "Leitura semanal do peso de cada categoria no projeto.",
   },
   {
     id: "monthlyByCategory",
-    title: "Horas mensais por categoria",
-    description: "Visao mensal consolidada por categoria.",
+    title: "Evolução Mensal por Categoria",
+    description: "Visão mensal consolidada por categoria.",
   },
 ];
 

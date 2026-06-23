@@ -1,7 +1,30 @@
-import { BarChart3, Filter, Flame, Trophy } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+  BarChart3,
+  CalendarDays,
+  ChevronDown,
+  Filter,
+  Flame,
+  PieChart as PieChartIcon,
+  Tags,
+  TrendingUp,
+  Trophy,
+  UserRound,
+} from "lucide-react";
+import { useMemo, useState, type ReactNode } from "react";
+import {
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import type { HoursReportItem, ProjectExecutiveSummary, ProjectTimelineCharts, ProjectTimelinePoint } from "../../types";
+import { formatPeriodBR, formatWeekRangeBR } from "../../utils/date";
 import { ProjectTimelineChart } from "../ProjectTimelineChart";
 import { timelineCharts, type TimelineChartId } from "./reportsConfig";
 
@@ -12,6 +35,16 @@ type ProjectChartsPanelProps = {
   onSelectedChartChange: (chartId: TimelineChartId) => void;
 };
 
+type VisualInsight = {
+  title: string;
+  value: string;
+  detail: string;
+  icon: ReactNode;
+  tone: "blue" | "green" | "orange" | "purple";
+};
+
+const donutColors = ["#2563eb", "#16a34a", "#f97316", "#7c3aed", "#0891b2", "#64748b"];
+
 export function ProjectChartsPanel({
   selectedChartId,
   projectExecutiveSummary,
@@ -21,6 +54,8 @@ export function ProjectChartsPanel({
   const [periodFilter, setPeriodFilter] = useState("all");
   const [seriesFilter, setSeriesFilter] = useState("");
   const [visualMode, setVisualMode] = useState("linha");
+  const [filtersOpen, setFiltersOpen] = useState(true);
+  const [comparePrevious, setComparePrevious] = useState(false);
   const selectedChart = timelineCharts.find((chart) => chart.id === selectedChartId) ?? timelineCharts[0];
   const selectedChartData = projectTimelineCharts[selectedChart.id];
   const seriesOptions = useMemo(() => getSeriesOptions(selectedChartData), [selectedChartData]);
@@ -29,61 +64,96 @@ export function ProjectChartsPanel({
     [periodFilter, selectedChartData, seriesFilter],
   );
   const heatmapRows = useMemo(() => buildHeatmap(projectTimelineCharts.dailyByUser), [projectTimelineCharts.dailyByUser]);
+  const visualInsights = useMemo(
+    () => buildVisualInsights(projectTimelineCharts, projectExecutiveSummary),
+    [projectExecutiveSummary, projectTimelineCharts],
+  );
+  const cumulativeData = useMemo(() => buildCumulativeData(projectTimelineCharts.dailyTotal), [projectTimelineCharts.dailyTotal]);
+  const periodComparison = useMemo(() => buildPeriodComparison(filteredChartData), [filteredChartData]);
 
   return (
     <>
+      <VisualInsightsCards insights={visualInsights} />
+
+      <ProductivityHeatmap rows={heatmapRows} highlighted />
+
       <section className="reports-analytics-layout">
-        <aside className="panel reports-chart-filters" aria-label="Filtros dos gráficos">
-          <div className="reports-chart-filter-title">
+        <aside className={`panel reports-chart-filters ${filtersOpen ? "open" : "collapsed"}`} aria-label="Filtros dos gráficos">
+          <button
+            className="reports-chart-filter-toggle"
+            type="button"
+            aria-expanded={filtersOpen}
+            onClick={() => setFiltersOpen((current) => !current)}
+          >
             <Filter size={18} />
-            <div>
-              <h2>Filtros</h2>
+            <span>Filtros Avançados</span>
+            <ChevronDown size={17} />
+          </button>
+
+          {filtersOpen && (
+            <div className="reports-chart-filter-body">
               <p className="muted">Refine a leitura do gráfico atual.</p>
+
+              <label>
+                <span>Período</span>
+                <select value={periodFilter} onChange={(event) => setPeriodFilter(event.target.value)}>
+                  <option value="all">Todo o projeto</option>
+                  <option value="last30">Últimos 30 dias</option>
+                  <option value="last90">Últimos 90 dias</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Colaborador/Categoria</span>
+                <select value={seriesFilter} onChange={(event) => setSeriesFilter(event.target.value)}>
+                  <option value="">Todas as séries</option>
+                  {seriesOptions.map((series) => (
+                    <option key={series} value={series}>
+                      {series}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                <span>Tipo de visualização</span>
+                <select value={visualMode} onChange={(event) => setVisualMode(event.target.value)}>
+                  <option value="linha">Linha</option>
+                  <option value="analitico">Análise visual</option>
+                </select>
+              </label>
+
+              <label className="reports-chart-checkbox">
+                <input
+                  type="checkbox"
+                  checked={comparePrevious}
+                  onChange={(event) => setComparePrevious(event.target.checked)}
+                />
+                <span>Comparar com período anterior</span>
+              </label>
+
+              {comparePrevious && (
+                <div className="period-comparison-card">
+                  <strong>{periodComparison.label}</strong>
+                  <span>{periodComparison.detail}</span>
+                </div>
+              )}
+
+              <label>
+                <span>Cargo</span>
+                <select disabled>
+                  <option>Não disponível neste relatório</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Grupo</span>
+                <select disabled>
+                  <option>Não disponível neste relatório</option>
+                </select>
+              </label>
             </div>
-          </div>
-
-          <label>
-            <span>Período</span>
-            <select value={periodFilter} onChange={(event) => setPeriodFilter(event.target.value)}>
-              <option value="all">Todo o projeto</option>
-              <option value="last30">Últimos 30 dias</option>
-              <option value="last90">Últimos 90 dias</option>
-            </select>
-          </label>
-
-          <label>
-            <span>Colaborador/Categoria</span>
-            <select value={seriesFilter} onChange={(event) => setSeriesFilter(event.target.value)}>
-              <option value="">Todas as séries</option>
-              {seriesOptions.map((series) => (
-                <option key={series} value={series}>
-                  {series}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            <span>Tipo de visualização</span>
-            <select value={visualMode} onChange={(event) => setVisualMode(event.target.value)}>
-              <option value="linha">Linha</option>
-              <option value="analitico">Análise visual</option>
-            </select>
-          </label>
-
-          <label>
-            <span>Cargo</span>
-            <select disabled>
-              <option>Não disponível neste relatório</option>
-            </select>
-          </label>
-
-          <label>
-            <span>Grupo</span>
-            <select disabled>
-              <option>Não disponível neste relatório</option>
-            </select>
-          </label>
+          )}
         </aside>
 
         <div className="reports-chart-main">
@@ -113,8 +183,9 @@ export function ProjectChartsPanel({
       </section>
 
       <section className="reports-bi-grid">
-        <ProductivityHeatmap rows={heatmapRows} />
         <VisualRanking title="Top colaboradores por horas" items={projectExecutiveSummary.topUsers} />
+        <CategoryDonutChart items={projectExecutiveSummary.categories} />
+        <CumulativeHoursChart data={cumulativeData} />
         <VisualRanking title="Top categorias" items={projectExecutiveSummary.categories} useCategoryChip />
         <VisualRanking title="Top cargos" items={[]} emptyText="Dados de cargo não disponíveis neste relatório atual." />
       </section>
@@ -152,6 +223,92 @@ function parsePeriodDate(value: string) {
   return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
 }
 
+function buildVisualInsights(charts: ProjectTimelineCharts, summary: ProjectExecutiveSummary): VisualInsight[] {
+  const dailyPeak = getPeakPoint(charts.dailyTotal);
+  const weeklyPeak = getPeakPoint(aggregateByPeriod(charts.weeklyByUser.length > 0 ? charts.weeklyByUser : charts.weeklyByCategory));
+  const topUser = summary.topUsers[0];
+  const topCategory = summary.categories[0];
+
+  return [
+    {
+      title: "Pico Diário",
+      value: dailyPeak ? `${dailyPeak.horas.toFixed(2)}h` : "0.00h",
+      detail: dailyPeak ? formatPeriodBR(dailyPeak.period) : "Sem dados",
+      icon: <TrendingUp size={18} />,
+      tone: "blue",
+    },
+    {
+      title: "Semana Mais Intensa",
+      value: weeklyPeak ? `${weeklyPeak.horas.toFixed(2)}h` : "0.00h",
+      detail: weeklyPeak ? formatWeekRangeBR(weeklyPeak.period) : "Sem dados",
+      icon: <CalendarDays size={18} />,
+      tone: "purple",
+    },
+    {
+      title: "Colaborador Destaque",
+      value: topUser?.label || topUser?.key || "Sem dados",
+      detail: topUser ? `${topUser.totalHours.toFixed(2)}h` : "0.00h",
+      icon: <UserRound size={18} />,
+      tone: "green",
+    },
+    {
+      title: "Categoria Predominante",
+      value: topCategory?.label || topCategory?.key || "Sem dados",
+      detail: topCategory ? `${topCategory.percentage.toFixed(1)}% do esforço` : "0.0%",
+      icon: <Tags size={18} />,
+      tone: "orange",
+    },
+  ];
+}
+
+function aggregateByPeriod(data: ProjectTimelinePoint[]) {
+  const totals = new Map<string, number>();
+  data.forEach((point) => {
+    totals.set(point.period, (totals.get(point.period) ?? 0) + point.horas);
+  });
+  return Array.from(totals.entries()).map(([period, horas]) => ({ period, horas }));
+}
+
+function getPeakPoint(data: Array<{ period: string; horas: number }>) {
+  return [...data].sort((a, b) => b.horas - a.horas)[0] ?? null;
+}
+
+function buildCumulativeData(data: ProjectTimelinePoint[]) {
+  let total = 0;
+  return [...data]
+    .sort((a, b) => a.period.localeCompare(b.period))
+    .map((point) => {
+      total += point.horas;
+      return {
+        period: point.period,
+        label: formatPeriodBR(point.period),
+        horas: Number(total.toFixed(2)),
+      };
+    });
+}
+
+function buildPeriodComparison(data: ProjectTimelinePoint[]) {
+  const totals = aggregateByPeriod(data).sort((a, b) => a.period.localeCompare(b.period));
+  if (totals.length < 4) {
+    return {
+      label: "Base insuficiente",
+      detail: "Ainda não há períodos suficientes para comparar evolução.",
+    };
+  }
+
+  const midpoint = Math.floor(totals.length / 2);
+  const previous = totals.slice(0, midpoint).reduce((sum, item) => sum + item.horas, 0);
+  const current = totals.slice(midpoint).reduce((sum, item) => sum + item.horas, 0);
+  const variation = previous > 0 ? ((current - previous) / previous) * 100 : 0;
+  const signal = variation >= 0 ? "▲" : "▼";
+  const sign = variation >= 0 ? "+" : "";
+
+  return {
+    label: `Horas: ${signal} ${sign}${variation.toFixed(1)}%`,
+    detail: `${current.toFixed(2)}h no período atual vs. ${previous.toFixed(2)}h no período anterior.`,
+  };
+}
+
 function buildHeatmap(data: ProjectTimelinePoint[]) {
   const weekdays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
   const rows = new Map<string, { collaborator: string; values: number[]; total: number }>();
@@ -179,21 +336,41 @@ function buildHeatmap(data: ProjectTimelinePoint[]) {
   }));
 }
 
+function VisualInsightsCards({ insights }: { insights: VisualInsight[] }) {
+  return (
+    <section className="chart-visual-insights" aria-label="Insights visuais dos gráficos">
+      {insights.map((insight) => (
+        <article className={`chart-visual-insight-card ${insight.tone}`} key={insight.title}>
+          <span>{insight.icon}</span>
+          <div>
+            <small>{insight.title}</small>
+            <strong>{insight.value}</strong>
+            <em>{insight.detail}</em>
+          </div>
+        </article>
+      ))}
+    </section>
+  );
+}
+
 function ProductivityHeatmap({
   rows,
+  highlighted = false,
 }: {
   rows: Array<{
     collaborator: string;
     days: Array<{ label: string; value: number; intensity: number }>;
   }>;
+  highlighted?: boolean;
 }) {
   return (
-    <section className="panel productivity-heatmap-panel">
+    <section className={`panel productivity-heatmap-panel ${highlighted ? "highlighted" : ""}`}>
       <div className="reports-section-title">
         <Flame size={18} />
         <div>
+          <span className="visual-primary-badge">Insight visual principal</span>
           <h2>Mapa de calor de produtividade</h2>
-          <p className="muted">Concentração de horas por colaborador e dia da semana.</p>
+          <p className="muted">Visualização da concentração de horas por colaborador e dia da semana.</p>
         </div>
       </div>
 
@@ -227,6 +404,84 @@ function ProductivityHeatmap({
   );
 }
 
+function CategoryDonutChart({ items }: { items: HoursReportItem[] }) {
+  const chartData = items.slice(0, 6).map((item) => ({
+    name: item.label || item.key,
+    value: Number(item.totalHours.toFixed(2)),
+    percentage: item.percentage,
+  }));
+
+  return (
+    <section className="panel category-donut-panel">
+      <div className="reports-section-title">
+        <PieChartIcon size={18} />
+        <div>
+          <h2>Distribuição das Horas por Categoria</h2>
+          <p className="muted">Percentual e horas totais por categoria.</p>
+        </div>
+      </div>
+      {chartData.length === 0 ? (
+        <div className="chart-empty-state compact">Sem categorias para exibir.</div>
+      ) : (
+        <div className="category-donut-layout">
+          <div className="category-donut-chart">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={chartData} dataKey="value" nameKey="name" innerRadius="58%" outerRadius="82%" paddingAngle={3}>
+                  {chartData.map((entry, index) => (
+                    <Cell key={entry.name} fill={donutColors[index % donutColors.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value, name) => [`${Number(value).toFixed(2)}h`, name]} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="category-donut-legend">
+            {chartData.map((item, index) => (
+              <span key={item.name}>
+                <i style={{ background: donutColors[index % donutColors.length] }} />
+                <strong>{item.name}</strong>
+                <small>{item.value.toFixed(2)}h · {item.percentage.toFixed(1)}%</small>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function CumulativeHoursChart({ data }: { data: Array<{ period: string; label: string; horas: number }> }) {
+  return (
+    <section className="panel cumulative-hours-panel">
+      <div className="reports-section-title">
+        <TrendingUp size={18} />
+        <div>
+          <h2>Evolução Acumulada de Horas</h2>
+          <p className="muted">Crescimento do esforço ao longo do projeto.</p>
+        </div>
+      </div>
+      {data.length === 0 ? (
+        <div className="chart-empty-state compact">Sem dados acumulados para exibir.</div>
+      ) : (
+        <div className="mini-line-chart">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={data} margin={{ left: 0, right: 10, top: 8, bottom: 0 }}>
+              <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={18} />
+              <YAxis tickLine={false} axisLine={false} width={42} />
+              <Tooltip
+                formatter={(value) => [`${Number(value).toFixed(2)}h`, "Horas acumuladas"]}
+                labelFormatter={(_, payload) => formatPeriodBR(String(payload?.[0]?.payload?.period ?? ""))}
+              />
+              <Line type="monotone" dataKey="horas" stroke="#2563eb" strokeWidth={2.8} dot={false} activeDot={{ r: 5 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function VisualRanking({
   title,
   items,
@@ -244,7 +499,12 @@ function VisualRanking({
     <section className="panel reports-visual-ranking">
       <div className="reports-section-title">
         <Trophy size={18} />
-        <h2>{title}</h2>
+        <div>
+          <h2>{title}</h2>
+          {title.toLowerCase().includes("colaboradores") && (
+            <p className="muted">Exibindo os 5 colaboradores com maior volume de horas.</p>
+          )}
+        </div>
       </div>
       {items.length === 0 ? (
         <div className="chart-empty-state compact">{emptyText}</div>
