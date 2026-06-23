@@ -5536,94 +5536,6 @@ input {
   margin-bottom: 18px;
 }
 
-.chart-visual-insights {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin-bottom: 14px;
-}
-
-.chart-visual-insight-card {
-  align-items: center;
-  background: #ffffff;
-  border: 1px solid #d9e2ec;
-  border-left: 4px solid #2563eb;
-  border-radius: 10px;
-  display: grid;
-  gap: 10px;
-  grid-template-columns: auto minmax(0, 1fr);
-  min-height: 82px;
-  padding: 12px;
-}
-
-.chart-visual-insight-card > span {
-  align-items: center;
-  background: #eef5ff;
-  border-radius: 10px;
-  color: #2563eb;
-  display: inline-flex;
-  height: 36px;
-  justify-content: center;
-  width: 36px;
-}
-
-.chart-visual-insight-card.green {
-  border-left-color: #16a34a;
-}
-
-.chart-visual-insight-card.green > span {
-  background: #ecfdf3;
-  color: #027a48;
-}
-
-.chart-visual-insight-card.orange {
-  border-left-color: #f97316;
-}
-
-.chart-visual-insight-card.orange > span {
-  background: #fff7ed;
-  color: #c2410c;
-}
-
-.chart-visual-insight-card.purple {
-  border-left-color: #7c3aed;
-}
-
-.chart-visual-insight-card.purple > span {
-  background: #f3edff;
-  color: #6d28d9;
-}
-
-.chart-visual-insight-card small,
-.chart-visual-insight-card strong,
-.chart-visual-insight-card em {
-  display: block;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.chart-visual-insight-card small {
-  color: #455468;
-  font-size: 11px;
-  font-style: normal;
-  font-weight: 850;
-  text-transform: uppercase;
-}
-
-.chart-visual-insight-card strong {
-  color: #0f172a;
-  font-size: 16px;
-}
-
-.chart-visual-insight-card em {
-  color: #637083;
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 650;
-}
-
 .reports-analytics-layout {
   align-items: start;
   display: grid;
@@ -5699,36 +5611,6 @@ input {
 .reports-chart-filters label {
   display: grid;
   gap: 6px;
-}
-
-.reports-chart-checkbox {
-  align-items: center;
-  display: flex !important;
-  gap: 8px !important;
-}
-
-.reports-chart-checkbox input {
-  margin: 0;
-}
-
-.period-comparison-card {
-  background: #f8fafc;
-  border: 1px solid #e5eaf0;
-  border-radius: 8px;
-  display: grid;
-  gap: 3px;
-  padding: 9px 10px;
-}
-
-.period-comparison-card strong {
-  color: #123c69;
-  font-size: 13px;
-}
-
-.period-comparison-card span {
-  color: #637083;
-  font-size: 12px;
-  line-height: 1.35;
 }
 
 .reports-chart-filters label span {
@@ -5917,7 +5799,6 @@ input {
 }
 
 .productivity-heatmap-panel,
-.reports-visual-ranking,
 .category-donut-panel,
 .cumulative-hours-panel {
   display: grid;
@@ -5983,53 +5864,6 @@ input {
   min-height: 30px;
   padding: 8px 6px;
   text-align: center;
-}
-
-.reports-ranking-list {
-  display: grid;
-  gap: 12px;
-}
-
-.reports-ranking-row {
-  display: grid;
-  gap: 7px;
-}
-
-.reports-ranking-row > div {
-  align-items: center;
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
-  min-width: 0;
-}
-
-.reports-ranking-row strong {
-  color: #172033;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.reports-ranking-row small {
-  color: #455468;
-  font-size: 12px;
-  font-weight: 850;
-  white-space: nowrap;
-}
-
-.reports-ranking-track {
-  background: #e8edf3;
-  border-radius: 999px;
-  height: 9px;
-  overflow: hidden;
-}
-
-.reports-ranking-track i {
-  background: linear-gradient(90deg, #123c69, #2563eb);
-  border-radius: inherit;
-  display: block;
-  height: 100%;
 }
 
 .category-donut-layout {
@@ -8984,7 +8818,6 @@ input {
   .validation-actions-panel,
   .report-project-header,
   .report-executive-kpis,
-  .chart-visual-insights,
   .project-tabs,
   .reports-analytics-layout,
   .reports-bi-grid,
