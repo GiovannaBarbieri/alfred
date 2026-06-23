@@ -4433,6 +4433,15 @@ input {
   color: #c2410c;
 }
 
+.project-insight-card.day {
+  border-left-color: #0891b2;
+}
+
+.project-insight-card.day .project-insight-title span {
+  background: #ecfeff;
+  color: #0e7490;
+}
+
 .project-insight-card.week {
   border-left-color: #7c3aed;
 }
@@ -4444,26 +4453,6 @@ input {
 
 .project-insight-card.rework,
 .project-insight-card.danger {
-  border-left-color: #b42318;
-}
-
-.project-insight-card.collaborator {
-  border-left-color: #2563eb;
-}
-
-.project-insight-card.category {
-  border-left-color: #147a3b;
-}
-
-.project-insight-card.task {
-  border-left-color: #d97706;
-}
-
-.project-insight-card.week {
-  border-left-color: #7c3aed;
-}
-
-.project-insight-card.rework {
   border-left-color: #b42318;
 }
 

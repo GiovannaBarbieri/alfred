@@ -1,4 +1,4 @@
-import { AlertTriangle, BriefcaseBusiness, CalendarRange, ChevronDown, Gauge, Target, UserRound } from "lucide-react";
+import { AlertTriangle, BriefcaseBusiness, CalendarDays, CalendarRange, ChevronDown, Gauge, Target, Trophy } from "lucide-react";
 import type { ReactNode } from "react";
 
 import type { ProjectExecutiveSummary, ProjectInsightCard, ProjectInsights } from "../../types";
@@ -76,7 +76,7 @@ export function ProjectOverviewPanel({
           onClick={onToggleProjectInsights}
         >
           <div>
-            <h2>Análises Principais <span className="accordion-badge">Insights</span></h2>
+            <h2>📊 Destaques do Projeto <span className="accordion-badge">Insights</span></h2>
             <p className="muted">Resumo executivo dos pontos mais relevantes deste projeto.</p>
           </div>
           <ChevronDown size={20} />
@@ -184,22 +184,25 @@ function buildExecutiveAlerts(projectExecutiveSummary: ProjectExecutiveSummary) 
 }
 
 function getInsightIdentity(kind: string): { className: string; label: string; icon: ReactNode } {
-  if (kind === "top_user") {
-    return { className: "collaborator", label: "Colaborador destaque", icon: <UserRound size={15} /> };
+  if (kind === "top_user" || kind === "concentration") {
+    return { className: "collaborator", label: "🏆 Maior Participação", icon: <Trophy size={15} /> };
   }
   if (kind === "top_category") {
-    return { className: "category", label: "Categoria predominante", icon: <Target size={15} /> };
+    return { className: "category", label: "🎯 Categoria Predominante", icon: <Target size={15} /> };
   }
   if (kind === "top_task") {
-    return { className: "task", label: "Task com maior esforço", icon: <BriefcaseBusiness size={15} /> };
+    return { className: "task", label: "📌 Task com Maior Esforço", icon: <BriefcaseBusiness size={15} /> };
+  }
+  if (kind === "peak_day" || kind === "top_day" || kind === "daily_peak") {
+    return { className: "day", label: "📅 Dia com Maior Volume", icon: <CalendarDays size={15} /> };
   }
   if (kind === "peak_week") {
-    return { className: "week", label: "Semana com maior volume", icon: <CalendarRange size={15} /> };
+    return { className: "week", label: "📆 Semana com Maior Volume", icon: <CalendarRange size={15} /> };
   }
   if (kind.toLowerCase().includes("retrabalho")) {
     return { className: "rework", label: "Retrabalho", icon: <AlertTriangle size={15} /> };
   }
-  return { className: "default", label: "Insight executivo", icon: <Gauge size={15} /> };
+  return { className: "default", label: "Destaque do Projeto", icon: <Target size={15} /> };
 }
 
 function buildSmartSummary(projectExecutiveSummary: ProjectExecutiveSummary) {
