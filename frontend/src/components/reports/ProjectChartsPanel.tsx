@@ -139,6 +139,7 @@ function CategoryDonutChart({ items }: { items: HoursReportItem[] }) {
     value: Number(item.totalHours.toFixed(2)),
     percentage: item.percentage,
   }));
+  const dominantValue = Math.max(...chartData.map((item) => item.value), 0);
 
   return (
     <section className="panel category-donut-panel">
@@ -156,7 +157,7 @@ function CategoryDonutChart({ items }: { items: HoursReportItem[] }) {
           <div className="category-donut-chart">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={chartData} dataKey="value" nameKey="name" innerRadius="58%" outerRadius="82%" paddingAngle={3}>
+                <Pie data={chartData} dataKey="value" nameKey="name" innerRadius="56%" outerRadius="88%" paddingAngle={3}>
                   {chartData.map((entry, index) => (
                     <Cell key={entry.name} fill={donutColors[index % donutColors.length]} />
                   ))}
@@ -165,13 +166,25 @@ function CategoryDonutChart({ items }: { items: HoursReportItem[] }) {
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="category-donut-legend">
+          <div className="category-donut-table" role="table" aria-label="Distribuição das horas por categoria">
+            <div className="category-donut-table-header" role="row">
+              <span>Categoria</span>
+              <span>Horas</span>
+              <span>%</span>
+            </div>
             {chartData.map((item, index) => (
-              <span key={item.name}>
-                <i style={{ background: donutColors[index % donutColors.length] }} />
-                <strong>{item.name}</strong>
-                <small>{item.value.toFixed(2)}h · {item.percentage.toFixed(1)}%</small>
-              </span>
+              <div
+                className={`category-donut-table-row ${item.value === dominantValue ? "dominant" : ""}`}
+                key={item.name}
+                role="row"
+              >
+                <span className="category-donut-name">
+                  <i style={{ background: donutColors[index % donutColors.length] }} />
+                  <strong>{item.name}</strong>
+                </span>
+                <span>{item.value.toFixed(2)}h</span>
+                <span>{item.percentage.toFixed(1)}%</span>
+              </div>
             ))}
           </div>
         </div>

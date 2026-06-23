@@ -5755,46 +5755,80 @@ input {
 .category-donut-layout {
   align-items: center;
   display: grid;
-  gap: 12px;
-  grid-template-columns: minmax(150px, 0.8fr) minmax(0, 1fr);
+  gap: 18px;
+  grid-template-columns: minmax(280px, 0.4fr) minmax(0, 0.6fr);
 }
 
 .category-donut-chart {
-  height: 220px;
+  height: 310px;
   min-width: 0;
 }
 
-.category-donut-legend {
+.category-donut-table {
+  align-self: center;
   display: grid;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
-.category-donut-legend span {
+.category-donut-table-header,
+.category-donut-table-row {
   align-items: center;
   display: grid;
-  gap: 8px;
-  grid-template-columns: 10px minmax(0, 1fr) auto;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) minmax(86px, auto) minmax(58px, auto);
 }
 
-.category-donut-legend i {
+.category-donut-table-header {
+  color: #637083;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 0 10px 2px;
+  text-transform: uppercase;
+}
+
+.category-donut-table-header span:nth-child(2),
+.category-donut-table-header span:nth-child(3),
+.category-donut-table-row > span:nth-child(2),
+.category-donut-table-row > span:nth-child(3) {
+  text-align: right;
+}
+
+.category-donut-table-row {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #172033;
+  font-size: 13px;
+  font-weight: 800;
+  min-height: 38px;
+  padding: 8px 10px;
+}
+
+.category-donut-table-row.dominant {
+  background: #eef5ff;
+  border-color: #bfd8ff;
+  box-shadow: inset 3px 0 0 #2563eb;
+}
+
+.category-donut-name {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.category-donut-name i {
+  flex: 0 0 auto;
   border-radius: 999px;
   height: 10px;
   width: 10px;
 }
 
-.category-donut-legend strong {
+.category-donut-name strong {
   color: #172033;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.category-donut-legend small {
-  color: #637083;
-  font-size: 12px;
-  font-weight: 750;
   white-space: nowrap;
 }
 
