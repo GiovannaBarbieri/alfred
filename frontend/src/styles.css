@@ -2629,7 +2629,7 @@ input {
   justify-content: center;
   font-weight: 800;
   min-height: 46px;
-  padding: 8px 12px;
+  padding: 8px 9px;
   transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease, transform 180ms ease;
 }
 
@@ -3482,8 +3482,8 @@ input {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  font-size: 1.35rem;
-  font-weight: 800;
+  font-size: 1.55rem;
+  font-weight: 700;
   gap: 8px;
   min-width: 0;
 }
@@ -3533,11 +3533,11 @@ input {
 
 .reports-project-updated {
   align-items: center;
-  color: #637083;
+  color: var(--text-secondary, #637083);
   display: inline-flex;
   gap: 6px;
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 500;
   margin-top: 6px;
 }
 
@@ -3547,35 +3547,47 @@ input {
 }
 
 .reports-project-metric-line {
-  align-items: baseline;
-  color: #637083;
+  align-items: center;
+  color: var(--text-secondary, #637083);
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 8px;
   padding-left: 56px;
 }
 
-.reports-project-metric-line strong {
-  color: #0f172a;
-  display: inline;
-  font-size: 14px;
-  font-weight: 850;
+.reports-project-metric {
+  display: grid;
+  gap: 1px;
+  line-height: 1.05;
 }
 
-.reports-project-metric-line span,
+.reports-project-metric strong {
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.reports-project-metric small {
+  color: var(--text-secondary, #637083);
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0;
+}
+
 .reports-project-metric-line i {
-  color: #637083;
+  color: var(--text-secondary, #637083);
   display: inline;
-  font-size: 13px;
+  font-size: 12px;
   font-style: normal;
-  font-weight: 650;
+  font-weight: 500;
 }
 
 .reports-project-actions {
-  align-items: flex-end;
+  align-content: center;
+  align-items: center;
   display: grid;
-  gap: 10px;
-  justify-items: end;
+  gap: 6px;
+  justify-items: center;
 }
 
 .reports-project-status-group {
@@ -3583,7 +3595,7 @@ input {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 8px;
-  justify-content: flex-end;
+  justify-content: center;
 }
 
 .reports-project-actions .secondary-button {

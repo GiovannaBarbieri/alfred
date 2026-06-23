@@ -76,14 +76,20 @@ export function ReportsProjectList({ imports, collaboratorCount, search, onSearc
                   </small>
                 </div>
                 <div className="reports-project-metric-line">
-                  <strong>{item.totalHours}h</strong>
-                  <span>Horas</span>
+                  <span className="reports-project-metric">
+                    <strong>{item.totalHours}h</strong>
+                    <small>Horas</small>
+                  </span>
                   <i aria-hidden="true">•</i>
-                  <strong>{item.validRows}</strong>
-                  <span>Registros</span>
+                  <span className="reports-project-metric">
+                    <strong>{item.validRows}</strong>
+                    <small>Registros</small>
+                  </span>
                   <i aria-hidden="true">•</i>
-                  <strong>{typeof collaboratorCount === "number" ? collaboratorCount : "-"}</strong>
-                  <span>Colaboradores</span>
+                  <span className="reports-project-metric">
+                    <strong>{typeof collaboratorCount === "number" ? collaboratorCount : "-"}</strong>
+                    <small>Colaboradores</small>
+                  </span>
                 </div>
               </div>
 
