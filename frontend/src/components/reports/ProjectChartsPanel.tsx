@@ -159,7 +159,12 @@ function CategoryDonutChart({ items }: { items: HoursReportItem[] }) {
               <PieChart>
                 <Pie data={chartData} dataKey="value" nameKey="name" innerRadius="56%" outerRadius="88%" paddingAngle={3}>
                   {chartData.map((entry, index) => (
-                    <Cell key={entry.name} fill={donutColors[index % donutColors.length]} />
+                    <Cell
+                      key={entry.name}
+                      fill={donutColors[index % donutColors.length]}
+                      stroke="#ffffff"
+                      strokeWidth={entry.value === dominantValue ? 4 : 2}
+                    />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value, name) => [`${Number(value).toFixed(2)}h`, name]} />
@@ -178,9 +183,22 @@ function CategoryDonutChart({ items }: { items: HoursReportItem[] }) {
                 key={item.name}
                 role="row"
               >
-                <span className="category-donut-name">
-                  <i style={{ background: donutColors[index % donutColors.length] }} />
-                  <strong>{item.name}</strong>
+                <span className="category-donut-category">
+                  <span className="category-donut-name">
+                    <i style={{ background: donutColors[index % donutColors.length] }} />
+                    <strong>
+                      #{index + 1} {item.name}
+                    </strong>
+                    {item.value === dominantValue && <em>Dominante</em>}
+                  </span>
+                  <span className="category-donut-progress" aria-hidden="true">
+                    <span
+                      style={{
+                        background: donutColors[index % donutColors.length],
+                        width: `${Math.max(item.percentage, 3)}%`,
+                      }}
+                    />
+                  </span>
                 </span>
                 <span>{item.value.toFixed(2)}h</span>
                 <span>{item.percentage.toFixed(1)}%</span>
