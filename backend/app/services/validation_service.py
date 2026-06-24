@@ -89,7 +89,10 @@ def validate_row(row: pd.Series, line_number: int) -> list[ImportIssue]:
         )
 
     date_value = str(row["DataHoraCadastro"]).strip()
-    if date_value and pd.isna(pd.to_datetime(date_value, errors="coerce", dayfirst=True)):
+    try:
+        if date_value:
+            parse_datetime(date_value)
+    except (TypeError, ValueError):
         issues.append(
             ImportIssue(
                 line=line_number,
@@ -229,5 +232,22 @@ def duration_to_seconds(duration: str) -> int:
 
 
 def parse_datetime(value: str) -> datetime:
+    normalized = value.strip()
+    iso_match = re.match(
+        r"^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?)?$",
+        normalized,
+    )
+    if iso_match:
+        year, month, day, hour, minute, second, microsecond = iso_match.groups()
+        return datetime(
+            int(year),
+            int(month),
+            int(day),
+            int(hour or 0),
+            int(minute or 0),
+            int(second or 0),
+            int((microsecond or "0")[:6].ljust(6, "0")),
+        )
+
     parsed = pd.to_datetime(value, errors="raise", dayfirst=True)
     return parsed.to_pydatetime()

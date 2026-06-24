@@ -91,6 +91,8 @@ class ValidationServiceTests(unittest.TestCase):
     def test_duration_to_seconds_and_parse_datetime(self) -> None:
         self.assertEqual(duration_to_seconds("01:02:03"), 3723)
         self.assertEqual(parse_datetime("10/01/2026 09:00:00").year, 2026)
+        self.assertEqual(parse_datetime("2026-01-07 16:42:38.643").month, 1)
+        self.assertEqual(parse_datetime("2026-01-07 16:42:38.643").day, 7)
 
     @patch("app.services.validation_service.matched_category_count", return_value=2)
     def test_operational_alerts_cover_excessive_generic_missing_profile_and_conflict(self, _matched) -> None:
