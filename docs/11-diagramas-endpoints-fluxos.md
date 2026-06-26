@@ -295,6 +295,8 @@ http://localhost:8000/api
 
 ### Inteligencia Operacional
 
+Observacao: endpoints preservados no backend. A tela correspondente esta oculta na navegacao atual.
+
 | Metodo | Endpoint | Descricao |
 | --- | --- | --- |
 | GET | `/api/analytics/insights` | Consulta insights operacionais salvos. |
@@ -368,6 +370,8 @@ Filtros aceitos:
 
 ### Auditoria
 
+Observacao: endpoint preservado no backend. A tela correspondente esta oculta na navegacao atual.
+
 | Metodo | Endpoint | Descricao |
 | --- | --- | --- |
 | GET | `/api/audit` | Consulta logs de auditoria com filtros. |
@@ -403,8 +407,8 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A["Abrir Inteligencia Operacional"] --> B["GET /api/analytics/insights"]
-  B --> C["Exibir historico salvo"]
+  A["Modulo oculto no frontend"] --> B["GET /api/analytics/insights"]
+  B --> C["Consultar historico salvo quando reativado"]
   C --> D["Selecionar importacao"]
   D --> E["POST /api/analytics/insights/generate"]
   E --> F["Comparar com importacao anterior e gerar insights"]
@@ -450,21 +454,20 @@ flowchart TD
   A["Abrir Relatorios"] --> B["GET /api/imports"]
   B --> C["Listar projetos/importacoes"]
   C --> D["Usuario seleciona projeto"]
-  D --> E["Carregar resumo, graficos, pendencias e tasks"]
+  D --> E["Carregar executivo, graficos e tasks"]
   E --> F["Usuario alterna abas"]
-  F --> G["Visao geral"]
+  F --> G["Executivo"]
   F --> H["Graficos"]
-  F --> I["Pendencias"]
-  F --> J["Tasks"]
+  F --> I["Tasks"]
 ```
 
 ### 6. Pendencias do relatorio
 
 ```mermaid
 flowchart TD
-  A["Abrir aba Pendencias"] --> B["GET /api/reports/project-pending-items"]
-  B --> C["Agrupar por criticidade"]
-  C --> D["Usuario filtra/seleciona itens"]
+  A["Funcionalidade preservada no backend"] --> B["GET /api/reports/project-pending-items"]
+  B --> C["Dados podem compor alertas executivos"]
+  C --> D["Aba Pendencias esta oculta na interface atual"]
   D --> E{"Acao"}
   E -- "Revisar" --> F["PATCH /api/reports/project-pending-reviews"]
   E -- "Ignorar" --> G["PATCH /api/reports/project-pending-reviews"]
@@ -508,7 +511,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A["Abrir Historico"] --> B["GET /api/imports"]
+  A["Modulo oculto no frontend"] --> B["GET /api/imports"]
   B --> C["Listar importacoes"]
   C --> D["Selecionar importacao"]
   D --> E["GET /api/imports/{id}"]
@@ -539,7 +542,7 @@ flowchart TD
 flowchart TD
   A["Acoes importantes no sistema"] --> B["insert_audit_log"]
   B --> C["Gravar audit_log"]
-  D["Abrir tela Auditoria"] --> E["GET /api/audit"]
+  D["Modulo oculto no frontend"] --> E["GET /api/audit"]
   E --> F["Aplicar filtros"]
   F --> G["Exibir eventos"]
 ```

@@ -2,6 +2,8 @@
 
 ## Objetivo
 
+Observacao: este documento registra o escopo original do MVP. O produto atual ja evoluiu para fluxo com staging, relatorios executivos e configuracoes de categorias/cargos/colaboradores.
+
 Criar uma primeira versao funcional capaz de:
 
 ```text
@@ -35,6 +37,7 @@ Validar colunas obrigatorias
 Ler registros
 Converter duracao HH:MM:SS para segundos
 Salvar arquivo/importacao no historico
+Criar sessao temporaria antes da persistencia final
 ```
 
 ### Validacao
@@ -90,6 +93,9 @@ Relatorio de erros
 Relatorio de alertas
 Relatorio de duplicidades
 Relatorio de classificacoes pendentes
+Resumo executivo do projeto
+Graficos de tendencia
+Tasks por colaborador
 ```
 
 ### Dashboard
@@ -108,7 +114,6 @@ Total por categoria
 Top 10 Epics por horas
 Top 10 PBIs por horas
 Top 10 colaboradores por horas
-Alertas pendentes
 ```
 
 Graficos obrigatorios:
@@ -125,9 +130,7 @@ Comparativo de categorias no periodo
 ```text
 Login completo
 Permissoes avancadas
-IA analitica
 Integracao direta com banco TFS
-PDF
 Agendamento automatico
 Deploy em servidor interno
 Horas extras

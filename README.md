@@ -4,6 +4,26 @@ Sistema interno para importar, validar, classificar e analisar horas apontadas e
 
 O foco e analise operacional das horas lancadas. O sistema nao e controle de ponto, RH, banco de horas, regra trabalhista ou gestao formal de jornada.
 
+## Estado Atual Do Produto
+
+Telas ativas no frontend:
+
+```text
+Dashboard
+Importacao
+Validacao
+Relatorios
+Configuracoes
+```
+
+Modulos preservados no backend/codigo, mas ocultos na navegacao por enquanto:
+
+```text
+Historico
+Auditoria
+Inteligencia Operacional
+```
+
 ## Stack
 
 ```text
@@ -142,29 +162,27 @@ POST /api/imports/complete
 
 ## Classificacao
 
-Categorias iniciais:
+Categorias oficiais:
 
 ```text
-Desenvolvimento
-Reuniao
-Alinhamento
+Acompanhamento
 Definicao
+Desenvolvimento
 Homologacao
-Testes cruzados
+Impedimento
 Retrabalho
-Analise
-Outros
-Nao classificado
 ```
 
-Subcategorias iniciais:
+Cargos/perfis operacionais oficiais:
 
 ```text
-Back
-Front
+Analista
+Desenvolvedor Back-end
+Desenvolvedor Front-end
 QA
-Nao aplicavel
-Nao classificado
+Banco de Dados
+Infraestrutura
+DataOps
 ```
 
 O classificador grava origem, score de confianca, nivel de confianca e versao do classificador. As configuracoes podem ser mantidas pela tela de configuracoes.
@@ -177,17 +195,21 @@ A tela de relatorios lista projetos importados. O titulo do projeto e derivado d
 175613 - Migracao de boletos
 ```
 
-Ao abrir um projeto, ficam disponiveis analises por:
+Ao abrir um projeto, ficam disponiveis:
 
 ```text
-colaborador
-Epic
-PBI
-categoria
-subcategoria
+Executivo: resumo inteligente, destaques do projeto e rankings executivos
+Graficos: evolucao diaria, distribuicao por categoria e analises especificas por colaborador/categoria
+Tasks: detalhe paginado de tasks por colaborador
 ```
 
-Tambem existem dashboard, linha do tempo, historico e exportacoes CSV.
+Exportacoes disponiveis:
+
+```text
+PDF Executivo
+Excel Operacional
+CSV/XLSX tecnicos da API
+```
 
 ## Documentos
 
@@ -199,6 +221,9 @@ Tambem existem dashboard, linha do tempo, historico e exportacoes CSV.
 - `docs/06-backlog-tecnico.md`
 - `docs/07-arquitetura-tecnica.md`
 - `docs/08-fase-2-importacao-staging.md`
+- `docs/09-documentacao-tecnica-completa.md`
+- `docs/10-estrutura-banco.sql`
+- `docs/11-diagramas-endpoints-fluxos.md`
 
 ## Docker
 

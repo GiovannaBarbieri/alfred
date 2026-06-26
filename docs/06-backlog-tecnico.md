@@ -1,5 +1,7 @@
 # Backlog Tecnico v1
 
+Observacao: este backlog representa a base inicial do projeto. Parte dos itens ja foi implementada e refinada; a navegacao atual mantem ativas as telas Dashboard, Importacao, Validacao, Relatorios e Configuracoes.
+
 ## Epico 1: Estrutura Do Projeto
 
 ### Feature 1.1: Criar base do sistema
@@ -20,8 +22,8 @@ Configurar conexao backend com banco
 ```text
 Criar migrations iniciais
 Criar tabelas do MVP
-Inserir categorias oficiais iniciais
-Inserir subcategorias oficiais iniciais
+Inserir categorias oficiais atuais
+Inserir cargos/perfis operacionais oficiais
 ```
 
 ## Epico 2: Importacao De Arquivos
@@ -126,6 +128,7 @@ Abrir detalhes
 Mostrar resumo
 Mostrar erros e alertas
 Exportar base consolidada
+Status atual: modulo oculto no frontend
 ```
 
 ## Epico 10: Configuracoes
@@ -136,11 +139,12 @@ Criar categoria como admin
 Editar categoria
 Inativar categoria
 Listar subcategorias
-Criar subcategoria como admin
-Editar subcategoria
-Inativar subcategoria
+Criar cargo como admin
+Editar cargo
+Inativar cargo
 Listar palavras-chave
 Criar palavras-chave
 Editar palavras-chave
 Inativar palavras-chave
+Vincular colaboradores a cargos
 ```

@@ -2,6 +2,10 @@
 -- Base: PostgreSQL
 -- Observacao: este arquivo consolida o schema inicial de database/init.sql
 -- com tabelas/colunas criadas em runtime por backend/app/services/schema_service.py.
+-- Observacao de produto: analytics_insights, audit_log, auditoria_acoes e
+-- classification_reprocess_history permanecem no schema mesmo quando suas
+-- telas estao ocultas no frontend, pois preservam compatibilidade de API,
+-- historico tecnico e evolucoes futuras.
 
 CREATE TABLE IF NOT EXISTS categorias (
     id SERIAL PRIMARY KEY,

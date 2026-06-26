@@ -300,7 +300,7 @@ def ensure_runtime_schema() -> None:
                     ('Desenvolvedor Back-end', 'Desenvolvimento', 'back backend back-end'),
                     ('Desenvolvedor Front-end', 'Desenvolvimento', 'front frontend front-end'),
                     ('QA', 'Qualidade', 'qa testes qualidade'),
-                    ('Infraestrutura', 'Operações', 'infraestrutura devops operacoes'),
+                    ('Infraestrutura', 'Infraestrutura', 'infraestrutura devops operacoes'),
                     ('Banco de Dados', 'Dados', 'banco dados dba database'),
                     ('DataOps', 'Dados', 'dataops dados pipelines')
                 ON CONFLICT (nome) DO UPDATE
@@ -356,7 +356,7 @@ def ensure_runtime_schema() -> None:
                         WHEN 'Desenvolvedor Front-end' THEN 'Desenvolvimento'
                         WHEN 'QA' THEN 'Qualidade'
                         WHEN 'Banco de Dados' THEN 'Dados'
-                        WHEN 'Infraestrutura' THEN 'Operações'
+                        WHEN 'Infraestrutura' THEN 'Infraestrutura'
                         WHEN 'DataOps' THEN 'Dados'
                         ELSE grupo
                     END,

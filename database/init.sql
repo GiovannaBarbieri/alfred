@@ -41,6 +41,19 @@ CREATE TABLE IF NOT EXISTS colaboradores_ignorados (
     criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS classification_rules (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(160) NOT NULL UNIQUE,
+    categoria_id INTEGER NOT NULL REFERENCES categorias(id) ON DELETE CASCADE,
+    subcategoria_id INTEGER REFERENCES subcategorias(id) ON DELETE SET NULL,
+    palavras_chave JSONB NOT NULL DEFAULT '[]'::jsonb,
+    prioridade INTEGER NOT NULL DEFAULT 0,
+    ativa BOOLEAN NOT NULL DEFAULT TRUE,
+    versao VARCHAR(40) NOT NULL DEFAULT '1.0.0',
+    criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+    atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS importacoes (
     id SERIAL PRIMARY KEY,
     nome_arquivo VARCHAR(255) NOT NULL,
@@ -51,7 +64,8 @@ CREATE TABLE IF NOT EXISTS importacoes (
     registros_validos INTEGER NOT NULL DEFAULT 0,
     registros_com_alerta INTEGER NOT NULL DEFAULT 0,
     registros_bloqueados INTEGER NOT NULL DEFAULT 0,
-    observacao TEXT
+    observacao TEXT,
+    versao_classificador VARCHAR(40) NOT NULL DEFAULT '1.0.0'
 );
 
 CREATE TABLE IF NOT EXISTS import_sessions (
@@ -191,6 +205,17 @@ CREATE TABLE IF NOT EXISTS comparativos_projetos_importacoes (
     UNIQUE(comparativo_id, importacao_id)
 );
 
+CREATE TABLE IF NOT EXISTS audit_log (
+    id SERIAL PRIMARY KEY,
+    entidade VARCHAR(120) NOT NULL,
+    registro_id VARCHAR(120),
+    acao VARCHAR(120) NOT NULL,
+    usuario VARCHAR(180) NOT NULL DEFAULT 'sistema',
+    antes JSONB,
+    depois JSONB,
+    criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS auditoria_acoes (
     id SERIAL PRIMARY KEY,
     importacao_id INTEGER REFERENCES importacoes(id) ON DELETE CASCADE,
@@ -200,6 +225,27 @@ CREATE TABLE IF NOT EXISTS auditoria_acoes (
     valor_anterior JSONB,
     valor_novo JSONB,
     data_acao TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS classification_reprocess_history (
+    id SERIAL PRIMARY KEY,
+    importacao_id INTEGER NOT NULL REFERENCES importacoes(id) ON DELETE CASCADE,
+    lancamento_id INTEGER NOT NULL REFERENCES lancamentos_horas(id) ON DELETE CASCADE,
+    categoria_anterior VARCHAR(120),
+    subcategoria_anterior VARCHAR(120),
+    categoria_nova VARCHAR(120),
+    subcategoria_nova VARCHAR(120),
+    confianca_anterior NUMERIC(5, 2),
+    confianca_nova NUMERIC(5, 2),
+    nivel_confianca_anterior VARCHAR(20),
+    nivel_confianca_novo VARCHAR(20),
+    versao_anterior VARCHAR(40),
+    versao_nova VARCHAR(40),
+    origem_nova VARCHAR(80),
+    fatores_confianca JSONB,
+    motivo TEXT,
+    usuario VARCHAR(180) NOT NULL DEFAULT 'sistema',
+    criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS analytics_insights (
@@ -222,11 +268,18 @@ CREATE INDEX IF NOT EXISTS idx_lancamentos_usuario ON lancamentos_horas(login_us
 CREATE INDEX IF NOT EXISTS idx_lancamentos_data ON lancamentos_horas(data_hora_cadastro);
 CREATE INDEX IF NOT EXISTS idx_lancamentos_epic ON lancamentos_horas(id_epic);
 CREATE INDEX IF NOT EXISTS idx_lancamentos_categoria ON lancamentos_horas(categoria_id);
+CREATE INDEX IF NOT EXISTS idx_lancamentos_importacao_id_lancamento ON lancamentos_horas(importacao_id, id_lancamento);
+CREATE INDEX IF NOT EXISTS idx_importacoes_hash ON importacoes(hash_arquivo);
+CREATE INDEX IF NOT EXISTS idx_importacoes_nome ON importacoes(nome_arquivo);
 CREATE INDEX IF NOT EXISTS idx_import_sessions_status ON import_sessions(status);
 CREATE INDEX IF NOT EXISTS idx_staging_rows_session ON staging_rows(session_id);
 CREATE INDEX IF NOT EXISTS idx_import_logs_session ON import_logs(session_id);
 CREATE INDEX IF NOT EXISTS idx_pending_reviews_importacao ON pending_reviews(importacao_id, tipo, status);
 CREATE INDEX IF NOT EXISTS idx_comparativos_importacoes_comparativo ON comparativos_projetos_importacoes(comparativo_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_entidade ON audit_log(entidade, acao, criado_em DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_log_registro ON audit_log(entidade, registro_id);
+CREATE INDEX IF NOT EXISTS idx_classification_rules_categoria ON classification_rules(categoria_id, ativa, prioridade DESC);
+CREATE INDEX IF NOT EXISTS idx_reprocess_history_importacao ON classification_reprocess_history(importacao_id, criado_em DESC);
 CREATE INDEX IF NOT EXISTS idx_analytics_insights_importacao ON analytics_insights(importacao_id);
 CREATE INDEX IF NOT EXISTS idx_analytics_insights_tipo ON analytics_insights(tipo);
 CREATE INDEX IF NOT EXISTS idx_analytics_insights_severidade ON analytics_insights(severidade);
@@ -234,27 +287,36 @@ CREATE INDEX IF NOT EXISTS idx_analytics_insights_status ON analytics_insights(s
 CREATE UNIQUE INDEX IF NOT EXISTS idx_analytics_insights_unique_simple
     ON analytics_insights(importacao_id, tipo, titulo, descricao);
 
-INSERT INTO categorias (nome, ordem_exibicao) VALUES
-    ('Acompanhamento', 1),
-    ('Definição', 2),
-    ('Desenvolvimento', 3),
-    ('Homologação', 4),
-    ('Impedimento', 5),
-    ('Retrabalho', 6),
-    ('Nao classificado', 99)
-ON CONFLICT (nome) DO NOTHING;
+INSERT INTO categorias (nome, descricao, ordem_exibicao, ativa) VALUES
+    ('Acompanhamento', 'Utilizada para atividades de acompanhamento, reuniões, alinhamentos e suporte ao andamento do projeto.', 1, TRUE),
+    ('Definição', 'Utilizada para análise, levantamento, refinamento e definição de regras ou requisitos.', 2, TRUE),
+    ('Desenvolvimento', 'Utilizada para apontamentos relacionados ao desenvolvimento de funcionalidades, integrações e ajustes técnicos.', 3, TRUE),
+    ('Homologação', 'Utilizada para validações, testes, homologações e conferências antes da conclusão da entrega.', 4, TRUE),
+    ('Impedimento', 'Utilizada para registrar bloqueios, dependências ou situações que impediram a evolução da atividade.', 5, TRUE),
+    ('Retrabalho', 'Utilizada para correções, ajustes, revisões e reexecuções necessárias após validações ou mudanças.', 6, TRUE),
+    ('Nao classificado', 'Categoria técnica para registros sem classificação definida.', 99, FALSE)
+ON CONFLICT (nome) DO UPDATE
+SET
+    descricao = COALESCE(categorias.descricao, EXCLUDED.descricao),
+    ordem_exibicao = COALESCE(categorias.ordem_exibicao, EXCLUDED.ordem_exibicao),
+    ativa = EXCLUDED.ativa;
 
-INSERT INTO subcategorias (nome, grupo, alias_ia, ordem_exibicao) VALUES
-    ('Analista', 'Gestão', 'analista funcional requisitos', 1),
-    ('Desenvolvedor Back-end', 'Desenvolvimento', 'back backend back-end', 2),
-    ('Desenvolvedor Front-end', 'Desenvolvimento', 'front frontend front-end', 3),
-    ('QA', 'Qualidade', 'qa testes qualidade', 4),
-    ('Banco de Dados', 'Dados', 'banco dados dba database', 5),
-    ('Infraestrutura', 'Operações', 'infraestrutura devops operacoes', 6),
-    ('DataOps', 'Dados', 'dataops dados pipelines', 7),
-    ('Nao aplicavel', NULL, NULL, 98),
-    ('Nao classificado', NULL, NULL, 99)
-ON CONFLICT (nome) DO NOTHING;
+INSERT INTO subcategorias (nome, grupo, alias_ia, ordem_exibicao, ativa) VALUES
+    ('Analista', 'Gestão', 'analista funcional requisitos', 1, TRUE),
+    ('Desenvolvedor Back-end', 'Desenvolvimento', 'back backend back-end', 2, TRUE),
+    ('Desenvolvedor Front-end', 'Desenvolvimento', 'front frontend front-end', 3, TRUE),
+    ('QA', 'Qualidade', 'qa testes qualidade', 4, TRUE),
+    ('Banco de Dados', 'Dados', 'banco dados dba database', 5, TRUE),
+    ('Infraestrutura', 'Infraestrutura', 'infraestrutura devops operacoes', 6, TRUE),
+    ('DataOps', 'Dados', 'dataops dados pipelines', 7, TRUE),
+    ('Nao aplicavel', NULL, NULL, 98, FALSE),
+    ('Nao classificado', NULL, NULL, 99, FALSE)
+ON CONFLICT (nome) DO UPDATE
+SET
+    grupo = COALESCE(subcategorias.grupo, EXCLUDED.grupo),
+    alias_ia = COALESCE(subcategorias.alias_ia, EXCLUDED.alias_ia),
+    ordem_exibicao = COALESCE(subcategorias.ordem_exibicao, EXCLUDED.ordem_exibicao),
+    ativa = EXCLUDED.ativa;
 
 INSERT INTO palavras_chave_categoria (categoria_id, palavra)
 SELECT c.id, v.palavra
@@ -327,3 +389,30 @@ JOIN (
         ('Analise', 'investigar')
 ) AS v(categoria, palavra) ON v.categoria = c.nome
 ON CONFLICT (categoria_id, palavra) DO NOTHING;
+
+INSERT INTO classification_rules (nome, categoria_id, palavras_chave, prioridade, ativa, versao)
+SELECT
+    CONCAT('Regra - ', c.nome) AS nome,
+    c.id AS categoria_id,
+    COALESCE(JSONB_AGG(p.palavra ORDER BY p.palavra) FILTER (WHERE p.palavra IS NOT NULL), '[]'::jsonb) AS palavras_chave,
+    CASE
+        WHEN c.nome = 'Retrabalho' THEN 50
+        WHEN c.nome = 'Homologação' THEN 40
+        WHEN c.nome = 'Definição' THEN 30
+        WHEN c.nome = 'Desenvolvimento' THEN 20
+        ELSE 10
+    END AS prioridade,
+    c.ativa,
+    '1.0.0'
+FROM categorias c
+LEFT JOIN palavras_chave_categoria p ON p.categoria_id = c.id AND p.ativa = TRUE
+WHERE c.ativa = TRUE
+GROUP BY c.id, c.nome, c.ativa
+ON CONFLICT (nome) DO UPDATE
+SET
+    categoria_id = EXCLUDED.categoria_id,
+    palavras_chave = EXCLUDED.palavras_chave,
+    prioridade = EXCLUDED.prioridade,
+    ativa = EXCLUDED.ativa,
+    versao = EXCLUDED.versao,
+    atualizado_em = NOW();

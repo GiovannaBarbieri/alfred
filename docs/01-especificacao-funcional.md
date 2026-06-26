@@ -93,29 +93,27 @@ Duracao igual a `00:00:00` nao bloqueia importacao, mas gera alerta.
 
 ## 7. Categorias
 
-Categorias oficiais v1:
+Categorias oficiais atuais:
 
 ```text
-Desenvolvimento
-Reuniao
-Alinhamento
+Acompanhamento
 Definicao
+Desenvolvimento
 Homologacao
-Testes cruzados
+Impedimento
 Retrabalho
-Analise
-Outros
-Nao classificado
 ```
 
-Subcategorias oficiais v1:
+Cargos/perfis operacionais oficiais:
 
 ```text
-Back
-Front
+Analista
+Desenvolvedor Back-end
+Desenvolvedor Front-end
 QA
-Nao aplicavel
-Nao classificado
+Banco de Dados
+Infraestrutura
+DataOps
 ```
 
 O campo usado para classificacao sera sempre `TituloTask`.

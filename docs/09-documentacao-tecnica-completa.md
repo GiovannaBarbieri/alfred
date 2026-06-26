@@ -13,10 +13,9 @@ O foco do produto e analise operacional de projetos, incluindo:
 - Horas por categoria e subcategoria.
 - Horas por Epic, Feature, PBI e Task.
 - Evolucao temporal do projeto.
-- Pendencias operacionais.
 - Classificacao automatica e revisao humana.
 - Comparacao entre projetos/importacoes.
-- Historico e auditoria de operacoes.
+- Exportacoes executivas e operacionais.
 
 O sistema nao tem objetivo de ser:
 
@@ -43,13 +42,15 @@ flowchart LR
 
 ### Camadas principais
 
-- **Frontend**: interface React/TypeScript com telas de Dashboard, Importacao, Validacao, Relatorios, Historico, Configuracoes e Auditoria.
+- **Frontend**: interface React/TypeScript com telas ativas de Dashboard, Importacao, Validacao, Relatorios e Configuracoes.
 - **Backend API**: FastAPI expondo endpoints REST.
 - **Importers**: leitura e normalizacao de arquivos Excel/CSV.
 - **Services**: regras de negocio, validacao, classificacao, staging, persistencia e schema runtime.
 - **Repositories**: acesso direto ao PostgreSQL.
-- **Banco de dados**: PostgreSQL com tabelas finais, staging, configuracoes, logs e auditoria.
+- **Banco de dados**: PostgreSQL com tabelas finais, staging, configuracoes, logs, auditoria e historicos internos.
 - **Infra local**: Docker Compose com servicos `db` e `backend`; frontend roda via Vite.
+
+Observacao: Historico, Auditoria e Inteligencia Operacional permanecem no codigo/backend, mas estao ocultos na navegacao principal do frontend.
 
 ### Fluxo arquitetural da importacao
 
@@ -260,7 +261,7 @@ O banco principal e PostgreSQL. A criacao inicial esta em `database/init.sql`, e
 - O primeiro colchete do titulo, no formato `[Categoria]`, e a fonte oficial da categoria.
 - A categoria entre colchetes deve existir e estar ativa nas configuracoes.
 - Quando o padrao nao existe ou a categoria nao esta cadastrada/ativa, o registro fica como `Nao classificado` para revisao.
-- Subcategorias representam o perfil operacional do colaborador, como Back, Front, Analista ou QA, e sao usadas nas analises por esforco.
+- Subcategorias representam cargos/perfis operacionais do colaborador, como Analista, Desenvolvedor Back-end, Desenvolvedor Front-end, QA, Banco de Dados, Infraestrutura ou DataOps, e sao usadas nas analises por esforco.
 - O score de confianca usa valores entre 0 e 1 no backend.
 - O nivel de confianca e:
   - `alta` para confianca alta;
@@ -320,8 +321,11 @@ O banco principal e PostgreSQL. A criacao inicial esta em `database/init.sql`, e
 1. Usuario acessa Relatorios.
 2. Sistema lista projetos/importacoes confirmadas.
 3. Usuario abre um projeto.
-4. Frontend carrega resumo executivo, graficos, pendencias, tasks por colaborador, insights e recomendacoes.
-5. Usuario pode exportar relatorios em CSV/XLSX.
+4. Frontend carrega cabecalho, KPIs, aba Executivo, aba Graficos e aba Tasks.
+5. Aba Executivo mostra resumo inteligente em texto, destaques do projeto, rankings e alertas executivos.
+6. Aba Graficos mostra tendencias visuais e analises especificas por colaborador/categoria.
+7. Aba Tasks mostra tasks por colaborador com paginacao de 20 em 20.
+8. Usuario pode exportar PDF Executivo e Excel Operacional pelo menu de exportacao.
 
 ### Fluxo de configuracoes
 
@@ -333,8 +337,8 @@ O banco principal e PostgreSQL. A criacao inicial esta em `database/init.sql`, e
 ### Fluxo de auditoria
 
 1. Eventos importantes sao registrados em `audit_log`.
-2. Tela de Auditoria consulta `GET /api/audit`.
-3. Usuario pode filtrar por entidade, acao e texto.
+2. Endpoint `GET /api/audit` permanece disponivel.
+3. A tela de Auditoria esta oculta na navegacao atual.
 
 ## 7. Tecnologias utilizadas
 
@@ -402,7 +406,7 @@ http://localhost:8000/api
 
 | Metodo | Endpoint | Finalidade |
 | --- | --- | --- |
-| GET | `/api/dashboard/overview` | Central operacional com KPIs, projetos recentes e insights. |
+| GET | `/api/dashboard/overview` | KPIs, projetos recentes e dados de apoio ao dashboard. |
 | GET | `/api/dashboard/summary` | Indicadores resumidos. |
 | GET | `/api/dashboard/timeline` | Linha do tempo agregada. |
 
@@ -482,7 +486,8 @@ Atualmente o sistema nao possui autenticacao, login ou autorizacao por perfil.
 
 Estado atual:
 
-- Todas as telas ficam acessiveis no frontend.
+- Telas ativas no frontend: Dashboard, Importacao, Validacao, Relatorios e Configuracoes.
+- Telas ocultas no frontend: Historico, Auditoria e Inteligencia Operacional.
 - A API nao exige token.
 - Eventos de auditoria usam usuario padrao `sistema`.
 - A tela de configuracoes permite manter regras/categorias sem controle de perfil.
@@ -522,15 +527,14 @@ Premissas futuras:
 
 ### Dashboard
 
-- Central operacional.
-- KPIs gerais.
+- Visao inicial dos projetos analisados.
 - Ultimos projetos analisados.
-- Insights operacionais.
 - Acesso rapido para relatorios.
+- Informacoes operacionais de alerta foram reduzidas na interface para priorizar analise de horas.
 
 ### Inteligencia Operacional
 
-- Tela dedicada para insights automaticos.
+- Modulo preservado no backend, mas oculto no frontend.
 - Analise de tendencias entre importacoes do mesmo projeto.
 - Identificacao de concentracao de horas por colaborador.
 - Identificacao de classificacoes abaixo de 90% de confianca.
@@ -545,47 +549,41 @@ Premissas futuras:
 
 ### Relatorios
 
-- Lista de projetos/importacoes.
-- Deteccao visual de projetos com mesmo nome em versoes diferentes.
-- Resumo executivo do projeto.
-- Graficos de linha do tempo:
-  - total diario do projeto;
-  - horas por dia e colaborador;
-  - horas por semana e colaborador;
-  - horas por dia e categoria;
-  - horas mensais por categoria;
-  - horas semanais por categoria;
-  - horas diarias por categoria.
-- Pendencias do projeto.
-- Tasks por colaborador.
-- Grafico semanal por colaborador.
+- Listagem executiva de projetos/importacoes.
+- Aba Executivo com KPIs, resumo inteligente em texto, destaques do projeto, rankings e alertas executivos.
+- Aba Graficos focada em tendencias visuais:
+  - evolucao diaria do projeto;
+  - distribuicao das horas por categoria;
+  - produtividade diaria/semanal por colaborador;
+  - evolucao diaria/semanal/mensal por categoria.
+- Aba Tasks com detalhe por colaborador e paginacao de 20 em 20.
 - Comparativos entre projetos.
 - Evolucao de um projeto entre importacoes.
-- Exportacoes em CSV/XLSX.
+- Exportacoes PDF Executivo e Excel Operacional.
 
 ### Configuracoes
 
 - Categorias.
-- Subcategorias.
-- Palavras-chave.
-- Regras de classificacao.
-- Perfis de colaboradores.
-- Colaboradores ignorados.
+- Cargos, armazenados em `subcategorias`.
+- Colaboradores, armazenados em `perfis_colaborador`.
 - Busca por aba.
-- Simulador local de classificacao.
+- Modais para criacao/edicao.
+- Validacao de duplicidade por normalizacao de acentos, caixa e espacos.
+- Grupos automaticos por cargo.
 
 ### Historico
 
+- Modulo preservado no codigo, mas oculto no frontend.
 - Lista importacoes.
 - Detalhe de importacao.
-- Totais de registros, validos e alertas.
 - Lancamentos importados.
-- Opcao de limpar selecao.
+- Paginacao de lancamentos.
 
 ### Auditoria
 
+- Modulo preservado no backend/codigo, mas oculto no frontend.
 - Registro de eventos de importacao, sessao e reprocessamento.
-- Tela de consulta de auditoria.
+- Endpoint de consulta de auditoria.
 - Filtros por entidade, acao e busca.
 
 ## 11. Funcionalidades planejadas

@@ -55,6 +55,8 @@ backend/app/api/routes/dashboard.py  Indicadores e linha do tempo
 backend/app/api/routes/reports.py    Relatorios agregados
 backend/app/api/routes/exports.py    Exportacoes CSV
 backend/app/api/routes/settings.py   Configuracoes de classificacao
+backend/app/api/routes/analytics.py  Insights operacionais preservados no backend
+backend/app/api/routes/audit.py      Auditoria tecnica preservada no backend
 ```
 
 ### Services
@@ -138,11 +140,12 @@ Dashboard
 Importacao
 Validacao
 Relatorios
-Historico
 Configuracoes
 ```
 
-O `App.tsx` atua como composicao principal. Sidebar, filtros, timeline, validacao e configuracoes foram separados em componentes menores.
+Historico, Auditoria e Inteligencia Operacional existem no codigo/backend, mas estao ocultos na navegacao principal neste momento.
+
+O `App.tsx` atua como composicao principal. Sidebar, filtros, timeline, validacao, relatorios e configuracoes foram separados em componentes menores.
 
 O frontend usa lazy loading para carregar telas sob demanda e reduzir o bundle inicial.
 
@@ -164,7 +167,17 @@ subcategorias
 palavras_chave_categoria
 perfis_colaborador
 colaboradores_ignorados
+classification_rules
+pending_reviews
+comparativos_projetos
+comparativos_projetos_importacoes
+audit_log
+auditoria_acoes
+classification_reprocess_history
+analytics_insights
 ```
+
+Observacao: `analytics_insights`, `audit_log` e tabelas de historico permanecem no banco mesmo com suas telas ocultas, pois preservam compatibilidade de API, trilha tecnica e evolucoes futuras.
 
 ## Regras Preservadas
 

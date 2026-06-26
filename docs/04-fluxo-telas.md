@@ -1,182 +1,171 @@
-# Fluxo De Telas v1
+# Fluxo De Telas Atual
 
 ## 1. Dashboard
 
-Primeira tela do sistema.
+Tela inicial do sistema.
 
-Deve mostrar:
+Mostra uma visao executiva dos projetos analisados, com:
 
 ```text
 Total de horas importadas
-Ultima importacao realizada
-Status da ultima importacao
-Quantidade de registros validos
-Quantidade de alertas
-Quantidade de erros bloqueantes
-Top categorias por horas
-Top Epics por horas
-Linha do tempo de horas
+Quantidade de registros
+Ultimos projetos analisados
+Acesso rapido ao relatorio do projeto
 ```
+
+Itens operacionais de alerta foram reduzidos visualmente para manter foco na analise de horas.
 
 ## 2. Importacao
 
-Tela para carregar Excel/CSV.
+Tela para carregar Excel/CSV exportado do TFS.
+
+Fluxo:
 
 ```text
 Selecionar arquivo
-Mostrar nome do arquivo
-Mostrar tipo do arquivo
-Botao Validar arquivo
-Botao Cancelar
+Validar arquivo
+Criar sessao temporaria
+Revisar dados antes da conclusao
+Confirmar importacao
 ```
 
-## 3. Resultado Da Validacao
+## 3. Validacao
+
+Etapa exibida apos o upload.
 
 Mostra:
 
 ```text
+Saude da importacao
 Registros validos
-Registros com alerta
-Registros com erro bloqueante
-Duplicidades encontradas
-Titulos fora do padrao
-Classificacoes pendentes
+Bloqueios impeditivos
+Alertas relevantes
+Duplicidades por IdLancamento
+Classificacoes sugeridas
+Revisao por Task
 ```
 
-## 4. Erros De Importacao
+O usuario pode revisar classificacoes e resolver duplicidades antes de consolidar a importacao.
 
-Colunas:
+## 4. Relatorios
 
-```text
-Linha
-Campo
-Valor encontrado
-Tipo do erro
-Severidade
-Mensagem
-Acao necessaria
-Status
-```
+Tela principal de analise de projetos importados.
 
-## 5. Resolver Duplicidades
+### 4.1 Listagem de projetos
 
-Para cada grupo duplicado, mostrar:
+Mostra os projetos importados em formato de listagem executiva:
 
 ```text
-IdLancamento
-Linha original
-DataHoraCadastro
-LoginUsuario
-Duracao
-Epic
-Feature
-PBI
-Task
-TituloTask
-```
-
-O usuario escolhe qual registro manter.
-
-## 6. Revisar Categorias
-
-Colunas:
-
-```text
-TituloTask
-Categoria sugerida
-Subcategoria sugerida
-Origem da sugestao
-Confianca
-Categoria final
-Subcategoria final
-Status
-```
-
-Acoes:
-
-```text
-Aceitar sugestao
-Alterar categoria
-Alterar subcategoria
-Marcar como Nao classificado
-```
-
-## 7. Conclusao Da Importacao
-
-Resumo final:
-
-```text
+Nome do projeto
 Arquivo importado
-Total de registros lidos
-Registros validos
-Registros com alerta
-Duplicidades resolvidas
-Categorias automaticas
-Categorias sugeridas aceitas
-Categorias alteradas manualmente
-Registros nao classificados
+Status da analise
+Ultima atualizacao
+Horas
+Registros
+Colaboradores
+Botao Visualizar Analise
 ```
 
-## 8. Relatorios
+### 4.2 Aba Executivo
 
-Relatorios:
+Mostra a leitura gerencial do projeto:
 
 ```text
-Horas por colaborador
-Horas por Epic
-Horas por Feature
-Horas por PBI
-Horas por Task
-Horas por categoria
-Horas por subcategoria
-Ranking de consumo
-Titulos fora do padrao
-Classificacoes alteradas
+KPIs principais
+Resumo Inteligente em texto
+Destaques do Projeto
+Resumo Executivo
+Top colaboradores
+Top categorias
+Top tasks
+Alertas executivos quando existirem
 ```
 
-Filtros:
+Os blocos analiticos ficam recolhidos por padrao.
+
+### 4.3 Aba Graficos
+
+Focada em tendencias visuais.
+
+Mostra:
 
 ```text
-Periodo
-Colaborador
-Epic
-Feature
-PBI
-Task
-Categoria
-Subcategoria
-Importacao
+Evolucao diaria do projeto
+Distribuicao das horas por categoria
+Analises especificas por colaborador
+Analises especificas por categoria
 ```
 
-## 9. Analise IA
+O grafico de Evolucao Acumulada de Horas foi removido para reduzir redundancia.
 
-Fase futura. Tela para perguntas livres e resumos executivos.
+### 4.4 Aba Tasks
 
-## 10. Historico De Importacoes
+Mostra tarefas por colaborador.
 
-Colunas:
+Recursos:
 
 ```text
-Data
-Arquivo
-Usuario
-Status
-Total de registros
-Registros validos
-Alertas
-Erros
-Duplicidades
+Selecao de colaborador
+Resumo do colaborador
+Tabela paginada de 20 em 20 registros
+Barra visual de duracao
+Categoria principal da task
 ```
 
-## 11. Configuracoes
+## 5. Configuracoes
 
-Configuracoes:
+Tela para manter cadastros usados na classificacao.
+
+Abas ativas:
 
 ```text
-Categorias oficiais
-Subcategorias oficiais
-Palavras-chave por categoria
-Regras de alerta
-Parametros futuros de IA
+Categorias
+Cargos
+Colaboradores
 ```
 
+### Categorias
+
+Permite criar, editar, ativar/inativar e excluir categorias.
+
+Tambem exibe descricao da categoria por tooltip quando cadastrada.
+
+### Cargos
+
+Permite manter cargos/perfis operacionais e seus grupos.
+
+Cargos oficiais:
+
+```text
+Analista
+Desenvolvedor Back-end
+Desenvolvedor Front-end
+QA
+Banco de Dados
+Infraestrutura
+DataOps
+```
+
+### Colaboradores
+
+Permite vincular colaborador a cargo.
+
+O grupo e derivado automaticamente do cargo.
+
+## 6. Telas Ocultas No Frontend
+
+As telas abaixo continuam existindo no codigo/backend, mas nao aparecem na navegacao principal neste momento:
+
+```text
+Historico
+Auditoria
+Inteligencia Operacional
+```
+
+Motivo:
+
+```text
+Historico: informacoes principais ja aparecem no contexto do projeto/importacao.
+Auditoria: uso mais tecnico, sem valor imediato para analise gerencial.
+Inteligencia Operacional: insights salvos ainda existem no backend, mas a tela foi ocultada ate voltar a ser util ao fluxo principal.
+```
