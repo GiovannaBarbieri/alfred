@@ -191,7 +191,7 @@ input {
 
 .dashboard-command-center {
   display: grid;
-  gap: 15px;
+  gap: 13px;
 }
 
 .dashboard-command-meta {
@@ -199,25 +199,30 @@ input {
   color: #455468;
   display: flex;
   gap: 12px;
-  justify-content: space-between;
-  margin-top: -8px;
-}
-
-.dashboard-command-meta span {
-  color: #172033;
-  font-size: 14px;
-  font-weight: 750;
+  justify-content: flex-end;
+  margin-top: -12px;
 }
 
 .dashboard-command-meta small {
   color: #637083;
+  display: grid;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 700;
+  gap: 2px;
+  line-height: 1.25;
+  text-align: right;
+}
+
+.dashboard-command-meta small span {
+  color: #8a97aa;
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
 }
 
 .dashboard-kpi-grid {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
@@ -227,9 +232,9 @@ input {
   border: 1px solid #d9e2ec;
   border-radius: 8px;
   display: flex;
-  gap: 10px;
-  min-height: 76px;
-  padding: 13px 14px;
+  gap: 9px;
+  min-height: 60px;
+  padding: 9px 12px;
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
@@ -240,16 +245,17 @@ input {
 }
 
 .dashboard-kpi-card > span,
-.dashboard-section-heading > span {
+.dashboard-section-heading > span,
+.dashboard-heading-main > span {
   align-items: center;
   background: #eef5ff;
   border-radius: 8px;
   color: #2563eb;
   display: grid;
   flex: 0 0 auto;
-  height: 34px;
+  height: 30px;
   justify-content: center;
-  width: 34px;
+  width: 30px;
 }
 
 .dashboard-kpi-card strong,
@@ -259,40 +265,61 @@ input {
 
 .dashboard-kpi-card strong {
   color: #0f172a;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   line-height: 1.1;
 }
 
 .dashboard-kpi-card small {
   color: #637083;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 650;
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
 .dashboard-status-grid {
   display: grid;
-  gap: 15px;
+  gap: 13px;
   grid-template-columns: minmax(0, 0.95fr) minmax(340px, 1.05fr);
 }
 
 .dashboard-status-card,
 .dashboard-attention-panel,
-.dashboard-intelligence-card,
 .dashboard-insights-panel,
 .dashboard-recent-projects-panel,
 .dashboard-chart-panel,
 .dashboard-activity-panel {
   display: grid;
-  gap: 13px;
-  padding: 16px;
+  gap: 11px;
+  padding: 14px;
 }
 
 .dashboard-section-heading {
   align-items: center;
   display: flex;
-  gap: 11px;
+  gap: 10px;
+  min-width: 0;
+}
+
+.dashboard-section-heading.with-meta {
+  justify-content: space-between;
+}
+
+.dashboard-section-heading.with-meta > small {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  color: #52627a;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 9px;
+  white-space: nowrap;
+}
+
+.dashboard-heading-main {
+  align-items: center;
+  display: flex;
+  gap: 10px;
   min-width: 0;
 }
 
@@ -307,15 +334,27 @@ input {
 
 .dashboard-section-heading h2 {
   color: #0f172a;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 850;
   letter-spacing: 0;
 }
 
+.dashboard-section-heading h2 em {
+  background: #eef5ff;
+  border-radius: 999px;
+  color: #123c69;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 850;
+  margin-left: 5px;
+  padding: 2px 6px;
+  vertical-align: 1px;
+}
+
 .dashboard-section-heading p {
   color: #637083;
-  font-size: 13px;
-  margin-top: 3px;
+  font-size: 12px;
+  margin-top: 2px;
 }
 
 .dashboard-status-card.healthy {
@@ -338,7 +377,7 @@ input {
 
 .dashboard-status-lines {
   display: grid;
-  gap: 7px;
+  gap: 6px;
 }
 
 .dashboard-status-lines span {
@@ -347,23 +386,15 @@ input {
   display: flex;
   font-size: 13px;
   font-weight: 700;
-  gap: 8px;
+  gap: 7px;
 }
 
-.dashboard-status-lines span::before {
-  background: #94a3b8;
-  border-radius: 999px;
-  content: "";
-  height: 6px;
-  width: 6px;
+.dashboard-status-card.healthy .dashboard-status-lines svg {
+  color: #16a34a;
 }
 
-.dashboard-status-card.healthy .dashboard-status-lines span::before {
-  background: #16a34a;
-}
-
-.dashboard-status-card.attention .dashboard-status-lines span::before {
-  background: #f97316;
+.dashboard-status-card.attention .dashboard-status-lines svg {
+  color: #f97316;
 }
 
 .dashboard-clear-message {
@@ -376,7 +407,7 @@ input {
   font-size: 13px;
   font-weight: 750;
   gap: 8px;
-  padding: 11px 12px;
+  padding: 8px 10px;
 }
 
 .dashboard-attention-list {
@@ -415,20 +446,40 @@ input {
 
 .dashboard-main-grid {
   display: grid;
-  gap: 15px;
-  grid-template-columns: minmax(280px, 0.85fr) minmax(320px, 1fr) minmax(520px, 1.6fr);
+  gap: 13px;
+  grid-template-columns: minmax(340px, 0.9fr) minmax(520px, 1.4fr);
 }
 
-.dashboard-intelligence-card p {
-  color: #334155;
-  font-size: 14px;
-  line-height: 1.55;
-  margin: 0;
+.dashboard-summary-list {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.dashboard-summary-item {
+  display: grid;
+  gap: 2px;
+}
+
+.dashboard-summary-item span {
+  color: #637083;
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.dashboard-summary-item strong {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 850;
 }
 
 .dashboard-insight-list {
   display: grid;
-  gap: 9px;
+  gap: 8px;
 }
 
 .dashboard-insight-row {
@@ -436,9 +487,9 @@ input {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   display: grid;
-  gap: 9px;
+  gap: 8px;
   grid-template-columns: auto minmax(0, 1fr);
-  padding: 9px 10px;
+  padding: 8px 9px;
 }
 
 .dashboard-insight-row > span {
@@ -447,9 +498,9 @@ input {
   border-radius: 8px;
   color: #2563eb;
   display: grid;
-  height: 28px;
+  height: 26px;
   justify-content: center;
-  width: 28px;
+  width: 26px;
 }
 
 .dashboard-insight-row strong,
@@ -476,7 +527,7 @@ input {
 
 .dashboard-project-table {
   border-collapse: separate;
-  border-spacing: 0 7px;
+  border-spacing: 0 5px;
   width: 100%;
 }
 
@@ -484,7 +535,7 @@ input {
   color: #52627a;
   font-size: 11px;
   font-weight: 850;
-  padding: 0 10px 2px;
+  padding: 0 9px 1px;
   text-align: left;
   text-transform: uppercase;
 }
@@ -496,7 +547,7 @@ input {
   color: #334155;
   font-size: 13px;
   font-weight: 700;
-  padding: 10px;
+  padding: 7px 9px;
   vertical-align: middle;
   white-space: nowrap;
 }
@@ -555,28 +606,30 @@ input {
   align-items: center;
   display: inline-flex;
   gap: 5px;
+  min-height: 30px;
+  padding-inline: 10px;
 }
 
 .dashboard-bottom-grid {
   display: grid;
-  gap: 15px;
+  gap: 13px;
   grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
 }
 
 .dashboard-chart-wrap {
-  height: 230px;
+  height: 216px;
   min-width: 0;
 }
 
 .dashboard-activity-list {
   display: grid;
-  gap: 9px;
+  gap: 7px;
 }
 
 .dashboard-activity-item {
   display: grid;
-  gap: 10px;
-  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 8px;
+  grid-template-columns: 42px minmax(0, 1fr);
   position: relative;
 }
 
@@ -584,9 +637,9 @@ input {
   background: #d9e2ec;
   bottom: -8px;
   content: "";
-  left: 47px;
+  left: 52px;
   position: absolute;
-  top: 20px;
+  top: 24px;
   width: 1px;
 }
 
@@ -596,28 +649,43 @@ input {
 
 .dashboard-activity-item time {
   color: #637083;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 750;
-  padding-top: 2px;
+  padding-top: 5px;
 }
 
-.dashboard-activity-item span {
+.dashboard-activity-content {
+  align-items: center;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   display: grid;
-  gap: 2px;
-  padding: 9px 10px;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 7px 9px;
+}
+
+.dashboard-activity-content > span {
+  align-items: center;
+  background: #eef5ff;
+  border-radius: 999px;
+  color: #2563eb;
+  display: grid;
+  height: 26px;
+  justify-content: center;
+  width: 26px;
 }
 
 .dashboard-activity-item strong {
   color: #0f172a;
-  font-size: 13px;
+  display: block;
+  font-size: 12px;
 }
 
 .dashboard-activity-item small {
   color: #637083;
-  font-size: 12px;
+  display: block;
+  font-size: 11px;
   font-weight: 650;
 }
 
@@ -9979,10 +10047,6 @@ input {
   .dashboard-main-grid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
-
-  .dashboard-recent-projects-panel {
-    grid-column: 1 / -1;
-  }
 }
 
 @media (max-width: 980px) {
@@ -10009,7 +10073,6 @@ input {
   .dashboard-kpi-card,
   .dashboard-status-card,
   .dashboard-attention-panel,
-  .dashboard-intelligence-card,
   .dashboard-insights-panel,
   .dashboard-recent-projects-panel,
   .dashboard-chart-panel,

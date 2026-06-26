@@ -6,6 +6,8 @@ import {
   CircleGauge,
   Clock3,
   Database,
+  Download,
+  FileCheck2,
   FileSpreadsheet,
   Layers3,
   Sparkles,
@@ -33,11 +35,19 @@ type QuickKpi = {
   label: string;
   value: string;
   icon: JSX.Element;
+  tooltip: string;
 };
 
 type AttentionItem = {
   label: string;
   value: number;
+  icon: JSX.Element;
+};
+
+type ActivityItem = {
+  time: string;
+  title: string;
+  detail: string;
   icon: JSX.Element;
 };
 
@@ -54,46 +64,57 @@ export function DashboardPage({
   const isHealthy = totalPending === 0;
   const timelineData = buildTimelineData(overview.timeline);
   const activityItems = buildActivityItems(overview.recentProjects);
+  const lastUpdate = latestProject ? formatDateTimeBR(latestProject.importedAt).replace(" ", " • ") : "Sem importações";
+  const statusChecks = isHealthy
+    ? [
+        "Sistema saudável",
+        "Todos os colaboradores classificados",
+        "Nenhuma pendência operacional",
+        "Nenhum alerta encontrado",
+      ]
+    : [`${totalPending} ponto(s) precisam de revisão`];
   const kpis: QuickKpi[] = [
     {
       label: "Horas analisadas",
       value: `${overview.summary.totalHours.toFixed(2)}h`,
       icon: <Clock3 size={17} />,
+      tooltip: "Total de horas válidas importadas para análise.",
     },
     {
       label: "Projetos analisados",
       value: String(overview.summary.projectsCount),
       icon: <Layers3 size={17} />,
+      tooltip: "Quantidade de projetos processados.",
     },
     {
       label: "Registros importados",
       value: String(overview.summary.totalRecords),
       icon: <Database size={17} />,
+      tooltip: "Total de registros utilizados nas análises.",
     },
     {
       label: "Colaboradores",
       value: String(overview.summary.collaboratorsCount),
       icon: <UsersRound size={17} />,
+      tooltip: "Quantidade de colaboradores identificados nas importações.",
     },
     {
-      label: "Ultima importacao",
+      label: "Última importação",
       value: latestProject ? formatDateBR(latestProject.importedAt) : "-",
       icon: <FileSpreadsheet size={17} />,
+      tooltip: "Data da importação mais recente considerada na Dashboard.",
     },
   ];
 
   return (
     <section className="dashboard-command-center">
       <div className="dashboard-command-meta">
-        <span>Centro de comando da analise operacional.</span>
-        <small>
-          Ultima atualizacao: {latestProject ? formatDateTimeBR(latestProject.importedAt) : "sem importacoes"}
-        </small>
+        <small><span>Atualizado em</span>{lastUpdate}</small>
       </div>
 
       <section className="dashboard-kpi-grid" aria-label="Indicadores principais">
         {kpis.map((item) => (
-          <article className="dashboard-kpi-card" key={item.label}>
+          <article className="dashboard-kpi-card" key={item.label} title={item.tooltip}>
             <span>{item.icon}</span>
             <div>
               <strong>{item.value}</strong>
@@ -108,21 +129,17 @@ export function DashboardPage({
           <div className="dashboard-section-heading">
             <span>{isHealthy ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}</span>
             <div>
-              <h2>{isHealthy ? "Sistema saudavel" : "Atencao operacional"}</h2>
-              <p>{isHealthy ? "Nenhuma inconsistencia relevante encontrada." : `${totalPending} ponto(s) precisam de revisao.`}</p>
+              <h2>Situação Geral</h2>
+              <p>{isHealthy ? "Ambiente operacional estável." : "Itens que exigem revisão."}</p>
             </div>
           </div>
           <div className="dashboard-status-lines">
-            {isHealthy ? (
-              <>
-                <span>Todos colaboradores classificados</span>
-                <span>Nenhuma pendencia operacional</span>
-                <span>Sem alertas pendentes</span>
-              </>
-            ) : (
+            {isHealthy ? statusChecks.map((item) => (
+              <span key={item}><CheckCircle2 size={14} />{item}</span>
+            )) : (
               pendingItems.filter((item) => item.value > 0).map((item) => (
                 <span key={item.label}>
-                  {item.value} {item.label}
+                  <AlertTriangle size={14} />{item.value} {item.label}
                 </span>
               ))
             )}
@@ -133,14 +150,14 @@ export function DashboardPage({
           <div className="dashboard-section-heading compact">
             <span><CircleGauge size={18} /></span>
             <div>
-              <h2>O que precisa da minha atencao?</h2>
+              <h2>O que precisa da minha atenção?</h2>
               <p>Fila operacional consolidada.</p>
             </div>
           </div>
           {isHealthy ? (
             <div className="dashboard-clear-message">
               <CheckCircle2 size={17} />
-              <span>Nenhuma pendencia operacional encontrada.</span>
+              <span>Nenhuma pendência operacional encontrada.</span>
             </div>
           ) : (
             <div className="dashboard-attention-list">
@@ -157,24 +174,21 @@ export function DashboardPage({
       </section>
 
       <section className="dashboard-main-grid">
-        <article className="panel dashboard-intelligence-card">
-          <div className="dashboard-section-heading">
-            <span><Sparkles size={18} /></span>
-            <div>
-              <h2>Analise Inteligente</h2>
-              <p>Leitura automatica do ambiente.</p>
-            </div>
-          </div>
-          <p>{buildIntelligentSummary({ isHealthy, totalPending, topProject, dominantCategory })}</p>
-        </article>
-
         <article className="panel dashboard-insights-panel">
           <div className="dashboard-section-heading">
             <span><Sparkles size={18} /></span>
             <div>
-              <h2>Insights Inteligentes</h2>
-              <p>Sinais rapidos sobre os dados importados.</p>
+              <h2>Resumo Inteligente <em>IA</em></h2>
+              <p>Leitura executiva dos dados importados.</p>
             </div>
+          </div>
+          <div className="dashboard-summary-list">
+            {buildIntelligentSummary({ isHealthy, totalPending, topProject, dominantCategory }).map((item) => (
+              <div className="dashboard-summary-item" key={item.label}>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+              </div>
+            ))}
           </div>
           <div className="dashboard-insight-list">
             {topProject && (
@@ -193,8 +207,8 @@ export function DashboardPage({
             )}
             <DashboardInsight
               icon={isHealthy ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
-              title={isHealthy ? "Ambiente consistente" : "Pontos de atencao"}
-              description={isHealthy ? "Dados recentes sem pendencias relevantes." : `${totalPending} item(ns) pedem revisao operacional.`}
+              title={isHealthy ? "Ambiente consistente" : "Pontos de atenção"}
+              description={isHealthy ? "Nenhuma inconsistência encontrada." : `${totalPending} item(ns) pedem revisão operacional.`}
             />
           </div>
         </article>
@@ -203,8 +217,8 @@ export function DashboardPage({
           <div className="dashboard-section-heading">
             <span><Layers3 size={18} /></span>
             <div>
-              <h2>Ultimos Projetos</h2>
-              <p>Importacoes recentes disponiveis para analise.</p>
+              <h2>Projetos Recentes</h2>
+              <p>Importações recentes disponíveis para análise.</p>
             </div>
           </div>
           {hasProjects ? (
@@ -217,7 +231,7 @@ export function DashboardPage({
                     <th>Registros</th>
                     <th>Status</th>
                     <th>Data</th>
-                    <th>Acao</th>
+                    <th>Ação</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -233,7 +247,7 @@ export function DashboardPage({
                       <td>{formatDateBR(project.importedAt)}</td>
                       <td>
                         <button className="secondary-button compact dashboard-open-button" type="button" onClick={() => onOpenReport(project.importId)}>
-                          Abrir <ArrowUpRight size={13} />
+                          Ver <ArrowUpRight size={13} />
                         </button>
                       </td>
                     </tr>
@@ -244,7 +258,7 @@ export function DashboardPage({
           ) : (
             <div className="dashboard-empty-state">
               <strong>Nenhum projeto importado ainda</strong>
-              <p className="muted">Conclua uma importacao para acompanhar projetos neste painel.</p>
+              <p className="muted">Conclua uma importação para acompanhar projetos neste painel.</p>
             </div>
           )}
         </article>
@@ -252,12 +266,15 @@ export function DashboardPage({
 
       <section className="dashboard-bottom-grid">
         <article className="panel dashboard-chart-panel">
-          <div className="dashboard-section-heading">
-            <span><BarChart3 size={18} /></span>
-            <div>
-              <h2>Evolucao das horas importadas</h2>
-              <p>Resumo visual do volume analisado por periodo.</p>
+          <div className="dashboard-section-heading with-meta">
+            <div className="dashboard-heading-main">
+              <span><BarChart3 size={18} /></span>
+              <div>
+                <h2>Evolução das horas importadas</h2>
+                <p>Resumo visual do volume analisado por período.</p>
+              </div>
             </div>
+            <small>Todo o histórico</small>
           </div>
           {timelineData.length > 0 ? (
             <div className="dashboard-chart-wrap">
@@ -272,7 +289,7 @@ export function DashboardPage({
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="dashboard-empty-state compact">Sem dados suficientes para exibir o grafico.</div>
+            <div className="dashboard-empty-state compact">Sem dados suficientes para exibir o gráfico.</div>
           )}
         </article>
 
@@ -280,8 +297,8 @@ export function DashboardPage({
           <div className="dashboard-section-heading">
             <span><Clock3 size={18} /></span>
             <div>
-              <h2>Ultimas Atividades</h2>
-              <p>Eventos recentes sintetizados das importacoes.</p>
+              <h2>Atividades Recentes</h2>
+              <p>Eventos recentes sintetizados das importações.</p>
             </div>
           </div>
           {activityItems.length > 0 ? (
@@ -289,10 +306,13 @@ export function DashboardPage({
               {activityItems.map((item) => (
                 <div className="dashboard-activity-item" key={`${item.time}-${item.title}-${item.detail}`}>
                   <time>{item.time}</time>
-                  <span>
-                    <strong>{item.title}</strong>
-                    <small>{item.detail}</small>
-                  </span>
+                  <div className="dashboard-activity-content">
+                    <span>{item.icon}</span>
+                    <div>
+                      <strong>{item.title}</strong>
+                      <small>{item.detail}</small>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -320,12 +340,12 @@ function DashboardInsight({ icon, title, description }: { icon: JSX.Element; tit
 function buildAttentionItems(overview: DashboardOverview): AttentionItem[] {
   return [
     {
-      label: "classificacoes pendentes",
+      label: "classificações pendentes",
       value: overview.pendingItems.classificationPending,
       icon: <CheckCircle2 size={16} />,
     },
     {
-      label: "analises de baixa confianca",
+      label: "análises de baixa confiança",
       value: overview.pendingItems.lowConfidence,
       icon: <AlertTriangle size={16} />,
     },
@@ -358,19 +378,28 @@ function buildActivityItems(projects: DashboardRecentProject[]) {
         time,
         title: "Projeto importado",
         detail: project.projectName,
+        icon: <FileSpreadsheet size={14} />,
       },
       {
         time,
-        title: "Classificacao concluida",
+        title: "Classificação concluída",
         detail: `${project.recordsCount} registros consolidados`,
+        icon: <FileCheck2 size={14} />,
       },
       {
         time,
-        title: "Relatorio executivo disponivel",
+        title: "Relatório gerado",
         detail: project.status,
+        icon: <BarChart3 size={14} />,
       },
-    ];
-  }).slice(0, 5);
+      {
+        time,
+        title: "Exportação disponível",
+        detail: "PDF Executivo e Excel Operacional",
+        icon: <Download size={14} />,
+      },
+    ] satisfies ActivityItem[];
+  }).slice(0, 6);
 }
 
 function buildIntelligentSummary({
@@ -385,16 +414,23 @@ function buildIntelligentSummary({
   dominantCategory?: { category: string; hours: number; percentage: number };
 }) {
   if (!topProject) {
-    return "Nenhum projeto foi importado ainda. Assim que a primeira base for consolidada, este painel passara a indicar saude operacional, volume analisado e pontos de atencao.";
+    return [
+      { label: "Projeto com maior volume", value: "Nenhum projeto importado" },
+      { label: "Categoria predominante", value: "Sem dados suficientes" },
+      { label: "Status", value: "Aguardando importação" },
+      { label: "Situação geral", value: "Painel será atualizado após a primeira base" },
+    ];
   }
 
-  const projectPart = `${topProject.projectName} e o projeto recente com maior volume, com ${topProject.totalHours.toFixed(2)}h analisadas.`;
-  const categoryPart = dominantCategory && dominantCategory.hours > 0
-    ? `A categoria ${dominantCategory.category} concentra ${dominantCategory.percentage.toFixed(1)}% do esforco.`
-    : "Nao ha concentracao de categoria suficiente para destacar.";
-  const healthPart = isHealthy
-    ? "Nenhuma inconsistencia relevante foi encontrada no ambiente."
-    : `${totalPending} ponto(s) exigem revisao antes de considerar o ambiente totalmente saudavel.`;
-
-  return `${healthPart} ${projectPart} ${categoryPart}`;
+  return [
+    { label: "Projeto com maior volume", value: `${topProject.projectName} (${topProject.totalHours.toFixed(2)}h)` },
+    {
+      label: "Categoria predominante",
+      value: dominantCategory && dominantCategory.hours > 0
+        ? `${dominantCategory.category} (${dominantCategory.percentage.toFixed(1)}%)`
+        : "Sem categoria predominante",
+    },
+    { label: "Status", value: isHealthy ? "Nenhuma inconsistência encontrada" : `${totalPending} item(ns) exigem revisão` },
+    { label: "Situação geral", value: isHealthy ? "Ambiente operacional saudável" : "Ambiente com pontos de atenção" },
+  ];
 }
