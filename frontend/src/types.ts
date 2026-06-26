@@ -283,6 +283,7 @@ export type DashboardSummary = {
 export type DashboardOverviewSummary = {
   totalHours: number;
   projectsCount: number;
+  totalRecords: number;
   collaboratorsCount: number;
   pendingAlerts: number;
 };

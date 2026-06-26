@@ -39,6 +39,7 @@ const emptyOverview: DashboardOverview = {
   summary: {
     totalHours: 0,
     projectsCount: 0,
+    totalRecords: 0,
     collaboratorsCount: 0,
     pendingAlerts: 0,
   },
@@ -148,7 +149,7 @@ export function useDashboardData() {
         setTimeline(data.timeline);
         return {
           totalHours: data.summary.totalHours,
-          totalRecords: data.summary.projectsCount,
+          totalRecords: data.summary.totalRecords,
           totalUsers: data.summary.collaboratorsCount,
           totalEpics: data.summary.projectsCount,
           pendingAlerts: data.summary.pendingAlerts,

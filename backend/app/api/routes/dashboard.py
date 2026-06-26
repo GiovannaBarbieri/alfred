@@ -51,6 +51,7 @@ def get_dashboard_overview(
                 SELECT
                     COALESCE(SUM(l.duracao_segundos), 0) AS total_seconds,
                     COUNT(DISTINCT l.importacao_id) AS projects_count,
+                    COUNT(l.id) AS total_records,
                     COUNT(DISTINCT l.login_usuario) AS collaborators_count,
                     (SELECT total FROM unresolved_alerts) AS pending_alerts
                 FROM filtered_lancamentos l
@@ -169,7 +170,7 @@ def get_dashboard_overview(
                 WITH category_totals AS (
                     SELECT
                         CASE
-                            WHEN c.nome IN ('Desenvolvimento', 'Reuniao', 'Definicao', 'Homologacao', 'Retrabalho')
+                            WHEN c.nome IN ('Acompanhamento', 'Definição', 'Desenvolvimento', 'Homologação', 'Impedimento', 'Retrabalho')
                                 THEN c.nome
                             ELSE 'Outros'
                         END AS category,
@@ -179,19 +180,20 @@ def get_dashboard_overview(
                     {where_sql}
                     GROUP BY
                         CASE
-                            WHEN c.nome IN ('Desenvolvimento', 'Reuniao', 'Definicao', 'Homologacao', 'Retrabalho')
+                            WHEN c.nome IN ('Acompanhamento', 'Definição', 'Desenvolvimento', 'Homologação', 'Impedimento', 'Retrabalho')
                                 THEN c.nome
                             ELSE 'Outros'
                         END
                 ),
                 categories(category, sort_order) AS (
                     VALUES
-                        ('Desenvolvimento', 1),
-                        ('Reuniao', 2),
-                        ('Definicao', 3),
-                        ('Homologacao', 4),
-                        ('Retrabalho', 5),
-                        ('Outros', 6)
+                        ('Acompanhamento', 1),
+                        ('Definição', 2),
+                        ('Desenvolvimento', 3),
+                        ('Homologação', 4),
+                        ('Impedimento', 5),
+                        ('Retrabalho', 6),
+                        ('Outros', 7)
                 ),
                 totals AS (
                     SELECT COALESCE(SUM(total_seconds), 0) AS grand_total_seconds
@@ -229,12 +231,13 @@ def get_dashboard_overview(
             timeline_rows = cursor.fetchall()
 
     return {
-        "summary": {
-            "totalHours": round(int(summary_row["total_seconds"]) / 3600, 2),
-            "projectsCount": summary_row["projects_count"],
-            "collaboratorsCount": summary_row["collaborators_count"],
-            "pendingAlerts": summary_row["pending_alerts"],
-        },
+            "summary": {
+                "totalHours": round(int(summary_row["total_seconds"]) / 3600, 2),
+                "projectsCount": summary_row["projects_count"],
+                "totalRecords": summary_row["total_records"],
+                "collaboratorsCount": summary_row["collaborators_count"],
+                "pendingAlerts": summary_row["pending_alerts"],
+            },
         "recentProjects": [
             {
                 "importId": row["import_id"],

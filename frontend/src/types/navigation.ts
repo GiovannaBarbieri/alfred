@@ -3,7 +3,7 @@ export type SectionId = "dashboard" | "analytics" | "import" | "validation" | "r
 export const sectionMeta: Record<SectionId, { title: string; description: string }> = {
   dashboard: {
     title: "Dashboard",
-    description: "Acompanhe indicadores consolidados, pendências e projetos analisados.",
+    description: "Centro de comando da análise operacional.",
   },
   analytics: {
     title: "Inteligência Operacional",
