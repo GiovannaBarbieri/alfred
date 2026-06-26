@@ -113,6 +113,8 @@ export function ProjectChartsPanel({
           title={selectedChart.title}
           description={selectedChart.description}
           data={projectTimelineCharts[activeChartId]}
+          chartType={activeChartId === "weeklyByUser" ? "bar" : "line"}
+          seriesSummaryTitle={activeTab === "collaborators" ? "Top colaboradores" : "Top categorias"}
         />
       </section>
     </>
