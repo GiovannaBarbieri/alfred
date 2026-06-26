@@ -56,12 +56,27 @@ export function ProjectTimelineChart({
     const rowsByPeriod = new Map<string, Record<string, string | number>>();
     data.forEach((item) => {
       const series = item.series ?? "Total";
-      const current = rowsByPeriod.get(item.period) ?? { period: item.period, label: formatPeriodBR(item.period) };
+      const current = rowsByPeriod.get(item.period) ?? {
+        period: item.period,
+        label: formatPeriodBR(item.period),
+        __periodTotal: 0,
+      };
       current[series] = item.horas;
+      current.__periodTotal = Number(current.__periodTotal ?? 0) + item.horas;
       rowsByPeriod.set(item.period, current);
     });
     return Array.from(rowsByPeriod.values()).sort((a, b) => String(a.period).localeCompare(String(b.period)));
   }, [data]);
+
+  const visibleChartData = useMemo(() => {
+    return chartData.map((row) => {
+      const nextRow = { ...row };
+      activeSeries.forEach((series) => {
+        nextRow[series] = Number(nextRow[series] ?? 0);
+      });
+      return nextRow;
+    });
+  }, [activeSeries, chartData]);
 
   const visibleValues = useMemo(() => {
     return data
@@ -117,7 +132,7 @@ export function ProjectTimelineChart({
 
               <div className="chart-series-custom-list" aria-label={seriesSummaryTitle}>
                 {seriesTotals.map((series) => (
-                  <label key={series.name}>
+                  <label className={topFiveSeries.includes(series.name) ? "top-series" : ""} key={series.name}>
                     <input
                       type="checkbox"
                       checked={activeSeries.includes(series.name)}
@@ -133,29 +148,18 @@ export function ProjectTimelineChart({
 
           <div className="chart-wrap project-chart-wrap">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ left: 4, right: 16, top: 12, bottom: 4 }}>
+              <LineChart data={visibleChartData} margin={{ left: 2, right: 10, top: 6, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#d9e2ec" />
                 <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={18} />
                 <YAxis tickLine={false} axisLine={false} />
-                <Tooltip
-                  formatter={(value) => {
-                    const hours = Number(value);
-                    const difference = hours - averageValue;
-                    const variation = averageValue > 0 ? (difference / averageValue) * 100 : 0;
-                    const signal = difference >= 0 ? "+" : "";
-                    return [
-                      `${hours.toFixed(2)}h | média ${averageValue.toFixed(2)}h | ${signal}${difference.toFixed(2)}h (${signal}${variation.toFixed(1)}%)`,
-                      "Horas",
-                    ];
-                  }}
-                  labelFormatter={(_, payload) => formatPeriodBR(String(payload?.[0]?.payload?.period ?? ""))}
-                />
+                <Tooltip content={<TimelineTooltip />} />
                 {averageValue > 0 && (
                   <ReferenceLine
                     y={averageValue}
-                    stroke="#94a3b8"
-                    strokeDasharray="6 4"
-                    label={{ value: "Média do período", position: "insideTopRight", fill: "#64748b", fontSize: 12 }}
+                    stroke="#64748b"
+                    strokeDasharray="7 4"
+                    strokeWidth={1.6}
+                    label={{ value: "Média do período", position: "insideTopRight", fill: "#475569", fontSize: 12, fontWeight: 700 }}
                   />
                 )}
                 {activeSeries.length > 1 && <Legend verticalAlign="bottom" height={32} />}
@@ -178,5 +182,34 @@ export function ProjectTimelineChart({
         </>
       )}
     </section>
+  );
+}
+
+function TimelineTooltip({ active, payload }: { active?: boolean; payload?: Array<Record<string, any>> }) {
+  if (!active || !payload?.length) return null;
+
+  const row = payload[0]?.payload ?? {};
+  const periodTotal = Number(row.__periodTotal ?? 0);
+  const visiblePayload = payload.filter((item) => item.dataKey !== "__periodTotal");
+
+  return (
+    <div className="timeline-tooltip">
+      <strong>{formatPeriodBR(String(row.period ?? ""))}</strong>
+      <div className="timeline-tooltip-series">
+        {visiblePayload.map((item) => {
+          const value = Number(item.value ?? 0);
+          const percentage = periodTotal > 0 ? (value / periodTotal) * 100 : 0;
+          return (
+            <span key={String(item.dataKey)}>
+              <i style={{ background: String(item.color ?? "#2563eb") }} />
+              <small>{String(item.name)}</small>
+              <b>{value.toFixed(2)}h</b>
+              <em>{percentage.toFixed(1)}% do total do período</em>
+            </span>
+          );
+        })}
+      </div>
+      {visiblePayload.length > 1 && <p>Total do período: {periodTotal.toFixed(2)}h</p>}
+    </div>
   );
 }

@@ -5615,11 +5615,12 @@ input {
 }
 
 .timeline-chart-panel {
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .timeline-chart-heading {
   align-items: start;
+  margin-bottom: 10px;
 }
 
 .timeline-chart-heading p {
@@ -5627,7 +5628,7 @@ input {
 }
 
 .project-chart-wrap {
-  height: 380px;
+  height: 410px;
 }
 
 .chart-empty-state {
@@ -5681,8 +5682,8 @@ input {
 
 .chart-series-selection {
   display: grid;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .chart-series-selection-header {
@@ -5695,6 +5696,7 @@ input {
 .chart-series-selection-header > strong {
   color: #172033;
   font-size: 13px;
+  line-height: 1;
 }
 
 .chart-series-selection-header div {
@@ -5710,25 +5712,33 @@ input {
   cursor: pointer;
   font-size: 12px;
   font-weight: 850;
-  min-height: 30px;
-  padding: 5px 10px;
+  min-height: 28px;
+  padding: 4px 9px;
 }
 
 .chart-series-custom-list {
   display: grid;
-  gap: 4px 10px;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  max-height: 118px;
+  gap: 3px 8px;
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+  max-height: 94px;
   overflow: auto;
   padding-right: 4px;
 }
 
 .chart-series-custom-list label {
   align-items: center;
+  border: 1px solid transparent;
+  border-radius: 7px;
   display: grid;
-  gap: 8px;
+  gap: 6px;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  min-height: 28px;
+  min-height: 24px;
+  padding: 2px 5px;
+}
+
+.chart-series-custom-list label.top-series {
+  background: #eef5ff;
+  border-color: #d9e8ff;
 }
 
 .chart-series-custom-list span {
@@ -5744,6 +5754,110 @@ input {
   color: #123c69;
   font-size: 12px;
   white-space: nowrap;
+}
+
+.chart-series-custom-list label.top-series span {
+  font-weight: 850;
+}
+
+.chart-series-custom-list label.top-series strong::after {
+  background: #dbeafe;
+  border-radius: 999px;
+  color: #1d4ed8;
+  content: "Top";
+  font-size: 9px;
+  font-weight: 900;
+  margin-left: 6px;
+  padding: 1px 5px;
+  text-transform: uppercase;
+}
+
+.project-chart-wrap .recharts-default-legend {
+  align-items: center;
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  justify-content: center;
+  padding-top: 8px !important;
+}
+
+.project-chart-wrap .recharts-legend-item {
+  align-items: center;
+  color: #334155 !important;
+  display: inline-flex !important;
+  font-size: 12px;
+  font-weight: 750;
+  margin-right: 0 !important;
+}
+
+.project-chart-wrap .recharts-legend-icon {
+  height: 12px !important;
+  width: 12px !important;
+}
+
+.timeline-tooltip {
+  background: #ffffff;
+  border: 1px solid #c8d3df;
+  border-radius: 8px;
+  box-shadow: 0 12px 26px rgba(18, 60, 105, 0.14);
+  display: grid;
+  gap: 8px;
+  max-width: 340px;
+  padding: 10px;
+}
+
+.timeline-tooltip > strong {
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.timeline-tooltip-series {
+  display: grid;
+  gap: 6px;
+}
+
+.timeline-tooltip-series span {
+  align-items: center;
+  display: grid;
+  gap: 7px;
+  grid-template-columns: 9px minmax(90px, 1fr) auto;
+}
+
+.timeline-tooltip-series i {
+  border-radius: 999px;
+  height: 9px;
+  width: 9px;
+}
+
+.timeline-tooltip-series small {
+  color: #334155;
+  font-size: 12px;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-tooltip-series b {
+  color: #123c69;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.timeline-tooltip-series em {
+  color: #637083;
+  font-size: 11px;
+  font-style: normal;
+  grid-column: 2 / 4;
+}
+
+.timeline-tooltip p {
+  border-top: 1px solid #e2e8f0;
+  color: #172033;
+  font-size: 12px;
+  font-weight: 850;
+  margin: 0;
+  padding-top: 7px;
 }
 
 .category-donut-panel,
