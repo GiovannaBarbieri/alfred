@@ -1,8 +1,6 @@
 import { BarChart3 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import {
-  Bar,
-  BarChart,
   CartesianGrid,
   Legend,
   Line,
@@ -21,8 +19,8 @@ type ProjectTimelineChartProps = {
   title: string;
   description: string;
   data: ProjectTimelinePoint[];
-  chartType?: "line" | "bar";
   seriesSummaryTitle?: string;
+  timelineControl?: ReactNode;
 };
 
 type SeriesLimitOption = "top5" | "top10" | "all" | "custom";
@@ -33,11 +31,11 @@ export function ProjectTimelineChart({
   title,
   description,
   data,
-  chartType = "line",
   seriesSummaryTitle = "Top series",
+  timelineControl,
 }: ProjectTimelineChartProps) {
   const [seriesLimit, setSeriesLimit] = useState<SeriesLimitOption>("top5");
-  const [customLimit, setCustomLimit] = useState(5);
+  const [customSeries, setCustomSeries] = useState<string[]>([]);
 
   const seriesTotals = useMemo(() => {
     const totals = new Map<string, number>();
@@ -51,12 +49,14 @@ export function ProjectTimelineChart({
   }, [data]);
 
   const seriesNames = useMemo(() => seriesTotals.map((item) => item.name), [seriesTotals]);
+  const topFiveSeries = useMemo(() => seriesNames.slice(0, 5), [seriesNames]);
   const activeSeries = useMemo(() => {
     if (seriesNames.length <= 1) return seriesNames;
     if (seriesLimit === "all") return seriesNames;
-    const limit = seriesLimit === "top10" ? 10 : seriesLimit === "custom" ? customLimit : 5;
-    return seriesNames.slice(0, Math.max(1, limit));
-  }, [customLimit, seriesLimit, seriesNames]);
+    if (seriesLimit === "top10") return seriesNames.slice(0, 10);
+    if (seriesLimit === "custom") return customSeries.filter((series) => seriesNames.includes(series));
+    return topFiveSeries;
+  }, [customSeries, seriesLimit, seriesNames, topFiveSeries]);
 
   const chartData = useMemo(() => {
     const rowsByPeriod = new Map<string, Record<string, string | number>>();
@@ -68,6 +68,13 @@ export function ProjectTimelineChart({
     });
     return Array.from(rowsByPeriod.values()).sort((a, b) => String(a.period).localeCompare(String(b.period)));
   }, [data]);
+
+  const activeSeriesDetails = useMemo(
+    () => activeSeries
+      .map((series) => seriesTotals.find((item) => item.name === series))
+      .filter((item): item is { name: string; total: number } => Boolean(item)),
+    [activeSeries, seriesTotals],
+  );
 
   const visibleValues = useMemo(() => {
     return data
@@ -82,17 +89,23 @@ export function ProjectTimelineChart({
 
   useEffect(() => {
     setSeriesLimit("top5");
-    setCustomLimit(5);
-  }, [title]);
+    setCustomSeries(topFiveSeries);
+  }, [title, topFiveSeries]);
 
   function handleSeriesLimitChange(value: SeriesLimitOption) {
-    if (value === "custom") {
-      const response = window.prompt("Quantos itens deseja exibir?", String(customLimit));
-      const parsed = Number(response);
-      if (!response || Number.isNaN(parsed) || parsed <= 0) return;
-      setCustomLimit(Math.floor(parsed));
+    if (value === "custom" && customSeries.length === 0) {
+      setCustomSeries(topFiveSeries);
     }
     setSeriesLimit(value);
+  }
+
+  function toggleCustomSeries(series: string) {
+    setCustomSeries((current) => {
+      if (current.includes(series)) {
+        return current.length === 1 ? current : current.filter((item) => item !== series);
+      }
+      return [...current, series];
+    });
   }
 
   return (
@@ -103,28 +116,18 @@ export function ProjectTimelineChart({
           <h2>{title}</h2>
           <p className="muted">{description}</p>
         </div>
+        {timelineControl}
       </div>
 
       {chartData.length === 0 ? (
         <div className="chart-empty-state">
           <strong>Nenhum dado encontrado</strong>
-          <span>Este projeto ainda nao possui registros para montar esta linha do tempo.</span>
+          <span>Este projeto ainda não possui registros para montar esta linha do tempo.</span>
         </div>
       ) : (
         <>
           {seriesNames.length > 1 && (
             <div className="chart-series-executive">
-              <div className="chart-series-summary">
-                <strong>{seriesSummaryTitle}:</strong>
-                <ol>
-                  {seriesTotals.slice(0, 3).map((series, index) => (
-                    <li key={series.name}>
-                      <span>{index + 1}º {series.name}</span>
-                      <strong>{series.total.toFixed(2)}h</strong>
-                    </li>
-                  ))}
-                </ol>
-              </div>
               <label className="chart-series-limit">
                 <span>Exibindo</span>
                 <select value={seriesLimit} onChange={(event) => handleSeriesLimitChange(event.target.value as SeriesLimitOption)}>
@@ -137,70 +140,76 @@ export function ProjectTimelineChart({
             </div>
           )}
 
+          {seriesNames.length > 1 && (
+            <div className="chart-series-rank-strip" aria-label={seriesSummaryTitle}>
+              {activeSeriesDetails.map((series, index) => (
+                <span className="chart-series-rank-card" key={series.name}>
+                  <i style={{ background: colors[index % colors.length] }} />
+                  <strong>{index + 1}º {series.name}</strong>
+                  <small>{series.total.toFixed(2)}h</small>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {seriesLimit === "custom" && seriesNames.length > 1 && (
+            <div className="chart-series-custom-list" aria-label="Selecao personalizada">
+              {seriesTotals.map((series) => (
+                <label key={series.name}>
+                  <input
+                    type="checkbox"
+                    checked={activeSeries.includes(series.name)}
+                    onChange={() => toggleCustomSeries(series.name)}
+                  />
+                  <span>{series.name}</span>
+                  <strong>{series.total.toFixed(2)}h</strong>
+                </label>
+              ))}
+            </div>
+          )}
+
           <div className="chart-wrap project-chart-wrap">
             <ResponsiveContainer width="100%" height="100%">
-              {chartType === "bar" ? (
-                <BarChart data={chartData} margin={{ left: 4, right: 16, top: 12, bottom: 4 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#d9e2ec" />
-                  <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={18} />
-                  <YAxis tickLine={false} axisLine={false} />
-                  <Tooltip
-                    formatter={(value) => [`${Number(value).toFixed(2)}h`, "Horas"]}
-                    labelFormatter={(_, payload) => formatPeriodBR(String(payload?.[0]?.payload?.period ?? ""))}
+              <LineChart data={chartData} margin={{ left: 4, right: 16, top: 12, bottom: 4 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#d9e2ec" />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={18} />
+                <YAxis tickLine={false} axisLine={false} />
+                <Tooltip
+                  formatter={(value) => {
+                    const hours = Number(value);
+                    const difference = hours - averageValue;
+                    const variation = averageValue > 0 ? (difference / averageValue) * 100 : 0;
+                    const signal = difference >= 0 ? "+" : "";
+                    return [
+                      `${hours.toFixed(2)}h | média ${averageValue.toFixed(2)}h | ${signal}${difference.toFixed(2)}h (${signal}${variation.toFixed(1)}%)`,
+                      "Horas",
+                    ];
+                  }}
+                  labelFormatter={(_, payload) => formatPeriodBR(String(payload?.[0]?.payload?.period ?? ""))}
+                />
+                {averageValue > 0 && (
+                  <ReferenceLine
+                    y={averageValue}
+                    stroke="#94a3b8"
+                    strokeDasharray="6 4"
+                    label={{ value: "Média do período", position: "insideTopRight", fill: "#64748b", fontSize: 12 }}
                   />
-                  {activeSeries.length > 1 && <Legend verticalAlign="bottom" height={32} />}
-                  {activeSeries.map((series, index) => (
-                    <Bar
-                      key={series}
-                      dataKey={series}
-                      fill={colors[index % colors.length]}
-                      radius={[4, 4, 0, 0]}
-                      isAnimationActive={false}
-                    />
-                  ))}
-                </BarChart>
-              ) : (
-                <LineChart data={chartData} margin={{ left: 4, right: 16, top: 12, bottom: 4 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#d9e2ec" />
-                  <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={18} />
-                  <YAxis tickLine={false} axisLine={false} />
-                  <Tooltip
-                    formatter={(value) => {
-                      const hours = Number(value);
-                      const difference = hours - averageValue;
-                      const variation = averageValue > 0 ? (difference / averageValue) * 100 : 0;
-                      const signal = difference >= 0 ? "+" : "";
-                      return [
-                        `${hours.toFixed(2)}h | media ${averageValue.toFixed(2)}h | ${signal}${difference.toFixed(2)}h (${signal}${variation.toFixed(1)}%)`,
-                        "Horas",
-                      ];
-                    }}
-                    labelFormatter={(_, payload) => formatPeriodBR(String(payload?.[0]?.payload?.period ?? ""))}
+                )}
+                {activeSeries.length > 1 && <Legend verticalAlign="bottom" height={32} />}
+                {activeSeries.map((series, index) => (
+                  <Line
+                    key={series}
+                    type="monotone"
+                    dataKey={series}
+                    stroke={colors[index % colors.length]}
+                    strokeWidth={2.5}
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 5 }}
+                    connectNulls
+                    isAnimationActive={false}
                   />
-                  {averageValue > 0 && (
-                    <ReferenceLine
-                      y={averageValue}
-                      stroke="#94a3b8"
-                      strokeDasharray="6 4"
-                      label={{ value: "Media do periodo", position: "insideTopRight", fill: "#64748b", fontSize: 12 }}
-                    />
-                  )}
-                  {activeSeries.length > 1 && <Legend verticalAlign="bottom" height={32} />}
-                  {activeSeries.map((series, index) => (
-                    <Line
-                      key={series}
-                      type="monotone"
-                      dataKey={series}
-                      stroke={colors[index % colors.length]}
-                      strokeWidth={2.5}
-                      dot={{ r: 3 }}
-                      activeDot={{ r: 5 }}
-                      connectNulls
-                      isAnimationActive={false}
-                    />
-                  ))}
-                </LineChart>
-              )}
+                ))}
+              </LineChart>
             </ResponsiveContainer>
           </div>
         </>

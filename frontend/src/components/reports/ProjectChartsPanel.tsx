@@ -25,10 +25,20 @@ type ProjectChartsPanelProps = {
 };
 
 type SpecificTab = "collaborators" | "categories";
+type ChartPeriodicity = "daily" | "weekly" | "monthly";
 
 const donutColors = ["#2563eb", "#16a34a", "#f97316", "#7c3aed", "#0891b2", "#64748b"];
-const collaboratorChartIds: TimelineChartId[] = ["dailyByUser", "weeklyByUser"];
-const categoryChartIds: TimelineChartId[] = ["dailyByCategory", "weeklyByCategory", "monthlyByCategory"];
+const chartIdByTabAndPeriodicity: Record<SpecificTab, Partial<Record<ChartPeriodicity, TimelineChartId>>> = {
+  collaborators: {
+    daily: "dailyByUser",
+    weekly: "weeklyByUser",
+  },
+  categories: {
+    daily: "dailyByCategory",
+    weekly: "weeklyByCategory",
+    monthly: "monthlyByCategory",
+  },
+};
 
 export function ProjectChartsPanel({
   selectedChartId,
@@ -36,17 +46,27 @@ export function ProjectChartsPanel({
   projectTimelineCharts,
   onSelectedChartChange,
 }: ProjectChartsPanelProps) {
-  const initialTab = categoryChartIds.includes(selectedChartId) ? "categories" : "collaborators";
+  const initialTab = selectedChartId.includes("Category") ? "categories" : "collaborators";
   const [activeTab, setActiveTab] = useState<SpecificTab>(initialTab);
-  const activeChartIds = activeTab === "collaborators" ? collaboratorChartIds : categoryChartIds;
-  const fallbackChartId = activeChartIds[0];
-  const activeChartId = activeChartIds.includes(selectedChartId) ? selectedChartId : fallbackChartId;
+  const [periodicity, setPeriodicity] = useState<ChartPeriodicity>(() => getPeriodicityFromChartId(selectedChartId));
+  const availablePeriodicities = activeTab === "collaborators"
+    ? (["daily", "weekly"] as ChartPeriodicity[])
+    : (["daily", "weekly", "monthly"] as ChartPeriodicity[]);
+  const safePeriodicity = availablePeriodicities.includes(periodicity) ? periodicity : "daily";
+  const activeChartId = chartIdByTabAndPeriodicity[activeTab][safePeriodicity] ?? chartIdByTabAndPeriodicity[activeTab].daily!;
   const selectedChart = timelineCharts.find((chart) => chart.id === activeChartId) ?? timelineCharts[1];
   const cumulativeData = useMemo(() => buildCumulativeData(projectTimelineCharts.dailyTotal), [projectTimelineCharts.dailyTotal]);
 
   function handleTabChange(tab: SpecificTab) {
     setActiveTab(tab);
-    onSelectedChartChange(tab === "collaborators" ? collaboratorChartIds[0] : categoryChartIds[0]);
+    setPeriodicity("daily");
+    onSelectedChartChange(chartIdByTabAndPeriodicity[tab].daily!);
+  }
+
+  function handlePeriodicityChange(nextPeriodicity: ChartPeriodicity) {
+    setPeriodicity(nextPeriodicity);
+    const nextChartId = chartIdByTabAndPeriodicity[activeTab][nextPeriodicity];
+    if (nextChartId) onSelectedChartChange(nextChartId);
   }
 
   return (
@@ -91,34 +111,31 @@ export function ProjectChartsPanel({
           </button>
         </div>
 
-        <section className="timeline-selector compact" aria-label="Gráficos especializados do projeto">
-          {activeChartIds.map((chartId) => {
-            const chart = timelineCharts.find((item) => item.id === chartId);
-            if (!chart) return null;
-            return (
-              <button
-                className={`timeline-selector-button ${activeChartId === chart.id ? "active" : ""}`}
-                key={chart.id}
-                type="button"
-                onClick={() => onSelectedChartChange(chart.id)}
-              >
-                <BarChart3 size={16} />
-                <span>{chart.title}</span>
-              </button>
-            );
-          })}
-        </section>
-
         <ProjectTimelineChart
           title={selectedChart.title}
           description={selectedChart.description}
           data={projectTimelineCharts[activeChartId]}
-          chartType={activeChartId === "weeklyByUser" ? "bar" : "line"}
           seriesSummaryTitle={activeTab === "collaborators" ? "Top colaboradores" : "Top categorias"}
+          timelineControl={(
+            <label className="chart-periodicity-control">
+              <span>Linha do tempo</span>
+              <select value={safePeriodicity} onChange={(event) => handlePeriodicityChange(event.target.value as ChartPeriodicity)}>
+                <option value="daily">Diária</option>
+                <option value="weekly">Semanal</option>
+                {activeTab === "categories" && <option value="monthly">Mensal</option>}
+              </select>
+            </label>
+          )}
         />
       </section>
     </>
   );
+}
+
+function getPeriodicityFromChartId(chartId: TimelineChartId): ChartPeriodicity {
+  if (chartId === "weeklyByUser" || chartId === "weeklyByCategory") return "weekly";
+  if (chartId === "monthlyByCategory") return "monthly";
+  return "daily";
 }
 
 function buildCumulativeData(data: ProjectTimelinePoint[]) {
