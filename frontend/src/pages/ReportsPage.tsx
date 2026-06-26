@@ -305,7 +305,6 @@ export function ReportsPage({
 
       <ProjectReportTabs
         activeTab={activeProjectTab}
-        chartCount={timelineCharts.length}
         taskCount={projectExecutiveSummary.metrics.tasksCount}
         onChange={setActiveProjectTab}
       />

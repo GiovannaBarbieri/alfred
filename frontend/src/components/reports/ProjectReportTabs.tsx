@@ -5,20 +5,18 @@ import type { ReactNode } from "react";
 
 type ProjectReportTabsProps = {
   activeTab: ProjectTabId;
-  chartCount: number;
   taskCount: number;
   onChange: (tab: ProjectTabId) => void;
 };
 
-export function ProjectReportTabs({ activeTab, chartCount, taskCount, onChange }: ProjectReportTabsProps) {
+export function ProjectReportTabs({ activeTab, taskCount, onChange }: ProjectReportTabsProps) {
   const icons: Record<ProjectTabId, ReactNode> = {
     executive: <LayoutDashboard size={18} />,
     charts: <BarChart3 size={18} />,
     tasks: <ClipboardList size={18} />,
   };
-  const badges: Record<ProjectTabId, string> = {
+  const badges: Partial<Record<ProjectTabId, string>> = {
     executive: "Resumo",
-    charts: String(chartCount),
     tasks: String(taskCount),
   };
 
@@ -33,7 +31,7 @@ export function ProjectReportTabs({ activeTab, chartCount, taskCount, onChange }
         >
           {icons[tab.id]}
           <span>{tab.label}</span>
-          <small>{badges[tab.id]}</small>
+          {badges[tab.id] && <small>{badges[tab.id]}</small>}
         </button>
       ))}
     </section>
