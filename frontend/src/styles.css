@@ -5860,8 +5860,7 @@ input {
   padding-top: 7px;
 }
 
-.category-donut-panel,
-.cumulative-hours-panel {
+.category-donut-panel {
   display: grid;
   gap: 14px;
 }

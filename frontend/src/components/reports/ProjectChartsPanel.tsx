@@ -1,19 +1,14 @@
-import { BarChart3, PieChart as PieChartIcon, TrendingUp } from "lucide-react";
-import { useMemo, useState } from "react";
+import { BarChart3, PieChart as PieChartIcon } from "lucide-react";
+import { useState } from "react";
 import {
   Cell,
-  Line,
-  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
   Tooltip,
-  XAxis,
-  YAxis,
 } from "recharts";
 
-import type { HoursReportItem, ProjectExecutiveSummary, ProjectTimelineCharts, ProjectTimelinePoint } from "../../types";
-import { formatPeriodBR } from "../../utils/date";
+import type { HoursReportItem, ProjectExecutiveSummary, ProjectTimelineCharts } from "../../types";
 import { ProjectTimelineChart } from "../ProjectTimelineChart";
 import { timelineCharts, type TimelineChartId } from "./reportsConfig";
 
@@ -55,7 +50,6 @@ export function ProjectChartsPanel({
   const safePeriodicity = availablePeriodicities.includes(periodicity) ? periodicity : "daily";
   const activeChartId = chartIdByTabAndPeriodicity[activeTab][safePeriodicity] ?? chartIdByTabAndPeriodicity[activeTab].daily!;
   const selectedChart = timelineCharts.find((chart) => chart.id === activeChartId) ?? timelineCharts[1];
-  const cumulativeData = useMemo(() => buildCumulativeData(projectTimelineCharts.dailyTotal), [projectTimelineCharts.dailyTotal]);
 
   function handleTabChange(tab: SpecificTab) {
     setActiveTab(tab);
@@ -78,8 +72,6 @@ export function ProjectChartsPanel({
       />
 
       <CategoryDonutChart items={projectExecutiveSummary.categories} />
-
-      <CumulativeHoursChart data={cumulativeData} />
 
       <section className="panel chart-specific-analysis-panel">
         <div className="reports-section-title">
@@ -136,20 +128,6 @@ function getPeriodicityFromChartId(chartId: TimelineChartId): ChartPeriodicity {
   if (chartId === "weeklyByUser" || chartId === "weeklyByCategory") return "weekly";
   if (chartId === "monthlyByCategory") return "monthly";
   return "daily";
-}
-
-function buildCumulativeData(data: ProjectTimelinePoint[]) {
-  let total = 0;
-  return [...data]
-    .sort((a, b) => a.period.localeCompare(b.period))
-    .map((point) => {
-      total += point.horas;
-      return {
-        period: point.period,
-        label: formatPeriodBR(point.period),
-        horas: Number(total.toFixed(2)),
-      };
-    });
 }
 
 function CategoryDonutChart({ items }: { items: HoursReportItem[] }) {
@@ -224,37 +202,6 @@ function CategoryDonutChart({ items }: { items: HoursReportItem[] }) {
               </div>
             ))}
           </div>
-        </div>
-      )}
-    </section>
-  );
-}
-
-function CumulativeHoursChart({ data }: { data: Array<{ period: string; label: string; horas: number }> }) {
-  return (
-    <section className="panel cumulative-hours-panel">
-      <div className="reports-section-title">
-        <TrendingUp size={18} />
-        <div>
-          <h2>Evolução Acumulada de Horas</h2>
-          <p className="muted">Crescimento do esforço ao longo do projeto.</p>
-        </div>
-      </div>
-      {data.length === 0 ? (
-        <div className="chart-empty-state compact">Sem dados acumulados para exibir.</div>
-      ) : (
-        <div className="mini-line-chart">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ left: 0, right: 10, top: 8, bottom: 0 }}>
-              <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={18} />
-              <YAxis tickLine={false} axisLine={false} width={42} />
-              <Tooltip
-                formatter={(value) => [`${Number(value).toFixed(2)}h`, "Horas acumuladas"]}
-                labelFormatter={(_, payload) => formatPeriodBR(String(payload?.[0]?.payload?.period ?? ""))}
-              />
-              <Line type="monotone" dataKey="horas" stroke="#2563eb" strokeWidth={2.8} dot={false} activeDot={{ r: 5 }} />
-            </LineChart>
-          </ResponsiveContainer>
         </div>
       )}
     </section>
