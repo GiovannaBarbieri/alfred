@@ -115,7 +115,7 @@ export function ProjectChartsPanel({
           title={selectedChart.title}
           description={selectedChart.description}
           data={projectTimelineCharts[activeChartId]}
-          seriesSummaryTitle={activeTab === "collaborators" ? "Top colaboradores" : "Top categorias"}
+          seriesSummaryTitle={activeTab === "collaborators" ? "Selecionar colaboradores" : "Selecionar categorias"}
           timelineControl={(
             <label className="chart-periodicity-control">
               <span>Linha do tempo</span>

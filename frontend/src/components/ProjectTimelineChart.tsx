@@ -23,19 +23,16 @@ type ProjectTimelineChartProps = {
   timelineControl?: ReactNode;
 };
 
-type SeriesLimitOption = "top5" | "top10" | "all" | "custom";
-
 const colors = ["#2563eb", "#0f766e", "#c2410c", "#7c3aed", "#be123c", "#4d7c0f", "#0369a1", "#a16207"];
 
 export function ProjectTimelineChart({
   title,
   description,
   data,
-  seriesSummaryTitle = "Top series",
+  seriesSummaryTitle = "Selecionar series",
   timelineControl,
 }: ProjectTimelineChartProps) {
-  const [seriesLimit, setSeriesLimit] = useState<SeriesLimitOption>("top5");
-  const [customSeries, setCustomSeries] = useState<string[]>([]);
+  const [selectedSeries, setSelectedSeries] = useState<string[]>([]);
 
   const seriesTotals = useMemo(() => {
     const totals = new Map<string, number>();
@@ -52,11 +49,8 @@ export function ProjectTimelineChart({
   const topFiveSeries = useMemo(() => seriesNames.slice(0, 5), [seriesNames]);
   const activeSeries = useMemo(() => {
     if (seriesNames.length <= 1) return seriesNames;
-    if (seriesLimit === "all") return seriesNames;
-    if (seriesLimit === "top10") return seriesNames.slice(0, 10);
-    if (seriesLimit === "custom") return customSeries.filter((series) => seriesNames.includes(series));
-    return topFiveSeries;
-  }, [customSeries, seriesLimit, seriesNames, topFiveSeries]);
+    return selectedSeries.filter((series) => seriesNames.includes(series));
+  }, [selectedSeries, seriesNames]);
 
   const chartData = useMemo(() => {
     const rowsByPeriod = new Map<string, Record<string, string | number>>();
@@ -68,13 +62,6 @@ export function ProjectTimelineChart({
     });
     return Array.from(rowsByPeriod.values()).sort((a, b) => String(a.period).localeCompare(String(b.period)));
   }, [data]);
-
-  const activeSeriesDetails = useMemo(
-    () => activeSeries
-      .map((series) => seriesTotals.find((item) => item.name === series))
-      .filter((item): item is { name: string; total: number } => Boolean(item)),
-    [activeSeries, seriesTotals],
-  );
 
   const visibleValues = useMemo(() => {
     return data
@@ -88,19 +75,11 @@ export function ProjectTimelineChart({
     : 0;
 
   useEffect(() => {
-    setSeriesLimit("top5");
-    setCustomSeries(topFiveSeries);
+    setSelectedSeries(topFiveSeries);
   }, [title, topFiveSeries]);
 
-  function handleSeriesLimitChange(value: SeriesLimitOption) {
-    if (value === "custom" && customSeries.length === 0) {
-      setCustomSeries(topFiveSeries);
-    }
-    setSeriesLimit(value);
-  }
-
-  function toggleCustomSeries(series: string) {
-    setCustomSeries((current) => {
+  function toggleSeries(series: string) {
+    setSelectedSeries((current) => {
       if (current.includes(series)) {
         return current.length === 1 ? current : current.filter((item) => item !== series);
       }
@@ -127,44 +106,28 @@ export function ProjectTimelineChart({
       ) : (
         <>
           {seriesNames.length > 1 && (
-            <div className="chart-series-executive">
-              <label className="chart-series-limit">
-                <span>Exibindo</span>
-                <select value={seriesLimit} onChange={(event) => handleSeriesLimitChange(event.target.value as SeriesLimitOption)}>
-                  <option value="top5">Top 5</option>
-                  <option value="top10">Top 10</option>
-                  <option value="all">Todos</option>
-                  <option value="custom">Personalizado</option>
-                </select>
-              </label>
-            </div>
-          )}
+            <div className="chart-series-selection">
+              <div className="chart-series-selection-header">
+                <strong>{seriesSummaryTitle}</strong>
+                <div>
+                  <button type="button" onClick={() => setSelectedSeries(topFiveSeries)}>Top 5</button>
+                  <button type="button" onClick={() => setSelectedSeries(seriesNames)}>Todos</button>
+                </div>
+              </div>
 
-          {seriesNames.length > 1 && (
-            <div className="chart-series-rank-strip" aria-label={seriesSummaryTitle}>
-              {activeSeriesDetails.map((series, index) => (
-                <span className="chart-series-rank-card" key={series.name}>
-                  <i style={{ background: colors[index % colors.length] }} />
-                  <strong>{index + 1}º {series.name}</strong>
-                  <small>{series.total.toFixed(2)}h</small>
-                </span>
-              ))}
-            </div>
-          )}
-
-          {seriesLimit === "custom" && seriesNames.length > 1 && (
-            <div className="chart-series-custom-list" aria-label="Selecao personalizada">
-              {seriesTotals.map((series) => (
-                <label key={series.name}>
-                  <input
-                    type="checkbox"
-                    checked={activeSeries.includes(series.name)}
-                    onChange={() => toggleCustomSeries(series.name)}
-                  />
-                  <span>{series.name}</span>
-                  <strong>{series.total.toFixed(2)}h</strong>
-                </label>
-              ))}
+              <div className="chart-series-custom-list" aria-label={seriesSummaryTitle}>
+                {seriesTotals.map((series) => (
+                  <label key={series.name}>
+                    <input
+                      type="checkbox"
+                      checked={activeSeries.includes(series.name)}
+                      onChange={() => toggleSeries(series.name)}
+                    />
+                    <span>{series.name}</span>
+                    <strong>{series.total.toFixed(2)}h</strong>
+                  </label>
+                ))}
+              </div>
             </div>
           )}
 
