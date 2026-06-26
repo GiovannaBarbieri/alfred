@@ -18,7 +18,6 @@ const ImportPage = lazy(() => import("./pages/ImportPage").then((module) => ({ d
 const ReportsPage = lazy(() => import("./pages/ReportsPage").then((module) => ({ default: module.ReportsPage })));
 const SettingsPage = lazy(() => import("./pages/SettingsPage").then((module) => ({ default: module.SettingsPage })));
 const AuditPage = lazy(() => import("./pages/AuditPage").then((module) => ({ default: module.AuditPage })));
-const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage").then((module) => ({ default: module.AnalyticsPage })));
 const ValidationPage = lazy(() =>
   import("./pages/ValidationPage").then((module) => ({ default: module.ValidationPage })),
 );
@@ -38,7 +37,7 @@ const defaultCategoryOptions = [
 
 const defaultSubcategoryOptions = ["Back", "Front", "QA", "Nao aplicavel", "Nao classificado"];
 const activeSectionStorageKey = "analise-horas:active-section";
-const restorableSections: SectionId[] = ["dashboard", "analytics", "import", "reports", "settings"];
+const restorableSections: SectionId[] = ["dashboard", "import", "reports", "settings"];
 
 function getInitialActiveSection(): SectionId {
   const storedSection = window.localStorage.getItem(activeSectionStorageKey) as SectionId | null;
@@ -161,8 +160,6 @@ function App() {
             onOpenReport={handleOpenDashboardReport}
           />
         )}
-
-        {activeSection === "analytics" && <AnalyticsPage />}
 
         {activeSection === "import" && (
           <ImportPage
