@@ -259,6 +259,7 @@ input {
 }
 
 .dashboard-kpi-card strong,
+.dashboard-kpi-card em,
 .dashboard-kpi-card small {
   display: block;
 }
@@ -275,6 +276,15 @@ input {
   font-size: 11px;
   font-weight: 650;
   margin-top: 2px;
+}
+
+.dashboard-kpi-card em {
+  color: #455468;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-top: 1px;
 }
 
 .dashboard-status-grid {
@@ -399,15 +409,15 @@ input {
 
 .dashboard-clear-message {
   align-items: center;
-  background: #ecfdf3;
-  border: 1px solid #bbf7d0;
+  background: transparent;
+  border: 0;
   border-radius: 8px;
   color: #15803d;
   display: flex;
   font-size: 13px;
   font-weight: 750;
   gap: 8px;
-  padding: 8px 10px;
+  padding: 2px 0;
 }
 
 .dashboard-attention-list {
@@ -696,7 +706,7 @@ input {
 .dashboard-command-grid {
   display: grid;
   gap: 13px;
-  grid-template-columns: minmax(0, 1.45fr) minmax(340px, 0.75fr);
+  grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.7fr);
 }
 
 .dashboard-command-grid.secondary {
@@ -707,16 +717,17 @@ input {
 .dashboard-ai-panel,
 .dashboard-distribution-panel,
 .dashboard-highlights-panel,
-.dashboard-collaborators-panel {
+.dashboard-collaborators-panel,
+.dashboard-actions-panel {
   display: grid;
-  gap: 11px;
-  padding: 14px;
+  gap: 10px;
+  padding: 13px;
 }
 
 .dashboard-project-card-grid {
   display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
 }
 
 .dashboard-project-card {
@@ -725,8 +736,8 @@ input {
   border-radius: 8px;
   cursor: pointer;
   display: grid;
-  gap: 9px;
-  padding: 12px;
+  gap: 8px;
+  padding: 10px;
   text-align: left;
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
@@ -758,7 +769,7 @@ input {
 .dashboard-project-metrics {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
 }
 
 .dashboard-project-metrics span {
@@ -768,7 +779,7 @@ input {
   color: #455468;
   font-size: 11px;
   font-weight: 700;
-  padding: 4px 8px;
+  padding: 3px 7px;
 }
 
 .dashboard-project-metrics b {
@@ -799,7 +810,7 @@ input {
 .dashboard-ai-list,
 .dashboard-attention-simple-list {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .dashboard-ai-list span,
@@ -813,11 +824,21 @@ input {
   font-size: 13px;
   font-weight: 700;
   gap: 8px;
-  padding: 8px 10px;
+  padding: 7px 9px;
 }
 
-.dashboard-ai-list svg {
+.dashboard-ai-list .success svg {
   color: #2563eb;
+}
+
+.dashboard-ai-list .warning {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+}
+
+.dashboard-ai-list .warning svg {
+  color: #c2410c;
 }
 
 .dashboard-attention-simple-list svg {
@@ -867,7 +888,7 @@ input {
 .dashboard-bar-track {
   background: #eef2f7;
   border-radius: 999px;
-  height: 8px;
+  height: 12px;
   overflow: hidden;
 }
 
@@ -878,8 +899,18 @@ input {
 .dashboard-bar-track > span {
   background: #2563eb;
   border-radius: inherit;
+  color: #ffffff;
   display: block;
+  font-size: 10px;
+  font-weight: 850;
   height: 100%;
+  line-height: 12px;
+  min-width: 0;
+  overflow: hidden;
+  padding-right: 5px;
+  text-align: right;
+  transition: width 420ms ease;
+  white-space: nowrap;
 }
 
 .dashboard-bar-track > span[data-rank="1"] {
@@ -935,6 +966,35 @@ input {
 .dashboard-collaborator-row {
   display: grid;
   gap: 5px;
+}
+
+.dashboard-collaborator-row strong {
+  align-items: center;
+  display: inline-flex;
+  gap: 5px;
+}
+
+.dashboard-collaborator-row strong span {
+  color: #123c69;
+  font-size: 11px;
+  font-weight: 900;
+  min-width: 18px;
+}
+
+.dashboard-actions-row {
+  display: grid;
+}
+
+.dashboard-action-buttons {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dashboard-action-buttons button {
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
 }
 
 .filters-panel {
@@ -10300,6 +10360,11 @@ input {
   .dashboard-distribution-panel {
     grid-column: 1 / -1;
   }
+
+  .dashboard-project-card-grid,
+  .dashboard-action-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 980px) {
@@ -10321,6 +10386,11 @@ input {
   .dashboard-distribution-panel {
     grid-column: 1 / -1;
   }
+
+  .dashboard-project-card-grid,
+  .dashboard-action-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
@@ -10329,6 +10399,7 @@ input {
   .dashboard-command-grid,
   .dashboard-command-grid.secondary,
   .dashboard-project-card-grid,
+  .dashboard-action-buttons,
   .dashboard-attention-list {
     grid-template-columns: 1fr;
   }
@@ -10344,7 +10415,8 @@ input {
   .dashboard-ai-panel,
   .dashboard-distribution-panel,
   .dashboard-highlights-panel,
-  .dashboard-collaborators-panel {
+  .dashboard-collaborators-panel,
+  .dashboard-actions-panel {
     padding: 14px;
   }
 

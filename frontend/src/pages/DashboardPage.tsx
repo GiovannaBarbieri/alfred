@@ -5,9 +5,12 @@ import {
   CheckCircle2,
   Clock3,
   Database,
+  Download,
   FileSpreadsheet,
   Layers3,
+  Settings,
   Sparkles,
+  UploadCloud,
   UsersRound,
 } from "lucide-react";
 import type { DashboardCategorySummary, DashboardOverview, DashboardRecentProject } from "../types";
@@ -16,11 +19,15 @@ import { formatDateBR, formatDateTimeBR } from "../utils/date";
 type DashboardPageProps = {
   overview: DashboardOverview;
   onOpenReport: (importId: number) => void;
+  onGoToImport: () => void;
+  onGoToSettings: () => void;
+  onViewReports: () => void;
 };
 
 type QuickKpi = {
   label: string;
   value: string;
+  detail?: string;
   icon: JSX.Element;
   tooltip: string;
 };
@@ -30,22 +37,29 @@ type AttentionItem = {
   value: number;
 };
 
-type HighlightItem = {
+type EnvironmentIndicator = {
   label: string;
-  project?: DashboardRecentProject;
   value: string;
+  detail?: string;
 };
 
-export function DashboardPage({ overview, onOpenReport }: DashboardPageProps) {
+export function DashboardPage({
+  overview,
+  onOpenReport,
+  onGoToImport,
+  onGoToSettings,
+  onViewReports,
+}: DashboardPageProps) {
   const hasProjects = overview.recentProjects.length > 0;
   const latestProject = overview.recentProjects[0];
   const totalPending = getTotalPending(overview);
   const isHealthy = totalPending === 0;
   const attentionItems = buildAttentionItems(overview).filter((item) => item.value > 0);
   const categoryDistribution = buildCategoryDistribution(overview.categorySummary);
-  const highlights = buildProjectHighlights(overview.recentProjects);
+  const environmentIndicators = buildEnvironmentIndicators(overview.recentProjects, overview.summary.projectsCount);
   const recommendations = buildAiRecommendations(overview, isHealthy, totalPending);
   const lastUpdate = latestProject ? formatDateTimeBR(latestProject.importedAt).replace(" ", " • ") : "Sem importações";
+  const latestImportParts = latestProject ? formatDateTimeBR(latestProject.importedAt).split(" ") : [];
   const kpis: QuickKpi[] = [
     {
       label: "Horas analisadas",
@@ -73,7 +87,8 @@ export function DashboardPage({ overview, onOpenReport }: DashboardPageProps) {
     },
     {
       label: "Última importação",
-      value: latestProject ? formatDateBR(latestProject.importedAt) : "-",
+      value: latestImportParts[0] ?? "-",
+      detail: latestImportParts[1],
       icon: <FileSpreadsheet size={17} />,
       tooltip: "Data da importação mais recente considerada na Dashboard.",
     },
@@ -91,6 +106,7 @@ export function DashboardPage({ overview, onOpenReport }: DashboardPageProps) {
             <span>{item.icon}</span>
             <div>
               <strong>{item.value}</strong>
+              {item.detail && <em>{item.detail}</em>}
               <small>{item.label}</small>
             </div>
           </article>
@@ -107,9 +123,11 @@ export function DashboardPage({ overview, onOpenReport }: DashboardPageProps) {
             </div>
           </div>
           <div className="dashboard-status-lines">
-            <span><CheckCircle2 size={14} />{overview.summary.projectsCount} projeto(s) analisado(s)</span>
-            <span><CheckCircle2 size={14} />{overview.summary.totalRecords} registro(s) consolidados</span>
-            <span>{isHealthy ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}{isHealthy ? "Nenhum alerta encontrado" : `${totalPending} pendência(s) operacional(is)`}</span>
+            <span><CheckCircle2 size={14} />Sistema saudável</span>
+            <span><CheckCircle2 size={14} />Todos os colaboradores classificados</span>
+            <span><CheckCircle2 size={14} />Importações concluídas</span>
+            <span>{isHealthy ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}{isHealthy ? "Nenhuma pendência operacional" : `${totalPending} pendência(s) operacional(is)`}</span>
+            <span>{overview.summary.pendingAlerts === 0 ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}{overview.summary.pendingAlerts === 0 ? "Nenhum alerta encontrado" : `${overview.summary.pendingAlerts} alerta(s) pendente(s)`}</span>
           </div>
         </article>
 
@@ -172,7 +190,7 @@ export function DashboardPage({ overview, onOpenReport }: DashboardPageProps) {
                 ))}
               </div>
               {overview.summary.projectsCount > overview.recentProjects.length && (
-                <button className="secondary-button compact dashboard-see-all-button" type="button">
+                <button className="secondary-button compact dashboard-see-all-button" type="button" onClick={onViewReports}>
                   Ver todos os projetos
                 </button>
               )}
@@ -187,12 +205,15 @@ export function DashboardPage({ overview, onOpenReport }: DashboardPageProps) {
             <span><Sparkles size={18} /></span>
             <div>
               <h2>Recomendações da IA</h2>
-              <p>Observações objetivas para tomada de decisão.</p>
+              <p>Checklist objetivo para tomada de decisão.</p>
             </div>
           </div>
           <div className="dashboard-ai-list">
             {recommendations.map((recommendation) => (
-              <span key={recommendation}><CheckCircle2 size={14} />{recommendation}</span>
+              <span key={recommendation.text} className={recommendation.tone}>
+                {recommendation.tone === "warning" ? <AlertTriangle size={14} /> : <CheckCircle2 size={14} />}
+                {recommendation.text}
+              </span>
             ))}
           </div>
         </article>
@@ -215,7 +236,9 @@ export function DashboardPage({ overview, onOpenReport }: DashboardPageProps) {
                   <span>{item.percentage.toFixed(1)}%</span>
                 </div>
                 <div className="dashboard-bar-track">
-                  <span style={{ width: `${Math.max(item.percentage, item.hours > 0 ? 3 : 0)}%` }} data-rank={index + 1} />
+                  <span style={{ width: `${Math.max(item.percentage, item.hours > 0 ? 3 : 0)}%` }} data-rank={index + 1}>
+                    {item.percentage >= 12 ? `${item.percentage.toFixed(0)}%` : ""}
+                  </span>
                 </div>
                 <small>{item.hours.toFixed(2)}h</small>
               </div>
@@ -227,23 +250,18 @@ export function DashboardPage({ overview, onOpenReport }: DashboardPageProps) {
           <div className="dashboard-section-heading">
             <span><Layers3 size={18} /></span>
             <div>
-              <h2>Projetos em Destaque</h2>
-              <p>Principais sinais globais do ambiente.</p>
+              <h2>Indicadores do Ambiente</h2>
+              <p>Métricas consolidadas sem repetir projetos.</p>
             </div>
           </div>
           <div className="dashboard-highlight-list">
-            {highlights.map((item) => (
+            {environmentIndicators.map((item) => (
               <div className="dashboard-highlight-item" key={item.label}>
                 <div>
                   <span>{item.label}</span>
-                  <strong>{item.project?.projectName ?? "Não disponível"}</strong>
-                  <small>{item.value}</small>
+                  <strong>{item.value}</strong>
+                  {item.detail && <small>{item.detail}</small>}
                 </div>
-                {item.project && (
-                  <button className="secondary-button compact dashboard-open-button" type="button" onClick={() => onOpenReport(item.project!.importId)}>
-                    Abrir <ArrowUpRight size={13} />
-                  </button>
-                )}
               </div>
             ))}
           </div>
@@ -261,7 +279,7 @@ export function DashboardPage({ overview, onOpenReport }: DashboardPageProps) {
             {overview.collaboratorSummary.length > 0 ? overview.collaboratorSummary.map((collaborator, index) => (
               <div className="dashboard-collaborator-row" key={collaborator.loginUsuario}>
                 <div>
-                  <strong>{index + 1}. {collaborator.loginUsuario}</strong>
+                  <strong><span>{getMedal(index)}</span>{index + 1}. {collaborator.loginUsuario}</strong>
                   <span>{collaborator.hours.toFixed(2)}h</span>
                 </div>
                 <div className="dashboard-bar-track compact">
@@ -271,6 +289,32 @@ export function DashboardPage({ overview, onOpenReport }: DashboardPageProps) {
             )) : (
               <div className="dashboard-empty-state compact">Nenhum colaborador identificado.</div>
             )}
+          </div>
+        </article>
+      </section>
+
+      <section className="dashboard-actions-row">
+        <article className="panel dashboard-actions-panel">
+          <div className="dashboard-section-heading">
+            <span><Sparkles size={18} /></span>
+            <div>
+              <h2>Ações rápidas</h2>
+              <p>Acessos diretos para as próximas ações do sistema.</p>
+            </div>
+          </div>
+          <div className="dashboard-action-buttons">
+            <button className="primary-button" type="button" onClick={onGoToImport}>
+              <UploadCloud size={17} /> Importar novo projeto
+            </button>
+            <button className="secondary-button" type="button" onClick={() => latestProject ? onOpenReport(latestProject.importId) : onViewReports()} disabled={!latestProject}>
+              <ArrowUpRight size={17} /> Abrir último relatório
+            </button>
+            <button className="secondary-button" type="button" onClick={onGoToSettings}>
+              <Settings size={17} /> Configurações
+            </button>
+            <button className="secondary-button" type="button" onClick={() => exportDashboardIndicators(overview)}>
+              <Download size={17} /> Exportar indicadores
+            </button>
           </div>
         </article>
       </section>
@@ -297,70 +341,72 @@ function buildCategoryDistribution(categories: DashboardCategorySummary[]) {
     .sort((a, b) => b.hours - a.hours);
 }
 
-function buildProjectHighlights(projects: DashboardRecentProject[]): HighlightItem[] {
+function buildEnvironmentIndicators(projects: DashboardRecentProject[], projectsCount: number): EnvironmentIndicator[] {
   const highestVolume = [...projects].sort((a, b) => b.totalHours - a.totalHours)[0];
-  const mostCollaborators = [...projects].sort((a, b) => b.collaboratorsCount - a.collaboratorsCount)[0];
-  const highestRework = [...projects].sort((a, b) => b.reworkHours - a.reworkHours)[0];
-  const mostRecent = projects[0];
+  const analyzedProjects = Math.max(projectsCount || projects.length, 1);
+  const totalHours = projects.reduce((total, project) => total + project.totalHours, 0);
+  const totalCollaborators = projects.reduce((total, project) => total + project.collaboratorsCount, 0);
+  const totalRework = projects.reduce((total, project) => total + project.reworkHours, 0);
 
   return [
     {
       label: "Projeto com maior volume",
-      project: highestVolume,
-      value: highestVolume ? `${highestVolume.totalHours.toFixed(2)}h analisadas` : "-",
+      value: highestVolume?.projectName ?? "Não disponível",
+      detail: highestVolume ? `${highestVolume.totalHours.toFixed(2)}h analisadas` : undefined,
     },
     {
-      label: "Maior quantidade de colaboradores",
-      project: mostCollaborators,
-      value: mostCollaborators ? `${mostCollaborators.collaboratorsCount} colaboradores` : "-",
+      label: "Média de horas por projeto",
+      value: `${(totalHours / analyzedProjects).toFixed(2)}h`,
+      detail: `${projectsCount} projeto(s) analisado(s)`,
     },
     {
-      label: "Maior retrabalho",
-      project: highestRework,
-      value: highestRework ? `${highestRework.reworkHours.toFixed(2)}h em retrabalho` : "-",
+      label: "Média de colaboradores por projeto",
+      value: `${(totalCollaborators / analyzedProjects).toFixed(1)}`,
+      detail: "colaboradores por projeto",
     },
     {
-      label: "Projeto mais recente",
-      project: mostRecent,
-      value: mostRecent ? formatDateBR(mostRecent.importedAt) : "-",
+      label: "Retrabalho médio do ambiente",
+      value: `${(totalRework / analyzedProjects).toFixed(2)}h`,
+      detail: "média por projeto",
     },
   ];
 }
 
 function buildAiRecommendations(overview: DashboardOverview, isHealthy: boolean, totalPending: number) {
-  const recommendations: string[] = [];
+  const recommendations: Array<{ text: string; tone: "success" | "warning" }> = [];
   const topCategory = buildCategoryDistribution(overview.categorySummary)[0];
-  const topProject = [...overview.recentProjects].sort((a, b) => b.totalHours - a.totalHours)[0];
-  const topCollaborator = overview.collaboratorSummary[0];
   const reworkCategory = overview.categorySummary.find((item) => item.category === "Retrabalho");
 
-  if (isHealthy) {
-    recommendations.push("Nenhuma inconsistência encontrada no ambiente.");
-    recommendations.push("Todos os projetos estão classificados dentro dos critérios atuais.");
-  } else {
-    recommendations.push(`${totalPending} pendência(s) exigem revisão operacional.`);
+  recommendations.push({
+    text: isHealthy ? "Ambiente saudável" : `${totalPending} pendência(s) exigem revisão`,
+    tone: isHealthy ? "success" : "warning",
+  });
+  recommendations.push({
+    text: isHealthy ? "Nenhuma inconsistência encontrada" : "Existem pontos operacionais para análise",
+    tone: isHealthy ? "success" : "warning",
+  });
+  recommendations.push({
+    text: isHealthy ? "Todos os projetos classificados" : "Há classificações pendentes ou de baixa confiança",
+    tone: isHealthy ? "success" : "warning",
+  });
+
+  if (reworkCategory) {
+    recommendations.push({
+      text: reworkCategory.percentage <= 10
+        ? "Retrabalho abaixo da média"
+        : `Retrabalho em ${reworkCategory.percentage.toFixed(1)}% do esforço`,
+      tone: reworkCategory.percentage <= 10 ? "success" : "warning",
+    });
   }
 
   if (topCategory) {
-    recommendations.push(`${topCategory.category} representa ${topCategory.percentage.toFixed(1)}% do esforço total.`);
+    recommendations.push({
+      text: `Categoria predominante: ${topCategory.category} (${topCategory.percentage.toFixed(1)}%)`,
+      tone: "success",
+    });
   }
 
-  if (reworkCategory && reworkCategory.percentage > 0) {
-    recommendations.push(`Retrabalho corresponde a ${reworkCategory.percentage.toFixed(1)}% das horas consolidadas.`);
-  }
-
-  if (topProject && overview.summary.totalHours > 0) {
-    const projectShare = (topProject.totalHours / overview.summary.totalHours) * 100;
-    if (projectShare >= 40) {
-      recommendations.push(`${topProject.projectName} concentra ${projectShare.toFixed(1)}% das horas analisadas.`);
-    }
-  }
-
-  if (topCollaborator && topCollaborator.percentage >= 40) {
-    recommendations.push(`${topCollaborator.loginUsuario} concentra ${topCollaborator.percentage.toFixed(1)}% das horas do ambiente.`);
-  }
-
-  return recommendations.slice(0, 6);
+  return recommendations.slice(0, 5);
 }
 
 function formatProjectStatus(status: string) {
@@ -368,4 +414,29 @@ function formatProjectStatus(status: string) {
     return "Concluído";
   }
   return status;
+}
+
+function getMedal(index: number) {
+  if (index === 0) return "🥇";
+  if (index === 1) return "🥈";
+  if (index === 2) return "🥉";
+  return "";
+}
+
+function exportDashboardIndicators(overview: DashboardOverview) {
+  const payload = {
+    generatedAt: new Date().toISOString(),
+    summary: overview.summary,
+    pendingItems: overview.pendingItems,
+    categorySummary: overview.categorySummary,
+    collaboratorSummary: overview.collaboratorSummary,
+    recentProjects: overview.recentProjects,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "dashboard-indicadores.json";
+  link.click();
+  URL.revokeObjectURL(url);
 }
