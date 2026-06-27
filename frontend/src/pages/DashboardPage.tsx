@@ -1,6 +1,5 @@
 import {
   AlertTriangle,
-  ArrowUpRight,
   BarChart3,
   CheckCircle2,
   Clock3,
@@ -10,12 +9,10 @@ import {
   UsersRound,
 } from "lucide-react";
 import type { DashboardCategorySummary, DashboardOverview, DashboardRecentProject } from "../types";
-import { formatDateBR, formatDateTimeBR } from "../utils/date";
+import { formatDateTimeBR } from "../utils/date";
 
 type DashboardPageProps = {
   overview: DashboardOverview;
-  onOpenReport: (importId: number) => void;
-  onViewReports: () => void;
 };
 
 type QuickKpi = {
@@ -34,10 +31,7 @@ type EnvironmentIndicator = {
 
 export function DashboardPage({
   overview,
-  onOpenReport,
-  onViewReports,
 }: DashboardPageProps) {
-  const hasProjects = overview.recentProjects.length > 0;
   const latestProject = overview.recentProjects[0];
   const totalPending = getTotalPending(overview);
   const isHealthy = totalPending === 0;
@@ -113,54 +107,6 @@ export function DashboardPage({
             <span>{isHealthy ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}{isHealthy ? "Nenhuma pendência operacional" : `${totalPending} pendência(s) operacional(is)`}</span>
             <span>{overview.summary.pendingAlerts === 0 ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}{overview.summary.pendingAlerts === 0 ? "Nenhum alerta encontrado" : `${overview.summary.pendingAlerts} alerta(s) pendente(s)`}</span>
           </div>
-        </article>
-
-      </section>
-
-      <section className="dashboard-panorama-row">
-        <article className="panel dashboard-panorama-panel">
-          <div className="dashboard-section-heading">
-            <span><Layers3 size={18} /></span>
-            <div>
-              <h2>Panorama Geral dos Projetos</h2>
-              <p>Últimos projetos analisados no ambiente.</p>
-            </div>
-          </div>
-          {hasProjects ? (
-            <>
-              <div className="dashboard-project-card-grid">
-                {overview.recentProjects.slice(0, 5).map((project) => (
-                  <button
-                    className="dashboard-project-card"
-                    key={project.importId}
-                    type="button"
-                    onClick={() => onOpenReport(project.importId)}
-                  >
-                    <div>
-                      <strong>{project.projectName}</strong>
-                      <small>{project.filename}</small>
-                    </div>
-                    <div className="dashboard-project-metrics">
-                      <span><b>{project.totalHours.toFixed(2)}h</b> Horas</span>
-                      <span><b>{project.collaboratorsCount}</b> colaboradores</span>
-                      <span><b>{project.recordsCount}</b> registros</span>
-                    </div>
-                    <footer>
-                      <span className="dashboard-status-badge">{formatProjectStatus(project.status)}</span>
-                      <span>Abrir relatório <ArrowUpRight size={13} /></span>
-                    </footer>
-                  </button>
-                ))}
-              </div>
-              {overview.summary.projectsCount > overview.recentProjects.length && (
-                <button className="secondary-button compact dashboard-see-all-button" type="button" onClick={onViewReports}>
-                  Ver todos os projetos
-                </button>
-              )}
-            </>
-          ) : (
-            <div className="dashboard-empty-state compact">Nenhum projeto importado ainda.</div>
-          )}
         </article>
 
       </section>
@@ -288,13 +234,6 @@ function buildEnvironmentIndicators(projects: DashboardRecentProject[], projects
       detail: "média por projeto",
     },
   ];
-}
-
-function formatProjectStatus(status: string) {
-  if (status.toLowerCase() === "concluido") {
-    return "Concluído";
-  }
-  return status;
 }
 
 function getMedal(index: number) {

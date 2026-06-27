@@ -120,11 +120,6 @@ function App() {
     setIsLoadingImportDetail(false);
   }
 
-  async function handleOpenDashboardReport(importId: number) {
-    await dashboard.handleOpenReportProject(importId);
-    setActiveSection("reports");
-  }
-
   function handleImportWizardStepChange(step: ImportWizardStep) {
     if (!importFlow.availableWizardSteps.includes(step)) {
       return;
@@ -155,11 +150,7 @@ function App() {
         )}
 
         {activeSection === "dashboard" && (
-          <DashboardPage
-            overview={dashboard.overview}
-            onOpenReport={handleOpenDashboardReport}
-            onViewReports={() => setActiveSection("reports")}
-          />
+          <DashboardPage overview={dashboard.overview} />
         )}
 
         {activeSection === "import" && (
