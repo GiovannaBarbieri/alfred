@@ -128,9 +128,7 @@ export function DashboardPage({
                   <span>{item.percentage.toFixed(1)}%</span>
                 </div>
                 <div className="dashboard-bar-track">
-                  <span style={{ width: `${Math.max(item.percentage, item.hours > 0 ? 3 : 0)}%` }} data-rank={index + 1}>
-                    {item.percentage >= 12 ? `${item.percentage.toFixed(0)}%` : ""}
-                  </span>
+                  <span style={{ width: `${Math.max(item.percentage, item.hours > 0 ? 3 : 0)}%` }} data-rank={index + 1} />
                 </div>
                 <small>{item.hours.toFixed(2)}h</small>
               </div>
