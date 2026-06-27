@@ -428,7 +428,7 @@ input {
 .dashboard-panorama-row {
   display: grid;
   gap: 13px;
-  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .dashboard-attention-list {
@@ -731,7 +731,6 @@ input {
 }
 
 .dashboard-panorama-panel,
-.dashboard-ai-panel,
 .dashboard-distribution-panel,
 .dashboard-highlights-panel,
 .dashboard-collaborators-panel {
@@ -823,13 +822,11 @@ input {
   justify-self: start;
 }
 
-.dashboard-ai-list,
 .dashboard-attention-simple-list {
   display: grid;
   gap: 5px;
 }
 
-.dashboard-ai-list span,
 .dashboard-attention-simple-list span {
   align-items: center;
   background: #f8fafc;
@@ -842,34 +839,6 @@ input {
   gap: 7px;
   min-height: 28px;
   padding: 5px 8px;
-}
-
-.dashboard-ai-list .success svg {
-  color: #16a34a;
-}
-
-.dashboard-ai-list .info svg {
-  color: #2563eb;
-}
-
-.dashboard-ai-list .warning {
-  background: #fff7ed;
-  border-color: #fed7aa;
-  color: #9a3412;
-}
-
-.dashboard-ai-list .warning svg {
-  color: #c2410c;
-}
-
-.dashboard-ai-list .critical {
-  background: #fef2f2;
-  border-color: #fecaca;
-  color: #991b1b;
-}
-
-.dashboard-ai-list .critical svg {
-  color: #dc2626;
 }
 
 .dashboard-attention-simple-list svg {
@@ -10433,7 +10402,6 @@ input {
   .dashboard-chart-panel,
   .dashboard-activity-panel,
   .dashboard-panorama-panel,
-  .dashboard-ai-panel,
   .dashboard-distribution-panel,
   .dashboard-highlights-panel,
   .dashboard-collaborators-panel {

@@ -7,7 +7,6 @@ import {
   Database,
   FileSpreadsheet,
   Layers3,
-  Sparkles,
   UsersRound,
 } from "lucide-react";
 import type { DashboardCategorySummary, DashboardOverview, DashboardRecentProject } from "../types";
@@ -50,7 +49,6 @@ export function DashboardPage({
   const attentionItems = buildAttentionItems(overview).filter((item) => item.value > 0);
   const categoryDistribution = buildCategoryDistribution(overview.categorySummary);
   const environmentIndicators = buildEnvironmentIndicators(overview.recentProjects, overview.summary.projectsCount);
-  const recommendations = buildAiRecommendations(overview, isHealthy, totalPending);
   const lastUpdate = latestProject ? formatDateTimeBR(latestProject.importedAt).replace(" ", " • ") : "Sem importações";
   const latestImportParts = latestProject ? formatDateTimeBR(latestProject.importedAt).split(" ") : [];
   const kpis: QuickKpi[] = [
@@ -192,23 +190,6 @@ export function DashboardPage({
           )}
         </article>
 
-        <article className="panel dashboard-ai-panel">
-          <div className="dashboard-section-heading">
-            <span><Sparkles size={18} /></span>
-            <div>
-              <h2>Recomendações da IA</h2>
-              <p>Checklist objetivo para tomada de decisão.</p>
-            </div>
-          </div>
-          <div className="dashboard-ai-list">
-            {recommendations.map((recommendation) => (
-              <span key={recommendation.text} className={recommendation.tone}>
-                {getRecommendationIcon(recommendation.tone)}
-                {recommendation.text}
-              </span>
-            ))}
-          </div>
-        </article>
       </section>
 
       <section className="dashboard-analysis-grid">
@@ -340,43 +321,6 @@ function buildEnvironmentIndicators(projects: DashboardRecentProject[], projects
   ];
 }
 
-function buildAiRecommendations(overview: DashboardOverview, isHealthy: boolean, totalPending: number) {
-  const recommendations: Array<{ text: string; tone: "info" | "success" | "warning" | "critical" }> = [];
-  const topCategory = buildCategoryDistribution(overview.categorySummary)[0];
-  const reworkCategory = overview.categorySummary.find((item) => item.category === "Retrabalho");
-
-  recommendations.push({
-    text: isHealthy ? "Ambiente saudável" : `${totalPending} pendência(s) exigem revisão`,
-    tone: isHealthy ? "success" : totalPending >= 10 ? "critical" : "warning",
-  });
-  recommendations.push({
-    text: isHealthy ? "Nenhuma inconsistência encontrada" : "Existem pontos operacionais para análise",
-    tone: isHealthy ? "success" : "warning",
-  });
-  recommendations.push({
-    text: isHealthy ? "Todos os projetos classificados" : "Há classificações pendentes ou de baixa confiança",
-    tone: isHealthy ? "success" : "warning",
-  });
-
-  if (reworkCategory) {
-    recommendations.push({
-      text: reworkCategory.percentage <= 10
-        ? "Retrabalho abaixo da média"
-        : `Retrabalho em ${reworkCategory.percentage.toFixed(1)}% do esforço`,
-      tone: reworkCategory.percentage <= 10 ? "success" : reworkCategory.percentage >= 20 ? "critical" : "warning",
-    });
-  }
-
-  if (topCategory) {
-    recommendations.push({
-      text: `Categoria predominante: ${topCategory.category} (${topCategory.percentage.toFixed(1)}%)`,
-      tone: topCategory.percentage >= 55 ? "warning" : "info",
-    });
-  }
-
-  return recommendations.slice(0, 5);
-}
-
 function formatProjectStatus(status: string) {
   if (status.toLowerCase() === "concluido") {
     return "Concluído";
@@ -400,10 +344,4 @@ function getCategoryIcon(category: string) {
   if (normalized.includes("retrabalho")) return "🔁";
   if (normalized.includes("impedimento")) return "🚫";
   return "•";
-}
-
-function getRecommendationIcon(tone: "info" | "success" | "warning" | "critical") {
-  return tone === "warning" || tone === "critical"
-    ? <AlertTriangle size={14} />
-    : <CheckCircle2 size={14} />;
 }
