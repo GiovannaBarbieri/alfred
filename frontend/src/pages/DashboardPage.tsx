@@ -149,7 +149,7 @@ export function DashboardPage({
               <div className="dashboard-collaborator-row" key={collaborator.loginUsuario}>
                 <div>
                   <strong><span>{getMedal(index)}</span>{index + 1}. {collaborator.loginUsuario}</strong>
-                  <span>{collaborator.hours.toFixed(2)}h • {collaborator.percentage.toFixed(1)}%</span>
+                  <span><b>{collaborator.hours.toFixed(2)}h</b> • <em>{collaborator.percentage.toFixed(1)}%</em></span>
                 </div>
                 <div className="dashboard-bar-track compact">
                   <span style={{ width: `${Math.max(collaborator.percentage, 3)}%` }} />
