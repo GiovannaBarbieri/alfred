@@ -51,6 +51,7 @@ const emptyOverview: DashboardOverview = {
     alertsPending: 0,
   },
   categorySummary: [],
+  collaboratorSummary: [],
   timeline: [],
 };
 

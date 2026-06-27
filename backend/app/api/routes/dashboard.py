@@ -70,9 +70,12 @@ def get_dashboard_overview(
                     i.total_registros,
                     i.registros_com_alerta,
                     COALESCE(SUM(l.duracao_segundos), 0) AS total_seconds,
-                    COUNT(l.id) AS records_count
+                    COUNT(l.id) AS records_count,
+                    COUNT(DISTINCT l.login_usuario) AS collaborators_count,
+                    COALESCE(SUM(l.duracao_segundos) FILTER (WHERE c.nome = 'Retrabalho'), 0) AS rework_seconds
                 FROM importacoes i
                 LEFT JOIN lancamentos_horas l ON l.importacao_id = i.id
+                LEFT JOIN categorias c ON c.id = l.categoria_id
                 GROUP BY i.id, i.nome_arquivo, i.data_importacao, i.status, i.total_registros, i.registros_com_alerta
                 ORDER BY i.data_importacao DESC, i.id DESC
                 LIMIT 5
@@ -230,6 +233,42 @@ def get_dashboard_overview(
             )
             timeline_rows = cursor.fetchall()
 
+            cursor.execute(
+                f"""
+                WITH filtered_lancamentos AS (
+                    SELECT l.*
+                    FROM lancamentos_horas l
+                    LEFT JOIN categorias c ON c.id = l.categoria_id
+                    {where_sql}
+                ),
+                collaborator_totals AS (
+                    SELECT
+                        l.login_usuario,
+                        COALESCE(SUM(l.duracao_segundos), 0) AS total_seconds
+                    FROM filtered_lancamentos l
+                    WHERE COALESCE(l.login_usuario, '') <> ''
+                    GROUP BY l.login_usuario
+                ),
+                totals AS (
+                    SELECT COALESCE(SUM(total_seconds), 0) AS grand_total_seconds
+                    FROM collaborator_totals
+                )
+                SELECT
+                    collaborator_totals.login_usuario,
+                    collaborator_totals.total_seconds,
+                    CASE
+                        WHEN totals.grand_total_seconds = 0 THEN 0
+                        ELSE ROUND((collaborator_totals.total_seconds::numeric / totals.grand_total_seconds) * 100, 2)
+                    END AS percentage
+                FROM collaborator_totals
+                CROSS JOIN totals
+                ORDER BY collaborator_totals.total_seconds DESC, collaborator_totals.login_usuario
+                LIMIT 5
+                """,
+                params,
+            )
+            collaborator_rows = cursor.fetchall()
+
     return {
             "summary": {
                 "totalHours": round(int(summary_row["total_seconds"]) / 3600, 2),
@@ -246,7 +285,9 @@ def get_dashboard_overview(
                 "importedAt": row["data_importacao"].isoformat(),
                 "totalHours": round(int(row["total_seconds"]) / 3600, 2),
                 "recordsCount": row["records_count"] or row["total_registros"],
+                "collaboratorsCount": row["collaborators_count"] or 0,
                 "alertsCount": row["registros_com_alerta"],
+                "reworkHours": round(int(row["rework_seconds"]) / 3600, 2),
                 "status": _display_status(row["status"]),
             }
             for row in recent_rows
@@ -264,6 +305,14 @@ def get_dashboard_overview(
                 "percentage": float(row["percentage"]),
             }
             for row in category_rows
+        ],
+        "collaboratorSummary": [
+            {
+                "loginUsuario": row["login_usuario"],
+                "hours": round(int(row["total_seconds"]) / 3600, 2),
+                "percentage": float(row["percentage"]),
+            }
+            for row in collaborator_rows
         ],
         "timeline": [{"period": row["period"].isoformat(), "horas": float(row["horas"])} for row in timeline_rows],
     }

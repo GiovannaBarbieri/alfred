@@ -3,27 +3,14 @@ import {
   ArrowUpRight,
   BarChart3,
   CheckCircle2,
-  CircleGauge,
   Clock3,
   Database,
-  Download,
-  FileCheck2,
   FileSpreadsheet,
   Layers3,
   Sparkles,
-  UserRoundX,
   UsersRound,
 } from "lucide-react";
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import type { DashboardOverview, DashboardRecentProject, TimelinePoint } from "../types";
+import type { DashboardCategorySummary, DashboardOverview, DashboardRecentProject } from "../types";
 import { formatDateBR, formatDateTimeBR } from "../utils/date";
 
 type DashboardPageProps = {
@@ -41,38 +28,24 @@ type QuickKpi = {
 type AttentionItem = {
   label: string;
   value: number;
-  icon: JSX.Element;
 };
 
-type ActivityItem = {
-  time: string;
-  title: string;
-  detail: string;
-  icon: JSX.Element;
+type HighlightItem = {
+  label: string;
+  project?: DashboardRecentProject;
+  value: string;
 };
 
-export function DashboardPage({
-  overview,
-  onOpenReport,
-}: DashboardPageProps) {
+export function DashboardPage({ overview, onOpenReport }: DashboardPageProps) {
   const hasProjects = overview.recentProjects.length > 0;
   const latestProject = overview.recentProjects[0];
-  const topProject = [...overview.recentProjects].sort((a, b) => b.totalHours - a.totalHours)[0];
-  const dominantCategory = [...overview.categorySummary].sort((a, b) => b.hours - a.hours)[0];
-  const pendingItems = buildAttentionItems(overview);
-  const totalPending = pendingItems.reduce((total, item) => total + item.value, 0);
+  const totalPending = getTotalPending(overview);
   const isHealthy = totalPending === 0;
-  const timelineData = buildTimelineData(overview.timeline);
-  const activityItems = buildActivityItems(overview.recentProjects);
+  const attentionItems = buildAttentionItems(overview).filter((item) => item.value > 0);
+  const categoryDistribution = buildCategoryDistribution(overview.categorySummary);
+  const highlights = buildProjectHighlights(overview.recentProjects);
+  const recommendations = buildAiRecommendations(overview, isHealthy, totalPending);
   const lastUpdate = latestProject ? formatDateTimeBR(latestProject.importedAt).replace(" ", " • ") : "Sem importações";
-  const statusChecks = isHealthy
-    ? [
-        "Sistema saudável",
-        "Todos os colaboradores classificados",
-        "Nenhuma pendência operacional",
-        "Nenhum alerta encontrado",
-      ]
-    : [`${totalPending} ponto(s) precisam de revisão`];
   const kpis: QuickKpi[] = [
     {
       label: "Horas analisadas",
@@ -87,7 +60,7 @@ export function DashboardPage({
       tooltip: "Quantidade de projetos processados.",
     },
     {
-      label: "Registros importados",
+      label: "Registros",
       value: String(overview.summary.totalRecords),
       icon: <Database size={17} />,
       tooltip: "Total de registros utilizados nas análises.",
@@ -130,28 +103,22 @@ export function DashboardPage({
             <span>{isHealthy ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}</span>
             <div>
               <h2>Situação Geral</h2>
-              <p>{isHealthy ? "Ambiente operacional estável." : "Itens que exigem revisão."}</p>
+              <p>{isHealthy ? "Ambiente operacional estável." : "Existem pontos que exigem revisão."}</p>
             </div>
           </div>
           <div className="dashboard-status-lines">
-            {isHealthy ? statusChecks.map((item) => (
-              <span key={item}><CheckCircle2 size={14} />{item}</span>
-            )) : (
-              pendingItems.filter((item) => item.value > 0).map((item) => (
-                <span key={item.label}>
-                  <AlertTriangle size={14} />{item.value} {item.label}
-                </span>
-              ))
-            )}
+            <span><CheckCircle2 size={14} />{overview.summary.projectsCount} projeto(s) analisado(s)</span>
+            <span><CheckCircle2 size={14} />{overview.summary.totalRecords} registro(s) consolidados</span>
+            <span>{isHealthy ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}{isHealthy ? "Nenhum alerta encontrado" : `${totalPending} pendência(s) operacional(is)`}</span>
           </div>
         </article>
 
         <article className="panel dashboard-attention-panel">
           <div className="dashboard-section-heading compact">
-            <span><CircleGauge size={18} /></span>
+            <span>{isHealthy ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}</span>
             <div>
-              <h2>O que precisa da minha atenção?</h2>
-              <p>Fila operacional consolidada.</p>
+              <h2>Painel de Pendências</h2>
+              <p>Somente itens relevantes para ação.</p>
             </div>
           </div>
           {isHealthy ? (
@@ -160,277 +127,245 @@ export function DashboardPage({
               <span>Nenhuma pendência operacional encontrada.</span>
             </div>
           ) : (
-            <div className="dashboard-attention-list">
-              {pendingItems.filter((item) => item.value > 0).map((item) => (
-                <div className="dashboard-attention-item" key={item.label}>
-                  <span>{item.icon}</span>
-                  <strong>{item.value}</strong>
-                  <small>{item.label}</small>
-                </div>
+            <div className="dashboard-attention-simple-list">
+              {attentionItems.map((item) => (
+                <span key={item.label}><AlertTriangle size={14} />{item.value} {item.label}</span>
               ))}
             </div>
           )}
         </article>
       </section>
 
-      <section className="dashboard-main-grid">
-        <article className="panel dashboard-insights-panel">
-          <div className="dashboard-section-heading">
-            <span><Sparkles size={18} /></span>
-            <div>
-              <h2>Resumo Inteligente <em>IA</em></h2>
-              <p>Leitura executiva dos dados importados.</p>
-            </div>
-          </div>
-          <div className="dashboard-summary-list">
-            {buildIntelligentSummary({ isHealthy, totalPending, topProject, dominantCategory }).map((item) => (
-              <div className="dashboard-summary-item" key={item.label}>
-                <span>{item.label}</span>
-                <strong>{item.value}</strong>
-              </div>
-            ))}
-          </div>
-          <div className="dashboard-insight-list">
-            {topProject && (
-              <DashboardInsight
-                icon={<Layers3 size={16} />}
-                title="Projeto com maior volume"
-                description={`${topProject.projectName} concentra ${topProject.totalHours.toFixed(2)}h analisadas.`}
-              />
-            )}
-            {dominantCategory && dominantCategory.hours > 0 && (
-              <DashboardInsight
-                icon={<BarChart3 size={16} />}
-                title="Categoria predominante"
-                description={`${dominantCategory.category} representa ${dominantCategory.percentage.toFixed(1)}% das horas.`}
-              />
-            )}
-            <DashboardInsight
-              icon={isHealthy ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
-              title={isHealthy ? "Ambiente consistente" : "Pontos de atenção"}
-              description={isHealthy ? "Nenhuma inconsistência encontrada." : `${totalPending} item(ns) pedem revisão operacional.`}
-            />
-          </div>
-        </article>
-
-        <article className="panel dashboard-recent-projects-panel">
+      <section className="dashboard-command-grid">
+        <article className="panel dashboard-panorama-panel">
           <div className="dashboard-section-heading">
             <span><Layers3 size={18} /></span>
             <div>
-              <h2>Projetos Recentes</h2>
-              <p>Importações recentes disponíveis para análise.</p>
+              <h2>Panorama Geral dos Projetos</h2>
+              <p>Últimos projetos analisados no ambiente.</p>
             </div>
           </div>
           {hasProjects ? (
-            <div className="dashboard-project-table-wrap">
-              <table className="dashboard-project-table">
-                <thead>
-                  <tr>
-                    <th>Projeto</th>
-                    <th>Horas</th>
-                    <th>Registros</th>
-                    <th>Status</th>
-                    <th>Data</th>
-                    <th>Ação</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {overview.recentProjects.map((project) => (
-                    <tr key={project.importId}>
-                      <td>
-                        <strong>{project.projectName}</strong>
-                        <small>{project.filename}</small>
-                      </td>
-                      <td>{project.totalHours.toFixed(2)}h</td>
-                      <td>{project.recordsCount}</td>
-                      <td><span className="dashboard-status-badge">{project.status}</span></td>
-                      <td>{formatDateBR(project.importedAt)}</td>
-                      <td>
-                        <button className="secondary-button compact dashboard-open-button" type="button" onClick={() => onOpenReport(project.importId)}>
-                          Ver <ArrowUpRight size={13} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <>
+              <div className="dashboard-project-card-grid">
+                {overview.recentProjects.slice(0, 5).map((project) => (
+                  <button
+                    className="dashboard-project-card"
+                    key={project.importId}
+                    type="button"
+                    onClick={() => onOpenReport(project.importId)}
+                  >
+                    <div>
+                      <strong>{project.projectName}</strong>
+                      <small>{project.filename}</small>
+                    </div>
+                    <div className="dashboard-project-metrics">
+                      <span><b>{project.totalHours.toFixed(2)}h</b> Horas</span>
+                      <span><b>{project.collaboratorsCount}</b> colaboradores</span>
+                      <span><b>{project.recordsCount}</b> registros</span>
+                    </div>
+                    <footer>
+                      <span className="dashboard-status-badge">{formatProjectStatus(project.status)}</span>
+                      <span>Abrir relatório <ArrowUpRight size={13} /></span>
+                    </footer>
+                  </button>
+                ))}
+              </div>
+              {overview.summary.projectsCount > overview.recentProjects.length && (
+                <button className="secondary-button compact dashboard-see-all-button" type="button">
+                  Ver todos os projetos
+                </button>
+              )}
+            </>
           ) : (
-            <div className="dashboard-empty-state">
-              <strong>Nenhum projeto importado ainda</strong>
-              <p className="muted">Conclua uma importação para acompanhar projetos neste painel.</p>
-            </div>
+            <div className="dashboard-empty-state compact">Nenhum projeto importado ainda.</div>
           )}
+        </article>
+
+        <article className="panel dashboard-ai-panel">
+          <div className="dashboard-section-heading">
+            <span><Sparkles size={18} /></span>
+            <div>
+              <h2>Recomendações da IA</h2>
+              <p>Observações objetivas para tomada de decisão.</p>
+            </div>
+          </div>
+          <div className="dashboard-ai-list">
+            {recommendations.map((recommendation) => (
+              <span key={recommendation}><CheckCircle2 size={14} />{recommendation}</span>
+            ))}
+          </div>
         </article>
       </section>
 
-      <section className="dashboard-bottom-grid">
-        <article className="panel dashboard-chart-panel">
-          <div className="dashboard-section-heading with-meta">
-            <div className="dashboard-heading-main">
-              <span><BarChart3 size={18} /></span>
-              <div>
-                <h2>Evolução das horas importadas</h2>
-                <p>Resumo visual do volume analisado por período.</p>
-              </div>
+      <section className="dashboard-command-grid secondary">
+        <article className="panel dashboard-distribution-panel">
+          <div className="dashboard-section-heading">
+            <span><BarChart3 size={18} /></span>
+            <div>
+              <h2>Distribuição Geral</h2>
+              <p>Horas consolidadas por categoria em todos os projetos.</p>
             </div>
-            <small>Todo o histórico</small>
           </div>
-          {timelineData.length > 0 ? (
-            <div className="dashboard-chart-wrap">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={timelineData} margin={{ left: 4, right: 12, top: 8, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                  <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={24} />
-                  <YAxis tickLine={false} axisLine={false} width={42} />
-                  <Tooltip formatter={(value) => [`${Number(value).toFixed(2)}h`, "Horas"]} />
-                  <Line type="monotone" dataKey="horas" stroke="#2563eb" strokeWidth={2.8} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="dashboard-empty-state compact">Sem dados suficientes para exibir o gráfico.</div>
-          )}
+          <div className="dashboard-horizontal-bars">
+            {categoryDistribution.map((item, index) => (
+              <div className="dashboard-horizontal-bar" key={item.category}>
+                <div>
+                  <strong>{item.category}</strong>
+                  <span>{item.percentage.toFixed(1)}%</span>
+                </div>
+                <div className="dashboard-bar-track">
+                  <span style={{ width: `${Math.max(item.percentage, item.hours > 0 ? 3 : 0)}%` }} data-rank={index + 1} />
+                </div>
+                <small>{item.hours.toFixed(2)}h</small>
+              </div>
+            ))}
+          </div>
         </article>
 
-        <article className="panel dashboard-activity-panel">
+        <article className="panel dashboard-highlights-panel">
           <div className="dashboard-section-heading">
-            <span><Clock3 size={18} /></span>
+            <span><Layers3 size={18} /></span>
             <div>
-              <h2>Atividades Recentes</h2>
-              <p>Eventos recentes sintetizados das importações.</p>
+              <h2>Projetos em Destaque</h2>
+              <p>Principais sinais globais do ambiente.</p>
             </div>
           </div>
-          {activityItems.length > 0 ? (
-            <div className="dashboard-activity-list">
-              {activityItems.map((item) => (
-                <div className="dashboard-activity-item" key={`${item.time}-${item.title}-${item.detail}`}>
-                  <time>{item.time}</time>
-                  <div className="dashboard-activity-content">
-                    <span>{item.icon}</span>
-                    <div>
-                      <strong>{item.title}</strong>
-                      <small>{item.detail}</small>
-                    </div>
-                  </div>
+          <div className="dashboard-highlight-list">
+            {highlights.map((item) => (
+              <div className="dashboard-highlight-item" key={item.label}>
+                <div>
+                  <span>{item.label}</span>
+                  <strong>{item.project?.projectName ?? "Não disponível"}</strong>
+                  <small>{item.value}</small>
                 </div>
-              ))}
+                {item.project && (
+                  <button className="secondary-button compact dashboard-open-button" type="button" onClick={() => onOpenReport(item.project!.importId)}>
+                    Abrir <ArrowUpRight size={13} />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="panel dashboard-collaborators-panel">
+          <div className="dashboard-section-heading">
+            <span><UsersRound size={18} /></span>
+            <div>
+              <h2>Colaboradores</h2>
+              <p>Top 5 por volume de horas no ambiente.</p>
             </div>
-          ) : (
-            <div className="dashboard-empty-state compact">Nenhuma atividade registrada.</div>
-          )}
+          </div>
+          <div className="dashboard-collaborator-ranking">
+            {overview.collaboratorSummary.length > 0 ? overview.collaboratorSummary.map((collaborator, index) => (
+              <div className="dashboard-collaborator-row" key={collaborator.loginUsuario}>
+                <div>
+                  <strong>{index + 1}. {collaborator.loginUsuario}</strong>
+                  <span>{collaborator.hours.toFixed(2)}h</span>
+                </div>
+                <div className="dashboard-bar-track compact">
+                  <span style={{ width: `${Math.max(collaborator.percentage, 3)}%` }} />
+                </div>
+              </div>
+            )) : (
+              <div className="dashboard-empty-state compact">Nenhum colaborador identificado.</div>
+            )}
+          </div>
         </article>
       </section>
     </section>
   );
 }
 
-function DashboardInsight({ icon, title, description }: { icon: JSX.Element; title: string; description: string }) {
-  return (
-    <div className="dashboard-insight-row">
-      <span>{icon}</span>
-      <div>
-        <strong>{title}</strong>
-        <small>{description}</small>
-      </div>
-    </div>
-  );
-}
-
 function buildAttentionItems(overview: DashboardOverview): AttentionItem[] {
   return [
-    {
-      label: "classificações pendentes",
-      value: overview.pendingItems.classificationPending,
-      icon: <CheckCircle2 size={16} />,
-    },
-    {
-      label: "análises de baixa confiança",
-      value: overview.pendingItems.lowConfidence,
-      icon: <AlertTriangle size={16} />,
-    },
-    {
-      label: "colaboradores sem perfil",
-      value: overview.pendingItems.collaboratorsWithoutProfile,
-      icon: <UserRoundX size={16} />,
-    },
-    {
-      label: "alertas pendentes",
-      value: overview.pendingItems.alertsPending,
-      icon: <AlertTriangle size={16} />,
-    },
+    { label: "classificações pendentes", value: overview.pendingItems.classificationPending },
+    { label: "análises de baixa confiança", value: overview.pendingItems.lowConfidence },
+    { label: "colaboradores sem perfil", value: overview.pendingItems.collaboratorsWithoutProfile },
+    { label: "alertas pendentes", value: overview.pendingItems.alertsPending },
   ];
 }
 
-function buildTimelineData(data: TimelinePoint[]) {
-  return data.slice(-18).map((point) => ({
-    ...point,
-    label: formatDateBR(point.period),
-  }));
+function getTotalPending(overview: DashboardOverview) {
+  return buildAttentionItems(overview).reduce((total, item) => total + item.value, 0);
 }
 
-function buildActivityItems(projects: DashboardRecentProject[]) {
-  return projects.flatMap((project) => {
-    const dateTimeParts = formatDateTimeBR(project.importedAt).split(" ");
-    const time = dateTimeParts[dateTimeParts.length - 1] ?? formatDateBR(project.importedAt);
-    return [
-      {
-        time,
-        title: "Projeto importado",
-        detail: project.projectName,
-        icon: <FileSpreadsheet size={14} />,
-      },
-      {
-        time,
-        title: "Classificação concluída",
-        detail: `${project.recordsCount} registros consolidados`,
-        icon: <FileCheck2 size={14} />,
-      },
-      {
-        time,
-        title: "Relatório gerado",
-        detail: project.status,
-        icon: <BarChart3 size={14} />,
-      },
-      {
-        time,
-        title: "Exportação disponível",
-        detail: "PDF Executivo e Excel Operacional",
-        icon: <Download size={14} />,
-      },
-    ] satisfies ActivityItem[];
-  }).slice(0, 6);
+function buildCategoryDistribution(categories: DashboardCategorySummary[]) {
+  return [...categories]
+    .filter((item) => item.hours > 0)
+    .sort((a, b) => b.hours - a.hours);
 }
 
-function buildIntelligentSummary({
-  isHealthy,
-  totalPending,
-  topProject,
-  dominantCategory,
-}: {
-  isHealthy: boolean;
-  totalPending: number;
-  topProject?: DashboardRecentProject;
-  dominantCategory?: { category: string; hours: number; percentage: number };
-}) {
-  if (!topProject) {
-    return [
-      { label: "Projeto com maior volume", value: "Nenhum projeto importado" },
-      { label: "Categoria predominante", value: "Sem dados suficientes" },
-      { label: "Status", value: "Aguardando importação" },
-      { label: "Situação geral", value: "Painel será atualizado após a primeira base" },
-    ];
-  }
+function buildProjectHighlights(projects: DashboardRecentProject[]): HighlightItem[] {
+  const highestVolume = [...projects].sort((a, b) => b.totalHours - a.totalHours)[0];
+  const mostCollaborators = [...projects].sort((a, b) => b.collaboratorsCount - a.collaboratorsCount)[0];
+  const highestRework = [...projects].sort((a, b) => b.reworkHours - a.reworkHours)[0];
+  const mostRecent = projects[0];
 
   return [
-    { label: "Projeto com maior volume", value: `${topProject.projectName} (${topProject.totalHours.toFixed(2)}h)` },
     {
-      label: "Categoria predominante",
-      value: dominantCategory && dominantCategory.hours > 0
-        ? `${dominantCategory.category} (${dominantCategory.percentage.toFixed(1)}%)`
-        : "Sem categoria predominante",
+      label: "Projeto com maior volume",
+      project: highestVolume,
+      value: highestVolume ? `${highestVolume.totalHours.toFixed(2)}h analisadas` : "-",
     },
-    { label: "Status", value: isHealthy ? "Nenhuma inconsistência encontrada" : `${totalPending} item(ns) exigem revisão` },
-    { label: "Situação geral", value: isHealthy ? "Ambiente operacional saudável" : "Ambiente com pontos de atenção" },
+    {
+      label: "Maior quantidade de colaboradores",
+      project: mostCollaborators,
+      value: mostCollaborators ? `${mostCollaborators.collaboratorsCount} colaboradores` : "-",
+    },
+    {
+      label: "Maior retrabalho",
+      project: highestRework,
+      value: highestRework ? `${highestRework.reworkHours.toFixed(2)}h em retrabalho` : "-",
+    },
+    {
+      label: "Projeto mais recente",
+      project: mostRecent,
+      value: mostRecent ? formatDateBR(mostRecent.importedAt) : "-",
+    },
   ];
+}
+
+function buildAiRecommendations(overview: DashboardOverview, isHealthy: boolean, totalPending: number) {
+  const recommendations: string[] = [];
+  const topCategory = buildCategoryDistribution(overview.categorySummary)[0];
+  const topProject = [...overview.recentProjects].sort((a, b) => b.totalHours - a.totalHours)[0];
+  const topCollaborator = overview.collaboratorSummary[0];
+  const reworkCategory = overview.categorySummary.find((item) => item.category === "Retrabalho");
+
+  if (isHealthy) {
+    recommendations.push("Nenhuma inconsistência encontrada no ambiente.");
+    recommendations.push("Todos os projetos estão classificados dentro dos critérios atuais.");
+  } else {
+    recommendations.push(`${totalPending} pendência(s) exigem revisão operacional.`);
+  }
+
+  if (topCategory) {
+    recommendations.push(`${topCategory.category} representa ${topCategory.percentage.toFixed(1)}% do esforço total.`);
+  }
+
+  if (reworkCategory && reworkCategory.percentage > 0) {
+    recommendations.push(`Retrabalho corresponde a ${reworkCategory.percentage.toFixed(1)}% das horas consolidadas.`);
+  }
+
+  if (topProject && overview.summary.totalHours > 0) {
+    const projectShare = (topProject.totalHours / overview.summary.totalHours) * 100;
+    if (projectShare >= 40) {
+      recommendations.push(`${topProject.projectName} concentra ${projectShare.toFixed(1)}% das horas analisadas.`);
+    }
+  }
+
+  if (topCollaborator && topCollaborator.percentage >= 40) {
+    recommendations.push(`${topCollaborator.loginUsuario} concentra ${topCollaborator.percentage.toFixed(1)}% das horas do ambiente.`);
+  }
+
+  return recommendations.slice(0, 6);
+}
+
+function formatProjectStatus(status: string) {
+  if (status.toLowerCase() === "concluido") {
+    return "Concluído";
+  }
+  return status;
 }

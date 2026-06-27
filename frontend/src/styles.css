@@ -693,6 +693,250 @@ input {
   padding: 14px;
 }
 
+.dashboard-command-grid {
+  display: grid;
+  gap: 13px;
+  grid-template-columns: minmax(0, 1.45fr) minmax(340px, 0.75fr);
+}
+
+.dashboard-command-grid.secondary {
+  grid-template-columns: minmax(360px, 1fr) minmax(320px, 0.95fr) minmax(320px, 0.95fr);
+}
+
+.dashboard-panorama-panel,
+.dashboard-ai-panel,
+.dashboard-distribution-panel,
+.dashboard-highlights-panel,
+.dashboard-collaborators-panel {
+  display: grid;
+  gap: 11px;
+  padding: 14px;
+}
+
+.dashboard-project-card-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dashboard-project-card {
+  background: #ffffff;
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  cursor: pointer;
+  display: grid;
+  gap: 9px;
+  padding: 12px;
+  text-align: left;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.dashboard-project-card:hover {
+  border-color: #9fc4ff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+  transform: translateY(-1px);
+}
+
+.dashboard-project-card strong,
+.dashboard-project-card small {
+  display: block;
+}
+
+.dashboard-project-card > div:first-child strong {
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.dashboard-project-card > div:first-child small {
+  color: #637083;
+  font-size: 11px;
+  font-weight: 650;
+  margin-top: 2px;
+}
+
+.dashboard-project-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dashboard-project-metrics span {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  color: #455468;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+}
+
+.dashboard-project-metrics b {
+  color: #0f172a;
+  font-weight: 850;
+}
+
+.dashboard-project-card footer {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dashboard-project-card footer > span:last-child {
+  align-items: center;
+  color: #123c69;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 850;
+  gap: 4px;
+}
+
+.dashboard-see-all-button {
+  justify-self: start;
+}
+
+.dashboard-ai-list,
+.dashboard-attention-simple-list {
+  display: grid;
+  gap: 8px;
+}
+
+.dashboard-ai-list span,
+.dashboard-attention-simple-list span {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #334155;
+  display: flex;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 8px;
+  padding: 8px 10px;
+}
+
+.dashboard-ai-list svg {
+  color: #2563eb;
+}
+
+.dashboard-attention-simple-list svg {
+  color: #c2410c;
+}
+
+.dashboard-horizontal-bars,
+.dashboard-highlight-list,
+.dashboard-collaborator-ranking {
+  display: grid;
+  gap: 9px;
+}
+
+.dashboard-horizontal-bar {
+  display: grid;
+  gap: 5px;
+}
+
+.dashboard-horizontal-bar > div:first-child,
+.dashboard-collaborator-row > div:first-child {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dashboard-horizontal-bar strong,
+.dashboard-collaborator-row strong {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.dashboard-horizontal-bar span,
+.dashboard-collaborator-row span {
+  color: #455468;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.dashboard-horizontal-bar small {
+  color: #637083;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.dashboard-bar-track {
+  background: #eef2f7;
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.dashboard-bar-track.compact {
+  height: 7px;
+}
+
+.dashboard-bar-track > span {
+  background: #2563eb;
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+}
+
+.dashboard-bar-track > span[data-rank="1"] {
+  background: #123c69;
+}
+
+.dashboard-bar-track > span[data-rank="2"] {
+  background: #2563eb;
+}
+
+.dashboard-bar-track > span[data-rank="3"] {
+  background: #0891b2;
+}
+
+.dashboard-highlight-item {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 9px 10px;
+}
+
+.dashboard-highlight-item span,
+.dashboard-highlight-item strong,
+.dashboard-highlight-item small {
+  display: block;
+}
+
+.dashboard-highlight-item span {
+  color: #637083;
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.dashboard-highlight-item strong {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 850;
+  margin-top: 2px;
+}
+
+.dashboard-highlight-item small {
+  color: #455468;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.dashboard-collaborator-row {
+  display: grid;
+  gap: 5px;
+}
+
 .filters-panel {
   margin-bottom: 18px;
 }
@@ -10047,6 +10291,15 @@ input {
   .dashboard-main-grid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
+
+  .dashboard-command-grid,
+  .dashboard-command-grid.secondary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-distribution-panel {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 980px) {
@@ -10058,14 +10311,24 @@ input {
   }
 
   .dashboard-kpi-grid,
-  .dashboard-main-grid {
+  .dashboard-main-grid,
+  .dashboard-command-grid,
+  .dashboard-command-grid.secondary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-panorama-panel,
+  .dashboard-distribution-panel {
+    grid-column: 1 / -1;
   }
 }
 
 @media (max-width: 640px) {
   .dashboard-kpi-grid,
   .dashboard-main-grid,
+  .dashboard-command-grid,
+  .dashboard-command-grid.secondary,
+  .dashboard-project-card-grid,
   .dashboard-attention-list {
     grid-template-columns: 1fr;
   }
@@ -10076,8 +10339,18 @@ input {
   .dashboard-insights-panel,
   .dashboard-recent-projects-panel,
   .dashboard-chart-panel,
-  .dashboard-activity-panel {
+  .dashboard-activity-panel,
+  .dashboard-panorama-panel,
+  .dashboard-ai-panel,
+  .dashboard-distribution-panel,
+  .dashboard-highlights-panel,
+  .dashboard-collaborators-panel {
     padding: 14px;
+  }
+
+  .dashboard-panorama-panel,
+  .dashboard-distribution-panel {
+    grid-column: auto;
   }
 
   .dashboard-chart-wrap {

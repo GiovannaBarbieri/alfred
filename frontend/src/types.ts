@@ -295,7 +295,9 @@ export type DashboardRecentProject = {
   importedAt: string;
   totalHours: number;
   recordsCount: number;
+  collaboratorsCount: number;
   alertsCount: number;
+  reworkHours: number;
   status: string;
 };
 
@@ -308,6 +310,12 @@ export type DashboardPendingItems = {
 
 export type DashboardCategorySummary = {
   category: string;
+  hours: number;
+  percentage: number;
+};
+
+export type DashboardCollaboratorSummary = {
+  loginUsuario: string;
   hours: number;
   percentage: number;
 };
@@ -550,6 +558,7 @@ export type DashboardOverview = {
   recentProjects: DashboardRecentProject[];
   pendingItems: DashboardPendingItems;
   categorySummary: DashboardCategorySummary[];
+  collaboratorSummary: DashboardCollaboratorSummary[];
   timeline: TimelinePoint[];
 };
 
