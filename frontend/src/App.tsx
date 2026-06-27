@@ -158,8 +158,6 @@ function App() {
           <DashboardPage
             overview={dashboard.overview}
             onOpenReport={handleOpenDashboardReport}
-            onGoToImport={() => setActiveSection("import")}
-            onGoToSettings={() => setActiveSection("settings")}
             onViewReports={() => setActiveSection("reports")}
           />
         )}

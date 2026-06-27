@@ -5,12 +5,9 @@ import {
   CheckCircle2,
   Clock3,
   Database,
-  Download,
   FileSpreadsheet,
   Layers3,
-  Settings,
   Sparkles,
-  UploadCloud,
   UsersRound,
 } from "lucide-react";
 import type { DashboardCategorySummary, DashboardOverview, DashboardRecentProject } from "../types";
@@ -19,8 +16,6 @@ import { formatDateBR, formatDateTimeBR } from "../utils/date";
 type DashboardPageProps = {
   overview: DashboardOverview;
   onOpenReport: (importId: number) => void;
-  onGoToImport: () => void;
-  onGoToSettings: () => void;
   onViewReports: () => void;
 };
 
@@ -46,8 +41,6 @@ type EnvironmentIndicator = {
 export function DashboardPage({
   overview,
   onOpenReport,
-  onGoToImport,
-  onGoToSettings,
   onViewReports,
 }: DashboardPageProps) {
   const hasProjects = overview.recentProjects.length > 0;
@@ -154,7 +147,7 @@ export function DashboardPage({
         </article>
       </section>
 
-      <section className="dashboard-command-grid">
+      <section className="dashboard-panorama-row">
         <article className="panel dashboard-panorama-panel">
           <div className="dashboard-section-heading">
             <span><Layers3 size={18} /></span>
@@ -219,7 +212,7 @@ export function DashboardPage({
         </article>
       </section>
 
-      <section className="dashboard-command-grid secondary">
+      <section className="dashboard-analysis-grid">
         <article className="panel dashboard-distribution-panel">
           <div className="dashboard-section-heading">
             <span><BarChart3 size={18} /></span>
@@ -246,6 +239,33 @@ export function DashboardPage({
           </div>
         </article>
 
+        <article className="panel dashboard-collaborators-panel">
+          <div className="dashboard-section-heading">
+            <span><UsersRound size={18} /></span>
+            <div>
+              <h2>Colaboradores</h2>
+              <p>Top 5 por volume de horas no ambiente.</p>
+            </div>
+          </div>
+          <div className="dashboard-collaborator-ranking">
+            {overview.collaboratorSummary.length > 0 ? overview.collaboratorSummary.map((collaborator, index) => (
+              <div className="dashboard-collaborator-row" key={collaborator.loginUsuario}>
+                <div>
+                  <strong><span>{getMedal(index)}</span>{index + 1}. {collaborator.loginUsuario}</strong>
+                  <span>{collaborator.hours.toFixed(2)}h <small>{collaborator.percentage.toFixed(1)}%</small></span>
+                </div>
+                <div className="dashboard-bar-track compact">
+                  <span style={{ width: `${Math.max(collaborator.percentage, 3)}%` }} />
+                </div>
+              </div>
+            )) : (
+              <div className="dashboard-empty-state compact">Nenhum colaborador identificado.</div>
+            )}
+          </div>
+        </article>
+      </section>
+
+      <section className="dashboard-command-grid secondary">
         <article className="panel dashboard-highlights-panel">
           <div className="dashboard-section-heading">
             <span><Layers3 size={18} /></span>
@@ -264,57 +284,6 @@ export function DashboardPage({
                 </div>
               </div>
             ))}
-          </div>
-        </article>
-
-        <article className="panel dashboard-collaborators-panel">
-          <div className="dashboard-section-heading">
-            <span><UsersRound size={18} /></span>
-            <div>
-              <h2>Colaboradores</h2>
-              <p>Top 5 por volume de horas no ambiente.</p>
-            </div>
-          </div>
-          <div className="dashboard-collaborator-ranking">
-            {overview.collaboratorSummary.length > 0 ? overview.collaboratorSummary.map((collaborator, index) => (
-              <div className="dashboard-collaborator-row" key={collaborator.loginUsuario}>
-                <div>
-                  <strong><span>{getMedal(index)}</span>{index + 1}. {collaborator.loginUsuario}</strong>
-                  <span>{collaborator.hours.toFixed(2)}h</span>
-                </div>
-                <div className="dashboard-bar-track compact">
-                  <span style={{ width: `${Math.max(collaborator.percentage, 3)}%` }} />
-                </div>
-              </div>
-            )) : (
-              <div className="dashboard-empty-state compact">Nenhum colaborador identificado.</div>
-            )}
-          </div>
-        </article>
-      </section>
-
-      <section className="dashboard-actions-row">
-        <article className="panel dashboard-actions-panel">
-          <div className="dashboard-section-heading">
-            <span><Sparkles size={18} /></span>
-            <div>
-              <h2>Ações rápidas</h2>
-              <p>Acessos diretos para as próximas ações do sistema.</p>
-            </div>
-          </div>
-          <div className="dashboard-action-buttons">
-            <button className="primary-button" type="button" onClick={onGoToImport}>
-              <UploadCloud size={17} /> Importar novo projeto
-            </button>
-            <button className="secondary-button" type="button" onClick={() => latestProject ? onOpenReport(latestProject.importId) : onViewReports()} disabled={!latestProject}>
-              <ArrowUpRight size={17} /> Abrir último relatório
-            </button>
-            <button className="secondary-button" type="button" onClick={onGoToSettings}>
-              <Settings size={17} /> Configurações
-            </button>
-            <button className="secondary-button" type="button" onClick={() => exportDashboardIndicators(overview)}>
-              <Download size={17} /> Exportar indicadores
-            </button>
           </div>
         </article>
       </section>
@@ -373,13 +342,13 @@ function buildEnvironmentIndicators(projects: DashboardRecentProject[], projects
 }
 
 function buildAiRecommendations(overview: DashboardOverview, isHealthy: boolean, totalPending: number) {
-  const recommendations: Array<{ text: string; tone: "success" | "warning" }> = [];
+  const recommendations: Array<{ text: string; tone: "info" | "success" | "warning" | "critical" }> = [];
   const topCategory = buildCategoryDistribution(overview.categorySummary)[0];
   const reworkCategory = overview.categorySummary.find((item) => item.category === "Retrabalho");
 
   recommendations.push({
     text: isHealthy ? "Ambiente saudável" : `${totalPending} pendência(s) exigem revisão`,
-    tone: isHealthy ? "success" : "warning",
+    tone: isHealthy ? "success" : totalPending >= 10 ? "critical" : "warning",
   });
   recommendations.push({
     text: isHealthy ? "Nenhuma inconsistência encontrada" : "Existem pontos operacionais para análise",
@@ -395,14 +364,14 @@ function buildAiRecommendations(overview: DashboardOverview, isHealthy: boolean,
       text: reworkCategory.percentage <= 10
         ? "Retrabalho abaixo da média"
         : `Retrabalho em ${reworkCategory.percentage.toFixed(1)}% do esforço`,
-      tone: reworkCategory.percentage <= 10 ? "success" : "warning",
+      tone: reworkCategory.percentage <= 10 ? "success" : reworkCategory.percentage >= 20 ? "critical" : "warning",
     });
   }
 
   if (topCategory) {
     recommendations.push({
       text: `Categoria predominante: ${topCategory.category} (${topCategory.percentage.toFixed(1)}%)`,
-      tone: "success",
+      tone: topCategory.percentage >= 55 ? "warning" : "info",
     });
   }
 
@@ -421,22 +390,4 @@ function getMedal(index: number) {
   if (index === 1) return "🥈";
   if (index === 2) return "🥉";
   return "";
-}
-
-function exportDashboardIndicators(overview: DashboardOverview) {
-  const payload = {
-    generatedAt: new Date().toISOString(),
-    summary: overview.summary,
-    pendingItems: overview.pendingItems,
-    categorySummary: overview.categorySummary,
-    collaboratorSummary: overview.collaboratorSummary,
-    recentProjects: overview.recentProjects,
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "dashboard-indicadores.json";
-  link.click();
-  URL.revokeObjectURL(url);
 }
