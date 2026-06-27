@@ -80,8 +80,7 @@ export function DashboardPage({
     },
     {
       label: "Última importação",
-      value: latestImportParts[0] ?? "-",
-      detail: latestImportParts[1],
+      value: latestImportParts.length >= 2 ? `${latestImportParts[0]} às ${latestImportParts[1]}` : "-",
       icon: <FileSpreadsheet size={17} />,
       tooltip: "Data da importação mais recente considerada na Dashboard.",
     },
@@ -204,7 +203,7 @@ export function DashboardPage({
           <div className="dashboard-ai-list">
             {recommendations.map((recommendation) => (
               <span key={recommendation.text} className={recommendation.tone}>
-                {recommendation.tone === "warning" ? <AlertTriangle size={14} /> : <CheckCircle2 size={14} />}
+                {getRecommendationIcon(recommendation.tone)}
                 {recommendation.text}
               </span>
             ))}
@@ -225,7 +224,7 @@ export function DashboardPage({
             {categoryDistribution.map((item, index) => (
               <div className="dashboard-horizontal-bar" key={item.category}>
                 <div>
-                  <strong>{item.category}</strong>
+                  <strong><span>{getCategoryIcon(item.category)}</span>{item.category}</strong>
                   <span>{item.percentage.toFixed(1)}%</span>
                 </div>
                 <div className="dashboard-bar-track">
@@ -252,7 +251,7 @@ export function DashboardPage({
               <div className="dashboard-collaborator-row" key={collaborator.loginUsuario}>
                 <div>
                   <strong><span>{getMedal(index)}</span>{index + 1}. {collaborator.loginUsuario}</strong>
-                  <span>{collaborator.hours.toFixed(2)}h <small>{collaborator.percentage.toFixed(1)}%</small></span>
+                  <span>{collaborator.hours.toFixed(2)}h • {collaborator.percentage.toFixed(1)}%</span>
                 </div>
                 <div className="dashboard-bar-track compact">
                   <span style={{ width: `${Math.max(collaborator.percentage, 3)}%` }} />
@@ -390,4 +389,21 @@ function getMedal(index: number) {
   if (index === 1) return "🥈";
   if (index === 2) return "🥉";
   return "";
+}
+
+function getCategoryIcon(category: string) {
+  const normalized = category.toLowerCase();
+  if (normalized.includes("desenvolvimento")) return "💻";
+  if (normalized.includes("acompanhamento")) return "📋";
+  if (normalized.includes("defini")) return "📑";
+  if (normalized.includes("homologa")) return "🧪";
+  if (normalized.includes("retrabalho")) return "🔁";
+  if (normalized.includes("impedimento")) return "🚫";
+  return "•";
+}
+
+function getRecommendationIcon(tone: "info" | "success" | "warning" | "critical") {
+  return tone === "warning" || tone === "critical"
+    ? <AlertTriangle size={14} />
+    : <CheckCircle2 size={14} />;
 }
