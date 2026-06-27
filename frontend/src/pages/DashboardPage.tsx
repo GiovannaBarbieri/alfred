@@ -125,7 +125,7 @@ export function DashboardPage({
               <div className="dashboard-horizontal-bar" key={item.category}>
                 <div>
                   <strong><span>{getCategoryIcon(item.category)}</span>{item.category}</strong>
-                  <span>{item.percentage.toFixed(1)}%</span>
+                  <span className="dashboard-percent-value">{item.percentage.toFixed(1)}%</span>
                 </div>
                 <div className="dashboard-bar-track">
                   <span style={{ width: `${Math.max(item.percentage, item.hours > 0 ? 3 : 0)}%` }} data-rank={index + 1} />
@@ -149,7 +149,7 @@ export function DashboardPage({
               <div className="dashboard-collaborator-row" key={collaborator.loginUsuario}>
                 <div>
                   <strong><span>{getMedal(index)}</span>{index + 1}. {collaborator.loginUsuario}</strong>
-                  <span><b>{collaborator.hours.toFixed(2)}h</b> • <em>{collaborator.percentage.toFixed(1)}%</em></span>
+                  <span className="dashboard-collaborator-meta"><b>{collaborator.hours.toFixed(2)}h</b><em>{collaborator.percentage.toFixed(1)}%</em></span>
                 </div>
                 <div className="dashboard-bar-track compact">
                   <span style={{ width: `${Math.max(collaborator.percentage, 3)}%` }} />
