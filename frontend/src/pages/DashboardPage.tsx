@@ -26,11 +26,6 @@ type QuickKpi = {
   tooltip: string;
 };
 
-type AttentionItem = {
-  label: string;
-  value: number;
-};
-
 type EnvironmentIndicator = {
   label: string;
   value: string;
@@ -46,7 +41,6 @@ export function DashboardPage({
   const latestProject = overview.recentProjects[0];
   const totalPending = getTotalPending(overview);
   const isHealthy = totalPending === 0;
-  const attentionItems = buildAttentionItems(overview).filter((item) => item.value > 0);
   const categoryDistribution = buildCategoryDistribution(overview.categorySummary);
   const environmentIndicators = buildEnvironmentIndicators(overview.recentProjects, overview.summary.projectsCount);
   const lastUpdate = latestProject ? formatDateTimeBR(latestProject.importedAt).replace(" ", " • ") : "Sem importações";
@@ -121,27 +115,6 @@ export function DashboardPage({
           </div>
         </article>
 
-        <article className="panel dashboard-attention-panel">
-          <div className="dashboard-section-heading compact">
-            <span>{isHealthy ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}</span>
-            <div>
-              <h2>Painel de Pendências</h2>
-              <p>Somente itens relevantes para ação.</p>
-            </div>
-          </div>
-          {isHealthy ? (
-            <div className="dashboard-clear-message">
-              <CheckCircle2 size={17} />
-              <span>Nenhuma pendência operacional encontrada.</span>
-            </div>
-          ) : (
-            <div className="dashboard-attention-simple-list">
-              {attentionItems.map((item) => (
-                <span key={item.label}><AlertTriangle size={14} />{item.value} {item.label}</span>
-              ))}
-            </div>
-          )}
-        </article>
       </section>
 
       <section className="dashboard-panorama-row">
@@ -271,17 +244,13 @@ export function DashboardPage({
   );
 }
 
-function buildAttentionItems(overview: DashboardOverview): AttentionItem[] {
-  return [
-    { label: "classificações pendentes", value: overview.pendingItems.classificationPending },
-    { label: "análises de baixa confiança", value: overview.pendingItems.lowConfidence },
-    { label: "colaboradores sem perfil", value: overview.pendingItems.collaboratorsWithoutProfile },
-    { label: "alertas pendentes", value: overview.pendingItems.alertsPending },
-  ];
-}
-
 function getTotalPending(overview: DashboardOverview) {
-  return buildAttentionItems(overview).reduce((total, item) => total + item.value, 0);
+  return (
+    overview.pendingItems.classificationPending +
+    overview.pendingItems.lowConfidence +
+    overview.pendingItems.collaboratorsWithoutProfile +
+    overview.pendingItems.alertsPending
+  );
 }
 
 function buildCategoryDistribution(categories: DashboardCategorySummary[]) {

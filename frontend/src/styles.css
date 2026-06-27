@@ -294,7 +294,6 @@ input {
 }
 
 .dashboard-status-card,
-.dashboard-attention-panel,
 .dashboard-insights-panel,
 .dashboard-recent-projects-panel,
 .dashboard-chart-panel,
@@ -412,57 +411,10 @@ input {
   color: #f97316;
 }
 
-.dashboard-clear-message {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-radius: 8px;
-  color: #15803d;
-  display: flex;
-  font-size: 13px;
-  font-weight: 750;
-  gap: 8px;
-  padding: 2px 0;
-}
-
 .dashboard-panorama-row {
   display: grid;
   gap: 13px;
   grid-template-columns: minmax(0, 1fr);
-}
-
-.dashboard-attention-list {
-  display: grid;
-  gap: 8px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.dashboard-attention-item {
-  align-items: center;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  display: grid;
-  gap: 8px;
-  grid-template-columns: auto auto minmax(0, 1fr);
-  min-height: 42px;
-  padding: 9px 10px;
-}
-
-.dashboard-attention-item > span {
-  color: #c2410c;
-}
-
-.dashboard-attention-item strong {
-  color: #0f172a;
-  font-size: 16px;
-  line-height: 1;
-}
-
-.dashboard-attention-item small {
-  color: #455468;
-  font-size: 12px;
-  font-weight: 700;
 }
 
 .dashboard-main-grid {
@@ -820,29 +772,6 @@ input {
 
 .dashboard-see-all-button {
   justify-self: start;
-}
-
-.dashboard-attention-simple-list {
-  display: grid;
-  gap: 5px;
-}
-
-.dashboard-attention-simple-list span {
-  align-items: center;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  color: #334155;
-  display: flex;
-  font-size: 12px;
-  font-weight: 700;
-  gap: 7px;
-  min-height: 28px;
-  padding: 5px 8px;
-}
-
-.dashboard-attention-simple-list svg {
-  color: #c2410c;
 }
 
 .dashboard-horizontal-bars,
@@ -10389,14 +10318,12 @@ input {
   .dashboard-command-grid.secondary,
   .dashboard-panorama-row,
   .dashboard-analysis-grid,
-  .dashboard-project-card-grid,
-  .dashboard-attention-list {
+  .dashboard-project-card-grid {
     grid-template-columns: 1fr;
   }
 
   .dashboard-kpi-card,
   .dashboard-status-card,
-  .dashboard-attention-panel,
   .dashboard-insights-panel,
   .dashboard-recent-projects-panel,
   .dashboard-chart-panel,
