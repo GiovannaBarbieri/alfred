@@ -117,6 +117,7 @@ export function ClassificationReviewPanel({
   const [saveNotice, setSaveNotice] = useState("");
   const [actionNotice, setActionNotice] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
 
   const classificationsByLine = useMemo(
     () => new Map(result.classifications.map((classification) => [classification.line, classification])),
@@ -287,14 +288,36 @@ export function ClassificationReviewPanel({
       icon: <Tags size={15} />,
     }));
 
-  const quickFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = [
-    { id: "all", label: "Todas", count: summary.total, icon: <ListChecks size={15} /> },
-    { id: "smart", label: "Revisão inteligente", count: summary.attention, icon: <Sparkles size={15} /> },
+  const pendingFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = [
+    { id: "smart", label: "Pendências", count: summary.attention, icon: <Sparkles size={15} /> },
     { id: "low", label: "Baixa confiança", count: summary.lowConfidence, icon: <ShieldAlert size={15} /> },
     { id: "unclassified", label: "Sem categoria", count: summary.unclassified, icon: <AlertTriangle size={15} /> },
     { id: "conflict", label: "Conflitos", count: summary.conflicts, icon: <Layers3 size={15} /> },
+  ];
+  const advancedFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = [
+    { id: "all", label: "Todas as atividades", count: summary.total, icon: <ListChecks size={15} /> },
     ...categoryQuickFilters,
   ];
+  const pendingOnly = !showAllClassifications;
+  const hasPendingItems = summary.attention > 0;
+
+  function selectFilter(filterId: QuickFilter) {
+    if (filterId === "all" || filterId.startsWith("category:")) {
+      onToggleShowAllClassifications(true);
+    }
+    setQuickFilter(filterId);
+  }
+
+  function togglePendingOnly(checked: boolean) {
+    onToggleShowAllClassifications(!checked);
+    setQuickFilter(checked ? "smart" : "all");
+  }
+
+  function reviewAllActivities() {
+    onToggleShowAllClassifications(true);
+    setQuickFilter("all");
+    setShowMoreFilters(true);
+  }
 
   return (
     <section className="classification-workspace">
@@ -306,18 +329,6 @@ export function ClassificationReviewPanel({
             Priorize somente o que precisa de atenção. Alterações continuam sendo aplicadas por Task e, quando houver
             colaborador filtrado, apenas nos lançamentos desse colaborador.
           </p>
-        </div>
-        <div className="classification-hero-actions">
-          <div className="classification-hero-control-row">
-            <label className="modern-toggle">
-              <input
-                checked={showAllClassifications}
-                type="checkbox"
-                onChange={(event) => onToggleShowAllClassifications(event.target.checked)}
-            />
-            Mostrar todas
-          </label>
-          </div>
         </div>
       </div>
 
@@ -369,6 +380,21 @@ export function ClassificationReviewPanel({
       <div className="classification-layout">
         <div className="classification-main">
           <div className="classification-toolbar-card">
+            <div className="classification-filter-heading">
+              <div>
+                <span className="eyebrow">Fila de revisão</span>
+                <strong>{visibleCards.length} pendência{visibleCards.length === 1 ? "" : "s"} para revisão</strong>
+              </div>
+              <label className="modern-toggle classification-pending-toggle">
+                <input
+                  checked={pendingOnly}
+                  type="checkbox"
+                  onChange={(event) => togglePendingOnly(event.target.checked)}
+                />
+                Mostrar somente pendências
+              </label>
+            </div>
+
             <div className="classification-filter-row">
               <label className="classification-select-filter">
                 <UserRound size={16} />
@@ -381,23 +407,51 @@ export function ClassificationReviewPanel({
                   ))}
                 </select>
               </label>
-              <span>{visibleCards.length} atividade{visibleCards.length === 1 ? "" : "s"} para revisão</span>
             </div>
 
+            <div className="classification-filter-group-title">Pendências</div>
             <div className="classification-chip-row" aria-label="Filtros rapidos">
-              {quickFilters.map((filter) => (
+              {pendingFilters.map((filter) => (
                 <button
                   className={`classification-chip ${quickFilter === filter.id ? "active" : ""}`}
                   key={filter.id}
                   type="button"
-                  onClick={() => setQuickFilter(filter.id)}
+                  onClick={() => selectFilter(filter.id)}
                 >
                   {filter.icon}
                   {filter.label}
                   {typeof filter.count === "number" && <span>{filter.count}</span>}
                 </button>
               ))}
+              <button
+                className={`classification-chip more-filter ${showMoreFilters ? "active" : ""}`}
+                type="button"
+                onClick={() => setShowMoreFilters((current) => !current)}
+              >
+                <Tags size={15} />
+                Mais filtros
+              </button>
             </div>
+
+            {showMoreFilters && (
+              <div className="classification-advanced-filters" aria-label="Filtros avançados">
+                <span>Categorias e demais classificações</span>
+                <div className="classification-chip-row">
+                  {advancedFilters.map((filter) => (
+                    <button
+                      className={`classification-chip subtle ${quickFilter === filter.id ? "active" : ""}`}
+                      key={filter.id}
+                      type="button"
+                      onClick={() => selectFilter(filter.id)}
+                    >
+                      {filter.icon}
+                      {filter.label}
+                      {typeof filter.count === "number" && <span>{filter.count}</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className={`classification-bulk-bar ${selectedTasks.length > 0 ? "active" : ""}`}>
               <button className="link-action" type="button" onClick={toggleVisibleSelection}>
@@ -437,8 +491,17 @@ export function ClassificationReviewPanel({
             {visibleCards.length === 0 && (
               <div className="classification-empty-state">
                 <CheckCircle2 size={24} />
-                <strong>Nenhuma atividade para revisar neste filtro.</strong>
-                <span>Altere os filtros ou use “Todas” para consultar as atividades analisadas.</span>
+                <strong>{hasPendingItems ? "Nenhuma pendência neste filtro." : "Todas as pendências foram resolvidas."}</strong>
+                <span>
+                  {hasPendingItems
+                    ? "Altere o filtro de pendências para continuar a revisão."
+                    : "Se quiser, revise também as atividades classificadas automaticamente."}
+                </span>
+                {!hasPendingItems && (
+                  <button className="secondary-button compact" type="button" onClick={reviewAllActivities}>
+                    Revisar todas as atividades
+                  </button>
+                )}
               </div>
             )}
 
