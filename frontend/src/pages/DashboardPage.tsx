@@ -6,6 +6,7 @@ import {
   Database,
   FileSpreadsheet,
   Layers3,
+  RotateCcw,
   UsersRound,
 } from "lucide-react";
 import type { DashboardCategorySummary, DashboardOverview, DashboardRecentProject } from "../types";
@@ -27,6 +28,7 @@ type EnvironmentIndicator = {
   label: string;
   value: string;
   detail?: string;
+  icon: JSX.Element;
 };
 
 export function DashboardPage({
@@ -174,6 +176,7 @@ export function DashboardPage({
           <div className="dashboard-highlight-list">
             {environmentIndicators.map((item) => (
               <div className="dashboard-highlight-item" key={item.label}>
+                <span className="dashboard-highlight-icon">{item.icon}</span>
                 <div>
                   <span>{item.label}</span>
                   <strong>{item.value}</strong>
@@ -215,21 +218,25 @@ function buildEnvironmentIndicators(projects: DashboardRecentProject[], projects
       label: "Projeto com maior volume",
       value: highestVolume?.projectName ?? "Não disponível",
       detail: highestVolume ? `${highestVolume.totalHours.toFixed(2)}h analisadas` : undefined,
+      icon: <Layers3 size={16} />,
     },
     {
       label: "Média de horas por projeto",
       value: `${(totalHours / analyzedProjects).toFixed(2)}h`,
       detail: `${projectsCount} projeto(s) analisado(s)`,
+      icon: <Clock3 size={16} />,
     },
     {
       label: "Média de colaboradores por projeto",
       value: `${(totalCollaborators / analyzedProjects).toFixed(1)}`,
       detail: "colaboradores por projeto",
+      icon: <UsersRound size={16} />,
     },
     {
       label: "Retrabalho médio do ambiente",
       value: `${(totalRework / analyzedProjects).toFixed(2)}h`,
       detail: "média por projeto",
+      icon: <RotateCcw size={16} />,
     },
   ];
 }

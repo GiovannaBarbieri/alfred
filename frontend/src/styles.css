@@ -908,21 +908,40 @@ input {
   background: #0891b2;
 }
 
+.dashboard-highlight-list {
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .dashboard-highlight-item {
+  align-items: start;
   background: #ffffff;
-  border: 1px solid #edf2f7;
-  border-radius: 10px;
-  box-shadow: inset 3px 0 0 #eef5ff;
+  border: 1px solid #e7edf7;
+  border-radius: 11px;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.025);
   display: grid;
-  gap: 2px;
-  padding: 10px 12px 10px 13px;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 112px;
+  padding: 14px;
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 }
 
 .dashboard-highlight-item:hover {
-  border-color: #dbe7f5;
-  box-shadow: inset 3px 0 0 #bfd8ff, 0 8px 18px rgba(15, 23, 42, 0.045);
+  border-color: #d8e5f5;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.055);
   transform: translateY(-1px);
+}
+
+.dashboard-highlight-icon {
+  align-items: center;
+  background: #eef5ff;
+  border-radius: 10px;
+  color: #2563eb;
+  display: grid !important;
+  height: 32px;
+  justify-content: center;
+  width: 32px;
 }
 
 .dashboard-highlight-item span,
@@ -931,12 +950,13 @@ input {
   display: block;
 }
 
-.dashboard-highlight-item span {
-  color: #637083;
-  font-size: 9.5px;
-  font-weight: 750;
+.dashboard-highlight-item div > span {
+  color: #455468;
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0;
-  text-transform: uppercase;
+  line-height: 1.2;
+  text-transform: none;
 }
 
 .dashboard-highlight-item strong {
@@ -944,15 +964,15 @@ input {
   font-size: 20px;
   font-weight: 700;
   line-height: 1.15;
-  margin-top: 1px;
+  margin-top: 12px;
 }
 
 .dashboard-highlight-item small {
   color: #637083;
   font-size: 11.5px;
-  font-weight: 500;
-  line-height: 1.2;
-  margin-top: 1px;
+  font-weight: 400;
+  line-height: 1.25;
+  margin-top: 10px;
 }
 
 .dashboard-collaborator-row strong {
@@ -10375,7 +10395,8 @@ input {
   .dashboard-main-grid,
   .dashboard-command-grid,
   .dashboard-command-grid.secondary,
-  .dashboard-analysis-grid {
+  .dashboard-analysis-grid,
+  .dashboard-highlight-list {
     grid-template-columns: 1fr;
   }
 
