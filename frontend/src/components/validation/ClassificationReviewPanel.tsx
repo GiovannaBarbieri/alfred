@@ -90,12 +90,6 @@ function confidenceTone(confidence: number) {
   return "low";
 }
 
-function confidenceLabel(confidence: number) {
-  if (confidence >= 0.9) return "Alta";
-  if (confidence >= 0.7) return "Media";
-  return "Baixa";
-}
-
 function matchesCategoryFilter(category: string, filter: QuickFilter) {
   if (filter.startsWith("category:")) {
     return normalizeText(category) === normalizeText(filter.replace("category:", ""));
@@ -480,7 +474,6 @@ export function ClassificationReviewPanel({
                         <div className={`confidence-meter ${tone}`}>
                           <div>
                             <strong>{Math.round(model.confidence * 100)}%</strong>
-                            <span>{confidenceLabel(model.confidence)}</span>
                           </div>
                           <i>
                             <b style={{ width: `${Math.max(4, Math.round(model.confidence * 100))}%` }} />
