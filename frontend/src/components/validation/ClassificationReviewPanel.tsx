@@ -603,21 +603,6 @@ export function ClassificationReviewPanel({
 
         <aside className="classification-side-panel">
           <div className="classification-side-card">
-            <span className="eyebrow">Resumo dinamico</span>
-            <strong>{summary.attention} pendencia{summary.attention === 1 ? "" : "s"} de revisao</strong>
-            <p>Atividades com confiança abaixo de 90%, sem categoria ou com sinais conflitantes.</p>
-            <button
-              className="primary-button compact"
-              disabled={quickFilter === "smart"}
-              type="button"
-              onClick={() => setQuickFilter("smart")}
-            >
-              <Sparkles size={16} />
-              {quickFilter === "smart" ? "Revisao inteligente ativa" : "Aplicar revisao inteligente"}
-            </button>
-          </div>
-
-          <div className="classification-side-card">
             <span className="eyebrow">Confianca media</span>
             <div className="side-confidence-value">{Math.round(summary.averageConfidence * 100)}%</div>
             <div className={`confidence-meter ${confidenceTone(summary.averageConfidence)}`}>
