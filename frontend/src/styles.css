@@ -2766,12 +2766,13 @@ input {
 .classification-card-status {
   align-items: center;
   display: flex;
-  gap: 8px;
+  gap: 14px;
   justify-content: flex-end;
   white-space: nowrap;
 }
 
 .classification-card-status .secondary-button {
+  margin-left: 2px;
   min-height: 28px;
   padding: 0 10px;
 }
