@@ -473,10 +473,7 @@ export function ClassificationReviewPanel({
                   <div className="classification-card-body">
                     <div className="classification-card-top">
                       <div className="classification-card-title">
-                        <span>
-                          Task {model.item.idTask} - {model.affectedLines.length} lancamento
-                          {model.affectedLines.length === 1 ? "" : "s"}
-                        </span>
+                        <span>Task {model.item.idTask}</span>
                         <h3>{model.item.title}</h3>
                       </div>
                       <div className="classification-card-status">
@@ -498,16 +495,6 @@ export function ClassificationReviewPanel({
                           Aceitar
                         </button>
                       </div>
-                    </div>
-
-                    <div className="classification-meta-row">
-                      <span>
-                        <UserRound size={14} />
-                        {model.users.join(", ")}
-                      </span>
-                      <span>Linhas {model.affectedLines.join(", ")}</span>
-                      <span>Origem: {model.origin}</span>
-                      {model.classifierVersion && <span>Versao {model.classifierVersion}</span>}
                     </div>
 
                     <div className="classification-suggestion-grid">
@@ -539,21 +526,36 @@ export function ClassificationReviewPanel({
                       </label>
                     </div>
 
-                    <div className="classification-reasons">
-                      <strong>
-                        <Lightbulb size={14} />
-                        Motivos:
-                      </strong>
-                      {reasons.length > 0 ? (
-                        <div>
-                          {reasons.map((reason) => (
-                            <span key={reason}>{reason}</span>
-                          ))}
-                        </div>
-                      ) : (
-                        <p>Nenhum motivo detalhado retornado pelo classificador.</p>
-                      )}
-                    </div>
+                    <details className="classification-details">
+                      <summary>Ver detalhes</summary>
+                      <div className="classification-meta-row">
+                        <span>
+                          <UserRound size={14} />
+                          {model.users.join(", ")}
+                        </span>
+                        <span>
+                          {model.affectedLines.length} lançamento{model.affectedLines.length === 1 ? "" : "s"}
+                        </span>
+                        <span>Linhas {model.affectedLines.join(", ")}</span>
+                        <span>Origem: {model.origin}</span>
+                        {model.classifierVersion && <span>Versão {model.classifierVersion}</span>}
+                      </div>
+                      <div className="classification-reasons">
+                        <strong>
+                          <Lightbulb size={14} />
+                          Motivos:
+                        </strong>
+                        {reasons.length > 0 ? (
+                          <div>
+                            {reasons.map((reason) => (
+                              <span key={reason}>{reason}</span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p>Nenhum motivo detalhado retornado pelo classificador.</p>
+                        )}
+                      </div>
+                    </details>
                   </div>
                 </article>
               );

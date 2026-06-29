@@ -2653,14 +2653,14 @@ input {
 .classification-task-card {
   border-left: 3px solid #2563eb;
   display: grid;
-  gap: 7px;
+  gap: 6px;
   grid-template-columns: auto minmax(0, 1fr);
-  padding: 8px 10px;
+  padding: 8px 10px 7px;
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
 }
 
 .classification-task-card:hover {
-  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.085);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.055);
   transform: translateY(-1px);
 }
 
@@ -2689,7 +2689,7 @@ input {
 .classification-card-check {
   cursor: pointer;
   display: inline-flex;
-  padding-top: 3px;
+  padding-top: 2px;
 }
 
 .classification-card-check input {
@@ -2738,9 +2738,9 @@ input {
 }
 
 .classification-card-top {
-  align-items: start;
+  align-items: center;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
@@ -2749,11 +2749,11 @@ input {
 }
 
 .classification-card-title span {
-  color: #2563eb;
+  color: #64748b;
   display: block;
-  font-size: 11px;
-  font-weight: 900;
-  margin-bottom: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  margin-bottom: 1px;
 }
 
 .classification-card-title h3 {
@@ -2766,14 +2766,14 @@ input {
 .classification-card-status {
   align-items: center;
   display: flex;
-  gap: 7px;
+  gap: 8px;
   justify-content: flex-end;
   white-space: nowrap;
 }
 
 .classification-card-status .secondary-button {
   min-height: 28px;
-  padding: 0 9px;
+  padding: 0 10px;
 }
 
 .classification-meta-row {
@@ -2798,19 +2798,19 @@ input {
 
 .classification-suggestion-grid {
   display: grid;
-  gap: 7px;
+  gap: 8px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .classification-suggestion-grid label {
   display: grid;
-  gap: 4px;
+  gap: 3px;
 }
 
 .classification-suggestion-grid label span {
   color: #455468;
-  font-size: 11px;
-  font-weight: 850;
+  font-size: 10.5px;
+  font-weight: 700;
 }
 
 .classification-suggestion-grid select {
@@ -2829,6 +2829,39 @@ input {
   outline: 0;
 }
 
+.classification-details {
+  border-top: 1px solid #edf2f7;
+  color: #64748b;
+  font-size: 11px;
+  padding-top: 4px;
+}
+
+.classification-details summary {
+  color: #0f4c8a;
+  cursor: pointer;
+  font-weight: 750;
+  list-style: none;
+  width: max-content;
+}
+
+.classification-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.classification-details summary::after {
+  color: #94a3b8;
+  content: " +";
+}
+
+.classification-details[open] {
+  display: grid;
+  gap: 6px;
+}
+
+.classification-details[open] summary::after {
+  content: " -";
+}
+
 .classification-reasons {
   align-items: center;
   color: #64748b;
@@ -2836,8 +2869,8 @@ input {
   flex-wrap: wrap;
   gap: 4px;
   min-width: 0;
-  padding-top: 2px;
-  border-top: 1px solid #edf2f7;
+  padding-top: 0;
+  border-top: 0;
 }
 
 .classification-reasons strong {
@@ -2927,6 +2960,32 @@ input {
 
 .confidence-meter.low b {
   background: #dc2626;
+}
+
+.classification-card-status .confidence-meter {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  display: inline-flex;
+  gap: 4px;
+  min-width: 0;
+  padding: 4px 8px;
+}
+
+.classification-card-status .confidence-meter > div {
+  gap: 4px;
+}
+
+.classification-card-status .confidence-meter strong {
+  font-size: 12px;
+}
+
+.classification-card-status .confidence-meter span {
+  font-weight: 600;
+}
+
+.classification-card-status .confidence-meter i {
+  display: none;
 }
 
 @media (max-width: 860px) {
