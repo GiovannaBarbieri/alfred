@@ -242,7 +242,7 @@ input {
 
 .dashboard-kpi-grid {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
@@ -250,18 +250,19 @@ input {
   align-items: center;
   background: #ffffff;
   border: 1px solid #e3eaf3;
-  border-radius: 11px;
-  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.065);
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.055);
   display: flex;
-  gap: 12px;
-  min-height: 50px;
-  padding: 7px 13px;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  gap: 13px;
+  height: 64px;
+  min-width: 0;
+  padding: 10px 14px;
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 }
 
 .dashboard-kpi-card:hover {
   border-color: #bfd8ff;
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.085);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.075);
   transform: translateY(-1px);
 }
 
@@ -279,9 +280,22 @@ input {
   width: 26px;
 }
 
+.dashboard-kpi-card > span {
+  border-radius: 10px;
+  height: 36px;
+  width: 36px;
+}
+
 .dashboard-kpi-card svg {
-  height: 15px;
-  width: 15px;
+  height: 18px;
+  width: 18px;
+}
+
+.dashboard-kpi-card > div {
+  align-content: center;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 
 .dashboard-kpi-card strong,
@@ -292,27 +306,31 @@ input {
 
 .dashboard-kpi-card strong {
   color: #0f172a;
-  font-size: clamp(23px, 1.9vw, 32px);
+  font-size: 24px;
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .dashboard-kpi-card small {
   color: #637083;
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 500;
-  margin-top: 1px;
+  line-height: 1.2;
+  margin-top: 0;
 }
 
 .dashboard-kpi-card:nth-child(5) strong {
-  color: #334155;
-  font-size: clamp(14px, 1vw, 17px);
+  color: #0f172a;
+  font-size: 16px;
   font-weight: 700;
+  line-height: 1.05;
 }
 
 .dashboard-kpi-card:nth-child(5) small {
-  color: #8a97aa;
+  color: #637083;
 }
 
 .dashboard-kpi-card em {
