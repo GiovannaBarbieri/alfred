@@ -57,11 +57,11 @@ export function ImportPreviewPanel({ result, onStepChange }: ImportPreviewPanelP
         ? "Confira os itens que precisam de revisão antes de salvar."
         : "Tudo pronto para revisar o resumo final e salvar.";
   const flowSteps = [
-    { label: "Upload", status: "done" },
-    { label: "Validação", status: hasBlocking ? "attention" : "done" },
-    { label: "Duplicidades", status: result.duplicates.length > 0 ? "attention" : "done" },
-    { label: "Classificação", status: pendingReview > 0 ? "attention" : "done" },
-    { label: "Confirmação", status: "pending" },
+    { id: "upload", label: "Upload", status: "done" },
+    { id: "validation", label: "Validação", status: hasBlocking ? "attention" : "done" },
+    { id: "duplicates", label: "Duplicidades", status: result.duplicates.length > 0 ? "attention" : "done" },
+    { id: "classification", label: "Classificação", status: pendingReview > 0 ? "attention" : "done" },
+    { id: "confirm", label: "Confirmação", status: "pending" },
   ] as const;
 
   return (
@@ -205,7 +205,7 @@ export function ImportPreviewPanel({ result, onStepChange }: ImportPreviewPanelP
             </div>
             <div className="preview-flow-list">
               {flowSteps.map((step, index) => (
-                <div className={`preview-flow-step ${step.status}`} key={step.label}>
+                <div className={`preview-flow-step ${step.status} ${step.id === nextStep ? "current" : ""}`} key={step.label}>
                   <span>{index + 1}</span>
                   <strong>{step.label}</strong>
                 </div>
