@@ -68,8 +68,8 @@ export function ImportPreviewPanel({ result, onStepChange }: ImportPreviewPanelP
     <section className="panel import-preview-panel">
       <div className="import-preview-hero">
         <div className="import-preview-title">
-          <span className="eyebrow">Pré-validação</span>
           <h2>{result.filename}</h2>
+          <span className="eyebrow">Pré-validação</span>
           <p>Resumo analítico da planilha antes da persistência final.</p>
         </div>
         <span className={`preview-status ${previewStatus.tone}`}>
@@ -186,7 +186,7 @@ export function ImportPreviewPanel({ result, onStepChange }: ImportPreviewPanelP
 
         <aside className="preview-side-panel">
           <section className="preview-next-step-card">
-            <span className="eyebrow">Proximo passo</span>
+            <span className="eyebrow">Próxima ação</span>
             <h3>{nextStepLabel}</h3>
             <p>{nextStepDetail}</p>
             <button className="primary-button" type="button" onClick={() => onStepChange(nextStep)}>
