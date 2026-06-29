@@ -381,7 +381,7 @@ export function ClassificationReviewPanel({
                   ))}
                 </select>
               </label>
-              <span>{visibleCards.length} atividade{visibleCards.length === 1 ? "" : "s"} na lista</span>
+              <span>{visibleCards.length} atividade{visibleCards.length === 1 ? "" : "s"} para revisão</span>
             </div>
 
             <div className="classification-chip-row" aria-label="Filtros rapidos">
@@ -437,8 +437,8 @@ export function ClassificationReviewPanel({
             {visibleCards.length === 0 && (
               <div className="classification-empty-state">
                 <CheckCircle2 size={24} />
-                <strong>Nenhuma atividade neste filtro.</strong>
-                <span>Altere os filtros ou volte para “Todas” para ver a lista completa.</span>
+                <strong>Nenhuma atividade para revisar neste filtro.</strong>
+                <span>Altere os filtros ou use “Todas” para consultar as atividades analisadas.</span>
               </div>
             )}
 
@@ -557,7 +557,7 @@ export function ClassificationReviewPanel({
             {visibleCards.length > ACTIVITIES_PER_PAGE && (
               <div className="classification-pagination" aria-label="Paginação das atividades">
                 <span>
-                  Mostrando {pageStartIndex + 1}–{pageEndIndex} de {visibleCards.length} atividades
+                  Mostrando {pageStartIndex + 1}–{pageEndIndex} de {visibleCards.length} atividades para revisão
                 </span>
                 <div>
                   <button
