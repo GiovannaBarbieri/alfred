@@ -15,7 +15,7 @@ import {
   Tags,
   UserRound,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { SetStateAction } from "react";
 import type { ImportWizardStep } from "../ImportWizard";
 import type { ImportValidationResponse } from "../../types";
@@ -65,6 +65,7 @@ type CardModel = {
 
 const REVIEW_CONFIDENCE_THRESHOLD = 0.9;
 const UNCLASSIFIED_VALUES = ["nao classificado", "não classificado", ""];
+const ACTIVITIES_PER_PAGE = 20;
 
 function normalizeText(value: string | undefined | null) {
   return String(value ?? "")
@@ -121,6 +122,7 @@ export function ClassificationReviewPanel({
   const [acceptedTasks, setAcceptedTasks] = useState<string[]>([]);
   const [saveNotice, setSaveNotice] = useState("");
   const [actionNotice, setActionNotice] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const classificationsByLine = useMemo(
     () => new Map(result.classifications.map((classification) => [classification.line, classification])),
@@ -191,6 +193,19 @@ export function ClassificationReviewPanel({
     });
   }, [cardModels, quickFilter, selectedCollaborator]);
 
+  const totalPages = Math.max(1, Math.ceil(visibleCards.length / ACTIVITIES_PER_PAGE));
+  const pageStartIndex = visibleCards.length === 0 ? 0 : (currentPage - 1) * ACTIVITIES_PER_PAGE;
+  const pageEndIndex = Math.min(pageStartIndex + ACTIVITIES_PER_PAGE, visibleCards.length);
+  const paginatedCards = visibleCards.slice(pageStartIndex, pageEndIndex);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [quickFilter, selectedCollaborator, showAllClassifications]);
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
+
   const summary = useMemo(() => {
     const total = cardModels.length;
     const lowConfidence = cardModels.filter((model) => model.lowConfidence).length;
@@ -215,6 +230,7 @@ export function ClassificationReviewPanel({
 
   const selectedVisibleCount = visibleCards.filter((model) => selectedTasks.includes(model.key)).length;
   const allVisibleSelected = visibleCards.length > 0 && selectedVisibleCount === visibleCards.length;
+  const paginationPages = buildPaginationPages(currentPage, totalPages);
 
   function updateLines(lines: number[], category: string, subcategory: string) {
     onClassificationOverridesChange((current) => {
@@ -432,7 +448,7 @@ export function ClassificationReviewPanel({
               </div>
             )}
 
-            {visibleCards.map((model) => {
+            {paginatedCards.map((model) => {
               const tone = confidenceTone(model.confidence);
               const isSelected = selectedTasks.includes(model.key);
               const reasons = [
@@ -542,6 +558,44 @@ export function ClassificationReviewPanel({
                 </article>
               );
             })}
+
+            {visibleCards.length > ACTIVITIES_PER_PAGE && (
+              <div className="classification-pagination" aria-label="Paginação das atividades">
+                <span>
+                  Mostrando {pageStartIndex + 1}–{pageEndIndex} de {visibleCards.length} atividades
+                </span>
+                <div>
+                  <button
+                    className="secondary-button compact"
+                    disabled={currentPage === 1}
+                    type="button"
+                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  >
+                    Anterior
+                  </button>
+                  <div className="classification-page-numbers">
+                    {paginationPages.map((page) => (
+                      <button
+                        className={currentPage === page ? "active" : ""}
+                        key={page}
+                        type="button"
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    className="secondary-button compact"
+                    disabled={currentPage === totalPages}
+                    type="button"
+                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  >
+                    Próxima
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -616,4 +670,13 @@ export function ClassificationReviewPanel({
       )}
     </section>
   );
+}
+
+function buildPaginationPages(currentPage: number, totalPages: number) {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const start = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+  return Array.from({ length: 5 }, (_, index) => start + index);
 }
