@@ -2752,6 +2752,12 @@ input {
   z-index: 80;
 }
 
+.classification-action-toast.error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
 .classification-task-card {
   border-left: 3px solid #2563eb;
   display: grid;

@@ -80,6 +80,7 @@ export function ValidationPage({
   const [roleComboboxOpen, setRoleComboboxOpen] = useState<string | null>(null);
   const [roleSearchDrafts, setRoleSearchDrafts] = useState<Record<string, string>>({});
   const [collaboratorModalError, setCollaboratorModalError] = useState<string | null>(null);
+  const [collaboratorFeedback, setCollaboratorFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isSavingCollaborators, setIsSavingCollaborators] = useState(false);
 
   const activeUnprofiledCollaborators = useMemo(
@@ -99,6 +100,12 @@ export function ValidationPage({
     activeUnprofiledCollaborators.length > 0 &&
     activeUnprofiledCollaborators.every((login) => Boolean(collaboratorRoleDrafts[login])) &&
     hasAvailableRoles;
+
+  useEffect(() => {
+    if (!collaboratorFeedback) return;
+    const timeout = window.setTimeout(() => setCollaboratorFeedback(null), 3600);
+    return () => window.clearTimeout(timeout);
+  }, [collaboratorFeedback]);
 
   useEffect(() => {
     if (
@@ -126,8 +133,10 @@ export function ValidationPage({
     if (!canSaveCollaborators) return;
     setIsSavingCollaborators(true);
     setCollaboratorModalError(null);
+    setCollaboratorFeedback(null);
 
     try {
+      const totalCreated = activeUnprofiledCollaborators.length;
       const roleByLogin = new Map<string, SettingItem>();
       activeUnprofiledCollaborators.forEach((login) => {
         const role = collaboratorProfileOptions.find((option) => option.id === Number(collaboratorRoleDrafts[login]));
@@ -154,8 +163,14 @@ export function ValidationPage({
 
       setDismissedCollaboratorSession(result.sessionId);
       setIsCollaboratorModalOpen(false);
+      setCollaboratorFeedback({
+        type: "success",
+        message: `${totalCreated} colaborador${totalCreated === 1 ? "" : "es"} cadastrado${totalCreated === 1 ? "" : "s"} com sucesso.`,
+      });
     } catch (err) {
-      setCollaboratorModalError(err instanceof Error ? err.message : "Não foi possível cadastrar os colaboradores.");
+      const message = err instanceof Error ? err.message : "Não foi possível cadastrar os colaboradores.";
+      setCollaboratorModalError(message);
+      setCollaboratorFeedback({ type: "error", message });
     } finally {
       setIsSavingCollaborators(false);
     }
@@ -376,6 +391,13 @@ export function ValidationPage({
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {collaboratorFeedback && (
+        <div className={`classification-action-toast ${collaboratorFeedback.type === "error" ? "error" : ""}`} role="status" aria-live="polite">
+          {collaboratorFeedback.type === "success" ? "✓" : "!"}
+          {collaboratorFeedback.message}
         </div>
       )}
     </>
