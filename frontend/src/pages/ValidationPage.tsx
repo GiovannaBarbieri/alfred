@@ -266,8 +266,9 @@ export function ValidationPage({
             </div>
 
             <div className="import-collaborator-progress">
+              <strong>Cadastro concluído</strong>
               <span>
-                <strong>{linkedCollaboratorsCount}</strong> de {activeUnprofiledCollaborators.length} colaboradores vinculados
+                {linkedCollaboratorsCount} de {activeUnprofiledCollaborators.length} colaboradores
               </span>
               <div aria-hidden="true">
                 <i style={{ width: `${collaboratorProgressPercentage}%` }} />
@@ -313,8 +314,7 @@ export function ValidationPage({
                           setRoleSearchDrafts((current) => ({ ...current, [login]: "" }));
                         }}
                       >
-                        <strong>{selectedRole?.name || "Selecione um cargo"}</strong>
-                        <small>{selectedRole?.group || "Pesquisar cargo"}</small>
+                        <strong>{selectedRole?.name || "Pesquisar cargo..."}</strong>
                       </button>
                       {roleComboboxOpen === login && (
                         <div className="import-role-menu">
@@ -346,13 +346,8 @@ export function ValidationPage({
                       )}
                     </div>
 
-                    <div className="import-collaborator-group">
-                      <span>Grupo sugerido</span>
-                      <em>{selectedRole?.group || "Aguardando cargo"}</em>
-                    </div>
-
                     <span className={`import-collaborator-status ${hasSelectedRole ? "complete" : "pending"}`}>
-                      {hasSelectedRole ? "✔ Cargo definido" : "⚠ Selecione um cargo"}
+                      {hasSelectedRole ? "Cadastrado" : "Pendente"}
                     </span>
                   </div>
                 );
@@ -375,7 +370,7 @@ export function ValidationPage({
                 Ignorar por enquanto
               </button>
               <button className="primary-button compact" disabled={!canSaveCollaborators || isSavingCollaborators} type="submit">
-                {isSavingCollaborators ? "Cadastrando..." : "Cadastrar colaboradores"}
+                {isSavingCollaborators ? "Cadastrando..." : "Cadastrar e continuar"}
               </button>
             </div>
           </form>

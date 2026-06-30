@@ -8928,9 +8928,9 @@ input {
 }
 
 .import-collaborator-modal {
-  gap: 14px;
-  max-width: 860px;
-  width: min(860px, 100%);
+  gap: 12px;
+  max-width: 780px;
+  width: min(780px, 100%);
 }
 
 .import-collaborator-header {
@@ -8954,7 +8954,13 @@ input {
 
 .import-collaborator-progress {
   display: grid;
-  gap: 7px;
+  gap: 5px;
+}
+
+.import-collaborator-progress > strong {
+  color: #0b1f36;
+  font-size: 13px;
+  font-weight: 850;
 }
 
 .import-collaborator-progress span {
@@ -8963,14 +8969,10 @@ input {
   font-weight: 750;
 }
 
-.import-collaborator-progress strong {
-  color: #0b1f36;
-}
-
 .import-collaborator-progress div {
   background: #e8eef6;
   border-radius: 999px;
-  height: 7px;
+  height: 8px;
   overflow: hidden;
 }
 
@@ -8984,10 +8986,10 @@ input {
 
 .import-collaborator-list {
   display: grid;
-  gap: 10px;
+  gap: 7px;
   max-height: min(52vh, 500px);
   overflow: auto;
-  padding-right: 2px;
+  padding-right: 8px;
 }
 
 .import-collaborator-row {
@@ -8996,9 +8998,9 @@ input {
   border: 1px solid #e5edf6;
   border-radius: 12px;
   display: grid;
-  gap: 12px;
-  grid-template-columns: minmax(170px, 0.85fr) minmax(260px, 1.2fr) minmax(140px, 0.7fr) auto;
-  padding: 12px;
+  gap: 10px;
+  grid-template-columns: minmax(170px, 0.8fr) minmax(300px, 1.2fr) auto;
+  padding: 9px 10px;
   transition: border-color 160ms ease, background 160ms ease;
 }
 
@@ -9008,17 +9010,15 @@ input {
 }
 
 .import-collaborator-identity,
-.import-collaborator-group,
 .import-role-combobox {
   display: grid;
   align-content: start;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
   position: relative;
 }
 
 .import-collaborator-identity > span,
-.import-collaborator-group > span,
 .import-role-combobox > span {
   color: #64748b;
   font-size: 10px;
@@ -9042,19 +9042,6 @@ input {
   font-weight: 650;
 }
 
-.import-collaborator-group em {
-  align-items: center;
-  background: #eef6ff;
-  border: 1px solid #d6e8ff;
-  border-radius: 999px;
-  color: #0f4c8a;
-  display: inline-flex;
-  font-weight: 800;
-  min-height: 30px;
-  padding: 0 10px;
-  width: max-content;
-}
-
 .import-role-trigger {
   background: #ffffff;
   border: 1px solid #c8d3df;
@@ -9062,9 +9049,8 @@ input {
   color: #0b1f36;
   cursor: pointer;
   display: grid;
-  gap: 2px;
-  min-height: 42px;
-  padding: 7px 10px;
+  min-height: 36px;
+  padding: 6px 10px;
   text-align: left;
   width: 100%;
 }
@@ -9130,10 +9116,12 @@ input {
 .import-collaborator-status {
   align-self: center;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 850;
   justify-self: end;
-  padding: 7px 10px;
+  letter-spacing: 0;
+  padding: 6px 9px;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
