@@ -324,6 +324,24 @@ export function ClassificationReviewPanel({
     <section className="classification-workspace">
       <div className="classification-layout">
         <div className="classification-main">
+          <div className="classification-stage-header">
+            <div>
+              <span className="eyebrow">Fase 4 - Classificação</span>
+              <h2>Revisão inteligente das atividades</h2>
+              <p>Priorize somente o que precisa de atenção.</p>
+            </div>
+            <div className="classification-stage-actions">
+              <button className="ghost-button compact" type="button" onClick={() => onStepChange("preview")}>
+                <ArrowLeft size={16} />
+                Voltar
+              </button>
+              <button className="primary-button compact" type="button" onClick={() => onStepChange("confirm")}>
+                Confirmar revisão
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+
           <div className="classification-toolbar-card">
             <div className="classification-filter-heading">
               <div>
@@ -666,16 +684,6 @@ export function ClassificationReviewPanel({
               </div>
             )}
 
-            <div className="classification-footer-actions">
-              <button className="ghost-button compact classification-footer-back" type="button" onClick={() => onStepChange("preview")}>
-                <ArrowLeft size={16} />
-                Voltar para Validação
-              </button>
-              <button className="primary-button compact classification-footer-next" type="button" onClick={() => onStepChange("confirm")}>
-                Confirmar revisão
-                <ArrowRight size={16} />
-              </button>
-            </div>
           </div>
         </div>
       </div>
