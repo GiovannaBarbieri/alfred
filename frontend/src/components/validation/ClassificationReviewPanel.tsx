@@ -8,7 +8,6 @@ import {
   Layers3,
   Lightbulb,
   ListChecks,
-  Save,
   ShieldAlert,
   Sparkles,
   Tags,
@@ -113,7 +112,6 @@ export function ClassificationReviewPanel({
   const [bulkCategory, setBulkCategory] = useState("");
   const [bulkSubcategory, setBulkSubcategory] = useState("");
   const [acceptedTasks, setAcceptedTasks] = useState<string[]>([]);
-  const [saveNotice, setSaveNotice] = useState("");
   const [actionNotice, setActionNotice] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
@@ -664,7 +662,6 @@ export function ClassificationReviewPanel({
                     <option value={50}>50</option>
                     <option value={100}>100</option>
                   </select>
-                  <span>itens/página</span>
                 </label>
               </div>
             )}
@@ -674,22 +671,10 @@ export function ClassificationReviewPanel({
                 <ArrowLeft size={16} />
                 Voltar para Validação
               </button>
-              <button
-                className="secondary-button compact classification-footer-save"
-                type="button"
-                onClick={() => {
-                  setSaveNotice("Progresso salvo nesta sessao.");
-                  window.setTimeout(() => setSaveNotice(""), 2200);
-                }}
-              >
-                <Save size={16} />
-                Salvar rascunho
-              </button>
               <button className="primary-button compact classification-footer-next" type="button" onClick={() => onStepChange("confirm")}>
-                Confirmar
+                Confirmar revisão
                 <ArrowRight size={16} />
               </button>
-              {saveNotice && <span>{saveNotice}</span>}
             </div>
           </div>
         </div>
