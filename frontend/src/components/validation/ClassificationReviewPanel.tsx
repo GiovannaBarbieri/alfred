@@ -5,9 +5,11 @@ import {
   ChevronDown,
   Check,
   CheckCircle2,
+  FileText,
   Layers3,
   Lightbulb,
   ListChecks,
+  MapPin,
   ShieldAlert,
   Sparkles,
   Tags,
@@ -609,23 +611,35 @@ export function ClassificationReviewPanel({
                           {model.users.join(", ")}
                         </span>
                         <span>
+                          <FileText size={14} />
                           {model.affectedLines.length} lançamento{model.affectedLines.length === 1 ? "" : "s"}
                         </span>
-                        <span>Linhas {model.affectedLines.join(", ")}</span>
-                        <span>Origem: {model.origin}</span>
-                        {model.classifierVersion && <span>Versão {model.classifierVersion}</span>}
+                        <span>
+                          <MapPin size={14} />
+                          {model.affectedLines.length === 1 ? "Linha" : "Linhas"} {model.affectedLines.join(", ")}
+                        </span>
+                        <span>
+                          <Tags size={14} />
+                          Origem: {model.origin}
+                        </span>
+                        {model.classifierVersion && (
+                          <span>
+                            <Layers3 size={14} />
+                            Versão {model.classifierVersion}
+                          </span>
+                        )}
                       </div>
                       <div className="classification-reasons">
                         <strong>
                           <Lightbulb size={14} />
-                          Motivos:
+                          Motivo da classificação
                         </strong>
                         {reasons.length > 0 ? (
-                          <div>
+                          <ul>
                             {reasons.map((reason) => (
-                              <span key={reason}>{reason}</span>
+                              <li key={reason}>{reason}</li>
                             ))}
-                          </div>
+                          </ul>
                         ) : (
                           <p>Nenhum motivo detalhado retornado pelo classificador.</p>
                         )}
