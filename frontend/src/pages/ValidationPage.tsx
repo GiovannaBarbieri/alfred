@@ -314,7 +314,8 @@ export function ValidationPage({
                           setRoleSearchDrafts((current) => ({ ...current, [login]: "" }));
                         }}
                       >
-                        <strong>{selectedRole?.name || "Pesquisar cargo..."}</strong>
+                        <strong>{selectedRole?.name || "Selecione ou pesquise um cargo..."}</strong>
+                        <i aria-hidden="true" />
                       </button>
                       {roleComboboxOpen === login && (
                         <div className="import-role-menu">
@@ -324,6 +325,7 @@ export function ValidationPage({
                             value={roleSearch}
                             onChange={(event) => setRoleSearchDrafts((current) => ({ ...current, [login]: event.target.value }))}
                           />
+                          <span>Digite para pesquisar ou selecione uma opção.</span>
                           <div>
                             {filteredRoles.length === 0 && <p>Nenhum cargo encontrado.</p>}
                             {filteredRoles.map((role) => (
