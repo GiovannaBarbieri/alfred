@@ -3086,33 +3086,29 @@ input {
 }
 
 .classification-review-footer {
-  background: #ffffff;
-  border: 1px solid #e8eef6;
-  border-radius: 14px;
+  border-top: 1px solid #e8eef6;
   display: grid;
-  gap: 0;
-  margin-top: 0;
-  overflow: hidden;
+  gap: 4px;
+  margin-top: 2px;
+  padding-top: 6px;
 }
 
 .classification-footer-pagination {
   align-items: center;
   display: grid;
-  gap: 10px;
+  gap: 8px;
   grid-template-columns: minmax(170px, 1fr) auto minmax(130px, 1fr);
-  min-height: 42px;
-  padding: 6px 10px;
+  min-height: 34px;
+  padding: 0 2px;
 }
 
 .classification-footer-actions {
   align-items: center;
-  background: #fbfdff;
-  border-top: 1px solid #edf2f7;
   display: grid;
-  gap: 10px;
+  gap: 8px;
   grid-template-columns: 1fr auto 1fr;
-  min-height: 42px;
-  padding: 6px 10px;
+  min-height: 36px;
+  padding: 0 2px;
 }
 
 .classification-footer-actions .primary-button,
@@ -3161,11 +3157,11 @@ input {
   background: #f0fdf4;
   border-radius: 10px;
   color: #147a3b;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   grid-column: 1 / -1;
   justify-self: center;
-  padding: 8px 10px;
+  padding: 6px 10px;
   text-align: center;
 }
 
@@ -3177,14 +3173,14 @@ input {
 
 .classification-pagination-summary span {
   color: #64748b;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
 }
 
 .classification-pagination-controls {
   align-items: center;
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: center;
 }
 
@@ -3202,8 +3198,8 @@ input {
   cursor: pointer;
   font-size: 12px;
   font-weight: 800;
-  height: 30px;
-  min-width: 30px;
+  height: 28px;
+  min-width: 28px;
   padding: 0 8px;
 }
 
