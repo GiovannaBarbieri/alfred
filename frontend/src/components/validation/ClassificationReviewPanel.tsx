@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  ChevronDown,
   Check,
   CheckCircle2,
   Layers3,
@@ -116,6 +117,8 @@ export function ClassificationReviewPanel({
   const [actionNotice, setActionNotice] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
+  const [collaboratorComboboxOpen, setCollaboratorComboboxOpen] = useState(false);
+  const [collaboratorSearch, setCollaboratorSearch] = useState("");
 
   const classificationsByLine = useMemo(
     () => new Map(result.classifications.map((classification) => [classification.line, classification])),
@@ -129,6 +132,11 @@ export function ClassificationReviewPanel({
       ),
     [classificationReviewGroups],
   );
+  const filteredCollaboratorOptions = useMemo(() => {
+    const search = normalizeText(collaboratorSearch);
+    if (!search) return collaboratorOptions;
+    return collaboratorOptions.filter((user) => normalizeText(user).includes(search));
+  }, [collaboratorOptions, collaboratorSearch]);
 
   const cardModels = useMemo<CardModel[]>(() => {
     return classificationReviewGroups.map((item) => {
@@ -347,17 +355,75 @@ export function ClassificationReviewPanel({
             </div>
 
             <div className="classification-filter-row">
-              <label className="classification-select-filter">
+              <div
+                className="classification-collaborator-combobox"
+                onBlur={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                    setCollaboratorComboboxOpen(false);
+                    setCollaboratorSearch("");
+                  }
+                }}
+              >
                 <UserRound size={16} />
-                <select value={selectedCollaborator} onChange={(event) => setSelectedCollaborator(event.target.value)}>
-                  <option value="">Todos os colaboradores</option>
-                  {collaboratorOptions.map((user) => (
-                    <option key={user} value={user}>
-                      {user}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <input
+                  aria-expanded={collaboratorComboboxOpen}
+                  aria-label="Filtrar por colaborador"
+                  role="combobox"
+                  value={collaboratorComboboxOpen ? collaboratorSearch : selectedCollaborator || "Todos os colaboradores"}
+                  onChange={(event) => {
+                    setCollaboratorSearch(event.target.value);
+                    setCollaboratorComboboxOpen(true);
+                  }}
+                  onFocus={() => {
+                    setCollaboratorComboboxOpen(true);
+                    setCollaboratorSearch("");
+                  }}
+                />
+                <button
+                  aria-label="Abrir lista de colaboradores"
+                  type="button"
+                  onClick={() => {
+                    setCollaboratorComboboxOpen((current) => !current);
+                    setCollaboratorSearch("");
+                  }}
+                >
+                  <ChevronDown size={15} />
+                </button>
+                {collaboratorComboboxOpen && (
+                  <div className="classification-combobox-menu" role="listbox">
+                    <button
+                      className={selectedCollaborator === "" ? "active" : ""}
+                      role="option"
+                      type="button"
+                      onClick={() => {
+                        setSelectedCollaborator("");
+                        setCollaboratorComboboxOpen(false);
+                        setCollaboratorSearch("");
+                      }}
+                    >
+                      <span>Todos os colaboradores</span>
+                    </button>
+                    {filteredCollaboratorOptions.length === 0 && (
+                      <div className="classification-combobox-empty">Nenhum colaborador encontrado.</div>
+                    )}
+                    {filteredCollaboratorOptions.map((user) => (
+                      <button
+                        className={selectedCollaborator === user ? "active" : ""}
+                        key={user}
+                        role="option"
+                        type="button"
+                        onClick={() => {
+                          setSelectedCollaborator(user);
+                          setCollaboratorComboboxOpen(false);
+                          setCollaboratorSearch("");
+                        }}
+                      >
+                        <span>{user}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="classification-filter-group-title">Pendências</div>
@@ -566,18 +632,22 @@ export function ClassificationReviewPanel({
               );
             })}
 
-            {visibleCards.length > ACTIVITIES_PER_PAGE && (
+            {visibleCards.length > 0 && (
               <div className="classification-pagination" aria-label="Paginação das atividades">
-                <span>
-                  Mostrando {pageStartIndex + 1}–{pageEndIndex} de {visibleCards.length} atividades para revisão
-                </span>
-                <div>
+                <div className="classification-pagination-summary">
+                  <span>
+                    Mostrando {pageStartIndex + 1}–{pageEndIndex} de {visibleCards.length} pendências
+                  </span>
+                  <small>Página {currentPage} de {totalPages}</small>
+                </div>
+                <div className="classification-pagination-controls">
                   <button
                     className="secondary-button compact"
                     disabled={currentPage === 1}
                     type="button"
                     onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
                   >
+                    <ArrowLeft size={14} />
                     Anterior
                   </button>
                   <div className="classification-page-numbers">
@@ -599,8 +669,17 @@ export function ClassificationReviewPanel({
                     onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
                   >
                     Próxima
+                    <ArrowRight size={14} />
                   </button>
                 </div>
+                <label className="classification-page-size">
+                  <span>Itens por página</span>
+                  <select aria-label="Itens por página" disabled value={ACTIVITIES_PER_PAGE} onChange={() => undefined}>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </label>
               </div>
             )}
           </div>
