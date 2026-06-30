@@ -164,6 +164,12 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     await refreshSettings();
   }
 
+  async function handleCreateImportCollaboratorProfile(loginUsuario: string, subcategoryId: number) {
+    if (!loginUsuario.trim() || !subcategoryId) return;
+    await createCollaboratorProfile(loginUsuario.trim(), subcategoryId, true);
+    await refreshSettings();
+  }
+
   async function handleCreateCollaboratorProfile() {
     const loginUsuario = newCollaboratorLogin.trim();
     const subcategoryId = Number(newCollaboratorSubcategoryId || "");
@@ -405,6 +411,7 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     handleCreateKeyword,
     handleCreateCollaboratorProfile,
     handleCreateAvailableCollaboratorProfile,
+    handleCreateImportCollaboratorProfile,
     handleIgnoreAvailableCollaborator,
     handleRestoreIgnoredCollaborator,
     handleRenameCategory,

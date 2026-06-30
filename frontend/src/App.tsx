@@ -179,6 +179,8 @@ function App() {
             classificationOverrides={importFlow.classificationOverrides}
             categoryOptions={categoryOptions}
             subcategoryOptions={subcategoryOptions}
+            collaboratorProfileOptions={settings.settingsSubcategories.filter((subcategory) => subcategory.active)}
+            unprofiledCollaborators={unprofiledCollaborators}
             duplicateSelections={importFlow.duplicateSelections}
             processingMessage={importFlow.processingMessage}
             error={importFlow.error}
@@ -188,6 +190,7 @@ function App() {
             onGoToImport={() => setActiveSection("import")}
             importWizardStep={importFlow.importWizardStep}
             onImportWizardStepChange={handleImportWizardStepChange}
+            onCreateImportCollaboratorProfile={settings.handleCreateImportCollaboratorProfile}
             onToggleShowAllClassifications={importFlow.setShowAllClassifications}
             onClassificationOverridesChange={importFlow.setClassificationOverrides}
             onDuplicateSelectionsChange={importFlow.setDuplicateSelections}
