@@ -620,23 +620,23 @@ export function ClassificationReviewPanel({
               );
             })}
 
+          </div>
+
+          <div className="classification-review-footer">
             {visibleCards.length > 0 && (
-              <div className="classification-pagination" aria-label="Paginação das atividades">
+              <div className="classification-footer-pagination" aria-label="Paginação das atividades">
                 <div className="classification-pagination-summary">
-                  <span>
-                    Mostrando {pageStartIndex + 1}–{pageEndIndex} de {visibleCards.length} pendências
-                  </span>
+                  <span>{pageStartIndex + 1}–{pageEndIndex} de {visibleCards.length} pendências</span>
                   <small>Página {currentPage} de {totalPages}</small>
                 </div>
                 <div className="classification-pagination-controls">
                   <button
-                    className="secondary-button compact"
+                    className="classification-page-arrow"
                     disabled={currentPage === 1}
                     type="button"
                     onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
                   >
                     <ArrowLeft size={14} />
-                    Anterior
                   </button>
                   <div className="classification-page-numbers">
                     {paginationPages.map((page) => (
@@ -651,12 +651,11 @@ export function ClassificationReviewPanel({
                     ))}
                   </div>
                   <button
-                    className="secondary-button compact"
+                    className="classification-page-arrow"
                     disabled={currentPage === totalPages}
                     type="button"
                     onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
                   >
-                    Próxima
                     <ArrowRight size={14} />
                   </button>
                 </div>
@@ -670,31 +669,31 @@ export function ClassificationReviewPanel({
                 </label>
               </div>
             )}
+
+            <div className="classification-footer-actions">
+              <button className="ghost-button compact classification-footer-back" type="button" onClick={() => onStepChange("preview")}>
+                <ArrowLeft size={16} />
+                Voltar etapa
+              </button>
+              <button
+                className="secondary-button compact classification-footer-save"
+                type="button"
+                onClick={() => {
+                  setSaveNotice("Progresso salvo nesta sessao.");
+                  window.setTimeout(() => setSaveNotice(""), 2200);
+                }}
+              >
+                <Save size={16} />
+                Salvar progresso
+              </button>
+              <button className="primary-button compact classification-footer-next" type="button" onClick={() => onStepChange("confirm")}>
+                Próxima etapa
+                <ArrowRight size={16} />
+              </button>
+              {saveNotice && <span>{saveNotice}</span>}
+            </div>
           </div>
         </div>
-
-          <div className="classification-flow-actions">
-            <button className="secondary-button compact" type="button" onClick={() => onStepChange("preview")}>
-              <ArrowLeft size={16} />
-              Voltar etapa
-            </button>
-            <button
-              className="secondary-button compact"
-              type="button"
-              onClick={() => {
-                setSaveNotice("Progresso salvo nesta sessao.");
-                window.setTimeout(() => setSaveNotice(""), 2200);
-              }}
-            >
-              <Save size={16} />
-              Salvar progresso
-            </button>
-            <button className="primary-button compact" type="button" onClick={() => onStepChange("confirm")}>
-              Proxima etapa
-              <ArrowRight size={16} />
-            </button>
-            {saveNotice && <span>{saveNotice}</span>}
-          </div>
       </div>
 
       {actionNotice && (
