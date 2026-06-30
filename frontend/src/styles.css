@@ -8928,33 +8928,102 @@ input {
 }
 
 .import-collaborator-modal {
-  max-width: 720px;
-  width: min(720px, 100%);
+  gap: 14px;
+  max-width: 860px;
+  width: min(860px, 100%);
+}
+
+.import-collaborator-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.import-collaborator-count-badge {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 999px;
+  color: #9a3412;
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 850;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+.import-collaborator-progress {
+  display: grid;
+  gap: 7px;
+}
+
+.import-collaborator-progress span {
+  color: #455468;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.import-collaborator-progress strong {
+  color: #0b1f36;
+}
+
+.import-collaborator-progress div {
+  background: #e8eef6;
+  border-radius: 999px;
+  height: 7px;
+  overflow: hidden;
+}
+
+.import-collaborator-progress i {
+  background: #0f4c8a;
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+  transition: width 180ms ease;
 }
 
 .import-collaborator-list {
   display: grid;
-  gap: 8px;
-  max-height: min(46vh, 420px);
+  gap: 10px;
+  max-height: min(52vh, 500px);
   overflow: auto;
   padding-right: 2px;
 }
 
 .import-collaborator-row {
-  align-items: center;
+  align-items: stretch;
   background: #f8fafc;
   border: 1px solid #e5edf6;
   border-radius: 12px;
   display: grid;
-  gap: 10px;
-  grid-template-columns: minmax(180px, 1fr) minmax(220px, 0.9fr) minmax(120px, auto);
-  padding: 10px;
+  gap: 12px;
+  grid-template-columns: minmax(170px, 0.85fr) minmax(260px, 1.2fr) minmax(140px, 0.7fr) auto;
+  padding: 12px;
+  transition: border-color 160ms ease, background 160ms ease;
 }
 
-.import-collaborator-row > span {
+.import-collaborator-row.complete {
+  background: #f7fef9;
+  border-color: #bbf7d0;
+}
+
+.import-collaborator-identity,
+.import-collaborator-group,
+.import-role-combobox {
   display: grid;
-  gap: 2px;
+  align-content: start;
+  gap: 5px;
   min-width: 0;
+  position: relative;
+}
+
+.import-collaborator-identity > span,
+.import-collaborator-group > span,
+.import-role-combobox > span {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
 }
 
 .import-collaborator-row strong {
@@ -8973,13 +9042,122 @@ input {
   font-weight: 650;
 }
 
-.import-collaborator-row select {
+.import-collaborator-group em {
+  align-items: center;
+  background: #eef6ff;
+  border: 1px solid #d6e8ff;
+  border-radius: 999px;
+  color: #0f4c8a;
+  display: inline-flex;
+  font-weight: 800;
+  min-height: 30px;
+  padding: 0 10px;
+  width: max-content;
+}
+
+.import-role-trigger {
+  background: #ffffff;
+  border: 1px solid #c8d3df;
+  border-radius: 10px;
+  color: #0b1f36;
+  cursor: pointer;
+  display: grid;
+  gap: 2px;
+  min-height: 42px;
+  padding: 7px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.import-role-trigger:hover,
+.import-role-trigger[aria-expanded="true"] {
+  border-color: #8bbcf7;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.import-role-menu {
+  background: #ffffff;
+  border: 1px solid #d7e1ec;
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+  display: grid;
+  gap: 8px;
+  left: 0;
+  padding: 8px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 90;
+}
+
+.import-role-menu input {
+  border: 1px solid #c8d3df;
+  border-radius: 9px;
   min-height: 34px;
+  padding: 7px 9px;
+}
+
+.import-role-menu > div {
+  display: grid;
+  gap: 4px;
+  max-height: 210px;
+  overflow: auto;
+}
+
+.import-role-menu button {
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  cursor: pointer;
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+  text-align: left;
+}
+
+.import-role-menu button:hover,
+.import-role-menu button.active {
+  background: #eff6ff;
+}
+
+.import-role-menu p {
+  color: #64748b;
+  font-size: 12px;
+  margin: 0;
+  padding: 8px;
+}
+
+.import-collaborator-status {
+  align-self: center;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 850;
+  justify-self: end;
+  padding: 7px 10px;
+  white-space: nowrap;
+}
+
+.import-collaborator-status.complete {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.import-collaborator-status.pending {
+  background: #fff7ed;
+  color: #c2410c;
 }
 
 @media (max-width: 760px) {
   .import-collaborator-row {
     grid-template-columns: 1fr;
+  }
+
+  .import-collaborator-header {
+    flex-direction: column;
+  }
+
+  .import-collaborator-status {
+    justify-self: start;
   }
 
   .settings-modal-actions {

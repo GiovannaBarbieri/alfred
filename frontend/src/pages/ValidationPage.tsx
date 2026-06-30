@@ -77,6 +77,8 @@ export function ValidationPage({
   const [isCollaboratorModalOpen, setIsCollaboratorModalOpen] = useState(false);
   const [dismissedCollaboratorSession, setDismissedCollaboratorSession] = useState<number | null>(null);
   const [collaboratorRoleDrafts, setCollaboratorRoleDrafts] = useState<Record<string, string>>({});
+  const [roleComboboxOpen, setRoleComboboxOpen] = useState<string | null>(null);
+  const [roleSearchDrafts, setRoleSearchDrafts] = useState<Record<string, string>>({});
   const [collaboratorModalError, setCollaboratorModalError] = useState<string | null>(null);
   const [isSavingCollaborators, setIsSavingCollaborators] = useState(false);
 
@@ -88,6 +90,11 @@ export function ValidationPage({
     [result?.classifications, unprofiledCollaborators],
   );
   const hasAvailableRoles = collaboratorProfileOptions.some((option) => option.active);
+  const linkedCollaboratorsCount = activeUnprofiledCollaborators.filter((login) => Boolean(collaboratorRoleDrafts[login])).length;
+  const collaboratorProgressPercentage =
+    activeUnprofiledCollaborators.length > 0
+      ? Math.round((linkedCollaboratorsCount / activeUnprofiledCollaborators.length) * 100)
+      : 0;
   const canSaveCollaborators =
     activeUnprofiledCollaborators.length > 0 &&
     activeUnprofiledCollaborators.every((login) => Boolean(collaboratorRoleDrafts[login])) &&
@@ -108,6 +115,8 @@ export function ValidationPage({
         return next;
       });
       setCollaboratorModalError(null);
+      setRoleComboboxOpen(null);
+      setRoleSearchDrafts({});
       setIsCollaboratorModalOpen(true);
     }
   }, [activeUnprofiledCollaborators, dismissedCollaboratorSession, importWizardStep, result?.sessionId]);
@@ -157,6 +166,8 @@ export function ValidationPage({
     setDismissedCollaboratorSession(result.sessionId);
     setIsCollaboratorModalOpen(false);
     setCollaboratorModalError(null);
+    setRoleComboboxOpen(null);
+    setRoleSearchDrafts({});
   }
 
   if (!result) {
@@ -236,40 +247,114 @@ export function ValidationPage({
               void handleSaveMissingCollaborators();
             }}
           >
-            <div className="settings-modal-header">
-              <span>👥</span>
-              <div>
-                <h3 id="import-collaborator-title">Colaboradores não cadastrados</h3>
-                <p>Vincule os novos colaboradores a um cargo antes de revisar as atividades.</p>
+            <div className="import-collaborator-header">
+              <div className="settings-modal-header">
+                <span>👥</span>
+                <div>
+                  <h3 id="import-collaborator-title">Novos colaboradores encontrados</h3>
+                  <p>
+                    Foram encontrados {activeUnprofiledCollaborators.length} colaborador
+                    {activeUnprofiledCollaborators.length === 1 ? "" : "es"} que ainda não existem no sistema.
+                    Associe um cargo para cada um antes de continuar.
+                  </p>
+                </div>
+              </div>
+              <span className="import-collaborator-count-badge">
+                {activeUnprofiledCollaborators.length - linkedCollaboratorsCount} pendente
+                {activeUnprofiledCollaborators.length - linkedCollaboratorsCount === 1 ? "" : "s"}
+              </span>
+            </div>
+
+            <div className="import-collaborator-progress">
+              <span>
+                <strong>{linkedCollaboratorsCount}</strong> de {activeUnprofiledCollaborators.length} colaboradores vinculados
+              </span>
+              <div aria-hidden="true">
+                <i style={{ width: `${collaboratorProgressPercentage}%` }} />
               </div>
             </div>
 
             <div className="import-collaborator-list">
               {activeUnprofiledCollaborators.map((login) => {
                 const selectedRole = collaboratorProfileOptions.find((role) => role.id === Number(collaboratorRoleDrafts[login]));
+                const roleSearch = roleSearchDrafts[login] ?? "";
+                const filteredRoles = collaboratorProfileOptions
+                  .filter((role) => role.active)
+                  .filter((role) => {
+                    if (!roleSearch.trim()) return true;
+                    const normalizedSearch = normalizeLogin(roleSearch);
+                    return normalizeLogin(`${role.name} ${role.group ?? ""}`).includes(normalizedSearch);
+                  });
+                const hasSelectedRole = Boolean(selectedRole);
                 return (
-                  <label className="import-collaborator-row" key={login}>
-                    <span>
+                  <div className={`import-collaborator-row ${hasSelectedRole ? "complete" : "pending"}`} key={login}>
+                    <div className="import-collaborator-identity">
+                      <span>Nome</span>
                       <strong>{formatCollaboratorName(login)}</strong>
                       <small>{login}</small>
-                    </span>
-                    <select
-                      value={collaboratorRoleDrafts[login] ?? ""}
-                      onChange={(event) =>
-                        setCollaboratorRoleDrafts((current) => ({ ...current, [login]: event.target.value }))
-                      }
+                    </div>
+
+                    <div
+                      className="import-role-combobox"
+                      onBlur={(event) => {
+                        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                          setRoleComboboxOpen((current) => (current === login ? null : current));
+                          setRoleSearchDrafts((current) => ({ ...current, [login]: "" }));
+                        }
+                      }}
                     >
-                      <option value="">Selecione um cargo</option>
-                      {collaboratorProfileOptions
-                        .filter((role) => role.active)
-                        .map((role) => (
-                          <option key={role.id} value={role.id}>
-                            {role.name}{role.group ? ` - ${role.group}` : ""}
-                          </option>
-                        ))}
-                    </select>
-                    <em>{selectedRole?.group || "Grupo automático"}</em>
-                  </label>
+                      <span>Cargo</span>
+                      <button
+                        aria-expanded={roleComboboxOpen === login}
+                        className="import-role-trigger"
+                        type="button"
+                        onClick={() => {
+                          setRoleComboboxOpen((current) => (current === login ? null : login));
+                          setRoleSearchDrafts((current) => ({ ...current, [login]: "" }));
+                        }}
+                      >
+                        <strong>{selectedRole?.name || "Selecione um cargo"}</strong>
+                        <small>{selectedRole?.group || "Pesquisar cargo"}</small>
+                      </button>
+                      {roleComboboxOpen === login && (
+                        <div className="import-role-menu">
+                          <input
+                            autoFocus
+                            placeholder="Buscar cargo..."
+                            value={roleSearch}
+                            onChange={(event) => setRoleSearchDrafts((current) => ({ ...current, [login]: event.target.value }))}
+                          />
+                          <div>
+                            {filteredRoles.length === 0 && <p>Nenhum cargo encontrado.</p>}
+                            {filteredRoles.map((role) => (
+                              <button
+                                className={selectedRole?.id === role.id ? "active" : ""}
+                                key={role.id}
+                                type="button"
+                                onClick={() => {
+                                  setCollaboratorRoleDrafts((current) => ({ ...current, [login]: String(role.id) }));
+                                  setRoleComboboxOpen(null);
+                                  setRoleSearchDrafts((current) => ({ ...current, [login]: "" }));
+                                }}
+                              >
+                                <strong>{role.name}</strong>
+                                <small>{role.group || "Sem grupo"}</small>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="import-collaborator-group">
+                      <span>Grupo sugerido</span>
+                      <em>{selectedRole?.group || "Aguardando cargo"}</em>
+                    </div>
+
+                    <span className={`import-collaborator-status ${hasSelectedRole ? "complete" : "pending"}`}>
+                      {hasSelectedRole ? "✔ Cargo definido" : "⚠ Selecione um cargo"}
+                    </span>
+                  </div>
                 );
               })}
             </div>
@@ -287,10 +372,10 @@ export function ValidationPage({
 
             <div className="settings-modal-actions">
               <button className="secondary-button compact" disabled={isSavingCollaborators} type="button" onClick={handleSkipMissingCollaborators}>
-                Continuar sem cadastrar
+                Ignorar por enquanto
               </button>
               <button className="primary-button compact" disabled={!canSaveCollaborators || isSavingCollaborators} type="submit">
-                {isSavingCollaborators ? "Cadastrando..." : "Cadastrar e aplicar"}
+                {isSavingCollaborators ? "Cadastrando..." : "Cadastrar colaboradores"}
               </button>
             </div>
           </form>
