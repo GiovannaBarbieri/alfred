@@ -2,10 +2,8 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
-  BarChart3,
   Check,
   CheckCircle2,
-  ClipboardCheck,
   Layers3,
   Lightbulb,
   ListChecks,
@@ -206,11 +204,8 @@ export function ClassificationReviewPanel({
     const lowConfidence = cardModels.filter((model) => model.lowConfidence).length;
     const unclassified = cardModels.filter((model) => model.unclassified).length;
     const conflicts = cardModels.filter((model) => model.conflict).length;
-    const automatic = cardModels.filter((model) => !model.unclassified && !model.conflict).length;
-    const averageConfidence =
-      total === 0 ? 0 : cardModels.reduce((sum, model) => sum + model.confidence, 0) / total;
     const attention = cardModels.filter((model) => model.needsAttention).length;
-    return { total, automatic, lowConfidence, unclassified, conflicts, averageConfidence, attention };
+    return { total, lowConfidence, unclassified, conflicts, attention };
   }, [cardModels]);
 
   const categoryDistribution = useMemo(() => {
@@ -332,50 +327,6 @@ export function ClassificationReviewPanel({
         </div>
       </div>
 
-      <div className="classification-summary-grid">
-        <article>
-          <ListChecks size={18} />
-          <div>
-            <strong>{summary.total}</strong>
-            <span>Atividades analisadas</span>
-          </div>
-        </article>
-        <article>
-          <CheckCircle2 size={18} />
-          <div>
-            <strong>{summary.automatic}</strong>
-            <span>Classificadas automaticamente</span>
-          </div>
-        </article>
-        <article className={summary.lowConfidence > 0 ? "attention" : ""}>
-          <ShieldAlert size={18} />
-          <div>
-            <strong>{summary.lowConfidence}</strong>
-            <span>Abaixo de 90%</span>
-          </div>
-        </article>
-        <article className={summary.unclassified > 0 ? "danger" : ""}>
-          <AlertTriangle size={18} />
-          <div>
-            <strong>{summary.unclassified}</strong>
-            <span>Sem categoria</span>
-          </div>
-        </article>
-        <article className={summary.conflicts > 0 ? "attention" : ""}>
-          <Layers3 size={18} />
-          <div>
-            <strong>{summary.conflicts}</strong>
-            <span>Conflitos</span>
-          </div>
-        </article>
-        <article>
-          <BarChart3 size={18} />
-          <div>
-            <strong>{Math.round(summary.averageConfidence * 100)}%</strong>
-            <span>Confianca media</span>
-          </div>
-        </article>
-      </div>
 
       <div className="classification-layout">
         <div className="classification-main">
@@ -453,38 +404,36 @@ export function ClassificationReviewPanel({
               </div>
             )}
 
-            <div className={`classification-bulk-bar ${selectedTasks.length > 0 ? "active" : ""}`}>
-              <button className="link-action" type="button" onClick={toggleVisibleSelection}>
-                {allVisibleSelected ? "Desmarcar visiveis" : "Selecionar todas visiveis"}
-              </button>
-              {selectedTasks.length > 0 && (
-                <>
-                  <strong>{selectedTasks.length} selecionada{selectedTasks.length === 1 ? "" : "s"}</strong>
-                  <select value={bulkCategory} onChange={(event) => setBulkCategory(event.target.value)}>
-                    <option value="">Categoria</option>
-                    {categoryOptions.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
-                  <select value={bulkSubcategory} onChange={(event) => setBulkSubcategory(event.target.value)}>
-                    <option value="">Subcategoria</option>
-                    {subcategoryOptions.map((subcategory) => (
-                      <option key={subcategory} value={subcategory}>
-                        {subcategory}
-                      </option>
-                    ))}
-                  </select>
-                  <button className="primary-button compact" type="button" onClick={applyBulkChange}>
-                    Aplicar em selecionadas
-                  </button>
-                  <button className="secondary-button compact" type="button" onClick={() => setSelectedTasks([])}>
-                    Limpar
-                  </button>
-                </>
-              )}
-            </div>
+            {selectedTasks.length > 0 && (
+              <div className="classification-bulk-bar active">
+                <button className="link-action" type="button" onClick={toggleVisibleSelection}>
+                  {allVisibleSelected ? "Desmarcar visiveis" : "Selecionar todas visiveis"}
+                </button>
+                <strong>{selectedTasks.length} selecionada{selectedTasks.length === 1 ? "" : "s"}</strong>
+                <select value={bulkCategory} onChange={(event) => setBulkCategory(event.target.value)}>
+                  <option value="">Categoria</option>
+                  {categoryOptions.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+                <select value={bulkSubcategory} onChange={(event) => setBulkSubcategory(event.target.value)}>
+                  <option value="">Subcategoria</option>
+                  {subcategoryOptions.map((subcategory) => (
+                    <option key={subcategory} value={subcategory}>
+                      {subcategory}
+                    </option>
+                  ))}
+                </select>
+                <button className="primary-button compact" type="button" onClick={applyBulkChange}>
+                  Aplicar em selecionadas
+                </button>
+                <button className="secondary-button compact" type="button" onClick={() => setSelectedTasks([])}>
+                  Limpar
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="classification-card-list">
@@ -657,30 +606,7 @@ export function ClassificationReviewPanel({
           </div>
         </div>
 
-        <aside className="classification-side-panel">
-          <div className="classification-side-card">
-            <span className="eyebrow">Confianca media</span>
-            <div className="side-confidence-value">{Math.round(summary.averageConfidence * 100)}%</div>
-            <div className={`confidence-meter ${confidenceTone(summary.averageConfidence)}`}>
-              <i>
-                <b style={{ width: `${Math.round(summary.averageConfidence * 100)}%` }} />
-              </i>
-            </div>
-          </div>
-
-          <div className="classification-side-card">
-            <span className="eyebrow">Categorias</span>
-            <div className="classification-category-list">
-              {categoryDistribution.slice(0, 8).map((item) => (
-                <div key={item.category}>
-                  <span>{item.category}</span>
-                  <strong>{item.count}</strong>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="classification-side-actions">
+          <div className="classification-flow-actions">
             <button className="secondary-button compact" type="button" onClick={() => onStepChange("preview")}>
               <ArrowLeft size={16} />
               Voltar etapa
@@ -702,7 +628,6 @@ export function ClassificationReviewPanel({
             </button>
             {saveNotice && <span>{saveNotice}</span>}
           </div>
-        </aside>
       </div>
 
       {actionNotice && (
