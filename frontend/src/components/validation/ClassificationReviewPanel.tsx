@@ -626,8 +626,7 @@ export function ClassificationReviewPanel({
             {visibleCards.length > 0 && (
               <div className="classification-footer-pagination" aria-label="Paginação das atividades">
                 <div className="classification-pagination-summary">
-                  <span>{pageStartIndex + 1}–{pageEndIndex} de {visibleCards.length} pendências</span>
-                  <small>Página {currentPage} de {totalPages}</small>
+                  <span>{pageStartIndex + 1}–{pageEndIndex} de {visibleCards.length} • Página {currentPage}/{totalPages}</span>
                 </div>
                 <div className="classification-pagination-controls">
                   <button
@@ -660,12 +659,12 @@ export function ClassificationReviewPanel({
                   </button>
                 </div>
                 <label className="classification-page-size">
-                  <span>Itens por página</span>
                   <select aria-label="Itens por página" disabled value={ACTIVITIES_PER_PAGE} onChange={() => undefined}>
                     <option value={20}>20</option>
                     <option value={50}>50</option>
                     <option value={100}>100</option>
                   </select>
+                  <span>itens/página</span>
                 </label>
               </div>
             )}
@@ -673,7 +672,7 @@ export function ClassificationReviewPanel({
             <div className="classification-footer-actions">
               <button className="ghost-button compact classification-footer-back" type="button" onClick={() => onStepChange("preview")}>
                 <ArrowLeft size={16} />
-                Voltar etapa
+                Voltar para Validação
               </button>
               <button
                 className="secondary-button compact classification-footer-save"
@@ -684,10 +683,10 @@ export function ClassificationReviewPanel({
                 }}
               >
                 <Save size={16} />
-                Salvar progresso
+                Salvar rascunho
               </button>
               <button className="primary-button compact classification-footer-next" type="button" onClick={() => onStepChange("confirm")}>
-                Próxima etapa
+                Confirmar
                 <ArrowRight size={16} />
               </button>
               {saveNotice && <span>{saveNotice}</span>}
