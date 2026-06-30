@@ -324,18 +324,6 @@ export function ClassificationReviewPanel({
 
   return (
     <section className="classification-workspace">
-      <div className="classification-hero">
-        <div>
-          <span className="eyebrow">Fase 4 - Classificação</span>
-          <h2>Revisão inteligente das atividades</h2>
-          <p>
-            Priorize somente o que precisa de atenção. Alterações continuam sendo aplicadas por Task e, quando houver
-            colaborador filtrado, apenas nos lançamentos desse colaborador.
-          </p>
-        </div>
-      </div>
-
-
       <div className="classification-layout">
         <div className="classification-main">
           <div className="classification-toolbar-card">
