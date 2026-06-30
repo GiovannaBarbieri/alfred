@@ -8993,13 +8993,13 @@ input {
 }
 
 .import-collaborator-row {
-  align-items: stretch;
+  align-items: end;
   background: #f8fafc;
   border: 1px solid #e5edf6;
   border-radius: 12px;
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(170px, 0.8fr) minmax(300px, 1.2fr) auto;
+  grid-template-columns: minmax(170px, 0.75fr) minmax(300px, 1.25fr) minmax(92px, auto);
   padding: 9px 10px;
   transition: border-color 160ms ease, background 160ms ease;
 }
@@ -9142,13 +9142,16 @@ input {
 }
 
 .import-collaborator-status {
-  align-self: center;
+  align-self: end;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 850;
   justify-self: end;
   letter-spacing: 0;
-  padding: 6px 9px;
+  line-height: 1;
+  margin-bottom: 4px;
+  min-height: 24px;
+  padding: 5px 8px;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -9165,6 +9168,7 @@ input {
 
 @media (max-width: 760px) {
   .import-collaborator-row {
+    align-items: stretch;
     grid-template-columns: 1fr;
   }
 
@@ -9173,6 +9177,8 @@ input {
   }
 
   .import-collaborator-status {
+    align-self: start;
+    margin-bottom: 0;
     justify-self: start;
   }
 
