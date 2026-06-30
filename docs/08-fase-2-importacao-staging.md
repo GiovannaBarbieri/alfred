@@ -10,9 +10,11 @@ Evoluir o fluxo de importacao para um modelo temporario antes da persistencia fi
 2. Criacao de uma sessao temporaria em `import_sessions`.
 3. Gravacao das linhas cruas em `staging_rows`.
 4. Validacao e classificacao automatica.
-5. Revisao de bloqueios, alertas, duplicidades e classificacoes.
-6. Confirmacao do usuario.
-7. Persistencia final em `importacoes`, `lancamentos_horas`, `erros_importacao`, `duplicidades_importacao` e `classificacoes_task`.
+5. Identificacao de colaboradores sem perfil ativo.
+6. Cadastro rapido opcional dos colaboradores encontrados.
+7. Revisao de bloqueios, alertas, duplicidades e classificacoes.
+8. Confirmacao do usuario.
+9. Persistencia final em `importacoes`, `lancamentos_horas`, `erros_importacao`, `duplicidades_importacao` e `classificacoes_task`.
 
 ## Recursos adicionados
 
@@ -23,6 +25,8 @@ Evoluir o fluxo de importacao para um modelo temporario antes da persistencia fi
 - Score numerico e nivel de confianca da classificacao.
 - Versao do classificador gravada com cada classificacao.
 - Alertas operacionais simples sem bloqueio da importacao.
+- Assistente de cadastro rapido para colaboradores sem perfil ativo.
+- Aplicacao do cargo cadastrado como subcategoria sugerida na revisao atual quando a atividade estava sem cargo.
 
 ## Compatibilidade
 

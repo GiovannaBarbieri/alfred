@@ -43,6 +43,10 @@ CREATE TABLE IF NOT EXISTS perfis_colaborador (
     criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+-- Usada tambem pelo assistente de cadastro rapido da Fase 4 da importacao.
+-- O modal "Novos colaboradores encontrados" nao possui tabela propria; ele cria
+-- vinculos nesta tabela usando cargos existentes em subcategorias.
+
 CREATE TABLE IF NOT EXISTS colaboradores_ignorados (
     id SERIAL PRIMARY KEY,
     login_usuario VARCHAR(180) NOT NULL UNIQUE,

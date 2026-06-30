@@ -26,9 +26,10 @@ flowchart LR
   D --> E["Staging"]
   E --> F["Validacao"]
   F --> G["Classificacao"]
-  G --> H["Revisao do usuario"]
-  H --> I["Persistencia final"]
-  I --> J["Dashboards e relatorios"]
+  G --> H["Cadastro rapido de colaboradores"]
+  H --> I["Revisao do usuario"]
+  I --> J["Persistencia final"]
+  J --> K["Dashboards e relatorios"]
 ```
 
 ## Fluxo De Importacao
@@ -37,13 +38,14 @@ flowchart LR
 Upload
 -> processamento temporario
 -> validacao
--> revisao
 -> classificacao
+-> cadastro rapido opcional de colaboradores sem perfil
+-> revisao
 -> confirmacao do usuario
 -> persistencia final
 ```
 
-O arquivo importado primeiro cria uma sessao temporaria em `import_sessions` e linhas cruas em `staging_rows`. A persistencia final so acontece depois da confirmacao do usuario.
+O arquivo importado primeiro cria uma sessao temporaria em `import_sessions` e linhas cruas em `staging_rows`. A persistencia final so acontece depois da confirmacao do usuario. Quando a planilha contem colaboradores sem perfil ativo, o frontend pode criar o vinculo em `perfis_colaborador` antes da revisao final.
 
 ## Backend
 
@@ -177,7 +179,7 @@ classification_reprocess_history
 analytics_insights
 ```
 
-Observacao: `analytics_insights`, `audit_log` e tabelas de historico permanecem no banco mesmo com suas telas ocultas, pois preservam compatibilidade de API, trilha tecnica e evolucoes futuras.
+Observacao: o cadastro rapido de colaboradores na importacao usa `perfis_colaborador` e `subcategorias`; nao ha tabela adicional para esse fluxo. `analytics_insights`, `audit_log` e tabelas de historico permanecem no banco mesmo com suas telas ocultas, pois preservam compatibilidade de API, trilha tecnica e evolucoes futuras.
 
 ## Regras Preservadas
 

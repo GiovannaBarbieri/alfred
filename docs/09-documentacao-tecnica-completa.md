@@ -61,10 +61,11 @@ flowchart TD
   C --> D["Gravacao em staging_rows"]
   D --> E["Validacao"]
   E --> F["Classificacao automatica"]
-  F --> G["Revisao do usuario"]
-  G --> H["Confirmacao"]
-  H --> I["Persistencia final"]
-  I --> J["Dashboards, relatorios e exportacoes"]
+  F --> G["Cadastro rapido de colaboradores sem perfil"]
+  G --> H["Revisao do usuario"]
+  H --> I["Confirmacao"]
+  I --> J["Persistencia final"]
+  J --> K["Dashboards, relatorios e exportacoes"]
 ```
 
 ## 3. Estrutura de pastas
@@ -160,7 +161,7 @@ O banco principal e PostgreSQL. A criacao inicial esta em `database/init.sql`, e
 | `subcategorias` | Cadastro das subcategorias tecnicas ou operacionais. |
 | `palavras_chave_categoria` | Palavras-chave vinculadas a categorias. |
 | `classification_rules` | Regras configuraveis de classificacao, com categoria, subcategoria, prioridade e versao. |
-| `perfis_colaborador` | Perfil tecnico do colaborador, usado para sugerir subcategoria. |
+| `perfis_colaborador` | Perfil tecnico do colaborador, usado para sugerir subcategoria e pelo cadastro rapido da importacao. |
 | `colaboradores_ignorados` | Colaboradores sem perfil que o usuario decidiu ignorar na configuracao. |
 
 ### Tabelas de importacao
@@ -212,6 +213,7 @@ O banco principal e PostgreSQL. A criacao inicial esta em `database/init.sql`, e
 
 - O projeto ainda nao usa ferramenta formal de migrations.
 - O `schema_service.py` executa `CREATE TABLE IF NOT EXISTS`, `ALTER TABLE ADD COLUMN IF NOT EXISTS` e criacao de indices no startup.
+- O modal "Novos colaboradores encontrados" nao cria novas tabelas; ele usa `subcategorias` como cargos disponiveis e cria vinculos em `perfis_colaborador`.
 - Para uma versao corporativa, recomenda-se migrar para Alembic ou processo equivalente.
 
 ## 5. Regras de negocio
@@ -262,6 +264,7 @@ O banco principal e PostgreSQL. A criacao inicial esta em `database/init.sql`, e
 - A categoria entre colchetes deve existir e estar ativa nas configuracoes.
 - Quando o padrao nao existe ou a categoria nao esta cadastrada/ativa, o registro fica como `Nao classificado` para revisao.
 - Subcategorias representam cargos/perfis operacionais do colaborador, como Analista, Desenvolvedor Back-end, Desenvolvedor Front-end, QA, Banco de Dados, Infraestrutura ou DataOps, e sao usadas nas analises por esforco.
+- Colaborador sem perfil ativo permanece importavel, mas entra na fila de revisao e pode ser cadastrado rapidamente na Fase 4.
 - O score de confianca usa valores entre 0 e 1 no backend.
 - O nivel de confianca e:
   - `alta` para confianca alta;
@@ -292,14 +295,17 @@ O banco principal e PostgreSQL. A criacao inicial esta em `database/init.sql`, e
 7. Backend grava sessao em `import_sessions`.
 8. Backend grava linhas temporarias em `staging_rows`.
 9. Frontend exibe pre-validacao, saude da importacao e classificacoes.
-10. Usuario revisa duplicidades/classificacoes quando necessario.
-11. Usuario confirma.
-12. Frontend chama `POST /api/imports/sessions/{session_id}/complete`.
-13. Backend valida novamente bloqueios.
-14. Backend monta registros finais a partir de `staging_rows`.
-15. Backend persiste `importacoes`, `lancamentos_horas`, `erros_importacao`, `duplicidades_importacao` e `classificacoes_task`.
-16. Backend registra logs e auditoria.
-17. Frontend redireciona para Relatorios.
+10. Na Fase 4, frontend identifica colaboradores sem perfil ativo.
+11. Quando existirem pendencias de perfil, o modal "Novos colaboradores encontrados" permite cadastrar o vinculo em `perfis_colaborador`.
+12. O cargo selecionado e aplicado como subcategoria sugerida nas atividades da sessao atual que ainda estavam sem cargo.
+13. Usuario revisa duplicidades/classificacoes quando necessario.
+14. Usuario confirma.
+15. Frontend chama `POST /api/imports/sessions/{session_id}/complete`.
+16. Backend valida novamente bloqueios.
+17. Backend monta registros finais a partir de `staging_rows`.
+18. Backend persiste `importacoes`, `lancamentos_horas`, `erros_importacao`, `duplicidades_importacao` e `classificacoes_task`.
+19. Backend registra logs e auditoria.
+20. Frontend redireciona para Relatorios.
 
 ### Fluxo de reprocessamento de sessao
 
@@ -465,7 +471,7 @@ http://localhost:8000/api
 | POST | `/api/settings/keywords` | Cria palavra-chave. |
 | PATCH | `/api/settings/keywords/{keyword_id}` | Atualiza palavra-chave. |
 | GET | `/api/settings/collaborator-profiles` | Lista perfis de colaborador. |
-| POST | `/api/settings/collaborator-profiles` | Cria perfil de colaborador. |
+| POST | `/api/settings/collaborator-profiles` | Cria perfil de colaborador; tambem usado pelo modal de cadastro rapido na importacao. |
 | PATCH | `/api/settings/collaborator-profiles/{profile_id}` | Atualiza perfil de colaborador. |
 | GET | `/api/settings/ignored-collaborators` | Lista colaboradores ignorados. |
 | POST | `/api/settings/ignored-collaborators` | Ignora colaborador sem perfil. |
@@ -513,6 +519,7 @@ Premissas futuras:
 - Identificacao de nova versao de projeto pelo nome do arquivo e diferenca de `IdLancamento`.
 - Validacao de duplicidades por `IdLancamento`.
 - Escolha de linha mantida em duplicidades.
+- Cadastro rapido opcional de colaboradores sem perfil durante a revisao da importacao.
 
 ### Classificacao
 
@@ -523,14 +530,18 @@ Premissas futuras:
 - Uso de perfil tecnico do colaborador para subcategoria.
 - Edicao/revisao por atividade agrupada por Task.
 - Aplicacao de overrides manuais.
+- Aplicacao do cargo recem-cadastrado como subcategoria sugerida na sessao de revisao atual, quando a atividade estava sem cargo.
 - Reprocessamento de classificacao em importacoes existentes.
 
 ### Dashboard
 
-- Visao inicial dos projetos analisados.
-- Ultimos projetos analisados.
-- Acesso rapido para relatorios.
-- Informacoes operacionais de alerta foram reduzidas na interface para priorizar analise de horas.
+- Centro de comando do ambiente.
+- KPIs superiores do ambiente.
+- Situacao Geral.
+- Distribuicao Geral por categoria.
+- Ranking de colaboradores.
+- Indicadores do Ambiente.
+- Detalhes de projeto permanecem centralizados na tela de Relatorios.
 
 ### Inteligencia Operacional
 

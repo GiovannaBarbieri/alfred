@@ -45,6 +45,15 @@ Perfis vinculam colaborador a cargo.
 Palavras-chave e regras apoiam classificacao automatica.
 ```
 
+O assistente de cadastro rapido da Fase 4 usa as mesmas tabelas de configuracao:
+
+```text
+subcategorias: cargos disponiveis para selecao
+perfis_colaborador: vinculo entre login do colaborador e cargo
+```
+
+Nao existe tabela adicional para o modal de "Novos colaboradores encontrados"; ele apenas cria registros em `perfis_colaborador` quando o usuario confirma o cadastro.
+
 Categorias oficiais ativas:
 
 ```text

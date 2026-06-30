@@ -147,6 +147,23 @@ Se o titulo nao estiver no padrao ou a categoria nao estiver cadastrada/ativa, o
 
 O usuario podera aceitar, alterar, marcar como nao classificado ou solicitar criacao de nova categoria. Criacao de nova categoria sera permitida somente para administrador.
 
+## 8.1 Colaboradores Sem Perfil
+
+Quando o arquivo importado possuir um colaborador que ainda nao exista como perfil ativo, a importacao nao deve ser bloqueada.
+
+O sistema deve:
+
+```text
+identificar o colaborador sem perfil
+reduzir a confianca da classificacao quando aplicavel
+exibir o registro na fila de revisao
+oferecer cadastro rapido do colaborador na Fase 4
+```
+
+No cadastro rapido, o usuario associa o colaborador a um cargo existente. O sistema grava o vinculo em `perfis_colaborador` e usa o cargo selecionado como subcategoria sugerida nas atividades pendentes da sessao atual.
+
+O usuario tambem pode ignorar o cadastro temporariamente e seguir com a revisao manual.
+
 ## 9. Calculos
 
 O sistema deve calcular:

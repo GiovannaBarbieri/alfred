@@ -7,13 +7,14 @@ Tela inicial do sistema.
 Mostra uma visao executiva dos projetos analisados, com:
 
 ```text
-Total de horas importadas
-Quantidade de registros
-Ultimos projetos analisados
-Acesso rapido ao relatorio do projeto
+KPIs superiores do ambiente
+Situacao Geral
+Distribuicao Geral por categoria
+Ranking de colaboradores
+Indicadores do Ambiente
 ```
 
-Itens operacionais de alerta foram reduzidos visualmente para manter foco na analise de horas.
+A Dashboard funciona como centro de comando do ambiente. Detalhes de projeto permanecem na tela de Relatorios.
 
 ## 2. Importacao
 
@@ -43,9 +44,12 @@ Alertas relevantes
 Duplicidades por IdLancamento
 Classificacoes sugeridas
 Revisao por Task
+Cadastro rapido de colaboradores sem perfil ativo
 ```
 
 O usuario pode revisar classificacoes e resolver duplicidades antes de consolidar a importacao.
+
+Na Fase 4 - Classificacao, quando existem colaboradores sem perfil cadastrado, o sistema abre o modal "Novos colaboradores encontrados". O usuario pode vincular cada login a um cargo, cadastrar e continuar, ou ignorar temporariamente.
 
 ## 4. Relatorios
 

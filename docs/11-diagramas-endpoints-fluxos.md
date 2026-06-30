@@ -425,10 +425,14 @@ flowchart TD
   A["Abrir validacao"] --> B["Exibir saude da importacao"]
   B --> C{"Ha bloqueios?"}
   C -- "Sim" --> D["Usuario corrige duplicidades/bloqueios"]
-  C -- "Nao" --> E["Usuario revisa classificacoes abaixo de 90%"]
+  C -- "Nao" --> E{"Ha colaboradores sem perfil?"}
   D --> E
-  E --> F["Aplicar overrides manuais se necessario"]
-  F --> G["Confirmar importacao"]
+  E -- "Sim" --> F["Modal Novos colaboradores encontrados"]
+  F --> G["POST /api/settings/collaborator-profiles"]
+  E -- "Nao" --> H["Usuario revisa classificacoes abaixo de 90%"]
+  G --> H
+  H --> I["Aplicar overrides manuais se necessario"]
+  I --> J["Confirmar importacao"]
 ```
 
 ### 4. Confirmacao da importacao

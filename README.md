@@ -120,6 +120,8 @@ Upload
 -> gravacao em staging_rows
 -> validacao
 -> classificacao automatica
+-> identificacao de colaboradores sem perfil ativo
+-> cadastro rapido opcional de colaboradores e cargos
 -> revisao de bloqueios, alertas, duplicidades e categorias
 -> confirmacao do usuario
 -> persistencia final
@@ -144,6 +146,14 @@ POST /api/imports/validate
 POST /api/imports/complete
 ```
 
+### Cadastro rapido de colaboradores na importacao
+
+Na Fase 4 - Classificacao, quando a planilha contem colaboradores sem perfil ativo em `perfis_colaborador`, o frontend exibe o assistente "Novos colaboradores encontrados".
+
+O usuario pode associar cada colaborador a um cargo existente antes de continuar. O cadastro usa a API de configuracoes de colaboradores e grava o vinculo em `perfis_colaborador`. Quando o cargo e definido, o sistema tambem aplica esse cargo como subcategoria sugerida na revisao atual para atividades que ainda estavam sem subcategoria.
+
+Se o usuario preferir, pode ignorar temporariamente o cadastro e seguir com a revisao manual das atividades.
+
 ## Regras Principais
 
 - Hierarquia TFS: `Epic > Feature > PBI > Task`.
@@ -158,6 +168,7 @@ POST /api/imports/complete
 - Quando o titulo nao segue o padrao, o classificador usa palavras-chave no titulo completo.
 - Lancamentos com o mesmo `IdTask` podem ser revisados como uma unica atividade.
 - Overrides manuais de classificacao sempre partem da escolha do usuario.
+- Colaboradores sem perfil ativo geram necessidade de revisao e podem ser cadastrados diretamente na Fase 4.
 - Horas extras e banco de horas nao fazem parte da analise.
 
 ## Classificacao
@@ -186,6 +197,8 @@ DataOps
 ```
 
 O classificador grava origem, score de confianca, nivel de confianca e versao do classificador. As configuracoes podem ser mantidas pela tela de configuracoes.
+
+Colaboradores sem cargo/perfil operacional continuam permitidos na importacao, mas entram no fluxo de revisao. O assistente de cadastro rapido permite criar o vinculo sem sair da importacao.
 
 ## Relatorios
 
