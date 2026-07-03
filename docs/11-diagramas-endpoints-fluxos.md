@@ -395,12 +395,13 @@ flowchart TD
 ```mermaid
 flowchart TD
   A["Selecionar Excel/CSV"] --> B["POST /api/imports/sessions"]
-  B --> C["Ler e normalizar planilha"]
-  C --> D["Validar colunas e linhas"]
-  D --> E["Classificar atividades"]
-  E --> F["Criar import_sessions"]
-  F --> G["Salvar staging_rows"]
-  G --> H["Retornar pre-validacao"]
+  B --> C["Selecionar aba valida se Excel tiver varias abas"]
+  C --> D["Ler e normalizar planilha"]
+  D --> E["Validar colunas e linhas"]
+  E --> F["Classificar atividades"]
+  F --> G["Criar import_sessions"]
+  G --> H["Salvar staging_rows"]
+  H --> I["Retornar pre-validacao"]
 ```
 
 ### 2.1 Inteligencia Operacional

@@ -45,7 +45,7 @@ Upload
 -> persistencia final
 ```
 
-O arquivo importado primeiro cria uma sessao temporaria em `import_sessions` e linhas cruas em `staging_rows`. A persistencia final so acontece depois da confirmacao do usuario. Quando a planilha contem colaboradores sem perfil ativo, o frontend pode criar o vinculo em `perfis_colaborador` antes da revisao final.
+O arquivo importado primeiro cria uma sessao temporaria em `import_sessions` e linhas cruas em `staging_rows`. Em arquivos Excel com varias abas, o importador seleciona automaticamente a primeira aba que possui todas as colunas obrigatorias. A persistencia final so acontece depois da confirmacao do usuario. Quando a planilha contem colaboradores sem perfil ativo, o frontend pode criar o vinculo em `perfis_colaborador` antes da revisao final.
 
 ## Backend
 
@@ -55,7 +55,7 @@ O arquivo importado primeiro cria uma sessao temporaria em `import_sessions` e l
 backend/app/api/routes/imports.py    Importacao, staging e conclusao
 backend/app/api/routes/dashboard.py  Indicadores e linha do tempo
 backend/app/api/routes/reports.py    Relatorios agregados
-backend/app/api/routes/exports.py    Exportacoes CSV
+backend/app/api/routes/exports.py    Exportacoes CSV e Excel
 backend/app/api/routes/settings.py   Configuracoes de classificacao
 backend/app/api/routes/analytics.py  Insights operacionais preservados no backend
 backend/app/api/routes/audit.py      Auditoria tecnica preservada no backend

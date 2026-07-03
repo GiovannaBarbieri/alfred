@@ -222,6 +222,7 @@ O banco principal e PostgreSQL. A criacao inicial esta em `database/init.sql`, e
 
 - Arquivos aceitos: Excel/CSV exportados do TFS 2015.
 - O projeto/importacao usa o nome do arquivo como identificador visual; o nome do projeto e derivado do nome do arquivo sem extensao.
+- Em arquivos Excel com varias abas, o importador usa automaticamente a primeira aba que contem todas as colunas obrigatorias.
 - A planilha precisa conter as colunas obrigatorias:
   - `IdLancamento`
   - `DataHoraCadastro`
@@ -289,23 +290,24 @@ O banco principal e PostgreSQL. A criacao inicial esta em `database/init.sql`, e
 1. Usuario seleciona arquivo Excel/CSV.
 2. Frontend envia arquivo para `POST /api/imports/sessions`.
 3. Backend calcula hash do arquivo.
-4. Backend normaliza colunas e dados.
-5. Backend valida colunas, linhas, duracao, datas e duplicidades.
-6. Backend classifica atividades.
-7. Backend grava sessao em `import_sessions`.
-8. Backend grava linhas temporarias em `staging_rows`.
-9. Frontend exibe pre-validacao, saude da importacao e classificacoes.
-10. Na Fase 4, frontend identifica colaboradores sem perfil ativo.
-11. Quando existirem pendencias de perfil, o modal "Novos colaboradores encontrados" permite cadastrar o vinculo em `perfis_colaborador`.
-12. O cargo selecionado e aplicado como subcategoria sugerida nas atividades da sessao atual que ainda estavam sem cargo.
-13. Usuario revisa duplicidades/classificacoes quando necessario.
-14. Usuario confirma.
-15. Frontend chama `POST /api/imports/sessions/{session_id}/complete`.
-16. Backend valida novamente bloqueios.
-17. Backend monta registros finais a partir de `staging_rows`.
-18. Backend persiste `importacoes`, `lancamentos_horas`, `erros_importacao`, `duplicidades_importacao` e `classificacoes_task`.
-19. Backend registra logs e auditoria.
-20. Frontend redireciona para Relatorios.
+4. Quando for Excel com varias abas, backend seleciona a primeira aba que contem todas as colunas obrigatorias.
+5. Backend normaliza colunas e dados.
+6. Backend valida colunas, linhas, duracao, datas e duplicidades.
+7. Backend classifica atividades.
+8. Backend grava sessao em `import_sessions`.
+9. Backend grava linhas temporarias em `staging_rows`.
+10. Frontend exibe pre-validacao, saude da importacao e classificacoes.
+11. Na Fase 4, frontend identifica colaboradores sem perfil ativo.
+12. Quando existirem pendencias de perfil, o modal "Novos colaboradores encontrados" permite cadastrar o vinculo em `perfis_colaborador`.
+13. O cargo selecionado e aplicado como subcategoria sugerida nas atividades da sessao atual que ainda estavam sem cargo.
+14. Usuario revisa duplicidades/classificacoes quando necessario.
+15. Usuario confirma.
+16. Frontend chama `POST /api/imports/sessions/{session_id}/complete`.
+17. Backend valida novamente bloqueios.
+18. Backend monta registros finais a partir de `staging_rows`.
+19. Backend persiste `importacoes`, `lancamentos_horas`, `erros_importacao`, `duplicidades_importacao` e `classificacoes_task`.
+20. Backend registra logs e auditoria.
+21. Frontend redireciona para Relatorios.
 
 ### Fluxo de reprocessamento de sessao
 
@@ -331,7 +333,7 @@ O banco principal e PostgreSQL. A criacao inicial esta em `database/init.sql`, e
 5. Aba Executivo mostra resumo inteligente em texto, destaques do projeto, rankings e alertas executivos.
 6. Aba Graficos mostra tendencias visuais e analises especificas por colaborador/categoria.
 7. Aba Tasks mostra tasks por colaborador com paginacao de 20 em 20.
-8. Usuario pode exportar PDF Executivo e Excel Operacional pelo menu de exportacao.
+8. Usuario pode exportar Excel Operacional pelo botao de exportacao.
 
 ### Fluxo de configuracoes
 
@@ -570,7 +572,7 @@ Premissas futuras:
 - Aba Tasks com detalhe por colaborador e paginacao de 20 em 20.
 - Comparativos entre projetos.
 - Evolucao de um projeto entre importacoes.
-- Exportacoes PDF Executivo e Excel Operacional.
+- Exportacao Excel Operacional.
 
 ### Configuracoes
 

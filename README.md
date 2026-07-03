@@ -116,6 +116,7 @@ Invoke-WebRequest -UseBasicParsing http://127.0.0.1:5173 | Select-Object -Expand
 ```text
 Upload
 -> leitura do Excel/CSV
+-> selecao automatica da aba valida quando o Excel tiver varias abas
 -> criacao de sessao temporaria
 -> gravacao em staging_rows
 -> validacao
@@ -159,6 +160,7 @@ Se o usuario preferir, pode ignorar temporariamente o cadastro e seguir com a re
 - Hierarquia TFS: `Epic > Feature > PBI > Task`.
 - Campos obrigatorios na importacao:
   `IdLancamento`, `DataHoraCadastro`, `Task`, `LoginUsuario`, `Duracao`, `IdTask`, `TituloTask`, `IdPBI`, `TituloPBI`, `IdFeat`, `TituloFeat`, `IdEpic`, `TituloEpic`.
+- Em arquivos Excel com varias abas, o sistema usa automaticamente a primeira aba que contem todas as colunas obrigatorias.
 - Duplicidade e detectada somente por `IdLancamento`.
 - `IdLancamento` duplicado bloqueia a conclusao ate o usuario escolher uma linha para manter.
 - `Duracao` deve vir no formato `HH:MM:SS`.
@@ -219,7 +221,6 @@ Tasks: detalhe paginado de tasks por colaborador
 Exportacoes disponiveis:
 
 ```text
-PDF Executivo
 Excel Operacional
 CSV/XLSX tecnicos da API
 ```
