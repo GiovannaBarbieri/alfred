@@ -320,13 +320,13 @@ def export_project_analysis_xlsx(
                 cursor.execute(sql, [import_id])
                 rows = cursor.fetchall()
                 max_series = None if title == "Diario_Total" else 5
-                show_date_labels = title != "Diario_Total"
                 _append_timeline_chart_sheet(
                     workbook.create_sheet(title),
                     title.replace("_", " "),
                     rows,
                     max_series=max_series,
-                    show_date_labels=show_date_labels,
+                    show_date_labels=True,
+                    show_legend=title != "Diario_Total",
                 )
 
             task_where = "WHERE l.importacao_id = %s"
@@ -783,6 +783,7 @@ def _append_timeline_chart_sheet(
     rows: list[dict],
     max_series: int | None = None,
     show_date_labels: bool = True,
+    show_legend: bool = True,
 ) -> None:
     periods = sorted({row["periodo"].isoformat() for row in rows})
     series_names = sorted(
@@ -812,6 +813,8 @@ def _append_timeline_chart_sheet(
     chart.title = title
     chart.y_axis.title = "Horas"
     chart.x_axis.title = None
+    if not show_legend:
+        chart.legend = None
     chart.x_axis.delete = False
     chart.x_axis.tickLblPos = "low" if show_date_labels else "none"
     chart.x_axis.tickLblSkip = 1
