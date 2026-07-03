@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 
 import { ProjectChartsPanel } from "../components/reports/ProjectChartsPanel";
 import { ProjectCollaboratorTasksPanel } from "../components/reports/ProjectCollaboratorTasksPanel";
-import { ProjectDownloadMenu } from "../components/reports/ProjectDownloadMenu";
 import { ProjectOverviewPanel } from "../components/reports/ProjectOverviewPanel";
-import { ProjectPdfReport } from "../components/reports/ProjectPdfReport";
 import { ProjectReportHeader } from "../components/reports/ProjectReportHeader";
 import { ProjectReportTabs } from "../components/reports/ProjectReportTabs";
 import { ReportLandingView } from "../components/reports/ReportLandingView";
@@ -20,7 +18,6 @@ import { useProjectCollaboratorTaskLoader } from "../hooks/useProjectCollaborato
 import { useProjectCollaboratorTasks } from "../hooks/useProjectCollaboratorTasks";
 import { useProjectComparisons } from "../hooks/useProjectComparisons";
 import { useProjectEvolution } from "../hooks/useProjectEvolution";
-import { useProjectExports } from "../hooks/useProjectExports";
 import { useProjectReportData } from "../hooks/useProjectReportData";
 import type {
   ImportSummary,
@@ -98,18 +95,6 @@ export function ReportsPage({
   const [isExecutiveSummaryOpen, setIsExecutiveSummaryOpen] = useState(false);
   const [taskPage, setTaskPage] = useState(1);
   const {
-    showDownloadMenu,
-    showPdfOptions,
-    isPreparingPdf,
-    pdfOptions,
-    toggleDownloadMenu,
-    closeDownloadMenu,
-    showPdfOptionsPanel,
-    closePdfOptions,
-    setPdfOptions,
-    preparePdf,
-  } = useProjectExports();
-  const {
     selectedCollaborator,
     collaboratorTasks,
     taskSearch,
@@ -136,9 +121,7 @@ export function ReportsPage({
   );
   const {
     selectedImport,
-    selectedChart,
     projectTitle,
-    importedAt,
     excelExportUrl,
     collaboratorOptions,
     filteredImports,
@@ -244,19 +227,7 @@ export function ReportsPage({
       <ProjectReportHeader
         projectTitle={projectTitle}
         selectedImport={selectedImport}
-        projectExecutiveSummary={projectExecutiveSummary}
-        importedAt={importedAt}
         excelExportUrl={excelExportUrl}
-        showDownloadMenu={showDownloadMenu}
-        isPreparingPdf={isPreparingPdf}
-        pdfOptions={pdfOptions}
-        hasSelectedCollaborator={Boolean(selectedCollaborator)}
-        onToggleDownloadMenu={toggleDownloadMenu}
-        onCloseDownloadMenu={closeDownloadMenu}
-        onShowPdfOptions={showPdfOptionsPanel}
-        onClosePdfOptions={closePdfOptions}
-        onPdfOptionsChange={setPdfOptions}
-        onPreparePdf={preparePdf}
       />
 
       <section className="report-executive-kpis" aria-label="Indicadores executivos do projeto">
@@ -270,22 +241,6 @@ export function ReportsPage({
           <small>{topCollaborator?.label || topCollaborator?.key || "Maior colaborador"}</small>
         </span>
       </section>
-
-      <ProjectDownloadMenu
-        excelExportUrl={excelExportUrl}
-        showDownloadMenu={false}
-        showPdfOptions={showPdfOptions}
-        isPreparingPdf={isPreparingPdf}
-        pdfOptions={pdfOptions}
-        hasSelectedCollaborator={Boolean(selectedCollaborator)}
-        showTrigger={false}
-        onToggleDownloadMenu={toggleDownloadMenu}
-        onCloseDownloadMenu={closeDownloadMenu}
-        onShowPdfOptions={showPdfOptionsPanel}
-        onClosePdfOptions={closePdfOptions}
-        onPdfOptionsChange={setPdfOptions}
-        onPreparePdf={preparePdf}
-      />
 
       <ProjectReportTabs
         activeTab={activeProjectTab}
@@ -340,21 +295,6 @@ export function ReportsPage({
         />
       )}
 
-      {isPreparingPdf && (
-        <ProjectPdfReport
-          projectTitle={projectTitle}
-          selectedImport={selectedImport}
-          importedAt={importedAt}
-          pdfOptions={pdfOptions}
-          projectInsights={projectInsights}
-          projectExecutiveSummary={projectExecutiveSummary}
-          selectedChart={selectedChart}
-          projectTimelineCharts={projectTimelineCharts}
-          selectedCollaborator={selectedCollaborator}
-          filteredCollaboratorTasks={filteredCollaboratorTasks}
-          collaboratorTasksTotal={collaboratorTasksTotal}
-        />
-      )}
     </>
   );
 }
