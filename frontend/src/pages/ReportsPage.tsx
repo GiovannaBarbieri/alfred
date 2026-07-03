@@ -21,13 +21,11 @@ import { useProjectCollaboratorTasks } from "../hooks/useProjectCollaboratorTask
 import { useProjectComparisons } from "../hooks/useProjectComparisons";
 import { useProjectEvolution } from "../hooks/useProjectEvolution";
 import { useProjectExports } from "../hooks/useProjectExports";
-import { useProjectPendingQueue } from "../hooks/useProjectPendingQueue";
 import { useProjectReportData } from "../hooks/useProjectReportData";
 import type {
   ImportSummary,
   ProjectExecutiveSummary,
   ProjectInsights,
-  ProjectPendingItems,
   ProjectRecommendation,
   ProjectTimelineCharts,
 } from "../types";
@@ -43,7 +41,6 @@ export function ReportsPage({
   selectedImportId,
   projectTimelineCharts,
   projectExecutiveSummary,
-  projectPendingItems,
   projectInsights,
   projectRecommendations,
   onOpenProject,
@@ -53,7 +50,6 @@ export function ReportsPage({
   selectedImportId: number | null;
   projectTimelineCharts: ProjectTimelineCharts;
   projectExecutiveSummary: ProjectExecutiveSummary;
-  projectPendingItems: ProjectPendingItems;
   projectInsights: ProjectInsights;
   projectRecommendations: ProjectRecommendation[];
   onOpenProject: (importId: number) => void;
@@ -138,18 +134,6 @@ export function ReportsPage({
     (taskPage - 1) * taskPageSize,
     taskPage * taskPageSize,
   );
-  const {
-    pendingStatusSummary,
-    openPendingByType,
-    openPendingPreview,
-  } = useProjectPendingQueue({
-    projectPendingItems,
-    pendingSearch: "",
-    pendingTypeFilter: "all",
-    pendingStatusFilter: "pendente",
-    pendingUserFilter: "",
-    selectedPendingIds: [],
-  });
   const {
     selectedImport,
     selectedChart,
@@ -364,9 +348,6 @@ export function ReportsPage({
           pdfOptions={pdfOptions}
           projectInsights={projectInsights}
           projectExecutiveSummary={projectExecutiveSummary}
-          openPendingByType={openPendingByType}
-          pendingStatusSummary={pendingStatusSummary}
-          openPendingPreview={openPendingPreview}
           selectedChart={selectedChart}
           projectTimelineCharts={projectTimelineCharts}
           selectedCollaborator={selectedCollaborator}

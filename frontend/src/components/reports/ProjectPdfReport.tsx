@@ -10,7 +10,6 @@ import type {
 import { ExecutiveSummaryList } from "./ExecutiveSummaryList";
 import type { ProjectPdfOptions } from "./ProjectDownloadMenu";
 import { timelineCharts, type TimelineChartId } from "./reportsConfig";
-import type { PendingActionItem } from "../../hooks/useProjectPendingQueue";
 import { formatPeriodBR, formatWeekRangeBR } from "../../utils/date";
 
 type ProjectPdfReportProps = {
@@ -20,18 +19,6 @@ type ProjectPdfReportProps = {
   pdfOptions: ProjectPdfOptions;
   projectInsights: ProjectInsights;
   projectExecutiveSummary: ProjectExecutiveSummary;
-  openPendingByType: {
-    unclassified: number;
-    lowConfidence: number;
-    zeroDuration: number;
-    alerts: number;
-  };
-  pendingStatusSummary: {
-    open: number;
-    reviewed: number;
-    ignored: number;
-  };
-  openPendingPreview: PendingActionItem[];
   selectedChart: {
     id: TimelineChartId;
     title: string;
@@ -50,33 +37,38 @@ export function ProjectPdfReport({
   pdfOptions,
   projectInsights,
   projectExecutiveSummary,
-  openPendingByType,
-  pendingStatusSummary,
-  openPendingPreview,
   selectedChart,
   projectTimelineCharts,
   selectedCollaborator,
   filteredCollaboratorTasks,
   collaboratorTasksTotal,
 }: ProjectPdfReportProps) {
+  const averageHoursByCollaborator = projectExecutiveSummary.metrics.collaboratorsCount
+    ? projectExecutiveSummary.metrics.totalHours / projectExecutiveSummary.metrics.collaboratorsCount
+    : 0;
+  const topCollaborator = projectExecutiveSummary.topUsers[0];
+
   return (
     <section className="pdf-report-section" aria-label="Relatório PDF">
       <div className="pdf-report-cover">
         <span>Relatório operacional de horas</span>
         <h1>{projectTitle}</h1>
         <p>{selectedImport.filename}</p>
+        <p>Atualizado em {importedAt}</p>
       </div>
 
       <div className="pdf-summary-grid">
-        <div><strong>{selectedImport.totalHours}h</strong><span>Total de horas</span></div>
+        <div><strong>{projectExecutiveSummary.metrics.totalHours.toFixed(2)}h</strong><span>Horas</span></div>
         <div><strong>{selectedImport.validRows}</strong><span>Registros</span></div>
-        <div><strong>{selectedImport.alertRows}</strong><span>Alertas</span></div>
-        <div><strong>{importedAt}</strong><span>{selectedImport.status}</span></div>
+        <div><strong>{projectExecutiveSummary.metrics.collaboratorsCount}</strong><span>Colaboradores</span></div>
+        <div><strong>{projectExecutiveSummary.categories.length}</strong><span>Categorias</span></div>
+        <div><strong>{averageHoursByCollaborator.toFixed(1)}h</strong><span>Média por colaborador</span></div>
+        <div><strong>{topCollaborator ? topCollaborator.totalHours.toFixed(1) : "0"}h</strong><span>{topCollaborator?.label || topCollaborator?.key || "Maior participação"}</span></div>
       </div>
 
       {projectInsights.cards.length > 0 && (
         <div className="pdf-insights-summary">
-          <h2>Análises principais</h2>
+          <h2>Destaques do Projeto</h2>
           <div className="project-insights-grid">
             {projectInsights.cards.map((insight) => (
               <article className={`project-insight-card ${insight.tone}`} key={`pdf-${insight.kind}-${insight.title}`}>
@@ -91,53 +83,9 @@ export function ProjectPdfReport({
 
       {pdfOptions.executiveSummary && (
         <div className="pdf-executive-summary">
-          <ExecutiveSummaryList title="Top colaboradores" items={projectExecutiveSummary.topUsers} />
+          <ExecutiveSummaryList title="Top 3 Colaboradores" items={projectExecutiveSummary.topUsers.slice(0, 3)} />
           <ExecutiveSummaryList title="Top Tasks" items={projectExecutiveSummary.topTasks} showKey />
-          <ExecutiveSummaryList title="Categorias" items={projectExecutiveSummary.categories} />
-        </div>
-      )}
-
-      {pdfOptions.pendingItems && (
-        <div className="pdf-pending-summary">
-          <h2>Pendências do projeto</h2>
-          <div className="pending-project-counts">
-            <span><strong>{openPendingByType.unclassified}</strong><small>Sem classificação abertas</small></span>
-            <span><strong>{openPendingByType.lowConfidence}</strong><small>Baixa confiança abertas</small></span>
-            <span><strong>{openPendingByType.zeroDuration}</strong><small>Duracao zerada abertas</small></span>
-            <span><strong>{openPendingByType.alerts}</strong><small>Alertas abertos</small></span>
-          </div>
-          <div className="pending-status-summary">
-            <span><strong>{pendingStatusSummary.open}</strong><small>Pendentes</small></span>
-            <span><strong>{pendingStatusSummary.reviewed}</strong><small>Revisadas</small></span>
-            <span><strong>{pendingStatusSummary.ignored}</strong><small>Ignoradas</small></span>
-          </div>
-          {openPendingPreview.length > 0 && (
-            <table className="pdf-pending-table">
-              <thead>
-                <tr>
-                  <th>Tipo</th>
-                  <th>Prioridade</th>
-                  <th>Colaborador</th>
-                  <th>Titulo/Mensagem</th>
-                  <th>Acao</th>
-                </tr>
-              </thead>
-              <tbody>
-                {openPendingPreview.map((item) => (
-                  <tr key={`pdf-pending-${item.id}`}>
-                    <td>{item.typeLabel}</td>
-                    <td>{item.priority}</td>
-                    <td>{item.user || "-"}</td>
-                    <td>
-                      <strong>{item.title}</strong>
-                      <small>{item.detail}</small>
-                    </td>
-                    <td>{item.action}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+          <ExecutiveSummaryList title="Top 3 Categorias" items={projectExecutiveSummary.categories.slice(0, 3)} />
         </div>
       )}
 

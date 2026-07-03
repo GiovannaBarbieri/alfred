@@ -207,7 +207,6 @@ function App() {
             selectedImportId={dashboard.selectedReportImportId}
             projectTimelineCharts={dashboard.projectTimelineCharts}
             projectExecutiveSummary={dashboard.projectExecutiveSummary}
-            projectPendingItems={dashboard.projectPendingItems}
             projectInsights={dashboard.projectInsights}
             projectRecommendations={dashboard.projectRecommendations}
             onOpenProject={dashboard.handleOpenReportProject}

@@ -359,7 +359,7 @@ def export_project_analysis_xlsx(
             _append_sheet(
                 workbook.create_sheet("Tasks"),
                 [
-                    "IdTask",
+                    "ID",
                     "TituloTask",
                     "LoginUsuario",
                     "Categoria",

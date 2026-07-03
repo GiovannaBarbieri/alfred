@@ -4,7 +4,6 @@ import type { ProjectPdfOptions } from "../components/reports/ProjectDownloadMen
 
 const defaultPdfOptions: ProjectPdfOptions = {
   executiveSummary: true,
-  pendingItems: true,
   chartMode: "current",
   collaboratorTasks: false,
 };

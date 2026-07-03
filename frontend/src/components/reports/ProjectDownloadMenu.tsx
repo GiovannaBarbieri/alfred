@@ -4,7 +4,6 @@ import type { PdfChartMode } from "./reportsConfig";
 
 export type ProjectPdfOptions = {
   executiveSummary: boolean;
-  pendingItems: boolean;
   chartMode: PdfChartMode;
   collaboratorTasks: boolean;
 };
@@ -91,14 +90,6 @@ export function ProjectDownloadMenu({
                 onChange={(event) => onPdfOptionsChange({ ...pdfOptions, executiveSummary: event.target.checked })}
               />
               KPIs e resumo executivo
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={pdfOptions.pendingItems}
-                onChange={(event) => onPdfOptionsChange({ ...pdfOptions, pendingItems: event.target.checked })}
-              />
-              Pendências resumidas
             </label>
             <label className="pdf-chart-mode-field">
               <span>Gráficos executivos</span>
