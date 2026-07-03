@@ -29,8 +29,8 @@ export function AppShell({ activeSection, onSectionChange, headerBackAction, chi
             <Network size={20} />
           </div>
           <div>
-            <strong>Gerenciador de Projetos</strong>
-            <span>Análise operacional</span>
+            <strong>Alfred</strong>
+            <span>Gerenciador de Projetos</span>
           </div>
         </div>
 
