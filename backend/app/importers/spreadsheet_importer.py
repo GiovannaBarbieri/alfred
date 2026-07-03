@@ -12,9 +12,11 @@ def read_normalized_dataframe(
     content: bytes,
     required_columns: list[str],
 ) -> tuple[pd.DataFrame, dict[str, str]]:
-    dataframe = _read_dataframe(filename, content)
-    dataframe = dataframe.fillna("")
-    return _normalize_dataframe_columns(dataframe, required_columns)
+    if filename.lower().endswith(".csv"):
+        dataframe = _read_dataframe(filename, content).fillna("")
+        return _normalize_dataframe_columns(dataframe, required_columns)
+
+    return _read_excel_dataframe_with_required_columns(content, required_columns)
 
 
 def normalize_text(value: str) -> str:
@@ -28,6 +30,29 @@ def _read_dataframe(filename: str, content: bytes) -> pd.DataFrame:
     if filename.lower().endswith(".csv"):
         return pd.read_csv(stream, dtype=str, sep=None, engine="python")
     return pd.read_excel(stream, dtype=str)
+
+
+def _read_excel_dataframe_with_required_columns(
+    content: bytes,
+    required_columns: list[str],
+) -> tuple[pd.DataFrame, dict[str, str]]:
+    stream = io.BytesIO(content)
+    sheets = pd.read_excel(stream, dtype=str, sheet_name=None)
+    if not sheets:
+        return _normalize_dataframe_columns(pd.DataFrame(), required_columns)
+
+    best_dataframe: pd.DataFrame | None = None
+    best_lookup: dict[str, str] = {}
+
+    for dataframe in sheets.values():
+        normalized_dataframe, column_lookup = _normalize_dataframe_columns(dataframe.fillna(""), required_columns)
+        if len(column_lookup) > len(best_lookup):
+            best_dataframe = normalized_dataframe
+            best_lookup = column_lookup
+        if all(column in column_lookup for column in required_columns):
+            return normalized_dataframe, column_lookup
+
+    return best_dataframe if best_dataframe is not None else pd.DataFrame(), best_lookup
 
 
 def _normalize_dataframe_columns(
