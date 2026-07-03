@@ -22,10 +22,11 @@ import type { ImportWizardStep } from "../ImportWizard";
 
 type ImportPreviewPanelProps = {
   result: ImportValidationResponse;
+  hasUnprofiledCollaborators?: boolean;
   onStepChange: (step: ImportWizardStep) => void;
 };
 
-export function ImportPreviewPanel({ result, onStepChange }: ImportPreviewPanelProps) {
+export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false, onStepChange }: ImportPreviewPanelProps) {
   const preview = result.preview;
   const averageConfidence = preview ? Math.round(preview.averageConfidence * 100) : 0;
   const hasBlocking = result.blockedRows > 0;
@@ -36,12 +37,13 @@ export function ImportPreviewPanel({ result, onStepChange }: ImportPreviewPanelP
   const classifiedRecords = Math.max(result.totalRows - (preview?.unclassifiedCount ?? 0), 0);
   const possibleInconsistencies = result.alertRows + result.blockedRows;
   const topCategories = preview?.topCategories ?? [];
-  const nextStep = result.duplicates.length > 0 ? "duplicates" : pendingReview > 0 ? "classification" : "confirm";
+  const requiresClassificationReview = pendingReview > 0 || hasUnprofiledCollaborators;
+  const nextStep = result.duplicates.length > 0 ? "duplicates" : requiresClassificationReview ? "classification" : "confirm";
   const previewStatus = hasBlocking
     ? { tone: "warning", label: "Exige correção", icon: <AlertTriangle size={16} /> }
     : result.duplicates.length > 0
       ? { tone: "warning", label: "Duplicidades para revisar", icon: <AlertTriangle size={16} /> }
-      : pendingReview > 0
+      : requiresClassificationReview
         ? { tone: "warning", label: "Revisão necessária", icon: <AlertTriangle size={16} /> }
         : { tone: "success", label: "Sem bloqueios", icon: <CheckCircle2 size={16} /> };
   const nextStepLabel =
@@ -60,7 +62,7 @@ export function ImportPreviewPanel({ result, onStepChange }: ImportPreviewPanelP
     { id: "upload", label: "Upload", status: "done" },
     { id: "validation", label: "Validação", status: hasBlocking ? "attention" : "done" },
     { id: "duplicates", label: "Duplicidades", status: result.duplicates.length > 0 ? "attention" : "done" },
-    { id: "classification", label: "Classificação", status: pendingReview > 0 ? "attention" : "done" },
+    { id: "classification", label: "Classificação", status: requiresClassificationReview ? "attention" : "done" },
     { id: "confirm", label: "Confirmação", status: "pending" },
   ] as const;
 

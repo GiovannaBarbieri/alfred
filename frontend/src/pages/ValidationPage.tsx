@@ -24,6 +24,7 @@ type ValidationPageProps = {
   subcategoryOptions: string[];
   collaboratorProfileOptions: SettingItem[];
   unprofiledCollaborators: string[];
+  hasUnprofiledCollaborators: boolean;
   duplicateSelections: Record<string, number>;
   processingMessage: string | null;
   error: string | null;
@@ -57,6 +58,7 @@ export function ValidationPage({
   subcategoryOptions,
   collaboratorProfileOptions,
   unprofiledCollaborators,
+  hasUnprofiledCollaborators,
   duplicateSelections,
   processingMessage,
   error,
@@ -109,7 +111,7 @@ export function ValidationPage({
 
   useEffect(() => {
     if (
-      importWizardStep === "classification" &&
+      (importWizardStep === "classification" || importWizardStep === "confirm") &&
       result &&
       activeUnprofiledCollaborators.length > 0 &&
       dismissedCollaboratorSession !== result.sessionId
@@ -195,7 +197,13 @@ export function ValidationPage({
   const classifierVersion = classifierVersions.length === 1 ? classifierVersions[0] : classifierVersions.length > 1 ? "multi" : undefined;
 
   if (importWizardStep === "preview") {
-    return <ImportPreviewPanel result={result} onStepChange={onImportWizardStepChange} />;
+    return (
+      <ImportPreviewPanel
+        result={result}
+        hasUnprofiledCollaborators={hasUnprofiledCollaborators}
+        onStepChange={onImportWizardStepChange}
+      />
+    );
   }
 
   return (

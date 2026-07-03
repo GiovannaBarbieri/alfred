@@ -90,6 +90,26 @@ function App() {
       return !profiled.has(normalized) && !ignored.has(normalized);
     });
   }, [collaboratorLoginOptions, settings.collaboratorProfiles, settings.ignoredCollaborators]);
+  const hasUnprofiledCollaboratorsInCurrentImport = useMemo(() => {
+    if (!importFlow.result) return false;
+    const unprofiled = new Set(unprofiledCollaborators.map((login) => login.trim().toLowerCase()));
+    return importFlow.result.classifications.some((classification) =>
+      unprofiled.has(classification.loginUsuario.trim().toLowerCase()),
+    );
+  }, [importFlow.result, unprofiledCollaborators]);
+  const availableImportWizardSteps = useMemo(() => {
+    if (!hasUnprofiledCollaboratorsInCurrentImport || importFlow.availableWizardSteps.includes("classification")) {
+      return importFlow.availableWizardSteps;
+    }
+    const steps = [...importFlow.availableWizardSteps];
+    const confirmIndex = steps.indexOf("confirm");
+    if (confirmIndex >= 0) {
+      steps.splice(confirmIndex, 0, "classification");
+    } else {
+      steps.push("classification");
+    }
+    return steps;
+  }, [hasUnprofiledCollaboratorsInCurrentImport, importFlow.availableWizardSteps]);
   useEffect(() => {
     void dashboard.refreshDashboard(dashboard.filters);
     void dashboard.refreshFilterOptions();
@@ -121,7 +141,7 @@ function App() {
   }
 
   function handleImportWizardStepChange(step: ImportWizardStep) {
-    if (!importFlow.availableWizardSteps.includes(step)) {
+    if (!availableImportWizardSteps.includes(step)) {
       return;
     }
     importFlow.setImportWizardStep(step);
@@ -142,7 +162,7 @@ function App() {
         {(activeSection === "import" || activeSection === "validation") && (
           <ImportWizard
             activeStep={importFlow.importWizardStep}
-            availableSteps={importFlow.availableWizardSteps}
+            availableSteps={availableImportWizardSteps}
             completed={Boolean(importFlow.result)}
             disabled={!importFlow.result}
             onStepChange={handleImportWizardStepChange}
@@ -181,6 +201,7 @@ function App() {
             subcategoryOptions={subcategoryOptions}
             collaboratorProfileOptions={settings.settingsSubcategories.filter((subcategory) => subcategory.active)}
             unprofiledCollaborators={unprofiledCollaborators}
+            hasUnprofiledCollaborators={hasUnprofiledCollaboratorsInCurrentImport}
             duplicateSelections={importFlow.duplicateSelections}
             processingMessage={importFlow.processingMessage}
             error={importFlow.error}
