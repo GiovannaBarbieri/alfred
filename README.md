@@ -91,6 +91,15 @@ Swagger:  http://localhost:8000/docs
 
 ## Validacao
 
+Validacao local completa:
+
+```powershell
+cd C:\Projetos\alfred
+powershell -ExecutionPolicy Bypass -File .\scripts\validate-local.ps1
+```
+
+Esse comando verifica os imports principais do backend, roda os testes automatizados e compila o frontend.
+
 Rodar testes do backend pelo container:
 
 ```powershell
