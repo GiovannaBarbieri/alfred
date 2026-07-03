@@ -149,19 +149,17 @@ export function ValidationPage({
         await onCreateImportCollaboratorProfile(login, Number(collaboratorRoleDrafts[login]));
       }
 
-      onClassificationOverridesChange((current) => {
-        const next = { ...current };
-        result.classifications.forEach((classification) => {
-          const role = roleByLogin.get(normalizeLogin(classification.loginUsuario));
-          if (!role) return;
-          if (!isMissingOperationalProfile(classification.subcategory)) return;
-          next[classification.line] = {
-            category: current[classification.line]?.category ?? classification.category,
-            subcategory: role.name,
-          };
-        });
-        return next;
+      const nextClassificationOverrides = { ...classificationOverrides };
+      result.classifications.forEach((classification) => {
+        const role = roleByLogin.get(normalizeLogin(classification.loginUsuario));
+        if (!role) return;
+        if (!isMissingOperationalProfile(classification.subcategory)) return;
+        nextClassificationOverrides[classification.line] = {
+          category: classificationOverrides[classification.line]?.category ?? classification.category,
+          subcategory: role.name,
+        };
       });
+      onClassificationOverridesChange(nextClassificationOverrides);
 
       setDismissedCollaboratorSession(result.sessionId);
       setIsCollaboratorModalOpen(false);
@@ -169,6 +167,9 @@ export function ValidationPage({
         type: "success",
         message: `${totalCreated} colaborador${totalCreated === 1 ? "" : "es"} cadastrado${totalCreated === 1 ? "" : "s"} com sucesso.`,
       });
+      if (canCompleteImport && !hasPendingClassificationReview(result, nextClassificationOverrides)) {
+        onImportWizardStepChange("confirm");
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Não foi possível cadastrar os colaboradores.";
       setCollaboratorModalError(message);
@@ -424,6 +425,27 @@ function normalizeLogin(value: string): string {
 function isMissingOperationalProfile(value: string): boolean {
   const normalized = normalizeLogin(value);
   return normalized === "" || normalized === "nao aplicavel" || normalized === "nao classificado";
+}
+
+function hasPendingClassificationReview(
+  result: ImportValidationResponse,
+  classificationOverrides: Record<number, { category: string; subcategory: string }>,
+): boolean {
+  return result.classifications.some((classification) => {
+    const selected = classificationOverrides[classification.line] ?? {
+      category: classification.category,
+      subcategory: classification.subcategory,
+    };
+    const hasMissingCategory = normalizeLogin(selected.category) === "nao classificado";
+    const hasMissingProfile = isMissingOperationalProfile(selected.subcategory);
+    const hasLowConfidence = classification.confidence < 0.9 || classification.confidenceLevel === "baixa";
+    const hasConflict = (classification.confidenceFactors ?? []).some((factor) => {
+      const normalized = normalizeLogin(factor);
+      return normalized.includes("multipl") || normalized.includes("conflit");
+    });
+
+    return hasMissingCategory || hasMissingProfile || hasLowConfidence || hasConflict;
+  });
 }
 
 function formatCollaboratorName(login: string): string {
