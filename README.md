@@ -120,6 +120,16 @@ curl.exe -s http://127.0.0.1:8000/api/health
 Invoke-WebRequest -UseBasicParsing http://127.0.0.1:5173 | Select-Object -ExpandProperty StatusCode
 ```
 
+## Manutencao
+
+Ao iniciar, a API remove sessoes temporarias de importacao antigas que ainda nao foram confirmadas. Por padrao, a retencao e de 7 dias.
+
+Para ajustar o prazo, configure:
+
+```text
+IMPORT_SESSION_RETENTION_DAYS=7
+```
+
 ## Fluxo De Importacao
 
 ```text

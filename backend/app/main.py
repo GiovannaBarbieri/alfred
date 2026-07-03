@@ -1,9 +1,15 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import analytics, audit, dashboard, exports, imports, reports, settings as settings_routes
 from app.core.config import settings
 from app.services.schema_service import ensure_runtime_schema
+from app.services.session_cleanup_service import cleanup_old_import_sessions
+
+
+logger = logging.getLogger(__name__)
 
 
 app = FastAPI(
@@ -32,6 +38,12 @@ app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"]
 @app.on_event("startup")
 def startup() -> None:
     ensure_runtime_schema()
+    try:
+        deleted_sessions = cleanup_old_import_sessions()
+        if deleted_sessions:
+            logger.info("Sessoes temporarias antigas removidas: %s", deleted_sessions)
+    except Exception:
+        logger.exception("Falha ao limpar sessoes temporarias antigas.")
 
 
 @app.get("/api/health")

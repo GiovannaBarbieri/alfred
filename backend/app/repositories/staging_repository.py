@@ -188,6 +188,21 @@ def cancel_import_session(connection: Connection, session_id: int) -> None:
         )
 
 
+def delete_old_import_sessions(connection: Connection, retention_days: int) -> int:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            DELETE FROM import_sessions
+            WHERE importacao_final_id IS NULL
+                AND UPPER(status) <> 'CONFIRMADO'
+                AND atualizado_em < NOW() - (%s::int * INTERVAL '1 day')
+            RETURNING id
+            """,
+            (retention_days,),
+        )
+        return len(cursor.fetchall())
+
+
 def insert_import_log(
     connection: Connection,
     *,
