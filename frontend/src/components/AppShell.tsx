@@ -1,4 +1,4 @@
-import { ArrowLeft, BarChart3, Clock3, Layers3, Settings, Upload } from "lucide-react";
+import { ArrowLeft, BarChart3, Layers3, Network, Settings, Upload } from "lucide-react";
 import type { ReactNode } from "react";
 import { sectionMeta } from "../types/navigation";
 import type { SectionId } from "../types/navigation";
@@ -26,7 +26,7 @@ export function AppShell({ activeSection, onSectionChange, headerBackAction, chi
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-mark">
-            <Clock3 size={20} />
+            <Network size={20} />
           </div>
           <div>
             <strong>Gerenciador de Projetos</strong>
