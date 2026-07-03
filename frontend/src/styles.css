@@ -116,8 +116,8 @@ input {
 }
 
 .page-header h1 {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 28px;
+  font-weight: 650;
   line-height: 1.15;
   margin: 0;
 }
@@ -129,8 +129,8 @@ input {
   color: #172033;
   cursor: pointer;
   display: inline-flex;
-  font-size: 28px;
-  font-weight: 800;
+  font-size: 25px;
+  font-weight: 700;
   gap: 10px;
   line-height: 1.15;
   padding: 0;
@@ -3757,7 +3757,8 @@ input {
   display: inline-flex;
   gap: 8px;
   justify-content: center;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 700;
   min-height: 46px;
   padding: 8px 9px;
   transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease, transform 180ms ease;
@@ -3768,8 +3769,8 @@ input {
   border: 1px solid rgba(37, 99, 235, 0.12);
   border-radius: 999px;
   color: #123c69;
-  font-size: 11px;
-  font-weight: 900;
+  font-size: 10px;
+  font-weight: 750;
   line-height: 1;
   padding: 5px 8px;
 }
@@ -4477,8 +4478,8 @@ input {
 
 .reports-projects-toolbar h2 {
   color: #0f172a;
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 17px;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -4586,14 +4587,14 @@ input {
   border-radius: 10px;
   color: #2563eb;
   display: grid;
-  height: 48px;
+  height: 42px;
   justify-content: center;
-  width: 48px;
+  width: 42px;
 }
 
 .reports-project-icon svg {
-  height: 24px;
-  width: 24px;
+  height: 21px;
+  width: 21px;
 }
 
 .reports-project-row span {
@@ -4617,16 +4618,16 @@ input {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  font-size: 1.55rem;
-  font-weight: 700;
+  font-size: 1.18rem;
+  font-weight: 650;
   gap: 8px;
   min-width: 0;
 }
 
 .reports-project-file {
   color: #637083;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .reports-project-title strong em {
@@ -4634,9 +4635,9 @@ input {
   border-radius: 999px;
   color: #0f4c8a;
   flex: 0 0 auto;
-  font-size: 11px;
+  font-size: 10px;
   font-style: normal;
-  font-weight: 900;
+  font-weight: 750;
   line-height: 1;
   padding: 5px 8px;
   text-transform: uppercase;
@@ -4648,7 +4649,7 @@ input {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding-left: 56px;
+  padding-left: 54px;
 }
 
 .reports-project-meta-line small {
@@ -4687,22 +4688,22 @@ input {
   display: flex;
   flex-wrap: nowrap;
   gap: 5px;
-  padding-left: 56px;
+  padding-left: 54px;
   white-space: nowrap;
 }
 
 .reports-project-metric-line strong {
   color: #0f172a;
   display: inline;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 12.5px;
+  font-weight: 650;
 }
 
 .reports-project-metric-line span,
 .reports-project-metric-line i {
   color: var(--text-secondary, #637083);
   display: inline;
-  font-size: 13px;
+  font-size: 12px;
   font-style: normal;
   font-weight: 500;
 }
@@ -4725,9 +4726,11 @@ input {
 
 .reports-project-actions .secondary-button {
   justify-content: center;
+  font-size: 12px;
+  font-weight: 650;
   margin: 0;
-  min-height: 38px;
-  padding-inline: 14px;
+  min-height: 34px;
+  padding-inline: 12px;
   width: auto;
 }
 
@@ -4736,14 +4739,14 @@ input {
   border-radius: 999px;
   color: #455468;
   display: inline-flex;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   gap: 6px;
   justify-content: center;
   letter-spacing: 0;
   margin-top: 0;
   max-width: max-content;
-  padding: 6px 11px;
+  padding: 5px 10px;
   white-space: nowrap;
 }
 
@@ -4751,10 +4754,10 @@ input {
   align-items: center;
   border-radius: 999px;
   display: inline-flex;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   gap: 5px;
-  padding: 6px 10px;
+  padding: 5px 9px;
   white-space: nowrap;
 }
 
