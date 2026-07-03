@@ -815,6 +815,9 @@ def _append_timeline_chart_sheet(
     chart.x_axis.title = None
     if not show_legend:
         chart.legend = None
+    elif chart.legend:
+        chart.legend.position = "r"
+        chart.legend.overlay = False
     chart.x_axis.delete = False
     chart.x_axis.tickLblPos = "low" if show_date_labels else "none"
     chart.x_axis.tickLblSkip = 1
