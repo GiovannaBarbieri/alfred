@@ -156,7 +156,15 @@ A tela aceita um ou mais IDs e o tipo `Automatico`, `Epic` ou `Feature`. No modo
 
 Como o backend roda em Docker, a estrategia recomendada e `SQLSERVER_AUTH=sql` com usuario SQL Server somente leitura. Esse usuario precisa apenas de `CONNECT` no banco `Tfs_Fabrica` e `SELECT` nos objetos usados pela consulta: `advise.RegistroHorario`, `WorkItemLONgTexts` e `LinksAre`.
 
-Windows Authentication nao esta habilitada por padrao no container. Para viabilizar isso seria necessario configurar autenticacao integrada no ambiente Docker, normalmente com dominio/Kerberos, SPN, keytab, driver ODBC compativel e variaveis de runtime especificas. Por simplicidade operacional, mantenha SQL Authentication com senha fora do codigo.
+Para teste local fora do Docker, tambem e possivel usar Windows Authentication com o usuario logado no Windows:
+
+```text
+SQLSERVER_AUTH=windows
+SQLSERVER_USER=
+SQLSERVER_PASSWORD=
+```
+
+Windows Authentication no container nao e garantida por padrao. Para viabilizar isso em Docker seria necessario configurar autenticacao integrada no ambiente, normalmente com dominio/Kerberos, SPN, keytab, driver ODBC compativel e variaveis de runtime especificas. Por simplicidade operacional, mantenha SQL Authentication com senha fora do codigo quando o backend rodar em container.
 
 Endpoints:
 

@@ -187,29 +187,32 @@ def _execute_query(query: str, params: list[Any]) -> list[dict[str, Any]]:
 
 def _connection_string() -> str:
     auth_mode = settings.sqlserver_auth.strip().lower()
-    if auth_mode != "sql":
-        raise SQLServerConfigurationError(
-            "Autenticacao Windows nao esta habilitada no container. Use SQLSERVER_AUTH=sql com usuario somente leitura."
-        )
-
     required = {
         "SQLSERVER_HOST": settings.sqlserver_host,
         "SQLSERVER_DATABASE": settings.sqlserver_database,
-        "SQLSERVER_USER": settings.sqlserver_user,
-        "SQLSERVER_PASSWORD": settings.sqlserver_password,
     }
+    if auth_mode == "sql":
+        required["SQLSERVER_USER"] = settings.sqlserver_user
+        required["SQLSERVER_PASSWORD"] = settings.sqlserver_password
+    elif auth_mode != "windows":
+        raise SQLServerConfigurationError("SQLSERVER_AUTH deve ser 'sql' ou 'windows'.")
+
     missing = [name for name, value in required.items() if not value]
     if missing:
         raise SQLServerConfigurationError(f"Variaveis ausentes: {', '.join(missing)}.")
 
     encrypt = "yes" if settings.sqlserver_encrypt else "no"
     trust_certificate = "yes" if settings.sqlserver_trust_cert else "no"
+    authentication = (
+        f"UID={settings.sqlserver_user};PWD={settings.sqlserver_password};"
+        if auth_mode == "sql"
+        else "Trusted_Connection=yes;"
+    )
     return (
         f"DRIVER={{{settings.sqlserver_driver}}};"
         f"SERVER={settings.sqlserver_host},{settings.sqlserver_port};"
         f"DATABASE={settings.sqlserver_database};"
-        f"UID={settings.sqlserver_user};"
-        f"PWD={settings.sqlserver_password};"
+        f"{authentication}"
         f"Encrypt={encrypt};"
         f"TrustServerCertificate={trust_certificate};"
         f"Connection Timeout={settings.sqlserver_connection_timeout_seconds};"
