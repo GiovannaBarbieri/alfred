@@ -149,12 +149,26 @@ def normalize_sqlserver_rows(rows: Sequence[dict[str, Any]]) -> pd.DataFrame:
 
     if "Duracao" not in dataframe.columns:
         dataframe["Duracao"] = dataframe["TempoDuracao"]
+    dataframe["Duracao"] = dataframe["Duracao"].map(_normalize_duration_value)
 
     return dataframe[[*SQLSERVER_IMPORT_COLUMNS, *[column for column in REQUIRED_COLUMNS if column not in SQLSERVER_IMPORT_COLUMNS]]].fillna("")
 
 
 def dataframe_to_import_content(dataframe: pd.DataFrame) -> bytes:
     return dataframe.to_csv(index=False, lineterminator="\n").encode("utf-8")
+
+
+def _normalize_duration_value(value: Any) -> str:
+    raw_value = str(value or "").strip()
+    match = re.fullmatch(r"(?:(\d+)d\s*)?(\d{1,2}):(\d{2}):(\d{2})", raw_value)
+    if not match:
+        return raw_value
+
+    days = int(match.group(1) or 0)
+    hours = int(match.group(2)) + days * 24
+    minutes = int(match.group(3))
+    seconds = int(match.group(4))
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
 
 def _find_existing_ids(column: str, ids: Sequence[int]) -> set[int]:
@@ -169,8 +183,9 @@ def _execute_query(query: str, params: list[Any]) -> list[dict[str, Any]]:
     try:
         connection = pyodbc.connect(_connection_string(), timeout=settings.sqlserver_connection_timeout_seconds)
         try:
+            if hasattr(connection, "timeout"):
+                connection.timeout = settings.sqlserver_request_timeout_seconds
             cursor = connection.cursor()
-            cursor.timeout = settings.sqlserver_request_timeout_seconds
             cursor.execute(query, params)
             columns = [column[0] for column in cursor.description or []]
             rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
@@ -249,7 +264,8 @@ def _load_pyodbc():
 
 def _map_pyodbc_error(exc: Exception, *, fallback: type[SQLServerIntegrationError]) -> SQLServerIntegrationError:
     message = str(exc).lower()
-    if "timeout" in message or "timed out" in message:
+    sqlstate = str(exc.args[0]).upper() if getattr(exc, "args", None) else ""
+    if sqlstate in {"HYT00", "HYT01"} or "query timeout" in message or "login timeout" in message or "timed out" in message:
         return SQLServerTimeoutError(str(exc))
     if "login" in message or "server" in message or "network" in message or "connection" in message:
         return SQLServerConnectionError(str(exc))

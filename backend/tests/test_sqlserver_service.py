@@ -41,6 +41,11 @@ class SQLServerServiceTests(unittest.TestCase):
         self.assertEqual(dataframe.loc[0, "Duracao"], "01:00:00")
         self.assertEqual(dataframe.loc[0, "TituloTask"], "[Desenvolvimento] - API")
 
+    def test_normalize_sqlserver_rows_converts_day_duration_to_hours(self) -> None:
+        dataframe = normalize_sqlserver_rows([{"IdLancamento": "1001", "TempoDuracao": "1d 02:03:04"}])
+
+        self.assertEqual(dataframe.loc[0, "Duracao"], "26:03:04")
+
     def test_dataframe_to_import_content_creates_csv_bytes(self) -> None:
         dataframe = normalize_sqlserver_rows([{"IdLancamento": "1001"}])
 
