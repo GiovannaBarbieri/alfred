@@ -2229,6 +2229,14 @@ input {
   gap: 12px;
 }
 
+.sqlserver-project-field {
+  color: #41516a;
+  display: grid;
+  font-size: 12px;
+  font-weight: 700;
+  gap: 6px;
+}
+
 .sqlserver-import-grid {
   display: grid;
   gap: 12px;
@@ -2243,6 +2251,7 @@ input {
   gap: 6px;
 }
 
+.sqlserver-project-field input,
 .sqlserver-import-grid input,
 .sqlserver-import-grid select {
   border: 1px solid #c8d3df;

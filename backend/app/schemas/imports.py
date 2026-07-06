@@ -124,6 +124,7 @@ class SQLServerConnectionStatus(BaseModel):
 class SQLServerImportRequest(BaseModel):
     ids: list[int | str] = Field(default_factory=list)
     idType: str = "auto"
+    projectName: str | None = None
 
 
 class CompleteSessionRequest(BaseModel):

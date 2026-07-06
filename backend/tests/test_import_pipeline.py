@@ -4,6 +4,8 @@ import unittest
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
+from app.api.routes.imports import _sqlserver_import_filename
+from app.schemas.imports import SQLServerImportRequest
 from app.services.import_pipeline import create_staged_import
 
 
@@ -50,6 +52,21 @@ def sample_csv() -> bytes:
 
 
 class ImportPipelineTests(unittest.TestCase):
+    def test_sqlserver_import_filename_uses_custom_project_name(self) -> None:
+        payload = SQLServerImportRequest(ids=[187358], idType="epic", projectName="187358 - Cadastro Agil V2")
+
+        self.assertEqual(_sqlserver_import_filename(payload), "187358 - Cadastro Agil V2.csv")
+
+    def test_sqlserver_import_filename_removes_invalid_characters(self) -> None:
+        payload = SQLServerImportRequest(ids=[187358], idType="epic", projectName='Projeto / Financeiro: "Teste"')
+
+        self.assertEqual(_sqlserver_import_filename(payload), "Projeto Financeiro Teste.csv")
+
+    def test_sqlserver_import_filename_keeps_automatic_fallback(self) -> None:
+        payload = SQLServerImportRequest(ids=[187358], idType="epic")
+
+        self.assertEqual(_sqlserver_import_filename(payload), "sqlserver-epic-187358.csv")
+
     @patch("app.services.import_pipeline.insert_import_log")
     @patch("app.services.import_pipeline.update_import_session_summary")
     @patch("app.services.import_pipeline.insert_staging_rows")

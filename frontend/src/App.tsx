@@ -179,6 +179,7 @@ function App() {
             importSource={importFlow.importSource}
             sqlServerIds={importFlow.sqlServerIds}
             sqlServerIdType={importFlow.sqlServerIdType}
+            sqlServerProjectName={importFlow.sqlServerProjectName}
             isTestingSqlServer={importFlow.isTestingSqlServer}
             sqlServerStatusMessage={importFlow.sqlServerStatusMessage}
             isLoading={importFlow.isLoading}
@@ -192,6 +193,7 @@ function App() {
             onValidate={importFlow.handleValidate}
             onSqlServerIdsChange={importFlow.setSqlServerIds}
             onSqlServerIdTypeChange={importFlow.setSqlServerIdType}
+            onSqlServerProjectNameChange={importFlow.setSqlServerProjectName}
             onValidateSqlServer={importFlow.handleValidateSqlServer}
             onTestSqlServerConnection={importFlow.handleTestSqlServerConnection}
           />

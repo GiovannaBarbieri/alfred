@@ -55,6 +55,7 @@ export function useImportFlow({
   const [file, setFile] = useState<File | null>(null);
   const [sqlServerIds, setSqlServerIds] = useState("");
   const [sqlServerIdType, setSqlServerIdType] = useState<"auto" | "epic" | "feature">("auto");
+  const [sqlServerProjectName, setSqlServerProjectName] = useState("");
   const [isTestingSqlServer, setIsTestingSqlServer] = useState(false);
   const [sqlServerStatusMessage, setSqlServerStatusMessage] = useState<string | null>(null);
   const [result, setResult] = useState<ImportValidationResponse | null>(null);
@@ -306,6 +307,7 @@ export function useImportFlow({
       const response = await createSqlServerImportSession({
         ids,
         idType: sqlServerIdType,
+        projectName: sqlServerProjectName.trim() || undefined,
       });
       const validation = response.validation;
       setFile(null);
@@ -411,6 +413,8 @@ export function useImportFlow({
     setSqlServerIds,
     sqlServerIdType,
     setSqlServerIdType,
+    sqlServerProjectName,
+    setSqlServerProjectName,
     isTestingSqlServer,
     sqlServerStatusMessage,
     result,

@@ -12,6 +12,7 @@ export function ImportPage({
   successMessage,
   result,
   importSource,
+  sqlServerProjectName,
   sqlServerIds,
   sqlServerIdType,
   isTestingSqlServer,
@@ -19,6 +20,7 @@ export function ImportPage({
   onImportSourceChange,
   onFileChange,
   onValidate,
+  onSqlServerProjectNameChange,
   onSqlServerIdsChange,
   onSqlServerIdTypeChange,
   onValidateSqlServer,
@@ -32,6 +34,7 @@ export function ImportPage({
   successMessage: string | null;
   result: ImportValidationResponse | null;
   importSource: "file" | "sqlserver";
+  sqlServerProjectName: string;
   sqlServerIds: string;
   sqlServerIdType: "auto" | "epic" | "feature";
   isTestingSqlServer: boolean;
@@ -39,6 +42,7 @@ export function ImportPage({
   onImportSourceChange: (source: "file" | "sqlserver") => void;
   onFileChange: (file: File | null) => void;
   onValidate: () => void;
+  onSqlServerProjectNameChange: (value: string) => void;
   onSqlServerIdsChange: (value: string) => void;
   onSqlServerIdTypeChange: (value: "auto" | "epic" | "feature") => void;
   onValidateSqlServer: () => void;
@@ -89,6 +93,16 @@ export function ImportPage({
           </>
         ) : (
           <div className="sqlserver-import-form">
+            <label className="sqlserver-project-field">
+              <span>Nome do projeto</span>
+              <input
+                value={sqlServerProjectName}
+                onChange={(event) => onSqlServerProjectNameChange(event.target.value)}
+                placeholder="Ex: 187358 - Cadastro Agil V2"
+                maxLength={120}
+              />
+            </label>
+
             <div className="sqlserver-import-grid">
               <label className="sqlserver-id-field">
                 <span>IDs</span>

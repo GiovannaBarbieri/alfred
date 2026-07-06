@@ -131,6 +131,7 @@ export type SQLServerConnectionStatus = {
 export type SQLServerImportRequest = {
   ids: Array<number | string>;
   idType: "auto" | "epic" | "feature";
+  projectName?: string;
 };
 
 export type ImportSummary = {

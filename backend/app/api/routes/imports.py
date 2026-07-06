@@ -692,10 +692,25 @@ def _single_or_mixed(values: set[str]) -> str:
 
 
 def _sqlserver_import_filename(payload: SQLServerImportRequest) -> str:
+    custom_name = _safe_import_filename(payload.projectName)
+    if custom_name:
+        return custom_name
+
     ids_label = "-".join(str(item).strip() for item in payload.ids[:5])
     suffix = "mais" if len(payload.ids) > 5 else ""
     parts = ["sqlserver", payload.idType, ids_label, suffix]
     return "-".join(part for part in parts if part) + ".csv"
+
+
+def _safe_import_filename(value: str | None) -> str | None:
+    if not value:
+        return None
+
+    cleaned = "".join(char for char in value.strip() if char not in '\\/:*?"<>|')
+    cleaned = " ".join(cleaned.split())[:120].strip(" .")
+    if not cleaned:
+        return None
+    return cleaned if cleaned.lower().endswith(".csv") else f"{cleaned}.csv"
 
 
 def _raise_sqlserver_http_error(exc: SQLServerIntegrationError) -> None:
