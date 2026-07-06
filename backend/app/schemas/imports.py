@@ -116,6 +116,16 @@ class ImportSessionResponse(BaseModel):
     validation: ImportValidationResponse
 
 
+class SQLServerConnectionStatus(BaseModel):
+    ok: bool
+    message: str
+
+
+class SQLServerImportRequest(BaseModel):
+    ids: list[int | str] = Field(default_factory=list)
+    idType: str = "auto"
+
+
 class CompleteSessionRequest(BaseModel):
     duplicateKeepLines: list[int] = Field(default_factory=list)
     classificationOverrides: list[dict] = Field(default_factory=list)

@@ -36,11 +36,28 @@ from app.services.validation_service import REQUIRED_COLUMNS
 
 
 def create_staged_import(filename: str, content: bytes) -> ImportSessionResponse:
-    started_at = time.perf_counter()
-    file_hash = hashlib.sha256(content).hexdigest()
     dataframe, column_lookup = read_normalized_dataframe(filename, content, REQUIRED_COLUMNS)
-    validation = validate_import_dataframe(filename=filename, dataframe=dataframe, column_lookup=column_lookup)
-    staging_rows = build_staging_rows_from_dataframe(dataframe, column_lookup, validation.classifications)
+    return create_staged_import_from_dataframe(
+        filename=filename,
+        dataframe=dataframe,
+        column_lookup=column_lookup,
+        content=content,
+    )
+
+
+def create_staged_import_from_dataframe(
+    *,
+    filename: str,
+    dataframe: pd.DataFrame,
+    column_lookup: dict[str, str] | None = None,
+    content: bytes | None = None,
+) -> ImportSessionResponse:
+    started_at = time.perf_counter()
+    source_content = content if content is not None else dataframe.to_csv(index=False, lineterminator="\n").encode("utf-8")
+    file_hash = hashlib.sha256(source_content).hexdigest()
+    resolved_column_lookup = column_lookup or {column: column for column in dataframe.columns}
+    validation = validate_import_dataframe(filename=filename, dataframe=dataframe, column_lookup=resolved_column_lookup)
+    staging_rows = build_staging_rows_from_dataframe(dataframe, resolved_column_lookup, validation.classifications)
 
     with get_connection() as connection:
         validation.fileHistory = _build_file_history(
@@ -48,13 +65,13 @@ def create_staged_import(filename: str, content: bytes) -> ImportSessionResponse
             filename=filename,
             file_hash=file_hash,
             dataframe=dataframe,
-            column_lookup=column_lookup,
+            column_lookup=resolved_column_lookup,
         )
         session_id = create_import_session(
             connection,
             filename=filename,
             file_hash=file_hash,
-            content=content,
+            content=source_content,
             total_rows=validation.totalRows,
             valid_rows=validation.validRows,
             alert_rows=validation.alertRows,

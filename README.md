@@ -130,6 +130,36 @@ Para ajustar o prazo, configure:
 IMPORT_SESSION_RETENTION_DAYS=7
 ```
 
+## SQL Server
+
+A importacao por planilha continua ativa. Como segunda entrada, a tela de importacao tambem permite consultar o SQL Server e enviar o resultado para o mesmo fluxo de pre-validacao, classificacao e confirmacao.
+
+Configure a conexao somente por variaveis de ambiente:
+
+```text
+SQLSERVER_DRIVER=ODBC Driver 18 for SQL Server
+SQLSERVER_HOST=servidor
+SQLSERVER_PORT=1433
+SQLSERVER_DATABASE=base
+SQLSERVER_USER=usuario
+SQLSERVER_PASSWORD=senha
+SQLSERVER_ENCRYPT=true
+SQLSERVER_TRUST_CERT=true
+SQLSERVER_CONNECTION_TIMEOUT_SECONDS=10
+SQLSERVER_QUERY_TIMEOUT_SECONDS=60
+```
+
+A query deve retornar, diretamente ou por aliases, as mesmas colunas obrigatorias da importacao por planilha: `IdLancamento`, `DataHoraCadastro`, `Task`, `LoginUsuario`, `Duracao`, `IdTask`, `TituloTask`, `IdPBI`, `TituloPBI`, `IdFeat`, `TituloFeat`, `IdEpic`, `TituloEpic`.
+
+A tela aceita um ou mais IDs e o tipo `Automatico`, `Epic` ou `Feature`. No modo automatico, o backend procura primeiro em `TitEpic.ID`, depois em `TitFeat.ID`; se o ID existir nos dois niveis, o usuario deve escolher manualmente o tipo.
+
+Endpoints:
+
+```text
+GET/POST /api/imports/sqlserver/test-connection
+POST     /api/imports/sqlserver/preview
+```
+
 ## Fluxo De Importacao
 
 ```text

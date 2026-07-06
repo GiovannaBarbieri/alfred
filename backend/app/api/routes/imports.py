@@ -23,14 +23,31 @@ from app.repositories.import_repository import (
 )
 from app.schemas.imports import ImportCompleteResponse, ImportDetail, ImportReprocessApplyRequest, ImportReprocessApplyResponse, ImportReprocessPreview, ImportSummary, ImportValidationResponse, ReprocessHistoryItem
 from app.schemas.imports import CompleteSessionRequest, ImportSessionResponse, ImportSessionSummary
+from app.schemas.imports import SQLServerConnectionStatus, SQLServerImportRequest
 from app.services.classification_service import classify_title, load_classification_settings, load_collaborator_subcategories
 from app.services.import_pipeline import (
     cancel_staged_import,
     complete_staged_import,
     create_staged_import,
+    create_staged_import_from_dataframe,
     reprocess_staged_import,
 )
 from app.services.import_service import build_import_records, validate_import_file
+from app.services.sqlserver_service import (
+    SQLServerAmbiguousIdError,
+    SQLServerConfigurationError,
+    SQLServerConnectionError,
+    SQLServerEmptyResultError,
+    SQLServerIdNotFoundError,
+    SQLServerInvalidIdError,
+    SQLServerIntegrationError,
+    SQLServerQueryError,
+    SQLServerTimeoutError,
+    dataframe_to_import_content,
+    query_import_dataframe,
+    test_sqlserver_connection,
+)
+from app.services.validation_service import REQUIRED_COLUMNS
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -201,6 +218,40 @@ def cancel_import_session(session_id: int) -> ImportSessionSummary:
         return cancel_staged_import(session_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/sqlserver/test-connection", response_model=SQLServerConnectionStatus)
+@router.post("/sqlserver/test-connection", response_model=SQLServerConnectionStatus)
+def test_import_sqlserver_connection() -> SQLServerConnectionStatus:
+    logger.info("Testando conexao com SQL Server para importacao.")
+    try:
+        test_sqlserver_connection()
+    except SQLServerIntegrationError as exc:
+        _raise_sqlserver_http_error(exc)
+    return SQLServerConnectionStatus(ok=True, message="Conexao com SQL Server realizada com sucesso.")
+
+
+@router.post("/sqlserver/preview", response_model=ImportSessionResponse)
+def create_sqlserver_import_session(payload: SQLServerImportRequest) -> ImportSessionResponse:
+    logger.info(
+        "Criando sessao temporaria via SQL Server. total_ids=%s tipo=%s",
+        len(payload.ids),
+        payload.idType,
+    )
+    try:
+        dataframe = query_import_dataframe(
+            ids=payload.ids,
+            id_type=payload.idType,
+        )
+        filename = _sqlserver_import_filename(payload)
+        return create_staged_import_from_dataframe(
+            filename=filename,
+            dataframe=dataframe,
+            column_lookup={column: column for column in REQUIRED_COLUMNS},
+            content=dataframe_to_import_content(dataframe),
+        )
+    except SQLServerIntegrationError as exc:
+        _raise_sqlserver_http_error(exc)
 
 
 @router.get("", response_model=list[ImportSummary])
@@ -638,6 +689,33 @@ def _single_or_mixed(values: set[str]) -> str:
     if not cleaned:
         return "Nao classificado"
     return cleaned[0] if len(cleaned) == 1 else "Multiplos"
+
+
+def _sqlserver_import_filename(payload: SQLServerImportRequest) -> str:
+    ids_label = "-".join(str(item).strip() for item in payload.ids[:5])
+    suffix = "mais" if len(payload.ids) > 5 else ""
+    parts = ["sqlserver", payload.idType, ids_label, suffix]
+    return "-".join(part for part in parts if part) + ".csv"
+
+
+def _raise_sqlserver_http_error(exc: SQLServerIntegrationError) -> None:
+    if isinstance(exc, SQLServerConfigurationError):
+        raise HTTPException(status_code=503, detail=exc.user_message) from exc
+    if isinstance(exc, SQLServerConnectionError):
+        raise HTTPException(status_code=503, detail=exc.user_message) from exc
+    if isinstance(exc, SQLServerTimeoutError):
+        raise HTTPException(status_code=504, detail=exc.user_message) from exc
+    if isinstance(exc, SQLServerInvalidIdError):
+        raise HTTPException(status_code=400, detail=exc.user_message) from exc
+    if isinstance(exc, SQLServerAmbiguousIdError):
+        raise HTTPException(status_code=409, detail=exc.user_message) from exc
+    if isinstance(exc, SQLServerIdNotFoundError):
+        raise HTTPException(status_code=404, detail=exc.user_message) from exc
+    if isinstance(exc, SQLServerEmptyResultError):
+        raise HTTPException(status_code=422, detail=exc.user_message) from exc
+    if isinstance(exc, SQLServerQueryError):
+        raise HTTPException(status_code=400, detail=exc.user_message) from exc
+    raise HTTPException(status_code=500, detail=exc.user_message) from exc
 
 
 def _parse_duplicate_keep_lines(raw_value: str | None) -> set[int] | None:

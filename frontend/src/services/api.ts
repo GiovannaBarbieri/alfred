@@ -11,6 +11,8 @@ import type {
   ImportReprocessPreview,
   ImportSessionResponse,
   ImportSessionSummary,
+  SQLServerConnectionStatus,
+  SQLServerImportRequest,
   ImportSummary,
   ImportValidationResponse,
   ProjectCollaboratorTask,
@@ -100,6 +102,32 @@ export async function createImportSession(file: File): Promise<ImportSessionResp
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
     throw new Error(payload?.detail ?? "Não foi possível criar a sessão de importação.");
+  }
+
+  return response.json();
+}
+
+export async function testSqlServerConnection(): Promise<SQLServerConnectionStatus> {
+  const response = await fetch(`${API_BASE_URL}/imports/sqlserver/test-connection`);
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.detail ?? "Nao foi possivel conectar ao SQL Server.");
+  }
+
+  return response.json();
+}
+
+export async function createSqlServerImportSession(payload: SQLServerImportRequest): Promise<ImportSessionResponse> {
+  const response = await fetch(`${API_BASE_URL}/imports/sqlserver/preview`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail ?? "Nao foi possivel importar dados do SQL Server.");
   }
 
   return response.json();

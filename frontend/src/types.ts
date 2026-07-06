@@ -123,6 +123,16 @@ export type ImportSessionResponse = {
   validation: ImportValidationResponse;
 };
 
+export type SQLServerConnectionStatus = {
+  ok: boolean;
+  message: string;
+};
+
+export type SQLServerImportRequest = {
+  ids: Array<number | string>;
+  idType: "auto" | "epic" | "feature";
+};
+
 export type ImportSummary = {
   id: number;
   filename: string;

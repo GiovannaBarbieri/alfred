@@ -4,7 +4,9 @@ import {
   cancelImportSession,
   completeImportSession,
   createImportSession,
+  createSqlServerImportSession,
   reprocessImportSession,
+  testSqlServerConnection,
 } from "../services/api";
 import type { ImportWizardStep } from "../components/ImportWizard";
 import type { ImportCompleteResponse, ImportSessionSummary, ImportValidationResponse } from "../types";
@@ -20,6 +22,24 @@ export const importProcessingSteps = [
 
 const CLASSIFICATION_REVIEW_THRESHOLD = 0.9;
 
+function parseSqlServerIds(value: string): number[] {
+  const parts = value
+    .split(/[\s,;]+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length === 0) {
+    throw new Error("Informe ao menos um ID para consultar no SQL Server.");
+  }
+
+  const invalid = parts.find((part) => !/^\d+$/.test(part));
+  if (invalid) {
+    throw new Error("Informe apenas IDs numericos para consultar no SQL Server.");
+  }
+
+  return Array.from(new Set(parts.map((part) => Number(part))));
+}
+
 export function useImportFlow({
   onValidationReady,
   onCompleted,
@@ -31,7 +51,12 @@ export function useImportFlow({
 }) {
   const [importWizardStep, setImportWizardStep] = useState<ImportWizardStep>("upload");
   const [currentSession, setCurrentSession] = useState<ImportSessionSummary | null>(null);
+  const [importSource, setImportSource] = useState<"file" | "sqlserver">("file");
   const [file, setFile] = useState<File | null>(null);
+  const [sqlServerIds, setSqlServerIds] = useState("");
+  const [sqlServerIdType, setSqlServerIdType] = useState<"auto" | "epic" | "feature">("auto");
+  const [isTestingSqlServer, setIsTestingSqlServer] = useState(false);
+  const [sqlServerStatusMessage, setSqlServerStatusMessage] = useState<string | null>(null);
   const [result, setResult] = useState<ImportValidationResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -204,6 +229,35 @@ export function useImportFlow({
     setSuccessMessage(null);
   }
 
+  function handleSelectImportSource(source: "file" | "sqlserver") {
+    setImportSource(source);
+    setCurrentSession(null);
+    setImportWizardStep("upload");
+    setResult(null);
+    setDuplicateSelections({});
+    setClassificationOverrides({});
+    setShowAllClassifications(false);
+    setProcessingMessage(null);
+    setError(null);
+    setSuccessMessage(null);
+    setSqlServerStatusMessage(null);
+  }
+
+  async function handleTestSqlServerConnection() {
+    setIsTestingSqlServer(true);
+    setError(null);
+    setSqlServerStatusMessage(null);
+
+    try {
+      const response = await testSqlServerConnection();
+      setSqlServerStatusMessage(response.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro inesperado.");
+    } finally {
+      setIsTestingSqlServer(false);
+    }
+  }
+
   async function handleValidate() {
     if (!file) return;
     setIsLoading(true);
@@ -224,6 +278,41 @@ export function useImportFlow({
       setResult(validation);
       setImportWizardStep("preview");
       setProcessingMessage("Sessão temporária criada. Revise os pontos encontrados antes de confirmar.");
+      setInitialClassificationOverrides(validation);
+      onValidationReady();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro inesperado.");
+      setProcessingMessage(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleValidateSqlServer() {
+    setIsLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+    setSqlServerStatusMessage(null);
+    setProcessingStepIndex(0);
+    setProcessingMessage("Consultando SQL Server e preparando os dados para validacao.");
+    setResult(null);
+    setCurrentSession(null);
+    setDuplicateSelections({});
+    setClassificationOverrides({});
+    setShowAllClassifications(false);
+
+    try {
+      const ids = parseSqlServerIds(sqlServerIds);
+      const response = await createSqlServerImportSession({
+        ids,
+        idType: sqlServerIdType,
+      });
+      const validation = response.validation;
+      setFile(null);
+      setCurrentSession(response.session);
+      setResult(validation);
+      setImportWizardStep("preview");
+      setProcessingMessage("Sessao temporaria criada. Revise os pontos encontrados antes de confirmar.");
       setInitialClassificationOverrides(validation);
       onValidationReady();
     } catch (err) {
@@ -315,7 +404,15 @@ export function useImportFlow({
     availableWizardSteps,
     setImportWizardStep,
     currentSession,
+    importSource,
+    setImportSource: handleSelectImportSource,
     file,
+    sqlServerIds,
+    setSqlServerIds,
+    sqlServerIdType,
+    setSqlServerIdType,
+    isTestingSqlServer,
+    sqlServerStatusMessage,
     result,
     isLoading,
     isCompleting,
@@ -336,6 +433,8 @@ export function useImportFlow({
     classificationReviewGroups,
     handleSelectImportFile,
     handleValidate,
+    handleValidateSqlServer,
+    handleTestSqlServerConnection,
     handleComplete,
     handleReprocessSession,
     handleCancelSession,

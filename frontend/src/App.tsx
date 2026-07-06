@@ -176,21 +176,31 @@ function App() {
         {activeSection === "import" && (
           <ImportPage
             file={importFlow.file}
+            importSource={importFlow.importSource}
+            sqlServerIds={importFlow.sqlServerIds}
+            sqlServerIdType={importFlow.sqlServerIdType}
+            isTestingSqlServer={importFlow.isTestingSqlServer}
+            sqlServerStatusMessage={importFlow.sqlServerStatusMessage}
             isLoading={importFlow.isLoading}
             error={importFlow.error}
             processingMessage={importFlow.processingMessage}
             processingStepIndex={importFlow.processingStepIndex}
             successMessage={importFlow.successMessage}
             result={importFlow.result}
+            onImportSourceChange={importFlow.setImportSource}
             onFileChange={importFlow.handleSelectImportFile}
             onValidate={importFlow.handleValidate}
+            onSqlServerIdsChange={importFlow.setSqlServerIds}
+            onSqlServerIdTypeChange={importFlow.setSqlServerIdType}
+            onValidateSqlServer={importFlow.handleValidateSqlServer}
+            onTestSqlServerConnection={importFlow.handleTestSqlServerConnection}
           />
         )}
 
         {activeSection === "validation" && (
           <ValidationPage
             result={importFlow.result}
-            fileName={importFlow.file?.name ?? null}
+            fileName={importFlow.file?.name ?? importFlow.currentSession?.filename ?? null}
             currentSession={importFlow.currentSession}
             blockingIssues={importFlow.blockingIssues}
             alertIssues={importFlow.alertIssues}
