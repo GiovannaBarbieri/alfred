@@ -170,7 +170,7 @@ def _execute_query(query: str, params: list[Any]) -> list[dict[str, Any]]:
         connection = pyodbc.connect(_connection_string(), timeout=settings.sqlserver_connection_timeout_seconds)
         try:
             cursor = connection.cursor()
-            cursor.timeout = settings.sqlserver_query_timeout_seconds
+            cursor.timeout = settings.sqlserver_request_timeout_seconds
             cursor.execute(query, params)
             columns = [column[0] for column in cursor.description or []]
             rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
@@ -186,6 +186,12 @@ def _execute_query(query: str, params: list[Any]) -> list[dict[str, Any]]:
 
 
 def _connection_string() -> str:
+    auth_mode = settings.sqlserver_auth.strip().lower()
+    if auth_mode != "sql":
+        raise SQLServerConfigurationError(
+            "Autenticacao Windows nao esta habilitada no container. Use SQLSERVER_AUTH=sql com usuario somente leitura."
+        )
+
     required = {
         "SQLSERVER_HOST": settings.sqlserver_host,
         "SQLSERVER_DATABASE": settings.sqlserver_database,

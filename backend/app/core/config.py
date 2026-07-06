@@ -9,18 +9,23 @@ class Settings(BaseSettings):
     sqlserver_host: str | None = None
     sqlserver_port: int = 1433
     sqlserver_database: str | None = None
+    sqlserver_auth: str = "sql"
     sqlserver_user: str | None = None
     sqlserver_password: str | None = None
     sqlserver_encrypt: bool = True
     sqlserver_trust_cert: bool = True
     sqlserver_connection_timeout_seconds: int = 10
-    sqlserver_query_timeout_seconds: int = 60
+    sqlserver_request_timeout: int = 60000
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @property
     def cors_origins(self) -> list[str]:
         return [origin.strip() for origin in self.backend_cors_origins.split(",") if origin.strip()]
+
+    @property
+    def sqlserver_request_timeout_seconds(self) -> int:
+        return max(round(self.sqlserver_request_timeout / 1000), 1)
 
 
 settings = Settings()

@@ -138,20 +138,25 @@ Configure a conexao somente por variaveis de ambiente:
 
 ```text
 SQLSERVER_DRIVER=ODBC Driver 18 for SQL Server
-SQLSERVER_HOST=servidor
-SQLSERVER_PORT=1433
-SQLSERVER_DATABASE=base
+SQLSERVER_HOST=srvbanco009
+SQLSERVER_PORT=1463
+SQLSERVER_DATABASE=Tfs_Fabrica
+SQLSERVER_AUTH=sql
 SQLSERVER_USER=usuario
 SQLSERVER_PASSWORD=senha
-SQLSERVER_ENCRYPT=true
+SQLSERVER_ENCRYPT=false
 SQLSERVER_TRUST_CERT=true
 SQLSERVER_CONNECTION_TIMEOUT_SECONDS=10
-SQLSERVER_QUERY_TIMEOUT_SECONDS=60
+SQLSERVER_REQUEST_TIMEOUT=60000
 ```
 
 A query deve retornar, diretamente ou por aliases, as mesmas colunas obrigatorias da importacao por planilha: `IdLancamento`, `DataHoraCadastro`, `Task`, `LoginUsuario`, `Duracao`, `IdTask`, `TituloTask`, `IdPBI`, `TituloPBI`, `IdFeat`, `TituloFeat`, `IdEpic`, `TituloEpic`.
 
 A tela aceita um ou mais IDs e o tipo `Automatico`, `Epic` ou `Feature`. No modo automatico, o backend procura primeiro em `TitEpic.ID`, depois em `TitFeat.ID`; se o ID existir nos dois niveis, o usuario deve escolher manualmente o tipo.
+
+Como o backend roda em Docker, a estrategia recomendada e `SQLSERVER_AUTH=sql` com usuario SQL Server somente leitura. Esse usuario precisa apenas de `CONNECT` no banco `Tfs_Fabrica` e `SELECT` nos objetos usados pela consulta: `advise.RegistroHorario`, `WorkItemLONgTexts` e `LinksAre`.
+
+Windows Authentication nao esta habilitada por padrao no container. Para viabilizar isso seria necessario configurar autenticacao integrada no ambiente Docker, normalmente com dominio/Kerberos, SPN, keytab, driver ODBC compativel e variaveis de runtime especificas. Por simplicidade operacional, mantenha SQL Authentication com senha fora do codigo.
 
 Endpoints:
 
