@@ -323,11 +323,6 @@ export function useImportFlow({
   }
 
   async function handleValidateSqlServer() {
-    if (!sqlServerConnectionValidated) {
-      setError("Teste a conexao com o SQL Server antes de importar.");
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
     setSuccessMessage(null);

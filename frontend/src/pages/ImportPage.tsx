@@ -185,7 +185,7 @@ export function ImportPage({
 
               <button
                 className="primary-button sqlserver-import-button"
-                disabled={!sqlServerRequiredFieldsReady || !sqlServerConnectionValidated || isLoading}
+                disabled={!sqlServerRequiredFieldsReady || isLoading}
                 onClick={onValidateSqlServer}
                 type="button"
               >
