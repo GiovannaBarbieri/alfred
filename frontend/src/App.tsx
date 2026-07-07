@@ -182,6 +182,7 @@ function App() {
             sqlServerProjectName={importFlow.sqlServerProjectName}
             isTestingSqlServer={importFlow.isTestingSqlServer}
             sqlServerStatusMessage={importFlow.sqlServerStatusMessage}
+            sqlServerConnectionValidated={importFlow.sqlServerConnectionValidated}
             isLoading={importFlow.isLoading}
             error={importFlow.error}
             processingMessage={importFlow.processingMessage}

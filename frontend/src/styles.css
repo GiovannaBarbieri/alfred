@@ -112,7 +112,7 @@ input {
   align-items: flex-start;
   display: flex;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .page-header h1 {
@@ -1023,7 +1023,7 @@ input {
   display: grid;
   gap: 0;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   padding: 8px;
 }
 
@@ -1781,6 +1781,13 @@ input {
   margin-bottom: 18px;
 }
 
+.import-workspace-grid {
+  gap: 12px;
+  grid-template-columns: minmax(0, 900px);
+  justify-content: center;
+  margin-top: -2px;
+}
+
 .dashboard-grid {
   grid-template-columns: 1fr;
 }
@@ -2195,8 +2202,8 @@ input {
 
 .import-source-tabs {
   background: #eef4fb;
-  border: 1px solid #d7e2ee;
-  border-radius: 8px;
+  border: 1px solid #cfddeb;
+  border-radius: 10px;
   display: grid;
   gap: 4px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2215,18 +2222,36 @@ input {
   font-weight: 700;
   gap: 8px;
   justify-content: center;
-  min-height: 40px;
+  min-height: 42px;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease;
+}
+
+.import-source-tabs button:hover {
+  background: #f8fbff;
+  color: #123c69;
 }
 
 .import-source-tabs button.active {
   background: #ffffff;
+  border: 1px solid #d7e2ee;
   color: #123c69;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.import-source-tabs svg {
+  height: 18px;
+  width: 18px;
+}
+
+.sqlserver-import-layout {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) 250px;
 }
 
 .sqlserver-import-form {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .sqlserver-project-field {
@@ -2260,6 +2285,170 @@ input {
   color: #10213a;
   min-height: 42px;
   padding: 0 12px;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+  width: 100%;
+}
+
+.sqlserver-project-field input:hover,
+.sqlserver-import-grid input:hover,
+.sqlserver-import-grid select:hover {
+  border-color: #9eb4cc;
+}
+
+.sqlserver-project-field input:focus,
+.sqlserver-import-grid input:focus,
+.sqlserver-import-grid select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+  outline: 0;
+}
+
+.required-mark {
+  color: #b42318;
+  font-weight: 850;
+}
+
+.field-helper {
+  color: #637083;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.sqlserver-test-button,
+.sqlserver-import-button {
+  margin-top: 0;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.sqlserver-import-button {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.sqlserver-test-button {
+  min-height: 38px;
+}
+
+.sqlserver-test-button:hover:not(:disabled),
+.sqlserver-import-button:hover:not(:disabled) {
+  box-shadow: 0 6px 14px rgba(18, 60, 105, 0.14);
+  transform: translateY(-1px);
+}
+
+.sqlserver-test-button.validated {
+  background: #f0fdf4;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.button-spinner {
+  animation: spin 800ms linear infinite;
+}
+
+.sqlserver-import-summary {
+  align-self: start;
+  background: #f8fbff;
+  border: 1px solid #d9e6f3;
+  border-radius: 10px;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.sqlserver-import-summary h3 {
+  color: #0f172a;
+  font-size: 15px;
+  margin: 0;
+}
+
+.sqlserver-import-summary dl {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+}
+
+.sqlserver-import-summary div {
+  border-bottom: 1px solid #e3edf7;
+  display: grid;
+  gap: 2px;
+  padding-bottom: 8px;
+}
+
+.sqlserver-import-summary div:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.sqlserver-import-summary dt {
+  color: #637083;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.sqlserver-import-summary dd {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 750;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.sqlserver-import-summary dd.connected {
+  color: #166534;
+}
+
+.form-alert {
+  align-items: flex-start;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  margin-top: 14px;
+  padding: 11px 12px;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.form-alert strong,
+.form-alert span {
+  display: block;
+}
+
+.form-alert strong {
+  font-size: 13px;
+}
+
+.form-alert span {
+  font-size: 12.5px;
+  line-height: 1.35;
+  margin-top: 2px;
+}
+
+.form-alert.success {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.form-alert.error {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #b42318;
+}
+
+@media (max-width: 760px) {
+  .sqlserver-import-layout,
+  .sqlserver-import-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .import-workspace-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .primary-button {

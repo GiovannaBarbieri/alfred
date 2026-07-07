@@ -20,6 +20,13 @@ export const importProcessingSteps = [
   "Montando a sessão de revisão",
 ] as const;
 
+export const sqlServerProcessingSteps = [
+  "Consultando SQL Server...",
+  "Carregando Tasks...",
+  "Montando estrutura...",
+  "Preparando pre-visualizacao...",
+] as const;
+
 const CLASSIFICATION_REVIEW_THRESHOLD = 0.9;
 
 function parseSqlServerIds(value: string): number[] {
@@ -58,6 +65,7 @@ export function useImportFlow({
   const [sqlServerProjectName, setSqlServerProjectName] = useState("");
   const [isTestingSqlServer, setIsTestingSqlServer] = useState(false);
   const [sqlServerStatusMessage, setSqlServerStatusMessage] = useState<string | null>(null);
+  const [sqlServerConnectionValidated, setSqlServerConnectionValidated] = useState(false);
   const [result, setResult] = useState<ImportValidationResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -196,12 +204,13 @@ export function useImportFlow({
     const startedAt = Date.now();
     const interval = window.setInterval(() => {
       const elapsed = Date.now() - startedAt;
-      const nextIndex = Math.min(Math.floor(elapsed / 1400), importProcessingSteps.length - 1);
+      const stepsLength = importSource === "sqlserver" ? sqlServerProcessingSteps.length : importProcessingSteps.length;
+      const nextIndex = Math.min(Math.floor(elapsed / 1400), stepsLength - 1);
       setProcessingStepIndex(nextIndex);
     }, 250);
 
     return () => window.clearInterval(interval);
-  }, [isLoading]);
+  }, [importSource, isLoading]);
 
   function setInitialClassificationOverrides(validation: ImportValidationResponse) {
     setClassificationOverrides(
@@ -242,18 +251,42 @@ export function useImportFlow({
     setError(null);
     setSuccessMessage(null);
     setSqlServerStatusMessage(null);
+    setSqlServerConnectionValidated(false);
+  }
+
+  function resetSqlServerConnectionState() {
+    setSqlServerStatusMessage(null);
+    setSqlServerConnectionValidated(false);
+  }
+
+  function handleSqlServerProjectNameChange(value: string) {
+    setSqlServerProjectName(value);
+    resetSqlServerConnectionState();
+  }
+
+  function handleSqlServerIdsChange(value: string) {
+    setSqlServerIds(value);
+    resetSqlServerConnectionState();
+  }
+
+  function handleSqlServerIdTypeChange(value: "auto" | "epic" | "feature") {
+    setSqlServerIdType(value);
+    resetSqlServerConnectionState();
   }
 
   async function handleTestSqlServerConnection() {
     setIsTestingSqlServer(true);
     setError(null);
     setSqlServerStatusMessage(null);
+    setSqlServerConnectionValidated(false);
 
     try {
       const response = await testSqlServerConnection();
       setSqlServerStatusMessage(response.message);
+      setSqlServerConnectionValidated(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado.");
+      setSqlServerConnectionValidated(false);
     } finally {
       setIsTestingSqlServer(false);
     }
@@ -290,12 +323,17 @@ export function useImportFlow({
   }
 
   async function handleValidateSqlServer() {
+    if (!sqlServerConnectionValidated) {
+      setError("Teste a conexao com o SQL Server antes de importar.");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setSuccessMessage(null);
     setSqlServerStatusMessage(null);
     setProcessingStepIndex(0);
-    setProcessingMessage("Consultando SQL Server e preparando os dados para validacao.");
+    setProcessingMessage("Consultando SQL Server...");
     setResult(null);
     setCurrentSession(null);
     setDuplicateSelections({});
@@ -314,7 +352,7 @@ export function useImportFlow({
       setCurrentSession(response.session);
       setResult(validation);
       setImportWizardStep("preview");
-      setProcessingMessage("Sessao temporaria criada. Revise os pontos encontrados antes de confirmar.");
+      setProcessingMessage("Importacao concluida. Revise os pontos encontrados antes de confirmar.");
       setInitialClassificationOverrides(validation);
       onValidationReady();
     } catch (err) {
@@ -410,13 +448,14 @@ export function useImportFlow({
     setImportSource: handleSelectImportSource,
     file,
     sqlServerIds,
-    setSqlServerIds,
+    setSqlServerIds: handleSqlServerIdsChange,
     sqlServerIdType,
-    setSqlServerIdType,
+    setSqlServerIdType: handleSqlServerIdTypeChange,
     sqlServerProjectName,
-    setSqlServerProjectName,
+    setSqlServerProjectName: handleSqlServerProjectNameChange,
     isTestingSqlServer,
     sqlServerStatusMessage,
+    sqlServerConnectionValidated,
     result,
     isLoading,
     isCompleting,
