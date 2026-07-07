@@ -159,9 +159,7 @@ export function ImportPage({
                     <option value="epic">Epic</option>
                     <option value="feature">Feature</option>
                   </select>
-                  <small className="field-helper">
-                    Selecione o tipo dos IDs informados ou utilize Automatico para deteccao automatica.
-                  </small>
+                  <small className="field-helper">Selecione o tipo dos IDs</small>
                 </label>
               </div>
 
