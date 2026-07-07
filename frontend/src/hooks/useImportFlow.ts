@@ -13,21 +13,27 @@ import type { ImportCompleteResponse, ImportSessionSummary, ImportValidationResp
 import type { ClassificationReviewGroup } from "../types/validation";
 
 export const importProcessingSteps = [
-  "Enviando arquivo para processamento temporario",
-  "Lendo planilha e conferindo colunas obrigatórias",
-  "Validando registros, durações e duplicidades",
-  "Classificando categorias e subcategorias",
-  "Montando a sessão de revisão",
+  "Preparando importacao",
+  "Lendo arquivo",
+  "Validando registros",
+  "Classificando categorias",
+  "Preparando tela de revisao",
 ] as const;
 
 export const sqlServerProcessingSteps = [
-  "Consultando SQL Server...",
-  "Carregando Tasks...",
-  "Montando estrutura...",
-  "Preparando pre-visualizacao...",
+  "Preparando importacao",
+  "Consultando SQL Server",
+  "Validando registros",
+  "Classificando categorias",
+  "Preparando tela de revisao",
 ] as const;
 
 const CLASSIFICATION_REVIEW_THRESHOLD = 0.9;
+const IMPORT_COMPLETION_PREVIEW_MS = 1000;
+
+function wait(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
 
 function parseSqlServerIds(value: string): number[] {
   const parts = value
@@ -312,7 +318,10 @@ export function useImportFlow({
       setResult(validation);
       setImportWizardStep("preview");
       setProcessingMessage("Sessão temporária criada. Revise os pontos encontrados antes de confirmar.");
+      setProcessingStepIndex(importProcessingSteps.length - 1);
+      setProcessingMessage("Importacao concluida. Abrindo pre-visualizacao...");
       setInitialClassificationOverrides(validation);
+      await wait(IMPORT_COMPLETION_PREVIEW_MS);
       onValidationReady();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado.");
@@ -348,7 +357,10 @@ export function useImportFlow({
       setResult(validation);
       setImportWizardStep("preview");
       setProcessingMessage("Importacao concluida. Revise os pontos encontrados antes de confirmar.");
+      setProcessingStepIndex(sqlServerProcessingSteps.length - 1);
+      setProcessingMessage("Importacao concluida. Abrindo pre-visualizacao...");
       setInitialClassificationOverrides(validation);
+      await wait(IMPORT_COMPLETION_PREVIEW_MS);
       onValidationReady();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado.");

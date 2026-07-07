@@ -2550,79 +2550,196 @@ input {
 }
 
 .import-processing-card {
-  background: #f7f9fc;
-  border: 1px solid #d9e2ec;
-  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #d7e4f3;
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.055);
   display: grid;
-  gap: 12px;
+  gap: 10px;
   margin-top: 14px;
   padding: 12px;
+  transition: background 200ms ease, border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
 }
 
 .import-processing-card.active {
-  background: #eef6ff;
-  border-color: #c7dbef;
+  background: #f8fbff;
+  border-color: #bdd7f3;
 }
 
-.import-processing-header {
+.import-processing-card.complete {
+  background: #f6fef9;
+  border-color: #bbf7d0;
+}
+
+.import-processing-top {
+  align-items: start;
+  color: #123c69;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.import-processing-top strong,
+.import-processing-top span {
+  display: block;
+}
+
+.import-processing-top strong {
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.import-processing-top span {
+  color: #637083;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.processing-stage-badge {
+  background: #eef5ff;
+  border: 1px solid #d7e7fb;
+  border-radius: 999px;
+  color: #123c69 !important;
+  flex: 0 0 auto;
+  font-size: 12px !important;
+  font-weight: 850 !important;
+  margin-top: 0 !important;
+  padding: 4px 8px;
+}
+
+.processing-progress-track {
+  background: #e6edf5;
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.processing-progress-track span {
+  background: linear-gradient(90deg, #123c69, #2563eb);
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+  transition: width 220ms ease;
+}
+
+.processing-current-step {
+  background: #eef6ff;
+  border: 1px solid #d6e9ff;
+  border-radius: 9px;
+  display: grid;
+  gap: 7px;
+  padding: 10px;
+  transition: background 200ms ease, border-color 200ms ease;
+}
+
+.processing-current-step > span,
+.processing-next-steps > span {
+  color: #637083;
+  font-size: 10.5px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.processing-current-step div {
   align-items: center;
   color: #123c69;
   display: flex;
   gap: 10px;
 }
 
-.processing-spinner {
-  animation: spin 0.85s linear infinite;
-  border: 2px solid #c7dbef;
-  border-top-color: #123c69;
-  border-radius: 999px;
-  display: inline-flex;
-  flex: 0 0 18px;
-  height: 18px;
-  width: 18px;
+.processing-current-step strong {
+  font-size: 15px;
+  font-weight: 800;
 }
 
-.import-processing-steps {
+.processing-current-spinner {
+  animation: spin 1.05s linear infinite;
+  color: #2563eb;
+  flex: 0 0 auto;
+}
+
+.processing-next-steps {
+  border-top: 1px solid #e8eef6;
   display: grid;
-  gap: 8px;
+  gap: 7px;
+  padding-top: 9px;
+}
+
+.processing-next-steps ol,
+.processing-step-history {
+  display: grid;
+  gap: 6px;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.import-processing-steps li {
+.processing-next-steps li,
+.processing-step-history li {
   align-items: center;
-  color: #637083;
-  display: grid;
-  gap: 8px;
-  grid-template-columns: 24px minmax(0, 1fr);
+  display: flex;
+  gap: 7px;
+  transition: color 180ms ease, transform 180ms ease;
 }
 
-.import-processing-steps span {
-  align-items: center;
-  background: #dbe5ef;
-  border-radius: 999px;
-  display: grid;
+.processing-next-steps li {
+  color: #7b8798;
   font-size: 12px;
-  font-weight: 800;
-  height: 24px;
-  justify-content: center;
-  width: 24px;
+  font-weight: 650;
 }
 
-.import-processing-steps p {
-  margin: 0;
+.processing-step-history {
+  order: -1;
 }
 
-.import-processing-steps li.active {
-  color: #123c69;
+.processing-step-history:empty {
+  display: none;
+}
+
+.processing-step-history li {
+  color: #16803a;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.processing-complete-summary {
+  animation: fadeIn 220ms ease;
+  display: grid;
+  gap: 7px;
+}
+
+.processing-complete-summary span {
+  align-items: center;
+  color: #166534;
+  display: flex;
+  font-size: 12.5px;
   font-weight: 700;
+  gap: 7px;
 }
 
-.import-processing-steps li.done span,
-.import-processing-steps li.active span {
-  background: #123c69;
-  color: #ffffff;
+.processing-complete-summary strong {
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.processing-complete-summary p {
+  color: #637083;
+  font-size: 12px;
+  font-weight: 650;
+  margin: 2px 0 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes spin {

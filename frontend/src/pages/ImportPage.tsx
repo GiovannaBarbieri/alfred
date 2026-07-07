@@ -1,6 +1,7 @@
 import { AlertCircle, CheckCircle2, Database, FileSpreadsheet, Loader2, PlugZap, Upload } from "lucide-react";
 
 import type { ImportValidationResponse } from "../types";
+import { ImportProcessingPanel, type ImportProcessingSummaryItem } from "../components/ImportProcessingPanel";
 import { importProcessingSteps, sqlServerProcessingSteps } from "../hooks/useImportFlow";
 
 const idTypeLabels: Record<"auto" | "epic" | "feature", string> = {
@@ -14,6 +15,19 @@ function countSqlServerIds(value: string) {
     .split(/[\s,;]+/)
     .map((part) => part.trim())
     .filter(Boolean).length;
+}
+
+function buildProcessingSummary(result: ImportValidationResponse | null): ImportProcessingSummaryItem[] {
+  if (!result) return [];
+
+  const preview = result.preview;
+  const issueCount = result.issues.length;
+  return [
+    { value: String(preview?.tasksCount ?? result.classifications.length), label: "Tasks encontradas" },
+    { value: String(result.totalRows), label: "Registros preparados" },
+    { value: String(preview?.collaboratorsCount ?? 0), label: "Colaboradores identificados" },
+    { value: String(issueCount), label: issueCount === 1 ? "Inconsistencia encontrada" : "Inconsistencias encontradas" },
+  ];
 }
 
 export function ImportPage({
@@ -72,6 +86,7 @@ export function ImportPage({
       ? "Conectado"
       : "Aguardando conexao";
   const currentProcessingSteps = importSource === "sqlserver" ? sqlServerProcessingSteps : importProcessingSteps;
+  const processingSummary = buildProcessingSummary(result);
 
   return (
     <section className="workspace-grid import-workspace-grid">
@@ -243,25 +258,12 @@ export function ImportPage({
         {importSource === "file" && error && <p className="error-text">{error}</p>}
         {importSource === "file" && sqlServerStatusMessage && <p className="success-text">{sqlServerStatusMessage}</p>}
         {processingMessage && (
-          <div className={`import-processing-card ${isLoading ? "active" : ""}`} role="status" aria-live="polite">
-            <div className="import-processing-header">
-              {isLoading && <span className="processing-spinner" aria-hidden="true" />}
-              <strong>{processingMessage}</strong>
-            </div>
-            {isLoading && (
-              <ol className="import-processing-steps">
-                {currentProcessingSteps.map((step, index) => (
-                  <li
-                    className={`${index < processingStepIndex ? "done" : ""} ${index === processingStepIndex ? "active" : ""}`}
-                    key={step}
-                  >
-                    <span>{index + 1}</span>
-                    <p>{step}</p>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
+          <ImportProcessingPanel
+            currentStepIndex={processingStepIndex}
+            isComplete={Boolean(result)}
+            steps={currentProcessingSteps}
+            summaryItems={processingSummary}
+          />
         )}
         {successMessage && <p className="success-text">{successMessage}</p>}
         {result?.fileHistory && (
