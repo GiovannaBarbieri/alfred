@@ -1203,7 +1203,7 @@ input {
   align-items: start;
   display: grid;
   gap: 12px;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
 }
 
 .import-preview-main,
@@ -1401,7 +1401,7 @@ input {
 .import-preview-grid {
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .preview-card {
@@ -1579,6 +1579,7 @@ input {
 }
 
 .preview-category-card {
+  display: none;
   gap: 10px;
 }
 

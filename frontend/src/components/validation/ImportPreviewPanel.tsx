@@ -8,7 +8,6 @@ import {
   ClipboardList,
   Clock,
   CircleDot,
-  Gauge,
   History,
   RefreshCw,
   Sparkles,
@@ -29,7 +28,6 @@ type ImportPreviewPanelProps = {
 
 export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false, onStepChange }: ImportPreviewPanelProps) {
   const preview = result.preview;
-  const averageConfidence = preview ? Math.round(preview.averageConfidence * 100) : 0;
   const hasBlocking = result.blockedRows > 0;
   const pendingReview = (preview?.lowConfidenceCount ?? 0) + (preview?.unclassifiedCount ?? 0);
   const reviewItems = result.alertRows + pendingReview;
@@ -101,7 +99,7 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
         <PreviewMetric icon={<ClipboardList size={17} />} label="Registros" value={result.totalRows.toString()} />
         <PreviewMetric icon={<Users size={17} />} label="Colaboradores" value={(preview?.collaboratorsCount ?? 0).toString()} />
         <PreviewMetric icon={<Tags size={17} />} label="Tasks" value={(preview?.tasksCount ?? 0).toString()} />
-        <PreviewMetric icon={<Gauge size={17} />} label="Confiança média" value={`${averageConfidence}%`} tone={averageConfidence < 70 ? "warning" : "default"} />
+        <PreviewMetric icon={<ClipboardCheck size={17} />} label="Itens classificados" value={String(classifiedRecords)} />
       </div>
 
       <div className="import-preview-layout">
