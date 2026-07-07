@@ -35,6 +35,13 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
   const reviewItems = result.alertRows + pendingReview;
   const fileHistory = result.fileHistory;
   const historyTone = fileHistory?.exactDuplicate ? "warning" : fileHistory?.status === "nova_versao" ? "info" : "success";
+  const historyBadgeLabel = fileHistory?.exactDuplicate
+    ? "Arquivo ja importado"
+    : fileHistory?.status === "nova_versao"
+      ? "Possivel atualizacao"
+      : fileHistory
+        ? "Importacao inedita"
+        : null;
   const classifiedRecords = Math.max(result.totalRows - (preview?.unclassifiedCount ?? 0), 0);
   const possibleInconsistencies = result.alertRows + result.blockedRows;
   const topCategories = preview?.topCategories ?? [];
@@ -77,7 +84,10 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
       <div className="import-preview-hero">
         <div className="import-preview-title">
           <h2>{result.filename}</h2>
-          <span className="eyebrow">Pré-validação</span>
+          <div className="import-preview-subtitle">
+            <span className="eyebrow">Pré-validação</span>
+            {historyBadgeLabel && <span className={`import-history-badge ${historyTone}`}>{historyBadgeLabel}</span>}
+          </div>
           <p>Confira se existe algo que impede continuar e siga para a proxima acao.</p>
         </div>
         <span className={`preview-status ${previewStatus.tone}`}>

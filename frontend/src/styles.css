@@ -1146,6 +1146,38 @@ input {
   margin: 0;
 }
 
+.import-preview-subtitle {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 1px 0 4px;
+}
+
+.import-history-badge {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1;
+  padding: 4px 8px;
+}
+
+.import-history-badge.success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.import-history-badge.info {
+  background: #eef5ff;
+  color: #123c69;
+}
+
+.import-history-badge.warning {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
 .preview-status {
   align-items: center;
   border-radius: 999px;
@@ -1225,10 +1257,10 @@ input {
 }
 
 .import-history-card {
+  display: none;
   align-items: center;
   border: 1px solid transparent;
   border-radius: 16px;
-  display: grid;
   gap: 10px;
   grid-template-columns: auto minmax(0, 1fr) auto;
   padding: 9px 12px;
