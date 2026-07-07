@@ -1,15 +1,16 @@
 import {
   AlertTriangle,
   ArrowRight,
+  Ban,
   BarChart3,
   CheckCircle2,
   ClipboardCheck,
   ClipboardList,
   Clock,
+  CircleDot,
   Gauge,
   History,
   RefreshCw,
-  ShieldCheck,
   Sparkles,
   Tags,
   Users,
@@ -31,13 +32,18 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
   const averageConfidence = preview ? Math.round(preview.averageConfidence * 100) : 0;
   const hasBlocking = result.blockedRows > 0;
   const pendingReview = (preview?.lowConfidenceCount ?? 0) + (preview?.unclassifiedCount ?? 0);
+  const reviewItems = result.alertRows + pendingReview;
   const fileHistory = result.fileHistory;
   const historyTone = fileHistory?.exactDuplicate ? "warning" : fileHistory?.status === "nova_versao" ? "info" : "success";
-  const validPercentage = result.totalRows > 0 ? Math.round((result.validRows / result.totalRows) * 100) : 0;
   const classifiedRecords = Math.max(result.totalRows - (preview?.unclassifiedCount ?? 0), 0);
   const possibleInconsistencies = result.alertRows + result.blockedRows;
   const topCategories = preview?.topCategories ?? [];
   const requiresClassificationReview = pendingReview > 0 || hasUnprofiledCollaborators;
+  const validationSummaryMessage = hasBlocking
+    ? "Existem bloqueios que impedem a continuidade."
+    : reviewItems > 0 || result.duplicates.length > 0
+      ? "Importacao pronta para seguir, mas existem itens para revisar."
+      : "Importacao validada e pronta para confirmacao.";
   const nextStep = result.duplicates.length > 0 ? "duplicates" : requiresClassificationReview ? "classification" : "confirm";
   const previewStatus = hasBlocking
     ? { tone: "warning", label: "Exige correção", icon: <AlertTriangle size={16} /> }
@@ -72,7 +78,7 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
         <div className="import-preview-title">
           <h2>{result.filename}</h2>
           <span className="eyebrow">Pré-validação</span>
-          <p>Resumo analítico da planilha antes da persistência final.</p>
+          <p>Confira se existe algo que impede continuar e siga para a proxima acao.</p>
         </div>
         <span className={`preview-status ${previewStatus.tone}`}>
           {previewStatus.icon}
@@ -125,20 +131,17 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
           <div className="import-preview-grid">
             <section className="preview-card preview-health-card">
               <div className="preview-card-heading">
-                <span><ShieldCheck size={17} /></span>
+                <span><ClipboardCheck size={17} /></span>
                 <div>
-                  <h3>Saúde da importação</h3>
-                  <p>{validPercentage}% dos registros prontos para seguir.</p>
+                  <h3>Resumo da validação</h3>
+                  <p>{validationSummaryMessage}</p>
                 </div>
               </div>
-              <div className="preview-progress-track" aria-label={`${validPercentage}% de registros válidos`}>
-                <span style={{ width: `${Math.min(validPercentage, 100)}%` }} />
-              </div>
               <div className="preview-health-list">
-                <PreviewHealthItem label="Válidos" value={result.validRows} tone="success" />
-                <PreviewHealthItem label="Alertas" value={result.alertRows} tone={result.alertRows > 0 ? "warning" : "neutral"} />
-                <PreviewHealthItem label="Bloqueios" value={result.blockedRows} tone={result.blockedRows > 0 ? "danger" : "neutral"} />
-                <PreviewHealthItem label="Duplicidades" value={result.duplicates.length} tone={result.duplicates.length > 0 ? "warning" : "neutral"} />
+                <PreviewHealthItem icon={<CheckCircle2 size={16} />} label="registros prontos" value={result.validRows} tone="success" />
+                <PreviewHealthItem icon={<AlertTriangle size={16} />} label="precisam de revisao" value={reviewItems} tone={reviewItems > 0 ? "warning" : "neutral"} />
+                <PreviewHealthItem icon={<Ban size={16} />} label="bloqueios" value={result.blockedRows} tone={result.blockedRows > 0 ? "danger" : "neutral"} />
+                <PreviewHealthItem icon={<CircleDot size={16} />} label="duplicidades" value={result.duplicates.length} tone={result.duplicates.length > 0 ? "warning" : "neutral"} />
               </div>
             </section>
 
@@ -222,16 +225,19 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
 }
 
 function PreviewHealthItem({
+  icon,
   label,
   value,
   tone,
 }: {
+  icon: ReactNode;
   label: string;
   value: number;
   tone: "success" | "warning" | "danger" | "neutral";
 }) {
   return (
     <span className={`preview-health-item ${tone}`}>
+      {icon}
       <strong>{value}</strong>
       <small>{label}</small>
     </span>
