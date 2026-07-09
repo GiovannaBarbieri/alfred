@@ -1109,20 +1109,20 @@ input {
 
 .import-preview-panel {
   display: grid;
-  gap: 9px;
+  gap: 8px;
   overflow: hidden;
-  padding: 14px;
+  padding: 12px;
 }
 
 .import-preview-hero {
   align-items: center;
   background: #ffffff;
   border: 1px solid #e8eef6;
-  border-radius: 16px;
+  border-radius: 12px;
   display: flex;
-  gap: 14px;
+  gap: 12px;
   justify-content: space-between;
-  padding: 12px 14px;
+  padding: 10px 12px;
 }
 
 .import-preview-title {
@@ -1131,7 +1131,7 @@ input {
 
 .import-preview-title h2 {
   color: #0f172a;
-  font-size: 20px;
+  font-size: 18px;
   letter-spacing: 0;
   line-height: 1.15;
   margin: 2px 0 4px;
@@ -1142,7 +1142,7 @@ input {
 
 .import-preview-title p {
   color: #64748b;
-  font-size: 13px;
+  font-size: 12px;
   margin: 0;
 }
 
@@ -1185,7 +1185,7 @@ input {
   font-size: 12px;
   font-weight: 800;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 5px 9px;
   white-space: nowrap;
 }
 
@@ -1202,24 +1202,24 @@ input {
 .import-preview-layout {
   align-items: start;
   display: grid;
-  gap: 12px;
+  gap: 10px;
   grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
 }
 
 .import-preview-main,
 .preview-side-panel {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .preview-next-step-card {
   background: linear-gradient(135deg, #0f4c8a, #14558f);
-  border-radius: 16px;
-  box-shadow: 0 10px 24px rgba(15, 76, 138, 0.16);
+  border-radius: 12px;
+  box-shadow: 0 8px 18px rgba(15, 76, 138, 0.12);
   color: #ffffff;
   display: grid;
-  gap: 7px;
-  padding: 16px;
+  gap: 6px;
+  padding: 12px;
 }
 
 .preview-next-step-card.validation {
@@ -1244,13 +1244,13 @@ input {
 
 .preview-next-step-card h3 {
   color: #ffffff;
-  font-size: 20px;
+  font-size: 17px;
   margin: 0;
 }
 
 .preview-next-step-card p {
   color: #dbeafe;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.35;
   margin: 0;
 }
@@ -1262,8 +1262,8 @@ input {
   display: inline-flex;
   gap: 6px;
   justify-content: center;
-  margin-top: 6px;
-  min-height: 40px;
+  margin-top: 4px;
+  min-height: 36px;
   transition: background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
@@ -1350,23 +1350,23 @@ input {
 .preview-metric-grid {
   background: #ffffff;
   border: 1px solid #e8eef6;
-  border-radius: 16px;
+  border-radius: 12px;
   display: grid;
   gap: 0;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  padding: 7px;
+  padding: 5px;
 }
 
 .preview-metric {
   align-items: center;
   background: transparent;
   border: 0;
-  border-radius: 12px;
+  border-radius: 9px;
   box-shadow: none;
   display: flex;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
-  padding: 8px 10px;
+  padding: 6px 8px;
   transition: all 180ms ease;
 }
 
@@ -1379,13 +1379,13 @@ input {
 .preview-metric span {
   align-items: center;
   background: #eef5ff;
-  border-radius: 10px;
+  border-radius: 8px;
   color: #123c69;
   display: inline-flex;
-  height: 30px;
+  height: 28px;
   justify-content: center;
-  flex: 0 0 30px;
-  width: 30px;
+  flex: 0 0 28px;
+  width: 28px;
 }
 
 .preview-metric.warning span {
@@ -1401,7 +1401,7 @@ input {
 
 .preview-metric strong {
   color: #0f172a;
-  font-size: 17px;
+  font-size: 15px;
   line-height: 1.1;
 }
 
@@ -1416,18 +1416,18 @@ input {
 
 .import-preview-grid {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   grid-template-columns: minmax(0, 1fr);
 }
 
 .preview-card {
   background: #ffffff;
   border: 1px solid #e8eef6;
-  border-radius: 16px;
+  border-radius: 12px;
   box-shadow: none;
   display: grid;
-  gap: 9px;
-  padding: 12px;
+  gap: 8px;
+  padding: 10px;
   transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
@@ -1440,19 +1440,19 @@ input {
 .preview-card-heading {
   align-items: center;
   display: grid;
-  gap: 8px;
+  gap: 7px;
   grid-template-columns: auto minmax(0, 1fr);
 }
 
 .preview-card-heading > span {
   align-items: center;
   background: #eef5ff;
-  border-radius: 10px;
+  border-radius: 8px;
   color: #123c69;
   display: inline-flex;
-  height: 30px;
+  height: 28px;
   justify-content: center;
-  width: 30px;
+  width: 28px;
 }
 
 .preview-card-heading svg,
@@ -1465,37 +1465,37 @@ input {
 .preview-card h3,
 .preview-card-heading h3 {
   color: #0f172a;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
   margin: 0;
 }
 
 .preview-card-heading p {
   color: #64748b;
-  font-size: 12px;
+  font-size: 11.5px;
   margin: 1px 0 0;
 }
 
 .preview-health-card {
-  gap: 12px;
-  padding: 12px;
+  gap: 8px;
+  padding: 10px;
 }
 
 .preview-health-list {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .preview-health-item {
   align-items: center;
   background: #f8fafc !important;
   border: 1px solid #e8eef6;
-  border-radius: 10px;
+  border-radius: 8px;
   display: grid;
   gap: 8px;
   grid-template-columns: 18px 42px minmax(0, 1fr);
-  min-height: 34px;
-  padding: 7px 9px;
+  min-height: 30px;
+  padding: 6px 8px;
 }
 
 .preview-health-item svg {
@@ -1511,7 +1511,7 @@ input {
 
 .preview-health-item small {
   color: #637083;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
 }
 
@@ -1550,15 +1550,15 @@ input {
   display: flex;
   gap: 10px;
   justify-content: space-between;
-  min-height: 28px;
-  padding: 2px 0 6px;
+  min-height: 26px;
+  padding: 2px 0 5px;
 }
 
 .preview-insight-row.warning,
 .preview-insight-row.danger {
-  border-radius: 8px;
+  border-radius: 7px;
   border-bottom-color: transparent;
-  padding: 6px 8px;
+  padding: 5px 8px;
 }
 
 .preview-insight-row.warning {
@@ -1611,33 +1611,33 @@ input {
 
 .preview-flow-list {
   display: grid;
-  gap: 5px;
+  gap: 4px;
 }
 
 .preview-flow-step {
   align-items: center;
-  border-radius: 10px;
+  border-radius: 8px;
   display: grid;
-  gap: 8px;
-  grid-template-columns: 24px minmax(0, 1fr);
-  min-height: 32px;
-  padding: 5px 8px;
+  gap: 7px;
+  grid-template-columns: 22px minmax(0, 1fr);
+  min-height: 28px;
+  padding: 4px 7px;
 }
 
 .preview-flow-step span {
   align-items: center;
   border-radius: 999px;
   display: inline-flex;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
-  height: 22px;
+  height: 20px;
   justify-content: center;
-  width: 22px;
+  width: 20px;
 }
 
 .preview-flow-step strong {
   color: #334155;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 650;
 }
 

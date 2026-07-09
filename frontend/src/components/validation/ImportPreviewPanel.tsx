@@ -48,10 +48,10 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
     result.duplicates.length > 0;
   const requiresClassificationReview = pendingReview > 0 || hasUnprofiledCollaborators;
   const validationSummaryMessage = hasBlocking
-    ? "Existem bloqueios que impedem a continuidade."
+    ? "Bloqueios impedem continuar."
     : reviewItems > 0 || result.duplicates.length > 0
-      ? "Importacao pronta para seguir, mas existem itens para revisar."
-      : "Importacao validada e pronta para confirmacao.";
+      ? "Pronta, com revisoes pendentes."
+      : "Validada e pronta.";
   const nextStep = hasBlocking
     ? "validation"
     : result.duplicates.length > 0
@@ -107,7 +107,7 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
             <span className="eyebrow">Pré-validação</span>
             {historyBadgeLabel && <span className={`import-history-badge ${historyTone}`}>{historyBadgeLabel}</span>}
           </div>
-          <p>Confira se existe algo que impede continuar e siga para a proxima acao.</p>
+          <p>Confira o status e avance pela proxima acao.</p>
         </div>
         <span className={`preview-status ${previewStatus.tone}`}>
           {previewStatus.icon}
@@ -179,14 +179,14 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
                 <span><Sparkles size={17} /></span>
                 <div>
                   <h3>Qualidade da classificação</h3>
-                  <p>{hasClassificationIssues ? "Revise os itens que exigem atencao antes de confirmar." : "Tudo classificado corretamente."}</p>
+                  <p>{hasClassificationIssues ? "Ha itens que exigem atencao." : "Tudo classificado corretamente."}</p>
                 </div>
               </div>
               <div className="preview-insight-list">
-                <InsightRow label="Registros classificados" value={classifiedRecords} tone="success" />
-                <InsightRow label="Não classificados" value={preview?.unclassifiedCount ?? 0} tone={(preview?.unclassifiedCount ?? 0) > 0 ? "warning" : "neutral"} />
-                <InsightRow label="Baixa confiança" value={preview?.lowConfidenceCount ?? 0} tone={(preview?.lowConfidenceCount ?? 0) > 0 ? "warning" : "neutral"} />
-                <InsightRow label="Possíveis inconsistências" value={possibleInconsistencies} tone={possibleInconsistencies > 0 ? "warning" : "neutral"} />
+                <InsightRow label="Classificados" value={classifiedRecords} tone="success" />
+                <InsightRow label="Nao classificados" value={preview?.unclassifiedCount ?? 0} tone={(preview?.unclassifiedCount ?? 0) > 0 ? "warning" : "neutral"} />
+                <InsightRow label="Baixa confianca" value={preview?.lowConfidenceCount ?? 0} tone={(preview?.lowConfidenceCount ?? 0) > 0 ? "warning" : "neutral"} />
+                <InsightRow label="Inconsistencias" value={possibleInconsistencies} tone={possibleInconsistencies > 0 ? "warning" : "neutral"} />
                 <InsightRow label="Duplicidades encontradas" value={result.duplicates.length} tone={result.duplicates.length > 0 ? "danger" : "neutral"} />
               </div>
             </section>
