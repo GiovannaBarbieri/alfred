@@ -3131,19 +3131,50 @@ input {
   color: #516176;
 }
 
+.classification-chip.more-filter svg {
+  transition: transform 180ms ease;
+}
+
+.classification-chip.more-filter.active {
+  background: #0f4c8a;
+  border-color: #0f4c8a;
+  box-shadow: 0 8px 18px rgba(15, 76, 138, 0.18);
+  color: #ffffff;
+}
+
+.classification-chip.more-filter.active svg {
+  transform: rotate(180deg);
+}
+
 .classification-advanced-filters {
+  animation: advancedFiltersIn 180ms ease;
   background: #f8fafc;
-  border: 1px solid #edf2f7;
+  border: 1px solid #dbeafe;
   border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.04);
   display: grid;
   gap: 8px;
+  overflow: hidden;
   padding: 9px;
+  transform-origin: top;
 }
 
 .classification-advanced-filters > span {
   color: #64748b;
   font-size: 11px;
   font-weight: 800;
+}
+
+@keyframes advancedFiltersIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px) scaleY(0.98);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
 }
 
 .classification-bulk-bar {

@@ -456,11 +456,12 @@ export function ClassificationReviewPanel({
               ))}
               <button
                 className={`classification-chip more-filter ${showMoreFilters ? "active" : ""}`}
+                aria-expanded={showMoreFilters}
                 type="button"
                 onClick={() => setShowMoreFilters((current) => !current)}
               >
-                <Tags size={15} />
-                Mais filtros
+                <ChevronDown size={15} />
+                {showMoreFilters ? "Menos filtros" : "Mais filtros"}
               </button>
             </div>
 
