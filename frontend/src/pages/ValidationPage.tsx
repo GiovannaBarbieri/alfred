@@ -94,6 +94,8 @@ export function ValidationPage({
   );
   const hasAvailableRoles = collaboratorProfileOptions.some((option) => option.active);
   const linkedCollaboratorsCount = activeUnprofiledCollaborators.filter((login) => Boolean(collaboratorRoleDrafts[login])).length;
+  const pendingCollaboratorsCount = activeUnprofiledCollaborators.length - linkedCollaboratorsCount;
+  const areAllCollaboratorsLinked = activeUnprofiledCollaborators.length > 0 && pendingCollaboratorsCount === 0;
   const collaboratorProgressPercentage =
     activeUnprofiledCollaborators.length > 0
       ? Math.round((linkedCollaboratorsCount / activeUnprofiledCollaborators.length) * 100)
@@ -279,15 +281,14 @@ export function ValidationPage({
                   <p>Associe um cargo aos colaboradores encontrados durante a importacao.</p>
                 </div>
               </div>
-              <span className="import-collaborator-count-badge">
-                {activeUnprofiledCollaborators.length - linkedCollaboratorsCount} pendente
-                {activeUnprofiledCollaborators.length - linkedCollaboratorsCount === 1 ? "" : "s"}
+              <span className={`import-collaborator-count-badge ${areAllCollaboratorsLinked ? "complete" : ""}`}>
+                {areAllCollaboratorsLinked ? "✓ Cadastro concluído" : `${pendingCollaboratorsCount} pendente${pendingCollaboratorsCount === 1 ? "" : "s"}`}
               </span>
             </div>
 
             <div className="import-collaborator-assistant-steps" aria-label="Etapas do cadastro rapido">
               <span className="done">Colaboradores encontrados</span>
-              <span className={linkedCollaboratorsCount === activeUnprofiledCollaborators.length ? "done" : "active"}>Associar cargos</span>
+              <span className={areAllCollaboratorsLinked ? "done" : "active"}>Associar cargos</span>
               <span className={canSaveCollaborators ? "active" : ""}>Continuar</span>
             </div>
 

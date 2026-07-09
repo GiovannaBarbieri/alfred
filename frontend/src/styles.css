@@ -9334,19 +9334,19 @@ input {
 .import-collaborator-modal {
   gap: 10px;
   max-width: 720px;
-  padding: 18px;
+  padding: 16px;
   width: min(720px, 100%);
 }
 
 .import-collaborator-header {
-  align-items: flex-start;
+  align-items: center;
   background: #f8fbff;
   border: 1px solid #e7eef7;
   border-radius: 12px;
   display: flex;
   gap: 12px;
   justify-content: space-between;
-  padding: 12px;
+  padding: 10px 12px;
 }
 
 .import-collaborator-modal .settings-modal-header {
@@ -9371,9 +9371,11 @@ input {
 .import-collaborator-modal .settings-modal-header h3 {
   font-size: 18px;
   line-height: 1.2;
+  margin: 0;
 }
 
 .import-collaborator-modal .settings-modal-header p {
+  margin: 3px 0 0;
   max-width: 430px;
 }
 
@@ -9387,6 +9389,12 @@ input {
   font-weight: 850;
   padding: 6px 10px;
   white-space: nowrap;
+}
+
+.import-collaborator-count-badge.complete {
+  background: #ecfdf3;
+  border-color: #bbf7d0;
+  color: #15803d;
 }
 
 .import-collaborator-assistant-steps {
