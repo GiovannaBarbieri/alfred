@@ -90,6 +90,15 @@ function confidenceTone(confidence: number) {
   return "low";
 }
 
+function confidenceBadge(confidence: number) {
+  const percentage = Math.round(confidence * 100);
+  if (confidence >= 0.95) return { tone: "very-high", label: "Muito alta", percentage };
+  if (confidence >= 0.85) return { tone: "high", label: "Alta", percentage };
+  if (confidence >= 0.7) return { tone: "medium", label: "Média", percentage };
+  if (confidence >= 0.4) return { tone: "low", label: "Baixa", percentage };
+  return { tone: "very-low", label: "Muito baixa", percentage };
+}
+
 function matchesCategoryFilter(category: string, filter: QuickFilter) {
   if (filter.startsWith("category:")) {
     return normalizeText(category) === normalizeText(filter.replace("category:", ""));
@@ -537,6 +546,7 @@ export function ClassificationReviewPanel({
 
             {paginatedCards.map((model) => {
               const tone = confidenceTone(model.confidence);
+              const confidence = confidenceBadge(model.confidence);
               const isSelected = selectedTasks.includes(model.key);
               const pendingReasons = [
                 model.unclassified ? "Sem categoria" : null,
@@ -572,14 +582,13 @@ export function ClassificationReviewPanel({
                         <h3>{model.item.title}</h3>
                       </div>
                       <div className="classification-card-status">
-                        <div className={`confidence-meter ${tone}`}>
-                          <div>
-                            <strong>{Math.round(model.confidence * 100)}%</strong>
-                          </div>
-                          <i>
-                            <b style={{ width: `${Math.max(4, Math.round(model.confidence * 100))}%` }} />
-                          </i>
-                        </div>
+                        <span
+                          className={`classification-confidence-badge ${confidence.tone}`}
+                          title={`${confidence.percentage}% de confiança. Indica o quanto a IA está segura sobre esta sugestão.`}
+                        >
+                          <strong>{confidence.percentage}%</strong>
+                          {confidence.label} confiança
+                        </span>
                       </div>
                     </div>
 
