@@ -9333,7 +9333,7 @@ input {
 
 .import-collaborator-footer {
   display: grid;
-  gap: 7px;
+  gap: 5px;
   padding-top: 2px;
 }
 
@@ -9382,9 +9382,9 @@ input {
 }
 
 .import-collaborator-modal {
-  gap: 10px;
+  gap: 8px;
   max-width: 720px;
-  padding: 16px;
+  padding: 14px;
   width: min(720px, 100%);
 }
 
@@ -9392,16 +9392,16 @@ input {
   align-items: center;
   background: #f8fbff;
   border: 1px solid #e7eef7;
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: space-between;
-  padding: 10px 12px;
+  padding: 9px 10px;
 }
 
 .import-collaborator-modal .settings-modal-header {
   align-items: flex-start;
-  gap: 10px;
+  gap: 9px;
 }
 
 .import-collaborator-modal .settings-modal-header > span {
@@ -9419,13 +9419,14 @@ input {
 }
 
 .import-collaborator-modal .settings-modal-header h3 {
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.2;
   margin: 0;
 }
 
 .import-collaborator-modal .settings-modal-header p {
-  margin: 3px 0 0;
+  font-size: 12px;
+  margin: 2px 0 0;
   max-width: 430px;
 }
 
@@ -9451,7 +9452,7 @@ input {
 
 .import-collaborator-assistant-steps {
   display: grid;
-  gap: 6px;
+  gap: 5px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -9465,8 +9466,8 @@ input {
   font-size: 11px;
   font-weight: 850;
   justify-content: center;
-  min-height: 28px;
-  padding: 6px 8px;
+  min-height: 25px;
+  padding: 4px 8px;
   text-align: center;
   transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
 }
@@ -9488,8 +9489,8 @@ input {
   border: 1px solid #e8eef6;
   border-radius: 10px;
   display: grid;
-  gap: 7px;
-  padding: 8px 10px;
+  gap: 5px;
+  padding: 7px 9px;
 }
 
 .import-collaborator-progress-summary {
@@ -9548,23 +9549,23 @@ input {
 
 .import-collaborator-list {
   display: grid;
-  gap: 8px;
-  max-height: min(48vh, 460px);
+  gap: 6px;
+  max-height: min(44vh, 410px);
   overflow: auto;
-  padding-right: 6px;
+  padding-right: 4px;
 }
 
 .import-collaborator-row {
-  align-items: end;
+  align-items: center;
   background: #ffffff;
   border: 1px solid #e4ebf3;
-  border-radius: 12px;
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+  border-radius: 10px;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.035);
   display: grid;
-  gap: 12px;
-  grid-template-columns: minmax(170px, 0.95fr) minmax(260px, 1.1fr) minmax(100px, auto);
-  padding: 12px;
-  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+  gap: 10px;
+  grid-template-columns: minmax(170px, 0.95fr) minmax(250px, 1.1fr) minmax(104px, auto);
+  padding: 9px 10px;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 .import-collaborator-row.complete {
@@ -9578,8 +9579,8 @@ input {
 .import-role-combobox,
 .import-collaborator-status-block {
   display: grid;
-  align-content: start;
-  gap: 5px;
+  align-content: center;
+  gap: 4px;
   min-width: 0;
   position: relative;
   z-index: 1;
@@ -9593,7 +9594,7 @@ input {
 .import-role-combobox > span,
 .import-collaborator-status-block > span {
   color: #64748b;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 850;
   text-transform: uppercase;
 }
@@ -9618,14 +9619,14 @@ input {
   align-items: center;
   background: #ffffff;
   border: 1px solid #c8d3df;
-  border-radius: 8px;
+  border-radius: 7px;
   color: #0b1f36;
   cursor: pointer;
   display: grid;
   gap: 8px;
   grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 38px;
-  padding: 7px 10px;
+  min-height: 34px;
+  padding: 6px 9px;
   text-align: left;
   transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
   width: 100%;
@@ -9658,14 +9659,14 @@ input {
 .import-role-menu {
   background: #ffffff;
   border: 1px solid #d7e1ec;
-  border-radius: 12px;
-  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.16);
+  border-radius: 10px;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.14);
   display: grid;
-  gap: 7px;
-  max-height: min(300px, 42vh);
+  gap: 6px;
+  max-height: min(280px, 40vh);
   max-width: 100%;
   overflow: hidden;
-  padding: 8px;
+  padding: 7px;
   position: relative;
   width: 100%;
   z-index: 140;
@@ -9717,8 +9718,8 @@ input {
 
 .import-role-menu > div {
   display: grid;
-  gap: 5px;
-  max-height: 210px;
+  gap: 4px;
+  max-height: 190px;
   overflow-x: hidden;
   overflow-y: auto;
   padding-right: 2px;
@@ -9727,11 +9728,11 @@ input {
 .import-role-menu button {
   background: transparent;
   border: 0;
-  border-radius: 9px;
+  border-radius: 8px;
   cursor: pointer;
   display: grid;
-  gap: 3px;
-  padding: 8px 9px;
+  gap: 2px;
+  padding: 7px 8px;
   text-align: left;
 }
 
@@ -9760,8 +9761,8 @@ input {
   font-weight: 850;
   letter-spacing: 0;
   line-height: 1;
-  min-height: 24px;
-  padding: 5px 8px;
+  min-height: 22px;
+  padding: 5px 7px;
   text-align: center;
   text-transform: uppercase;
   white-space: nowrap;
@@ -9854,9 +9855,18 @@ input {
     justify-self: start;
   }
 
-  .settings-modal-actions {
+  .import-collaborator-footer .settings-modal-actions {
     align-items: stretch;
     flex-direction: column-reverse;
+  }
+
+  .import-collaborator-footer .primary-button,
+  .import-collaborator-footer .secondary-button {
+    width: 100%;
+  }
+
+  .import-collaborator-footer-hint {
+    text-align: left;
   }
 }
 
