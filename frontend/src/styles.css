@@ -9496,42 +9496,44 @@ input {
 
 .import-collaborator-list {
   display: grid;
-  gap: 7px;
+  gap: 8px;
   max-height: min(48vh, 460px);
   overflow: auto;
   padding-right: 6px;
 }
 
 .import-collaborator-row {
-  align-items: center;
-  background: #f8fafc;
-  border: 1px solid #e5edf6;
-  border-left: 3px solid #fed7aa;
-  border-radius: 10px;
+  align-items: end;
+  background: #ffffff;
+  border: 1px solid #e4ebf3;
+  border-radius: 12px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
   display: grid;
-  gap: 9px;
-  grid-template-columns: minmax(160px, 0.9fr) minmax(260px, 1.1fr) minmax(86px, auto);
-  padding: 8px 10px;
-  transition: border-color 160ms ease, background 160ms ease;
+  gap: 12px;
+  grid-template-columns: minmax(170px, 0.95fr) minmax(260px, 1.1fr) minmax(100px, auto);
+  padding: 12px;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
 
 .import-collaborator-row.complete {
   background: #f7fef9;
   border-color: #bbf7d0;
-  border-left-color: #22c55e;
+  box-shadow: 0 8px 18px rgba(21, 128, 61, 0.06);
 }
 
 .import-collaborator-identity,
-.import-role-combobox {
+.import-role-combobox,
+.import-collaborator-status-block {
   display: grid;
   align-content: start;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
   position: relative;
 }
 
 .import-collaborator-identity > span,
-.import-role-combobox > span {
+.import-role-combobox > span,
+.import-collaborator-status-block > span {
   color: #64748b;
   font-size: 10px;
   font-weight: 850;
@@ -9564,8 +9566,8 @@ input {
   display: grid;
   gap: 8px;
   grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 34px;
-  padding: 6px 10px;
+  min-height: 38px;
+  padding: 7px 10px;
   text-align: left;
   transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
   width: 100%;
@@ -9655,15 +9657,14 @@ input {
 }
 
 .import-collaborator-status {
-  align-self: center;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 850;
-  justify-self: end;
   letter-spacing: 0;
   line-height: 1;
   min-height: 24px;
   padding: 5px 8px;
+  text-align: center;
   text-transform: uppercase;
   white-space: nowrap;
 }

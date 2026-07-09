@@ -381,9 +381,12 @@ export function ValidationPage({
                       )}
                     </div>
 
-                    <span className={`import-collaborator-status ${hasSelectedRole ? "complete" : "pending"}`}>
-                      {hasSelectedRole ? "Cadastrado" : "Pendente"}
-                    </span>
+                    <div className="import-collaborator-status-block">
+                      <span>Status</span>
+                      <strong className={`import-collaborator-status ${hasSelectedRole ? "complete" : "pending"}`}>
+                        {hasSelectedRole ? "✓ Cadastrado" : "Pendente"}
+                      </strong>
+                    </div>
                   </div>
                 );
               })}
