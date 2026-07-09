@@ -352,12 +352,15 @@ export function ValidationPage({
                       </button>
                       {roleComboboxOpen === login && (
                         <div className="import-role-menu">
-                          <input
-                            autoFocus
-                            placeholder="Buscar cargo..."
-                            value={roleSearch}
-                            onChange={(event) => setRoleSearchDrafts((current) => ({ ...current, [login]: event.target.value }))}
-                          />
+                          <label className="import-role-search">
+                            <span aria-hidden="true">⌕</span>
+                            <input
+                              autoFocus
+                              placeholder="Pesquisar cargo..."
+                              value={roleSearch}
+                              onChange={(event) => setRoleSearchDrafts((current) => ({ ...current, [login]: event.target.value }))}
+                            />
+                          </label>
                           <span>Selecione o cargo para este colaborador.</span>
                           <div>
                             {filteredRoles.length === 0 && <p>Nenhum cargo encontrado.</p>}
