@@ -3156,9 +3156,9 @@ input {
 .classification-task-card {
   border-left: 3px solid #2563eb;
   display: grid;
-  gap: 6px;
+  gap: 8px;
   grid-template-columns: auto minmax(0, 1fr);
-  padding: 8px 10px 7px;
+  padding: 9px 10px 8px;
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
 }
 
@@ -3236,7 +3236,7 @@ input {
 
 .classification-card-body {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -3278,6 +3278,82 @@ input {
   margin-left: 2px;
   min-height: 28px;
   padding: 0 10px;
+}
+
+.classification-review-queue {
+  align-items: stretch;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(145px, 0.8fr) minmax(220px, 1.35fr) minmax(150px, auto);
+}
+
+.classification-review-cell {
+  background: #f8fafc;
+  border: 1px solid #e6edf5;
+  border-radius: 10px;
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px 9px;
+}
+
+.classification-review-cell > span {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.classification-review-cell strong {
+  color: #0b1f36;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.classification-review-cell small {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 0;
+}
+
+.classification-review-cell.pending.attention {
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.classification-review-cell.pending.attention strong {
+  color: #9a3412;
+}
+
+.classification-review-cell.pending.ready {
+  background: #ecfdf3;
+  border-color: #bbf7d0;
+}
+
+.classification-review-cell.pending.ready strong {
+  color: #15803d;
+}
+
+.classification-review-cell.suggestion {
+  background: #f8fbff;
+  border-color: #dbeafe;
+}
+
+.classification-review-cell.action {
+  align-content: center;
+  background: #ffffff;
+}
+
+.classification-review-cell.action .primary-button {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+  justify-content: center;
+  margin: 0;
+  min-height: 32px;
+  padding: 0 12px;
+  width: 100%;
 }
 
 .classification-meta-row {
@@ -3344,7 +3420,7 @@ input {
   border-top: 1px solid #edf2f7;
   color: #64748b;
   font-size: 11px;
-  padding-top: 6px;
+  padding-top: 4px;
 }
 
 .classification-details summary {
@@ -3352,7 +3428,12 @@ input {
   cursor: pointer;
   font-weight: 750;
   list-style: none;
+  opacity: 0.82;
   width: max-content;
+}
+
+.classification-details summary:hover {
+  opacity: 1;
 }
 
 .classification-details summary::-webkit-details-marker {
@@ -3366,7 +3447,7 @@ input {
 
 .classification-details[open] {
   display: grid;
-  gap: 9px;
+  gap: 8px;
 }
 
 .classification-details[open] summary::after {
@@ -3577,6 +3658,10 @@ input {
 
   .classification-card-status {
     justify-content: flex-start;
+  }
+
+  .classification-review-queue {
+    grid-template-columns: 1fr;
   }
 
   .classification-suggestion-grid {

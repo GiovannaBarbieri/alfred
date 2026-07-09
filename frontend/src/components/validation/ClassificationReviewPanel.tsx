@@ -329,8 +329,8 @@ export function ClassificationReviewPanel({
           <div className="classification-stage-header">
             <div>
               <span className="eyebrow">Fase 4 - Classificação</span>
-              <h2>Revisão inteligente das atividades</h2>
-              <p>Priorize somente o que precisa de atenção.</p>
+              <h2>Fila de revisão inteligente</h2>
+              <p>Revise sugestões da IA em lote, sem editar registro por registro.</p>
             </div>
             <div className="classification-stage-actions">
               <button className="ghost-button compact" type="button" onClick={() => onStepChange("preview")}>
@@ -529,6 +529,13 @@ export function ClassificationReviewPanel({
             {paginatedCards.map((model) => {
               const tone = confidenceTone(model.confidence);
               const isSelected = selectedTasks.includes(model.key);
+              const pendingReasons = [
+                model.unclassified ? "Sem categoria" : null,
+                model.lowConfidence ? "Baixa confiança" : null,
+                model.conflict ? "Conflito" : null,
+                model.item.needsReview ? "Revisão necessária" : null,
+              ].filter(Boolean);
+              const pendingLabel = pendingReasons.length > 0 ? pendingReasons.join(" · ") : "Sugestão pronta";
               const reasons = [
                 ...model.factors,
                 ...model.matchedKeywords.slice(0, 3).map((keyword) => `Palavra-chave: ${keyword}`),
@@ -563,48 +570,62 @@ export function ClassificationReviewPanel({
                             <b style={{ width: `${Math.max(4, Math.round(model.confidence * 100))}%` }} />
                           </i>
                         </div>
+                      </div>
+                    </div>
+
+                    <div className="classification-review-queue">
+                      <div className={`classification-review-cell pending ${model.needsAttention ? "attention" : "ready"}`}>
+                        <span>Pendência</span>
+                        <strong>{pendingLabel}</strong>
+                      </div>
+                      <div className="classification-review-cell suggestion">
+                        <span>Sugestão da IA</span>
+                        <strong>{model.category || "Não classificado"}</strong>
+                        <small>{model.subcategory || "Sem subcategoria"}</small>
+                      </div>
+                      <div className="classification-review-cell action">
+                        <span>Ação</span>
                         <button
-                          className="secondary-button compact"
+                          className="primary-button compact"
                           type="button"
                           onClick={() => acceptSuggestion(model)}
                         >
                           <Check size={14} />
-                          Aceitar
+                          Aceitar sugestão
                         </button>
                       </div>
                     </div>
 
-                    <div className="classification-suggestion-grid">
-                      <label>
-                        <span>Categoria sugerida</span>
-                        <select
-                          value={model.category}
-                          onChange={(event) => updateLines(model.affectedLines, event.target.value, model.subcategory)}
-                        >
-                          {categoryOptions.map((category) => (
-                            <option key={category} value={category}>
-                              {category}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        <span>Subcategoria sugerida</span>
-                        <select
-                          value={model.subcategory}
-                          onChange={(event) => updateLines(model.affectedLines, model.category, event.target.value)}
-                        >
-                          {subcategoryOptions.map((subcategory) => (
-                            <option key={subcategory} value={subcategory}>
-                              {subcategory}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    </div>
-
                     <details className="classification-details">
-                      <summary>Ver detalhes</summary>
+                      <summary>Ajustar ou ver evidências</summary>
+                      <div className="classification-suggestion-grid">
+                        <label>
+                          <span>Categoria</span>
+                          <select
+                            value={model.category}
+                            onChange={(event) => updateLines(model.affectedLines, event.target.value, model.subcategory)}
+                          >
+                            {categoryOptions.map((category) => (
+                              <option key={category} value={category}>
+                                {category}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
+                          <span>Subcategoria</span>
+                          <select
+                            value={model.subcategory}
+                            onChange={(event) => updateLines(model.affectedLines, model.category, event.target.value)}
+                          >
+                            {subcategoryOptions.map((subcategory) => (
+                              <option key={subcategory} value={subcategory}>
+                                {subcategory}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
                       <div className="classification-meta-row">
                         <span>
                           <UserRound size={14} />
