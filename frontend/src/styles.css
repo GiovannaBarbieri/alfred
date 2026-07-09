@@ -1222,6 +1222,22 @@ input {
   padding: 16px;
 }
 
+.preview-next-step-card.validation {
+  background: linear-gradient(135deg, #991b1b, #b42318);
+  box-shadow: 0 10px 24px rgba(180, 35, 24, 0.16);
+}
+
+.preview-next-step-card.duplicates,
+.preview-next-step-card.classification {
+  background: linear-gradient(135deg, #92400e, #b45309);
+  box-shadow: 0 10px 24px rgba(180, 83, 9, 0.16);
+}
+
+.preview-next-step-card.confirm {
+  background: linear-gradient(135deg, #166534, #15803d);
+  box-shadow: 0 10px 24px rgba(21, 128, 61, 0.16);
+}
+
 .preview-next-step-card .eyebrow {
   color: #bfdbfe;
 }

@@ -52,7 +52,13 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
     : reviewItems > 0 || result.duplicates.length > 0
       ? "Importacao pronta para seguir, mas existem itens para revisar."
       : "Importacao validada e pronta para confirmacao.";
-  const nextStep = result.duplicates.length > 0 ? "duplicates" : requiresClassificationReview ? "classification" : "confirm";
+  const nextStep = hasBlocking
+    ? "validation"
+    : result.duplicates.length > 0
+      ? "duplicates"
+      : requiresClassificationReview
+        ? "classification"
+        : "confirm";
   const previewStatus = hasBlocking
     ? { tone: "warning", label: "Exige correção", icon: <AlertTriangle size={16} /> }
     : result.duplicates.length > 0
@@ -60,18 +66,30 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
       : requiresClassificationReview
         ? { tone: "warning", label: "Revisão necessária", icon: <AlertTriangle size={16} /> }
         : { tone: "success", label: "Sem bloqueios", icon: <CheckCircle2 size={16} /> };
-  const nextStepLabel =
-    nextStep === "duplicates"
-      ? "Resolver duplicidades"
-      : nextStep === "classification"
-        ? "Revisar classificações"
-        : "Ir para confirmação";
+  const nextStepTitle =
+    nextStep === "validation"
+      ? "Corrigir bloqueios"
+      : nextStep === "duplicates"
+        ? "Resolver duplicidades"
+        : nextStep === "classification"
+          ? "Revisar classificacoes"
+          : "Confirmar importacao";
   const nextStepDetail =
-    nextStep === "duplicates"
-      ? "Existem registros duplicados para resolver antes de confirmar."
-      : nextStep === "classification"
-        ? "Confira os itens que precisam de revisão antes de salvar."
-        : "Tudo pronto para revisar o resumo final e salvar.";
+    nextStep === "validation"
+      ? "Existem problemas que impedem a continuidade."
+      : nextStep === "duplicates"
+        ? "Existem registros duplicados para revisar."
+        : nextStep === "classification"
+          ? "Existem itens que precisam de validacao antes de salvar."
+          : "A importacao esta pronta para ser salva.";
+  const nextStepButtonLabel =
+    nextStep === "validation"
+      ? "Ver bloqueios"
+      : nextStep === "duplicates"
+        ? "Revisar duplicidades"
+        : nextStep === "classification"
+          ? "Revisar classificacoes"
+          : "Continuar para confirmacao";
   const flowSteps = [
     { id: "upload", label: "Upload", status: "done" },
     { id: "validation", label: "Validação", status: hasBlocking ? "attention" : "done" },
@@ -177,12 +195,12 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
         </div>
 
         <aside className="preview-side-panel">
-          <section className="preview-next-step-card">
+          <section className={`preview-next-step-card ${nextStep}`}>
             <span className="eyebrow">Próxima ação</span>
-            <h3>{nextStepLabel}</h3>
+            <h3>{nextStepTitle}</h3>
             <p>{nextStepDetail}</p>
             <button className="primary-button" type="button" onClick={() => onStepChange(nextStep)}>
-              {nextStepLabel}
+              {nextStepButtonLabel}
               <ArrowRight size={16} />
             </button>
           </section>
