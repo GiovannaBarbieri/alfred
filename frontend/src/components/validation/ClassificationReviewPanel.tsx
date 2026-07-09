@@ -348,7 +348,8 @@ export function ClassificationReviewPanel({
             <div className="classification-filter-heading">
               <div>
                 <span className="eyebrow">Fila de revisão</span>
-                <strong>{visibleCards.length} pendência{visibleCards.length === 1 ? "" : "s"} para revisão</strong>
+                <strong>{visibleCards.length} atividade{visibleCards.length === 1 ? "" : "s"} precisam da sua revisão</strong>
+                <p>Revise apenas os itens destacados para concluir a importação.</p>
               </div>
               <label className="modern-toggle classification-pending-toggle">
                 <input
@@ -358,6 +359,13 @@ export function ClassificationReviewPanel({
                 />
                 Mostrar somente pendências
               </label>
+            </div>
+
+            <div className="classification-review-summary" aria-label="Resumo da fila de revisão">
+              <span className="warning"><strong>{summary.attention}</strong> Pendências</span>
+              <span className={summary.conflicts > 0 ? "danger" : "neutral"}><strong>{summary.conflicts}</strong> Conflitos</span>
+              <span className={summary.unclassified > 0 ? "warning" : "neutral"}><strong>{summary.unclassified}</strong> Sem categoria</span>
+              <span className={summary.lowConfidence > 0 ? "warning" : "neutral"}><strong>{summary.lowConfidence}</strong> Baixa confiança</span>
             </div>
 
             <div className="classification-filter-row">
