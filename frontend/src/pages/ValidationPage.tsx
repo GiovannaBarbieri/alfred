@@ -406,13 +406,18 @@ export function ValidationPage({
               </p>
             )}
 
-            <div className="settings-modal-actions">
-              <button className="secondary-button compact" disabled={isSavingCollaborators} type="button" onClick={handleSkipMissingCollaborators}>
-                Ignorar por enquanto
-              </button>
-              <button className="primary-button compact" disabled={!canSaveCollaborators || isSavingCollaborators} type="submit">
-                {isSavingCollaborators ? "Salvando..." : "Salvar e continuar"}
-              </button>
+            <div className="import-collaborator-footer">
+              <div className="settings-modal-actions">
+                <button className="secondary-button compact" disabled={isSavingCollaborators} type="button" onClick={handleSkipMissingCollaborators}>
+                  Ignorar por enquanto
+                </button>
+                <button className="primary-button compact" disabled={!canSaveCollaborators || isSavingCollaborators} type="submit">
+                  {isSavingCollaborators ? "Cadastrando..." : "Cadastrar e continuar"}
+                </button>
+              </div>
+              {!areAllCollaboratorsLinked && (
+                <p className="import-collaborator-footer-hint">Associe um cargo para todos os colaboradores antes de continuar.</p>
+              )}
             </div>
           </form>
         </div>

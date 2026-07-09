@@ -9331,6 +9331,56 @@ input {
   padding-top: 2px;
 }
 
+.import-collaborator-footer {
+  display: grid;
+  gap: 7px;
+  padding-top: 2px;
+}
+
+.import-collaborator-footer .settings-modal-actions {
+  gap: 10px;
+  padding-top: 0;
+}
+
+.import-collaborator-footer .secondary-button {
+  background: #ffffff;
+  border-color: #c8d3df;
+  color: #455468;
+  flex: 0 0 auto;
+  min-width: 148px;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+  width: auto;
+}
+
+.import-collaborator-footer .secondary-button:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #9aa8b8;
+  color: #0b1f36;
+}
+
+.import-collaborator-footer .primary-button {
+  background: #123c69;
+  border: 1px solid #123c69;
+  flex: 0 0 auto;
+  min-width: 190px;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  width: auto;
+}
+
+.import-collaborator-footer .primary-button:hover:not(:disabled) {
+  background: #0f4c8a;
+  border-color: #0f4c8a;
+  box-shadow: 0 8px 18px rgba(18, 60, 105, 0.18);
+}
+
+.import-collaborator-footer-hint {
+  color: #9a3412;
+  font-size: 12px;
+  font-weight: 750;
+  margin: 0;
+  text-align: right;
+}
+
 .import-collaborator-modal {
   gap: 10px;
   max-width: 720px;
