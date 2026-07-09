@@ -9438,10 +9438,12 @@ input {
   font-size: 12px;
   font-weight: 850;
   padding: 6px 10px;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
   white-space: nowrap;
 }
 
 .import-collaborator-count-badge.complete {
+  animation: collaboratorBadgeComplete 260ms ease;
   background: #ecfdf3;
   border-color: #bbf7d0;
   color: #15803d;
@@ -9534,7 +9536,7 @@ input {
   border-radius: inherit;
   display: block;
   height: 100%;
-  transition: width 180ms ease;
+  transition: width 260ms ease;
 }
 
 .import-collaborator-progress p {
@@ -9566,6 +9568,7 @@ input {
 }
 
 .import-collaborator-row.complete {
+  animation: collaboratorCardComplete 260ms ease;
   background: #f7fef9;
   border-color: #bbf7d0;
   box-shadow: 0 8px 18px rgba(21, 128, 61, 0.06);
@@ -9765,6 +9768,7 @@ input {
 }
 
 .import-collaborator-status.complete {
+  animation: collaboratorStatusComplete 240ms ease;
   background: #dcfce7;
   color: #15803d;
 }
@@ -9772,6 +9776,63 @@ input {
 .import-collaborator-status.pending {
   background: #fff7ed;
   color: #c2410c;
+}
+
+@keyframes collaboratorCardComplete {
+  0% {
+    background: #ffffff;
+    transform: translateY(0);
+  }
+
+  55% {
+    background: #ecfdf3;
+    transform: translateY(-1px);
+  }
+
+  100% {
+    background: #f7fef9;
+    transform: translateY(0);
+  }
+}
+
+@keyframes collaboratorStatusComplete {
+  0% {
+    transform: scale(0.96);
+  }
+
+  70% {
+    transform: scale(1.03);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes collaboratorBadgeComplete {
+  0% {
+    transform: translateY(0) scale(0.98);
+  }
+
+  70% {
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .import-collaborator-count-badge.complete,
+  .import-collaborator-row.complete,
+  .import-collaborator-status.complete {
+    animation: none;
+  }
+
+  .import-collaborator-progress i {
+    transition: none;
+  }
 }
 
 @media (max-width: 760px) {
