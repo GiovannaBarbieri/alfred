@@ -273,14 +273,10 @@ export function ValidationPage({
           >
             <div className="import-collaborator-header">
               <div className="settings-modal-header">
-                <span>👥</span>
+                <span>1</span>
                 <div>
-                  <h3 id="import-collaborator-title">Novos colaboradores encontrados</h3>
-                  <p>
-                    Foram encontrados {activeUnprofiledCollaborators.length} colaborador
-                    {activeUnprofiledCollaborators.length === 1 ? "" : "es"} que ainda não existem no sistema.
-                    Associe um cargo para cada um antes de continuar.
-                  </p>
+                  <h3 id="import-collaborator-title">Cadastro rapido de colaboradores</h3>
+                  <p>Associe um cargo aos colaboradores encontrados durante a importacao.</p>
                 </div>
               </div>
               <span className="import-collaborator-count-badge">
@@ -289,10 +285,16 @@ export function ValidationPage({
               </span>
             </div>
 
+            <div className="import-collaborator-assistant-steps" aria-label="Etapas do cadastro rapido">
+              <span className="done">Colaboradores encontrados</span>
+              <span className={linkedCollaboratorsCount === activeUnprofiledCollaborators.length ? "done" : "active"}>Associar cargos</span>
+              <span className={canSaveCollaborators ? "active" : ""}>Continuar</span>
+            </div>
+
             <div className="import-collaborator-progress">
-              <strong>Cadastro concluído</strong>
+              <strong>Progresso do cadastro</strong>
               <span>
-                {linkedCollaboratorsCount} de {activeUnprofiledCollaborators.length} colaboradores
+                {linkedCollaboratorsCount} de {activeUnprofiledCollaborators.length} com cargo definido
               </span>
               <div aria-hidden="true">
                 <i style={{ width: `${collaboratorProgressPercentage}%` }} />
@@ -338,7 +340,7 @@ export function ValidationPage({
                           setRoleSearchDrafts((current) => ({ ...current, [login]: "" }));
                         }}
                       >
-                        <strong>{selectedRole?.name || "Selecione ou pesquise um cargo..."}</strong>
+                        <strong>{selectedRole?.name || "Escolha um cargo"}</strong>
                         <i aria-hidden="true" />
                       </button>
                       {roleComboboxOpen === login && (
@@ -349,7 +351,7 @@ export function ValidationPage({
                             value={roleSearch}
                             onChange={(event) => setRoleSearchDrafts((current) => ({ ...current, [login]: event.target.value }))}
                           />
-                          <span>Digite para pesquisar ou selecione uma opção.</span>
+                          <span>Selecione o cargo para este colaborador.</span>
                           <div>
                             {filteredRoles.length === 0 && <p>Nenhum cargo encontrado.</p>}
                             {filteredRoles.map((role) => (
@@ -396,7 +398,7 @@ export function ValidationPage({
                 Ignorar por enquanto
               </button>
               <button className="primary-button compact" disabled={!canSaveCollaborators || isSavingCollaborators} type="submit">
-                {isSavingCollaborators ? "Cadastrando..." : "Cadastrar e continuar"}
+                {isSavingCollaborators ? "Salvando..." : "Salvar e continuar"}
               </button>
             </div>
           </form>

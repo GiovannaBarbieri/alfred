@@ -9332,16 +9332,49 @@ input {
 }
 
 .import-collaborator-modal {
-  gap: 12px;
-  max-width: 780px;
-  width: min(780px, 100%);
+  gap: 10px;
+  max-width: 720px;
+  padding: 18px;
+  width: min(720px, 100%);
 }
 
 .import-collaborator-header {
   align-items: flex-start;
+  background: #f8fbff;
+  border: 1px solid #e7eef7;
+  border-radius: 12px;
   display: flex;
-  gap: 16px;
+  gap: 12px;
   justify-content: space-between;
+  padding: 12px;
+}
+
+.import-collaborator-modal .settings-modal-header {
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.import-collaborator-modal .settings-modal-header > span {
+  align-items: center;
+  background: #123c69;
+  border-radius: 999px;
+  color: #ffffff;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 14px;
+  font-weight: 900;
+  height: 32px;
+  justify-content: center;
+  width: 32px;
+}
+
+.import-collaborator-modal .settings-modal-header h3 {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.import-collaborator-modal .settings-modal-header p {
+  max-width: 430px;
 }
 
 .import-collaborator-count-badge {
@@ -9356,9 +9389,47 @@ input {
   white-space: nowrap;
 }
 
-.import-collaborator-progress {
+.import-collaborator-assistant-steps {
   display: grid;
-  gap: 5px;
+  gap: 6px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.import-collaborator-assistant-steps span {
+  align-items: center;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  color: #64748b;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 850;
+  justify-content: center;
+  min-height: 28px;
+  padding: 6px 8px;
+  text-align: center;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.import-collaborator-assistant-steps span.done {
+  background: #ecfdf3;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.import-collaborator-assistant-steps span.active {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #123c69;
+}
+
+.import-collaborator-progress {
+  background: #ffffff;
+  border: 1px solid #e8eef6;
+  border-radius: 10px;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
 }
 
 .import-collaborator-progress > strong {
@@ -9391,26 +9462,28 @@ input {
 .import-collaborator-list {
   display: grid;
   gap: 7px;
-  max-height: min(52vh, 500px);
+  max-height: min(48vh, 460px);
   overflow: auto;
-  padding-right: 8px;
+  padding-right: 6px;
 }
 
 .import-collaborator-row {
-  align-items: end;
+  align-items: center;
   background: #f8fafc;
   border: 1px solid #e5edf6;
-  border-radius: 12px;
+  border-left: 3px solid #fed7aa;
+  border-radius: 10px;
   display: grid;
-  gap: 10px;
-  grid-template-columns: minmax(170px, 0.75fr) minmax(300px, 1.25fr) minmax(92px, auto);
-  padding: 9px 10px;
+  gap: 9px;
+  grid-template-columns: minmax(160px, 0.9fr) minmax(260px, 1.1fr) minmax(86px, auto);
+  padding: 8px 10px;
   transition: border-color 160ms ease, background 160ms ease;
 }
 
 .import-collaborator-row.complete {
   background: #f7fef9;
   border-color: #bbf7d0;
+  border-left-color: #22c55e;
 }
 
 .import-collaborator-identity,
@@ -9450,15 +9523,16 @@ input {
   align-items: center;
   background: #ffffff;
   border: 1px solid #c8d3df;
-  border-radius: 10px;
+  border-radius: 8px;
   color: #0b1f36;
   cursor: pointer;
   display: grid;
   gap: 8px;
   grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 36px;
+  min-height: 34px;
   padding: 6px 10px;
   text-align: left;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
   width: 100%;
 }
 
@@ -9546,14 +9620,13 @@ input {
 }
 
 .import-collaborator-status {
-  align-self: end;
+  align-self: center;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 850;
   justify-self: end;
   letter-spacing: 0;
   line-height: 1;
-  margin-bottom: 4px;
   min-height: 24px;
   padding: 5px 8px;
   text-transform: uppercase;
@@ -9580,9 +9653,12 @@ input {
     flex-direction: column;
   }
 
+  .import-collaborator-assistant-steps {
+    grid-template-columns: 1fr;
+  }
+
   .import-collaborator-status {
     align-self: start;
-    margin-bottom: 0;
     justify-self: start;
   }
 
