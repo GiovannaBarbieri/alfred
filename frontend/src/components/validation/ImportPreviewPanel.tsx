@@ -2,7 +2,6 @@ import {
   AlertTriangle,
   ArrowRight,
   Ban,
-  BarChart3,
   CheckCircle2,
   ClipboardCheck,
   ClipboardList,
@@ -42,7 +41,11 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
         : null;
   const classifiedRecords = Math.max(result.totalRows - (preview?.unclassifiedCount ?? 0), 0);
   const possibleInconsistencies = result.alertRows + result.blockedRows;
-  const topCategories = preview?.topCategories ?? [];
+  const hasClassificationIssues =
+    (preview?.unclassifiedCount ?? 0) > 0 ||
+    (preview?.lowConfidenceCount ?? 0) > 0 ||
+    possibleInconsistencies > 0 ||
+    result.duplicates.length > 0;
   const requiresClassificationReview = pendingReview > 0 || hasUnprofiledCollaborators;
   const validationSummaryMessage = hasBlocking
     ? "Existem bloqueios que impedem a continuidade."
@@ -158,7 +161,7 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
                 <span><Sparkles size={17} /></span>
                 <div>
                   <h3>Qualidade da classificação</h3>
-                  <p>Checagens do padrão [Categoria] e perfis operacionais para priorizar a revisão.</p>
+                  <p>{hasClassificationIssues ? "Revise os itens que exigem atencao antes de confirmar." : "Tudo classificado corretamente."}</p>
                 </div>
               </div>
               <div className="preview-insight-list">
@@ -171,30 +174,6 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
             </section>
           </div>
 
-          <section className="preview-card preview-category-card">
-            <div className="preview-card-heading">
-              <span><BarChart3 size={17} /></span>
-              <div>
-                <h3>Distribuição por categoria</h3>
-                <p>Horas, participação e volume de registros classificados.</p>
-              </div>
-            </div>
-            <div className="preview-category-bars">
-              {topCategories.length === 0 && <p className="muted">Nenhuma categoria identificada ainda.</p>}
-              {topCategories.map((category) => (
-                <div className="preview-category-bar-row" key={category.category}>
-                  <div className="preview-category-bar-label">
-                    <strong>{category.category}</strong>
-                    <small>{category.totalHours.toFixed(2)}h - {category.totalRecords} registros</small>
-                  </div>
-                  <div className="preview-category-bar-track">
-                    <span style={{ width: `${Math.min(category.percentage, 100)}%` }} />
-                  </div>
-                  <strong className="preview-category-percent">{category.percentage}%</strong>
-                </div>
-              ))}
-            </div>
-          </section>
         </div>
 
         <aside className="preview-side-panel">
