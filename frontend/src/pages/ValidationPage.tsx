@@ -293,13 +293,19 @@ export function ValidationPage({
             </div>
 
             <div className="import-collaborator-progress">
-              <strong>Progresso do cadastro</strong>
-              <span>
-                {linkedCollaboratorsCount} de {activeUnprofiledCollaborators.length} com cargo definido
-              </span>
+              <div className="import-collaborator-progress-summary">
+                <div>
+                  <strong>Cadastro concluído</strong>
+                  <span>
+                    {linkedCollaboratorsCount} de {activeUnprofiledCollaborators.length} colaboradores
+                  </span>
+                </div>
+                <b>{collaboratorProgressPercentage}%</b>
+              </div>
               <div aria-hidden="true">
                 <i style={{ width: `${collaboratorProgressPercentage}%` }} />
               </div>
+              {areAllCollaboratorsLinked && <p>✓ Todos os colaboradores foram vinculados.</p>}
             </div>
 
             <div className="import-collaborator-list">

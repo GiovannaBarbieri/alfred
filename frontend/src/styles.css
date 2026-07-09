@@ -9436,26 +9436,46 @@ input {
   border: 1px solid #e8eef6;
   border-radius: 10px;
   display: grid;
-  gap: 6px;
-  padding: 10px;
+  gap: 7px;
+  padding: 8px 10px;
 }
 
-.import-collaborator-progress > strong {
+.import-collaborator-progress-summary {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.import-collaborator-progress-summary > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.import-collaborator-progress-summary strong {
   color: #0b1f36;
   font-size: 13px;
   font-weight: 850;
 }
 
-.import-collaborator-progress span {
+.import-collaborator-progress-summary span {
   color: #455468;
   font-size: 12px;
   font-weight: 750;
 }
 
-.import-collaborator-progress div {
+.import-collaborator-progress-summary b {
+  color: #0f4c8a;
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.import-collaborator-progress > div[aria-hidden="true"] {
   background: #e8eef6;
   border-radius: 999px;
-  height: 8px;
+  height: 7px;
   overflow: hidden;
 }
 
@@ -9465,6 +9485,13 @@ input {
   display: block;
   height: 100%;
   transition: width 180ms ease;
+}
+
+.import-collaborator-progress p {
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 800;
+  margin: 0;
 }
 
 .import-collaborator-list {
