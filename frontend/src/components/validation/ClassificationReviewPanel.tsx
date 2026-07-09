@@ -549,6 +549,7 @@ export function ClassificationReviewPanel({
                 ...model.factors,
                 ...model.matchedKeywords.slice(0, 3).map((keyword) => `Palavra-chave: ${keyword}`),
               ].slice(0, 6);
+              const primaryReason = reasons[0] ?? "Sugestão gerada a partir do padrão da atividade.";
 
               return (
                 <article
@@ -587,26 +588,38 @@ export function ClassificationReviewPanel({
                         <span>Pendência</span>
                         <strong>{pendingLabel}</strong>
                       </div>
-                      <div className="classification-review-cell suggestion">
-                        <span>Sugestão da IA</span>
+                      <div className="classification-review-cell suggestion decision">
+                        <span>Categoria</span>
                         <strong>{model.category || "Não classificado"}</strong>
-                        <small>{model.subcategory || "Sem subcategoria"}</small>
+                      </div>
+                      <div className="classification-review-cell suggestion decision">
+                        <span>Subcategoria</span>
+                        <strong>{model.subcategory || "Sem subcategoria"}</strong>
+                      </div>
+                      <div className="classification-review-cell reason">
+                        <span>Motivo</span>
+                        <strong>{primaryReason}</strong>
                       </div>
                       <div className="classification-review-cell action">
-                        <span>Ação</span>
-                        <button
-                          className="primary-button compact"
-                          type="button"
-                          onClick={() => acceptSuggestion(model)}
-                        >
-                          <Check size={14} />
-                          Aceitar sugestão
-                        </button>
+                        <span>Ações</span>
+                        <div>
+                          <button
+                            className="primary-button compact"
+                            type="button"
+                            onClick={() => acceptSuggestion(model)}
+                          >
+                            <Check size={14} />
+                            Aceitar
+                          </button>
+                          <button className="secondary-button compact" type="button" onClick={() => toggleTaskSelection(model.key)}>
+                            {isSelected ? "Selecionada" : "Selecionar"}
+                          </button>
+                        </div>
                       </div>
                     </div>
 
                     <details className="classification-details">
-                      <summary>Ajustar ou ver evidências</summary>
+                      <summary>Ajustar classificação ou ver evidências</summary>
                       <div className="classification-suggestion-grid">
                         <label>
                           <span>Categoria</span>
