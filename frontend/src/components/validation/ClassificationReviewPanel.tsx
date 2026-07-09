@@ -10,6 +10,7 @@ import {
   Lightbulb,
   ListChecks,
   MapPin,
+  RotateCcw,
   ShieldAlert,
   Sparkles,
   Tags,
@@ -61,6 +62,7 @@ type CardModel = {
   unclassified: boolean;
   conflict: boolean;
   needsAttention: boolean;
+  accepted: boolean;
 };
 
 const REVIEW_CONFIDENCE_THRESHOLD = 0.9;
@@ -169,6 +171,7 @@ export function ClassificationReviewPanel({
       const unclassified = isUnclassifiedValue(selected.category);
       const lowConfidence = confidence < REVIEW_CONFIDENCE_THRESHOLD;
       const key = `${item.idTask}-${selectedCollaborator || "all"}`;
+      const accepted = acceptedTasks.includes(key);
 
       return {
         key,
@@ -187,7 +190,8 @@ export function ClassificationReviewPanel({
         lowConfidence,
         unclassified,
         conflict,
-        needsAttention: !acceptedTasks.includes(key) && (lowConfidence || unclassified || conflict || item.needsReview),
+        needsAttention: !accepted && (lowConfidence || unclassified || conflict || item.needsReview),
+        accepted,
       };
     });
   }, [acceptedTasks, classificationReviewGroups, classificationsByLine, classificationOverrides, selectedCollaborator]);
@@ -195,7 +199,7 @@ export function ClassificationReviewPanel({
   const visibleCards = useMemo(() => {
     return cardModels.filter((model) => {
       if (selectedCollaborator && model.affectedLines.length === 0) return false;
-      if (quickFilter === "smart") return model.needsAttention;
+      if (quickFilter === "smart") return model.needsAttention || model.accepted;
       if (quickFilter === "low") return model.lowConfidence;
       if (quickFilter === "unclassified") return model.unclassified;
       if (quickFilter === "conflict") return model.conflict;
@@ -254,6 +258,12 @@ export function ClassificationReviewPanel({
     setAcceptedTasks((current) => (current.includes(model.key) ? current : [...current, model.key]));
     setSelectedTasks((current) => current.filter((key) => key !== model.key));
     setActionNotice(`Sugestao aceita para Task ${model.item.idTask}.`);
+    window.setTimeout(() => setActionNotice(""), 2600);
+  }
+
+  function undoSuggestion(model: CardModel) {
+    setAcceptedTasks((current) => current.filter((key) => key !== model.key));
+    setActionNotice(`Aceite desfeito para Task ${model.item.idTask}.`);
     window.setTimeout(() => setActionNotice(""), 2600);
   }
 
@@ -563,12 +573,13 @@ export function ClassificationReviewPanel({
 
               return (
                 <article
-                  className={`classification-task-card ${tone} ${isSelected ? "selected" : ""}`}
+                  className={`classification-task-card ${tone} ${isSelected ? "selected" : ""} ${model.accepted ? "accepted" : ""}`}
                   key={model.key}
                 >
                   <label className="classification-card-check" aria-label={`Selecionar task ${model.item.idTask}`}>
                     <input
                       checked={isSelected}
+                      disabled={model.accepted}
                       type="checkbox"
                       onChange={() => toggleTaskSelection(model.key)}
                     />
@@ -595,7 +606,7 @@ export function ClassificationReviewPanel({
                     <div className="classification-review-queue">
                       <div className={`classification-review-cell pending ${model.needsAttention ? "attention" : "ready"}`}>
                         <span>Pendência</span>
-                        <strong>{pendingLabel}</strong>
+                        <strong>{model.accepted ? "Aceito" : pendingLabel}</strong>
                       </div>
                       <div className="classification-review-cell suggestion decision">
                         <span>Categoria</span>
@@ -612,17 +623,32 @@ export function ClassificationReviewPanel({
                       <div className="classification-review-cell action">
                         <span>Ações</span>
                         <div>
-                          <button
-                            className="primary-button compact"
-                            type="button"
-                            onClick={() => acceptSuggestion(model)}
-                          >
-                            <Check size={14} />
-                            Aceitar
-                          </button>
-                          <button className="secondary-button compact" type="button" onClick={() => toggleTaskSelection(model.key)}>
-                            {isSelected ? "Selecionada" : "Selecionar"}
-                          </button>
+                          {model.accepted ? (
+                            <>
+                              <button className="accepted-action-button compact" disabled type="button">
+                                <CheckCircle2 size={14} />
+                                Aceito
+                              </button>
+                              <button className="secondary-button compact" type="button" onClick={() => undoSuggestion(model)}>
+                                <RotateCcw size={14} />
+                                Desfazer
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                className="primary-button compact"
+                                type="button"
+                                onClick={() => acceptSuggestion(model)}
+                              >
+                                <Check size={14} />
+                                Aceitar
+                              </button>
+                              <button className="secondary-button compact" type="button" onClick={() => toggleTaskSelection(model.key)}>
+                                {isSelected ? "Selecionada" : "Selecionar"}
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -633,6 +659,7 @@ export function ClassificationReviewPanel({
                         <label>
                           <span>Categoria</span>
                           <select
+                            disabled={model.accepted}
                             value={model.category}
                             onChange={(event) => updateLines(model.affectedLines, event.target.value, model.subcategory)}
                           >
@@ -646,6 +673,7 @@ export function ClassificationReviewPanel({
                         <label>
                           <span>Subcategoria</span>
                           <select
+                            disabled={model.accepted}
                             value={model.subcategory}
                             onChange={(event) => updateLines(model.affectedLines, model.category, event.target.value)}
                           >

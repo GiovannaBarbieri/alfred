@@ -3266,6 +3266,16 @@ input {
   border-left-width: 3px;
 }
 
+.classification-task-card.accepted {
+  background: #f7fef9;
+  border-color: #bbf7d0;
+  border-left-color: #16a34a;
+}
+
+.classification-task-card.accepted:hover {
+  box-shadow: 0 8px 18px rgba(22, 163, 74, 0.08);
+}
+
 .classification-task-card.editing {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.11), 0 14px 32px rgba(15, 23, 42, 0.085);
 }
@@ -3313,6 +3323,12 @@ input {
 
 .classification-card-check input:focus-visible + span {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.classification-card-check input:disabled + span {
+  background: #ecfdf3;
+  border-color: #bbf7d0;
+  cursor: not-allowed;
 }
 
 .classification-card-body {
@@ -3456,6 +3472,7 @@ input {
 }
 
 .classification-review-cell.action .primary-button,
+.classification-review-cell.action .accepted-action-button,
 .classification-review-cell.action .secondary-button {
   align-items: center;
   display: inline-flex;
@@ -3469,6 +3486,16 @@ input {
 
 .classification-review-cell.action .primary-button {
   flex: 1 1 auto;
+}
+
+.classification-review-cell.action .accepted-action-button {
+  background: #16a34a;
+  border: 1px solid #16a34a;
+  border-radius: 8px;
+  color: #ffffff;
+  cursor: default;
+  flex: 1 1 auto;
+  font-weight: 850;
 }
 
 .classification-review-cell.action .secondary-button {
@@ -3534,6 +3561,13 @@ input {
   border-color: #8bbcf7;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
   outline: 0;
+}
+
+.classification-suggestion-grid select:disabled {
+  background: #f1f5f9;
+  border-color: #dbe5ef;
+  color: #64748b;
+  cursor: not-allowed;
 }
 
 .classification-details {
