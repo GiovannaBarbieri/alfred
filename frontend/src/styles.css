@@ -4561,8 +4561,16 @@ input {
 
 .validation-confirmation-status > strong {
   color: #0b1f36;
-  font-size: 20px;
-  line-height: 1;
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+.validation-confirmation-status p {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+  margin: 0;
 }
 
 @media (max-width: 1080px) {

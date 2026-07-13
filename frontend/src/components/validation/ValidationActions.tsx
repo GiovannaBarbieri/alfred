@@ -1,25 +1,9 @@
 import { AlertTriangle, CheckCircle2, Clock3, Database, FileText, ListChecks, ShieldCheck, Users } from "lucide-react";
-import type { ImportSessionSummary, ImportValidationResponse } from "../../types";
-
-const statusLabels: Record<string, string> = {
-  RECEBIDO: "Recebido",
-  PROCESSANDO: "Processando",
-  VALIDADO: "Validado",
-  AGUARDANDO_CONFIRMACAO: "Aguardando confirmacao",
-  CONFIRMADO: "Confirmado",
-  CANCELADO: "Cancelado",
-  ERRO: "Erro",
-  em_validacao: "Em validacao",
-  concluida: "Concluida",
-  cancelada: "Cancelada",
-  reprocessada: "Reprocessada",
-};
+import type { ImportValidationResponse } from "../../types";
 
 type ValidationActionsProps = {
   fileName: string;
   result: ImportValidationResponse;
-  session: ImportSessionSummary | null;
-  sessionId: number | null;
   processingMessage: string | null;
   error: string | null;
   isLoading: boolean;
@@ -33,8 +17,6 @@ type ValidationActionsProps = {
 export function ValidationActions({
   fileName,
   result,
-  session,
-  sessionId,
   processingMessage,
   error,
   isLoading,
@@ -54,8 +36,9 @@ export function ValidationActions({
   const readinessTone = isReady ? "ready" : "attention";
   const readinessTitle = isReady ? "Tudo pronto para confirmar" : "Ainda existem pontos de atencao";
   const readinessDescription = isReady
-    ? "A importacao esta validada e pode ser persistida nas tabelas finais."
+    ? "Importacao pronta para confirmacao. Os dados permanecem temporarios ate que a confirmacao seja realizada."
     : "Revise bloqueios, duplicidades ou classificacoes antes de salvar.";
+  const displayProcessingMessage = isCompleting ? "Salvando dados no sistema..." : processingMessage;
 
   return (
     <section className="validation-confirmation-executive">
@@ -149,19 +132,15 @@ export function ValidationActions({
 
         <aside className="validation-confirmation-side">
           <div className="validation-confirmation-status">
-            <span>Sessao</span>
-            <strong>{session?.sessionId ?? sessionId ?? "-"}</strong>
-            {session && (
-              <span className={`status-badge import-status-${session.status.toLowerCase()}`}>
-                {statusLabels[session.status] ?? session.status}
-              </span>
-            )}
+            <span>Status</span>
+            <strong>{isReady ? "Importacao pronta" : "Revisao pendente"}</strong>
+            <p>Todos os dados permanecem temporarios ate que a confirmacao seja realizada.</p>
           </div>
 
-          {processingMessage && (
+          {displayProcessingMessage && (
             <div className="saving-status" role="status" aria-live="polite">
               <span className="loading-dot" />
-              {processingMessage}
+              {displayProcessingMessage}
             </div>
           )}
           {error && <p className="error-text">{error}</p>}
@@ -169,7 +148,7 @@ export function ValidationActions({
           <div className="validation-button-stack">
             <span
               className="tooltip-wrap"
-              data-tooltip="Reprocessar refaz a validacao da sessao atual usando categorias e perfis mais recentes, sem reenviar a planilha."
+              data-tooltip="Reprocessar atualiza a revisao usando categorias e perfis mais recentes, sem reenviar a planilha."
             >
               <button className="secondary-button compact" disabled={isLoading || isCompleting} onClick={onReprocess} type="button">
                 Reprocessar

@@ -317,7 +317,7 @@ export function useImportFlow({
       setCurrentSession(response.session);
       setResult(validation);
       setImportWizardStep("preview");
-      setProcessingMessage("Sessão temporária criada. Revise os pontos encontrados antes de confirmar.");
+      setProcessingMessage("Importacao pronta para revisao. Confirme ao final para salvar os dados.");
       setProcessingStepIndex(importProcessingSteps.length - 1);
       setProcessingMessage("Importacao concluida. Abrindo pre-visualizacao...");
       setInitialClassificationOverrides(validation);
@@ -375,7 +375,7 @@ export function useImportFlow({
     setIsCompleting(true);
     setError(null);
     setSuccessMessage(null);
-    setProcessingMessage("Salvando importação e consolidando os lançamentos...");
+    setProcessingMessage("Salvando os dados da importacao...");
 
     try {
       const response = await completeImportSession(
@@ -405,7 +405,7 @@ export function useImportFlow({
     if (!currentSession) return;
     setIsLoading(true);
     setError(null);
-    setProcessingMessage("Reprocessando a sessão com categorias e perfis atuais...");
+    setProcessingMessage("Atualizando a revisao com categorias e perfis atuais...");
 
     try {
       const response = await reprocessImportSession(currentSession.sessionId);
@@ -436,7 +436,7 @@ export function useImportFlow({
       setDuplicateSelections({});
       setClassificationOverrides({});
       setProcessingMessage(null);
-      setSuccessMessage("Importação temporária cancelada.");
+      setSuccessMessage("Importacao cancelada.");
       setImportWizardStep("upload");
       onCancelled();
     } catch (err) {

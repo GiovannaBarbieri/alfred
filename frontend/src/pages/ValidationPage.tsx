@@ -251,8 +251,6 @@ export function ValidationPage({
         <ValidationActions
           fileName={fileName ?? result.filename}
           result={result}
-          session={currentSession}
-          sessionId={result.sessionId}
           processingMessage={processingMessage}
           error={error}
           isLoading={isLoading}
