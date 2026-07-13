@@ -4420,6 +4420,41 @@ input {
   border-color: #fed7aa;
 }
 
+.validation-ready-checks {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.validation-ready-checks span {
+  align-items: center;
+  color: #15803d;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 850;
+  gap: 7px;
+  line-height: 1.35;
+}
+
+.validation-ready-checks.attention {
+  border-color: #fed7aa;
+}
+
+.validation-ready-checks.attention span {
+  color: #9a3412;
+}
+
+.validation-ready-note {
+  color: #166534;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+  margin: 0;
+}
+
 .validation-executive-card-heading {
   align-items: center;
   display: grid;

@@ -51,10 +51,6 @@ export function ValidationActions({
   const alertCount = result.alertRows;
   const isReady = canCompleteImport && !error;
   const readinessTone = isReady ? "ready" : "attention";
-  const readinessTitle = isReady ? "Tudo pronto para confirmar" : "Ainda existem pontos de atencao";
-  const readinessDescription = isReady
-    ? "Importacao pronta para confirmacao. Os dados permanecem temporarios ate que a confirmacao seja realizada."
-    : "Revise bloqueios, duplicidades ou classificacoes antes de salvar.";
   const displayProcessingMessage = isCompleting ? "Salvando dados no sistema..." : processingMessage;
 
   return (
@@ -158,10 +154,42 @@ export function ValidationActions({
               <div className="validation-executive-card-heading">
                 <span>{isReady ? <ShieldCheck size={18} /> : <AlertTriangle size={18} />}</span>
                 <div>
-                  <h3>{readinessTitle}</h3>
-                  <p>{readinessDescription}</p>
+                  <h3>{isReady ? "Pronto para salvar" : "Ainda existem pontos de atencao"}</h3>
+                  <p>
+                    {isReady
+                      ? "A importacao passou pelas revisoes necessarias."
+                      : "Revise bloqueios, duplicidades ou classificacoes antes de salvar."}
+                  </p>
                 </div>
               </div>
+              {isReady ? (
+                <>
+                  <div className="validation-ready-checks">
+                    <span>
+                      <CheckCircle2 size={15} />
+                      Todas as validacoes foram concluidas.
+                    </span>
+                    <span>
+                      <CheckCircle2 size={15} />
+                      Nenhum bloqueio encontrado.
+                    </span>
+                    <span>
+                      <CheckCircle2 size={15} />
+                      Os dados estao prontos para serem gravados definitivamente.
+                    </span>
+                  </div>
+                  <p className="validation-ready-note">
+                    Apos confirmar, os dados serao persistidos na base oficial e esta sessao temporaria sera encerrada.
+                  </p>
+                </>
+              ) : (
+                <div className="validation-ready-checks attention">
+                  <span>
+                    <AlertTriangle size={15} />
+                    Existem pontos que ainda precisam de revisao.
+                  </span>
+                </div>
+              )}
             </article>
 
             <article className="validation-executive-card">
