@@ -3525,6 +3525,22 @@ input {
   padding: 0 8px;
 }
 
+.classification-meta-row small {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.classification-meta-row strong {
+  color: #0b1f36;
+  font-size: 11px;
+  font-weight: 850;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .classification-meta-row svg {
   color: #64748b;
   flex: 0 0 auto;
@@ -3575,6 +3591,7 @@ input {
   color: #64748b;
   font-size: 11px;
   padding-top: 4px;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, padding 180ms ease;
 }
 
 .classification-details summary {
@@ -3600,8 +3617,14 @@ input {
 }
 
 .classification-details[open] {
+  background: #f8fbff;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.03);
   display: grid;
   gap: 8px;
+  margin-top: 2px;
+  padding: 9px 10px 10px;
 }
 
 .classification-details[open] summary::after {
@@ -3703,6 +3726,36 @@ input {
   position: absolute;
   top: 0.48em;
   width: 5px;
+}
+
+.classification-details[open] summary {
+  color: #0b1f36;
+  margin-bottom: 2px;
+}
+
+.classification-details[open] .classification-meta-row {
+  padding-top: 0;
+}
+
+.classification-details[open] .classification-meta-row span {
+  background: #ffffff;
+  border-color: #dbeafe;
+  max-width: 100%;
+}
+
+.classification-details[open] .classification-reasons {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  box-shadow: inset 3px 0 0 #3b82f6;
+}
+
+.classification-details[open] .classification-reasons strong {
+  color: #0f4c8a;
+}
+
+.classification-details[open] .classification-reasons p,
+.classification-details[open] .classification-reasons li {
+  color: #1e3a5f;
 }
 
 .classification-confidence-badge {

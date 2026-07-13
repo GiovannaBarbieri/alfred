@@ -654,7 +654,49 @@ export function ClassificationReviewPanel({
                     </div>
 
                     <details className="classification-details">
-                      <summary>Ajustar classificação ou ver evidências</summary>
+                      <summary>Ver detalhes</summary>
+                      <div className="classification-meta-row">
+                        <span>
+                          <UserRound size={14} />
+                          <small>Colaborador</small>
+                          <strong>{model.users.join(", ")}</strong>
+                        </span>
+                        <span>
+                          <MapPin size={14} />
+                          <small>Linhas da planilha</small>
+                          <strong>{model.affectedLines.join(", ")}</strong>
+                        </span>
+                        <span>
+                          <FileText size={14} />
+                          <small>Registros</small>
+                          <strong>{model.affectedLines.length}</strong>
+                        </span>
+                        <span>
+                          <Tags size={14} />
+                          <small>Origem</small>
+                          <strong>{model.origin}</strong>
+                        </span>
+                        <span>
+                          <Layers3 size={14} />
+                          <small>Versão</small>
+                          <strong>{model.classifierVersion || "Atual"}</strong>
+                        </span>
+                      </div>
+                      <div className="classification-reasons" role="note" aria-label="Motivo da classificação">
+                        <strong>
+                          <Lightbulb size={14} />
+                          Motivo da classificação
+                        </strong>
+                        {reasons.length > 0 ? (
+                          <ul>
+                            {reasons.map((reason) => (
+                              <li key={reason}>{reason}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p>Nenhum motivo detalhado retornado pelo classificador.</p>
+                        )}
+                      </div>
                       <div className="classification-suggestion-grid">
                         <label>
                           <span>Categoria</span>
@@ -684,45 +726,6 @@ export function ClassificationReviewPanel({
                             ))}
                           </select>
                         </label>
-                      </div>
-                      <div className="classification-meta-row">
-                        <span>
-                          <UserRound size={14} />
-                          {model.users.join(", ")}
-                        </span>
-                        <span>
-                          <FileText size={14} />
-                          {model.affectedLines.length} lançamento{model.affectedLines.length === 1 ? "" : "s"}
-                        </span>
-                        <span>
-                          <MapPin size={14} />
-                          {model.affectedLines.length === 1 ? "Linha" : "Linhas"} {model.affectedLines.join(", ")}
-                        </span>
-                        <span>
-                          <Tags size={14} />
-                          Origem: {model.origin}
-                        </span>
-                        {model.classifierVersion && (
-                          <span>
-                            <Layers3 size={14} />
-                            Versão {model.classifierVersion}
-                          </span>
-                        )}
-                      </div>
-                      <div className="classification-reasons">
-                        <strong>
-                          <Lightbulb size={14} />
-                          Motivo da classificação
-                        </strong>
-                        {reasons.length > 0 ? (
-                          <ul>
-                            {reasons.map((reason) => (
-                              <li key={reason}>{reason}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p>Nenhum motivo detalhado retornado pelo classificador.</p>
-                        )}
                       </div>
                     </details>
                   </div>
