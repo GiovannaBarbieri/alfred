@@ -10,7 +10,6 @@ type ValidationActionsProps = {
   isLoading: boolean;
   isCompleting: boolean;
   canCompleteImport: boolean;
-  onReprocess: () => void;
   onCancel: () => void;
   onComplete: () => void;
 };
@@ -24,7 +23,6 @@ export function ValidationActions({
   isLoading,
   isCompleting,
   canCompleteImport,
-  onReprocess,
   onCancel,
   onComplete,
 }: ValidationActionsProps) {
@@ -236,18 +234,10 @@ export function ValidationActions({
           {error && <p className="error-text">{error}</p>}
 
           <div className="validation-button-stack">
-            <span
-              className="tooltip-wrap"
-              data-tooltip="Reprocessar atualiza a revisao usando categorias e perfis mais recentes, sem reenviar a planilha."
-            >
-              <button className="secondary-button compact" disabled={isLoading || isCompleting} onClick={onReprocess} type="button">
-                Reprocessar
-              </button>
-            </span>
-            <button className="secondary-button compact" disabled={isLoading || isCompleting} onClick={onCancel} type="button">
-              Cancelar
+            <button className="secondary-button compact danger" disabled={isLoading || isCompleting} onClick={onCancel} type="button">
+              Descartar importacao
             </button>
-            <button className="primary-button compact" disabled={!canCompleteImport || isCompleting} onClick={onComplete} type="button">
+            <button className="primary-button compact confirm-import-button" disabled={!canCompleteImport || isCompleting} onClick={onComplete} type="button">
               {isCompleting ? "Salvando..." : "Confirmar importacao"}
             </button>
           </div>

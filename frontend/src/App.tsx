@@ -228,7 +228,6 @@ function App() {
             onToggleShowAllClassifications={importFlow.setShowAllClassifications}
             onClassificationOverridesChange={importFlow.setClassificationOverrides}
             onDuplicateSelectionsChange={importFlow.setDuplicateSelections}
-            onReprocess={importFlow.handleReprocessSession}
             onCancel={importFlow.handleCancelSession}
             onComplete={importFlow.handleComplete}
           />

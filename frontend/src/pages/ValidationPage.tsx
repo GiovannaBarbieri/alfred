@@ -40,7 +40,6 @@ type ValidationPageProps = {
     updater: SetStateAction<Record<number, { category: string; subcategory: string }>>,
   ) => void;
   onDuplicateSelectionsChange: (updater: SetStateAction<Record<string, number>>) => void;
-  onReprocess: () => void;
   onCancel: () => void;
   onComplete: () => void;
 };
@@ -72,7 +71,6 @@ export function ValidationPage({
   onToggleShowAllClassifications,
   onClassificationOverridesChange,
   onDuplicateSelectionsChange,
-  onReprocess,
   onCancel,
   onComplete,
 }: ValidationPageProps) {
@@ -257,7 +255,6 @@ export function ValidationPage({
           isLoading={isLoading}
           isCompleting={isCompleting}
           canCompleteImport={canCompleteImport}
-          onReprocess={onReprocess}
           onCancel={onCancel}
           onComplete={onComplete}
         />
