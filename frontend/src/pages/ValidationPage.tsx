@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { SetStateAction } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties, SetStateAction } from "react";
 import { ClassificationReviewPanel } from "../components/validation/ClassificationReviewPanel";
 import { DuplicatesPanel } from "../components/validation/DuplicatesPanel";
 import { ImportPreviewPanel } from "../components/validation/ImportPreviewPanel";
@@ -44,6 +44,13 @@ type ValidationPageProps = {
   onComplete: () => void;
 };
 
+type RoleMenuPlacement = {
+  left: number;
+  maxHeight: number;
+  top: number;
+  width: number;
+};
+
 export function ValidationPage({
   result,
   fileName,
@@ -82,6 +89,9 @@ export function ValidationPage({
   const [collaboratorModalError, setCollaboratorModalError] = useState<string | null>(null);
   const [collaboratorFeedback, setCollaboratorFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isSavingCollaborators, setIsSavingCollaborators] = useState(false);
+  const [pendingFocusLogin, setPendingFocusLogin] = useState<string | null>(null);
+  const [roleMenuPlacement, setRoleMenuPlacement] = useState<RoleMenuPlacement | null>(null);
+  const collaboratorListRef = useRef<HTMLDivElement | null>(null);
   const collaboratorCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const roleTriggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
@@ -110,6 +120,48 @@ export function ValidationPage({
     const timeout = window.setTimeout(() => setCollaboratorFeedback(null), 3600);
     return () => window.clearTimeout(timeout);
   }, [collaboratorFeedback]);
+
+  useLayoutEffect(() => {
+    if (!pendingFocusLogin) return;
+    const list = collaboratorListRef.current;
+    const card = collaboratorCardRefs.current[pendingFocusLogin];
+    const trigger = roleTriggerRefs.current[pendingFocusLogin];
+    if (!list || !card || !trigger) return;
+
+    const listRect = list.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    const isAboveView = cardRect.top < listRect.top;
+    const isBelowView = cardRect.bottom > listRect.bottom;
+
+    if (isAboveView || isBelowView) {
+      const targetTop = list.scrollTop + cardRect.top - listRect.top - (listRect.height - cardRect.height) / 2;
+      list.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+    }
+
+    window.requestAnimationFrame(() => {
+      trigger.focus({ preventScroll: true });
+      setPendingFocusLogin(null);
+    });
+  }, [collaboratorRoleDrafts, pendingFocusLogin]);
+
+  useLayoutEffect(() => {
+    if (!roleComboboxOpen) {
+      setRoleMenuPlacement(null);
+      return;
+    }
+    updateRoleMenuPlacement(roleComboboxOpen);
+  }, [roleComboboxOpen, roleSearchDrafts]);
+
+  useEffect(() => {
+    if (!roleComboboxOpen) return;
+    const openLogin = roleComboboxOpen;
+    function handleResize() {
+      updateRoleMenuPlacement(openLogin);
+    }
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [roleComboboxOpen]);
 
   useEffect(() => {
     if (
@@ -188,11 +240,38 @@ export function ValidationPage({
     setCollaboratorModalError(null);
     setRoleComboboxOpen(null);
     setRoleSearchDrafts({});
+    setPendingFocusLogin(null);
+    setRoleMenuPlacement(null);
   }
 
   function focusCollaboratorRole(login: string) {
-    collaboratorCardRefs.current[login]?.scrollIntoView({ behavior: "smooth", block: "center" });
-    window.setTimeout(() => roleTriggerRefs.current[login]?.focus({ preventScroll: true }), 180);
+    setPendingFocusLogin(login);
+  }
+
+  function updateRoleMenuPlacement(login: string) {
+    const trigger = roleTriggerRefs.current[login];
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const viewportMargin = 12;
+    const gap = 6;
+    const preferredHeight = 280;
+    const minimumHeight = 180;
+    const spaceBelow = window.innerHeight - rect.bottom - viewportMargin;
+    const spaceAbove = rect.top - viewportMargin;
+    const openUp = spaceBelow < 220 && spaceAbove > spaceBelow;
+    const availableSpace = Math.max(minimumHeight, (openUp ? spaceAbove : spaceBelow) - gap);
+    const maxHeight = Math.min(preferredHeight, availableSpace);
+    const top = openUp
+      ? Math.max(viewportMargin, rect.top - gap - maxHeight)
+      : Math.min(rect.bottom + gap, window.innerHeight - viewportMargin - maxHeight);
+    const width = Math.max(rect.width, 260);
+    const left = Math.min(
+      Math.max(viewportMargin, rect.left),
+      Math.max(viewportMargin, window.innerWidth - viewportMargin - width),
+    );
+
+    setRoleMenuPlacement({ left, maxHeight, top, width });
   }
 
   function handleSelectCollaboratorRole(login: string, roleId: number) {
@@ -208,7 +287,7 @@ export function ValidationPage({
     setRoleSearchDrafts((current) => ({ ...current, [login]: "" }));
 
     if (nextPending) {
-      window.setTimeout(() => focusCollaboratorRole(nextPending), 120);
+      focusCollaboratorRole(nextPending);
     }
   }
 
@@ -329,7 +408,13 @@ export function ValidationPage({
               {areAllCollaboratorsLinked && <p>✓ Todos os colaboradores foram vinculados.</p>}
             </div>
 
-            <div className="import-collaborator-list">
+            <div
+              className="import-collaborator-list"
+              ref={collaboratorListRef}
+              onScroll={() => {
+                if (roleComboboxOpen) updateRoleMenuPlacement(roleComboboxOpen);
+              }}
+            >
               {activeUnprofiledCollaborators.map((login) => {
                 const selectedRole = collaboratorProfileOptions.find((role) => role.id === Number(collaboratorRoleDrafts[login]));
                 const roleSearch = roleSearchDrafts[login] ?? "";
@@ -373,15 +458,30 @@ export function ValidationPage({
                           roleTriggerRefs.current[login] = element;
                         }}
                         onClick={() => {
-                          setRoleComboboxOpen((current) => (current === login ? null : login));
+                          setRoleComboboxOpen((current) => {
+                            const next = current === login ? null : login;
+                            if (next) {
+                              window.requestAnimationFrame(() => updateRoleMenuPlacement(next));
+                            }
+                            return next;
+                          });
                           setRoleSearchDrafts((current) => ({ ...current, [login]: "" }));
                         }}
                       >
                         <strong>{selectedRole?.name || "Escolha um cargo"}</strong>
                         <i aria-hidden="true" />
                       </button>
-                      {roleComboboxOpen === login && (
-                        <div className="import-role-menu">
+                      {roleComboboxOpen === login && roleMenuPlacement && (
+                        <div
+                          className="import-role-menu"
+                          style={{
+                            left: `${roleMenuPlacement.left}px`,
+                            maxHeight: `${roleMenuPlacement.maxHeight}px`,
+                            "--role-menu-options-max-height": `${Math.max(96, roleMenuPlacement.maxHeight - 82)}px`,
+                            top: `${roleMenuPlacement.top}px`,
+                            width: `${roleMenuPlacement.width}px`,
+                          } as CSSProperties}
+                        >
                           <label className="import-role-search">
                             <span aria-hidden="true">⌕</span>
                             <input

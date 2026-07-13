@@ -10710,6 +10710,7 @@ input {
   max-height: min(44vh, 410px);
   overflow: auto;
   padding-right: 4px;
+  scroll-behavior: smooth;
 }
 
 .import-collaborator-row {
@@ -10720,7 +10721,8 @@ input {
   box-shadow: 0 6px 14px rgba(15, 23, 42, 0.035);
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(170px, 0.95fr) minmax(250px, 1.1fr) minmax(104px, auto);
+  grid-template-columns: minmax(0, 36%) minmax(0, 42%) minmax(96px, 22%);
+  min-height: 74px;
   padding: 9px 10px;
   transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
@@ -10820,13 +10822,11 @@ input {
   box-shadow: 0 12px 26px rgba(15, 23, 42, 0.14);
   display: grid;
   gap: 6px;
-  max-height: min(280px, 40vh);
   max-width: 100%;
   overflow: hidden;
   padding: 7px;
-  position: relative;
-  width: 100%;
-  z-index: 140;
+  position: fixed;
+  z-index: 1300;
 }
 
 .import-role-search {
@@ -10876,7 +10876,7 @@ input {
 .import-role-menu > div {
   display: grid;
   gap: 4px;
-  max-height: 190px;
+  max-height: var(--role-menu-options-max-height, 190px);
   overflow-x: hidden;
   overflow-y: auto;
   padding-right: 2px;
@@ -10914,14 +10914,15 @@ input {
 
 .import-collaborator-status {
   border-radius: 999px;
+  display: inline-flex;
   font-size: 11px;
-  font-weight: 850;
+  font-weight: 700;
+  justify-content: center;
   letter-spacing: 0;
   line-height: 1;
-  min-height: 22px;
-  padding: 5px 7px;
+  min-height: 20px;
+  padding: 4px 8px;
   text-align: center;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -10932,8 +10933,8 @@ input {
 }
 
 .import-collaborator-status.pending {
-  background: #fff7ed;
-  color: #c2410c;
+  background: #fff8f1;
+  color: #b45309;
 }
 
 @keyframes collaboratorCardComplete {
