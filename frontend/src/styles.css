@@ -4007,17 +4007,17 @@ input {
 .classification-review-footer {
   border-top: 1px solid #e8eef6;
   display: grid;
-  margin-top: 2px;
-  padding-top: 5px;
+  margin-top: 8px;
+  padding-top: 10px;
 }
 
 .classification-footer-pagination {
   align-items: center;
   display: grid;
-  gap: 8px;
-  grid-template-columns: minmax(170px, 1fr) auto minmax(130px, 1fr);
-  min-height: 34px;
-  padding: 0 2px;
+  gap: 12px;
+  grid-template-columns: minmax(220px, 1fr) auto minmax(110px, 1fr);
+  min-height: 44px;
+  padding: 4px 2px;
 }
 
 .ghost-button {
@@ -4039,8 +4039,14 @@ input {
 
 .classification-pagination-summary {
   align-items: center;
+  background: #f8fbff;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
   display: inline-flex;
-  gap: 6px;
+  gap: 7px;
+  justify-self: start;
+  min-height: 34px;
+  padding: 0 12px;
 }
 
 .classification-pagination-summary span {
@@ -4049,11 +4055,25 @@ input {
   font-weight: 800;
 }
 
+.classification-pagination-summary strong {
+  color: #0b1f36;
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
 .classification-pagination-controls {
   align-items: center;
+  background: #ffffff;
+  border: 1px solid #dbe5f0;
+  border-radius: 12px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.055);
   display: flex;
-  gap: 6px;
+  gap: 5px;
   justify-content: center;
+  justify-self: center;
+  min-height: 38px;
+  padding: 4px;
 }
 
 .classification-page-numbers {
@@ -4073,6 +4093,14 @@ input {
   height: 28px;
   min-width: 28px;
   padding: 0 8px;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.classification-page-numbers button:hover {
+  background: #eef5ff;
+  border-color: #b9d5ff;
+  color: #0f4c8a;
+  transform: translateY(-1px);
 }
 
 .classification-page-numbers button.active {
@@ -4092,7 +4120,15 @@ input {
   height: 28px;
   justify-content: center;
   padding: 0;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
   width: 28px;
+}
+
+.classification-page-arrow:not(:disabled):hover {
+  background: #eef5ff;
+  border-color: #b9d5ff;
+  color: #0f4c8a;
+  transform: translateY(-1px);
 }
 
 .classification-page-arrow:disabled {

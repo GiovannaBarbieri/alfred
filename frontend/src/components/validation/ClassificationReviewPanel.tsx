@@ -829,7 +829,10 @@ export function ClassificationReviewPanel({
             {visibleCards.length > 0 && (
               <div className="classification-footer-pagination" aria-label="Paginação das atividades">
                 <div className="classification-pagination-summary">
-                  <span>{pageStartIndex + 1}–{pageEndIndex} de {visibleCards.length} • Página {currentPage}/{totalPages}</span>
+                  <span>Mostrando</span>
+                  <strong>{pageStartIndex + 1}–{pageEndIndex}</strong>
+                  <span>de</span>
+                  <strong>{visibleCards.length} atividades</strong>
                 </div>
                 <div className="classification-pagination-controls">
                   <button
