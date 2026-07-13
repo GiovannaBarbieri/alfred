@@ -57,6 +57,20 @@ export function ValidationActions({
     { label: "Atualizando estatisticas", status: confirmationSucceeded ? "done" : "pending" },
     { label: "Finalizando importacao", status: confirmationSucceeded ? "done" : "pending" },
   ];
+  const primaryMetrics = [
+    { icon: <Clock3 size={17} />, label: "Horas", value: `${totalHours.toFixed(2)}h` },
+    { icon: <FileText size={17} />, label: "Registros", value: result.validRows },
+    { icon: <ListChecks size={17} />, label: "Tasks", value: tasksCount },
+    { icon: <Users size={17} />, label: "Colaboradores", value: collaboratorsCount },
+  ];
+  const secondaryMetrics = [
+    { label: "Categorias", value: categoriesCount },
+    { label: "Subcategorias", value: subcategoriesCount },
+    { label: "Revisados manualmente", value: manuallyReviewedItems },
+    { label: "Automáticos", value: automaticallyClassifiedItems },
+    { label: "Duplicidades", value: duplicateGroups },
+    { label: "Bloqueios", value: blockingCount },
+  ];
 
   return (
     <section className="validation-confirmation-executive">
@@ -81,7 +95,7 @@ export function ValidationActions({
               </span>
               <div>
                 <h3>Resumo da importacao</h3>
-                <p>Principais numeros que serao persistidos apos a confirmacao.</p>
+                <p>Dados que serao gravados na base oficial.</p>
               </div>
             </div>
 
@@ -96,56 +110,19 @@ export function ValidationActions({
                 <span>Arquivo</span>
                 <strong>{fileName}</strong>
               </div>
-              <div>
-                <Clock3 size={17} />
-                <span>Horas importadas</span>
-                <strong>{totalHours.toFixed(2)}h</strong>
-              </div>
-              <div>
-                <FileText size={17} />
-                <span>Registros</span>
-                <strong>{result.validRows}</strong>
-              </div>
-              <div>
-                <ListChecks size={17} />
-                <span>Tasks</span>
-                <strong>{tasksCount}</strong>
-              </div>
-              <div>
-                <Users size={17} />
-                <span>Colaboradores</span>
-                <strong>{collaboratorsCount}</strong>
-              </div>
-              <div>
-                <ListChecks size={17} />
-                <span>Categorias</span>
-                <strong>{categoriesCount}</strong>
-              </div>
-              <div>
-                <ListChecks size={17} />
-                <span>Subcategorias</span>
-                <strong>{subcategoriesCount}</strong>
-              </div>
-              <div>
-                <CheckCircle2 size={17} />
-                <span>Itens revisados manualmente</span>
-                <strong>{manuallyReviewedItems}</strong>
-              </div>
-              <div>
-                <ShieldCheck size={17} />
-                <span>Classificados automaticamente</span>
-                <strong>{automaticallyClassifiedItems}</strong>
-              </div>
-              <div>
-                <AlertTriangle size={17} />
-                <span>Duplicidades</span>
-                <strong>{duplicateGroups}</strong>
-              </div>
-              <div>
-                <AlertTriangle size={17} />
-                <span>Bloqueios</span>
-                <strong>{blockingCount}</strong>
-              </div>
+              {primaryMetrics.map((metric) => (
+                <div className="primary" key={metric.label}>
+                  {metric.icon}
+                  <span>{metric.label}</span>
+                  <strong>{metric.value}</strong>
+                </div>
+              ))}
+              {secondaryMetrics.map((metric) => (
+                <div className="compact" key={metric.label}>
+                  <span>{metric.label}</span>
+                  <strong>{metric.value}</strong>
+                </div>
+              ))}
               <div className={`status ${isReady ? "ready" : "attention"}`}>
                 {isReady ? <CheckCircle2 size={17} /> : <AlertTriangle size={17} />}
                 <span>Status</span>
@@ -162,7 +139,7 @@ export function ValidationActions({
                   <h3>{isReady ? "Pronto para salvar" : "Ainda existem pontos de atencao"}</h3>
                   <p>
                     {isReady
-                      ? "A importacao passou pelas revisoes necessarias."
+                      ? "Validacoes concluidas e sem bloqueios."
                       : "Revise bloqueios, duplicidades ou classificacoes antes de salvar."}
                   </p>
                 </div>
@@ -184,7 +161,7 @@ export function ValidationActions({
                     </span>
                   </div>
                   <p className="validation-ready-note">
-                    Apos confirmar, os dados serao persistidos na base oficial e esta sessao temporaria sera encerrada.
+                    Apos confirmar, os dados serao gravados definitivamente.
                   </p>
                 </>
               ) : (
@@ -204,7 +181,7 @@ export function ValidationActions({
                 </span>
                 <div>
                   <h3>Checklist final</h3>
-                  <p>Resumo objetivo antes da persistencia.</p>
+                  <p>Sinais que liberam a gravacao.</p>
                 </div>
               </div>
               <div className="validation-confirmation-checklist">
@@ -229,7 +206,7 @@ export function ValidationActions({
           <div className="validation-confirmation-status">
             <span>Status</span>
             <strong>{isReady ? "Importacao pronta" : "Revisao pendente"}</strong>
-            <p>Todos os dados permanecem temporarios ate que a confirmacao seja realizada.</p>
+            <p>Os dados so entram na base oficial apos a confirmacao.</p>
           </div>
 
           {displayProcessingMessage && (

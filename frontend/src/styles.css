@@ -4328,7 +4328,7 @@ input {
 
 .validation-button-stack {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr);
 }
 
@@ -4367,8 +4367,8 @@ input {
 
 .validation-confirmation-executive {
   display: grid;
-  gap: 14px;
-  margin: 18px 0;
+  gap: 12px;
+  margin: 14px 0 18px;
 }
 
 .validation-confirmation-hero {
@@ -4378,16 +4378,16 @@ input {
   border-radius: 14px;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.045);
   display: flex;
-  gap: 16px;
+  gap: 14px;
   justify-content: space-between;
-  padding: 18px 20px;
+  padding: 14px 18px;
 }
 
 .validation-confirmation-hero h2 {
   color: #0b1f36;
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1.1;
-  margin: 4px 0 4px;
+  margin: 3px 0;
 }
 
 .validation-confirmation-hero p {
@@ -4425,13 +4425,13 @@ input {
 .validation-confirmation-layout {
   align-items: start;
   display: grid;
-  gap: 14px;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) minmax(290px, 340px);
 }
 
 .validation-confirmation-main {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .validation-executive-card {
@@ -4440,8 +4440,8 @@ input {
   border-radius: 14px;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
   display: grid;
-  gap: 14px;
-  padding: 16px;
+  gap: 12px;
+  padding: 14px;
 }
 
 .validation-executive-card.highlight {
@@ -4464,8 +4464,8 @@ input {
   border: 1px solid #bbf7d0;
   border-radius: 12px;
   display: grid;
-  gap: 8px;
-  padding: 10px;
+  gap: 7px;
+  padding: 9px;
 }
 
 .validation-ready-checks span {
@@ -4497,7 +4497,7 @@ input {
 .validation-executive-card-heading {
   align-items: center;
   display: grid;
-  gap: 10px;
+  gap: 9px;
   grid-template-columns: auto minmax(0, 1fr);
 }
 
@@ -4511,9 +4511,9 @@ input {
   border-radius: 10px;
   color: #0f4c8a;
   display: inline-flex;
-  height: 38px;
+  height: 36px;
   justify-content: center;
-  width: 38px;
+  width: 36px;
 }
 
 .validation-executive-card.readiness.ready .validation-executive-card-heading > span {
@@ -4542,18 +4542,29 @@ input {
 
 .validation-save-metrics {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .validation-save-metrics div {
   background: #f8fbff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 10px;
   display: grid;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
-  padding: 12px;
+  padding: 10px;
+}
+
+.validation-save-metrics .primary {
+  background: #f8fbff;
+  min-height: 92px;
+}
+
+.validation-save-metrics .compact {
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 44px;
 }
 
 .validation-save-metrics svg {
@@ -4562,7 +4573,7 @@ input {
 
 .validation-save-metrics span {
   color: #64748b;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 850;
   text-transform: uppercase;
 }
@@ -4587,6 +4598,10 @@ input {
   white-space: nowrap;
 }
 
+.validation-save-metrics .compact strong {
+  font-size: 16px;
+}
+
 .validation-save-metrics .status {
   background: #ecfdf3;
   border-color: #bbf7d0;
@@ -4609,7 +4624,7 @@ input {
 
 .validation-executive-grid {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -4645,8 +4660,8 @@ input {
   border-radius: 14px;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.045);
   display: grid;
-  gap: 12px;
-  padding: 16px;
+  gap: 10px;
+  padding: 14px;
   position: sticky;
   top: 16px;
 }
@@ -4656,8 +4671,8 @@ input {
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   display: grid;
-  gap: 6px;
-  padding: 12px;
+  gap: 5px;
+  padding: 11px;
 }
 
 .validation-confirmation-status > span:first-child {
@@ -4686,8 +4701,8 @@ input {
   border: 1px solid #bfd8ff;
   border-radius: 14px;
   display: grid;
-  gap: 12px;
-  padding: 13px;
+  gap: 10px;
+  padding: 12px;
 }
 
 .validation-confirmation-progress.complete {
