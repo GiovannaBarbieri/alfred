@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { SetStateAction } from "react";
 import { ClassificationReviewPanel } from "../components/validation/ClassificationReviewPanel";
 import { DuplicatesPanel } from "../components/validation/DuplicatesPanel";
@@ -82,6 +82,9 @@ export function ValidationPage({
   const [collaboratorModalError, setCollaboratorModalError] = useState<string | null>(null);
   const [collaboratorFeedback, setCollaboratorFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isSavingCollaborators, setIsSavingCollaborators] = useState(false);
+  const [focusedCollaboratorLogin, setFocusedCollaboratorLogin] = useState<string | null>(null);
+  const collaboratorCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const roleTriggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const activeUnprofiledCollaborators = useMemo(
     () =>
@@ -102,6 +105,11 @@ export function ValidationPage({
     activeUnprofiledCollaborators.length > 0 &&
     activeUnprofiledCollaborators.every((login) => Boolean(collaboratorRoleDrafts[login])) &&
     hasAvailableRoles;
+  const nextPendingCollaborator = activeUnprofiledCollaborators.find((login) => !collaboratorRoleDrafts[login]) ?? null;
+  const highlightedCollaboratorLogin =
+    focusedCollaboratorLogin && !collaboratorRoleDrafts[focusedCollaboratorLogin]
+      ? focusedCollaboratorLogin
+      : nextPendingCollaborator;
 
   useEffect(() => {
     if (!collaboratorFeedback) return;
@@ -126,9 +134,18 @@ export function ValidationPage({
       setCollaboratorModalError(null);
       setRoleComboboxOpen(null);
       setRoleSearchDrafts({});
+      setFocusedCollaboratorLogin(activeUnprofiledCollaborators.find((login) => !collaboratorRoleDrafts[login]) ?? activeUnprofiledCollaborators[0] ?? null);
       setIsCollaboratorModalOpen(true);
     }
   }, [activeUnprofiledCollaborators, dismissedCollaboratorSession, importWizardStep, result?.sessionId]);
+
+  useEffect(() => {
+    if (!isCollaboratorModalOpen || !highlightedCollaboratorLogin || !hasAvailableRoles) return;
+    const timeout = window.setTimeout(() => {
+      focusCollaboratorRole(highlightedCollaboratorLogin);
+    }, 120);
+    return () => window.clearTimeout(timeout);
+  }, [hasAvailableRoles, highlightedCollaboratorLogin, isCollaboratorModalOpen]);
 
   async function handleSaveMissingCollaborators() {
     if (!result) return;
@@ -186,6 +203,30 @@ export function ValidationPage({
     setCollaboratorModalError(null);
     setRoleComboboxOpen(null);
     setRoleSearchDrafts({});
+    setFocusedCollaboratorLogin(null);
+  }
+
+  function focusCollaboratorRole(login: string) {
+    collaboratorCardRefs.current[login]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    window.setTimeout(() => roleTriggerRefs.current[login]?.focus({ preventScroll: true }), 180);
+  }
+
+  function handleSelectCollaboratorRole(login: string, roleId: number) {
+    const currentIndex = activeUnprofiledCollaborators.indexOf(login);
+    const orderedCandidates = [
+      ...activeUnprofiledCollaborators.slice(currentIndex + 1),
+      ...activeUnprofiledCollaborators.slice(0, Math.max(currentIndex, 0)),
+    ];
+    const nextPending = orderedCandidates.find((candidate) => !collaboratorRoleDrafts[candidate]);
+
+    setCollaboratorRoleDrafts((current) => ({ ...current, [login]: String(roleId) }));
+    setRoleComboboxOpen(null);
+    setRoleSearchDrafts((current) => ({ ...current, [login]: "" }));
+    setFocusedCollaboratorLogin(nextPending ?? null);
+
+    if (nextPending) {
+      window.setTimeout(() => focusCollaboratorRole(nextPending), 120);
+    }
   }
 
   if (!result) {
@@ -318,7 +359,13 @@ export function ValidationPage({
                   });
                 const hasSelectedRole = Boolean(selectedRole);
                 return (
-                  <div className={`import-collaborator-row ${hasSelectedRole ? "complete" : "pending"}`} key={login}>
+                  <div
+                    className={`import-collaborator-row ${hasSelectedRole ? "complete" : "pending"} ${highlightedCollaboratorLogin === login ? "next-pending" : ""}`}
+                    key={login}
+                    ref={(element) => {
+                      collaboratorCardRefs.current[login] = element;
+                    }}
+                  >
                     <div className="import-collaborator-identity">
                       <span>Nome</span>
                       <strong>{formatCollaboratorName(login)}</strong>
@@ -339,9 +386,13 @@ export function ValidationPage({
                         aria-expanded={roleComboboxOpen === login}
                         className="import-role-trigger"
                         type="button"
+                        ref={(element) => {
+                          roleTriggerRefs.current[login] = element;
+                        }}
                         onClick={() => {
                           setRoleComboboxOpen((current) => (current === login ? null : login));
                           setRoleSearchDrafts((current) => ({ ...current, [login]: "" }));
+                          setFocusedCollaboratorLogin(login);
                         }}
                       >
                         <strong>{selectedRole?.name || "Escolha um cargo"}</strong>
@@ -356,6 +407,14 @@ export function ValidationPage({
                               placeholder="Pesquisar cargo..."
                               value={roleSearch}
                               onChange={(event) => setRoleSearchDrafts((current) => ({ ...current, [login]: event.target.value }))}
+                              onKeyDown={(event) => {
+                                if (event.key !== "Enter") return;
+                                event.preventDefault();
+                                const firstRole = filteredRoles[0];
+                                if (firstRole) {
+                                  handleSelectCollaboratorRole(login, firstRole.id);
+                                }
+                              }}
                             />
                           </label>
                           <span>Selecione o cargo para este colaborador.</span>
@@ -367,9 +426,7 @@ export function ValidationPage({
                                 key={role.id}
                                 type="button"
                                 onClick={() => {
-                                  setCollaboratorRoleDrafts((current) => ({ ...current, [login]: String(role.id) }));
-                                  setRoleComboboxOpen(null);
-                                  setRoleSearchDrafts((current) => ({ ...current, [login]: "" }));
+                                  handleSelectCollaboratorRole(login, role.id);
                                 }}
                               >
                                 <strong>{role.name}</strong>
@@ -409,7 +466,7 @@ export function ValidationPage({
                   Ignorar por enquanto
                 </button>
                 <button className="primary-button compact" disabled={!canSaveCollaborators || isSavingCollaborators} type="submit">
-                  {isSavingCollaborators ? "Cadastrando..." : "Cadastrar e continuar"}
+                  {isSavingCollaborators ? "Cadastrando..." : areAllCollaboratorsLinked ? "Continuar" : "Cadastrar e continuar"}
                 </button>
               </div>
               {!areAllCollaboratorsLinked && (
