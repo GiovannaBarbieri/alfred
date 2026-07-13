@@ -434,6 +434,7 @@ export function ClassificationReviewPanel({
   ];
   const pendingOnly = !showAllClassifications;
   const hasPendingItems = summary.attention > 0;
+  const hasActiveAdvancedFilter = quickFilter === "all" || quickFilter.startsWith("category:");
 
   function selectFilter(filterId: QuickFilter) {
     if (filterId === "all" || filterId.startsWith("category:")) {
@@ -451,6 +452,11 @@ export function ClassificationReviewPanel({
     onToggleShowAllClassifications(true);
     setQuickFilter("all");
     setShowMoreFilters(true);
+  }
+
+  function clearAdvancedFilters() {
+    onToggleShowAllClassifications(false);
+    setQuickFilter("smart");
   }
 
   return (
@@ -602,8 +608,18 @@ export function ClassificationReviewPanel({
             </div>
 
             {showMoreFilters && (
-              <div className="classification-advanced-filters" aria-label="Filtros avançados">
-                <span>Categorias e demais classificações</span>
+              <div
+                className={`classification-advanced-filters ${hasActiveAdvancedFilter ? "has-active-filter" : ""}`}
+                aria-label="Filtros avançados"
+              >
+                <div className="classification-advanced-filter-heading">
+                  <span>Categorias e demais classificações</span>
+                  {hasActiveAdvancedFilter && (
+                    <button className="classification-clear-filters" type="button" onClick={clearAdvancedFilters}>
+                      Limpar filtros
+                    </button>
+                  )}
+                </div>
                 <div className="classification-chip-row">
                   {advancedFilters.map((filter) => (
                     <button

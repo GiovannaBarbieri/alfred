@@ -3204,6 +3204,11 @@ input {
   color: #0f4c8a;
 }
 
+.classification-chip.active span {
+  background: rgba(255, 255, 255, 0.9);
+  color: #0f4c8a;
+}
+
 .classification-chip.more-filter,
 .classification-chip.subtle {
   background: #ffffff;
@@ -3226,6 +3231,18 @@ input {
   transform: rotate(180deg);
 }
 
+.classification-chip.subtle.active {
+  background: #0f4c8a;
+  border-color: #0f4c8a;
+  box-shadow: 0 8px 18px rgba(15, 76, 138, 0.18);
+  color: #ffffff;
+}
+
+.classification-chip.subtle.active span {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
 .classification-advanced-filters {
   animation: advancedFiltersIn 220ms ease;
   background: linear-gradient(180deg, #f5f9ff 0%, #ffffff 100%);
@@ -3241,10 +3258,43 @@ input {
   transform-origin: top;
 }
 
-.classification-advanced-filters > span {
+.classification-advanced-filters.has-active-filter {
+  background: linear-gradient(180deg, #eef5ff 0%, #ffffff 100%);
+  border-color: #9fc6f8;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.08), 0 10px 22px rgba(15, 76, 138, 0.1);
+}
+
+.classification-advanced-filter-heading {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.classification-advanced-filter-heading > span {
   color: #0f4c8a;
   font-size: 11px;
   font-weight: 850;
+}
+
+.classification-clear-filters {
+  background: #ffffff;
+  border: 1px solid #b9d5ff;
+  border-radius: 999px;
+  color: #0f4c8a;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 850;
+  min-height: 26px;
+  padding: 0 10px;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease;
+}
+
+.classification-clear-filters:hover {
+  background: #0f4c8a;
+  border-color: #0f4c8a;
+  box-shadow: 0 8px 18px rgba(15, 76, 138, 0.16);
+  color: #ffffff;
 }
 
 @keyframes advancedFiltersIn {
