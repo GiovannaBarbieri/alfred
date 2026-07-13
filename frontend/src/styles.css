@@ -4326,6 +4326,271 @@ input {
   grid-template-columns: 1fr 1fr 1.4fr;
 }
 
+.validation-confirmation-executive {
+  display: grid;
+  gap: 14px;
+  margin: 18px 0;
+}
+
+.validation-confirmation-hero {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #dbe5f0;
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.045);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 18px 20px;
+}
+
+.validation-confirmation-hero h2 {
+  color: #0b1f36;
+  font-size: 24px;
+  line-height: 1.1;
+  margin: 4px 0 4px;
+}
+
+.validation-confirmation-hero p {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 650;
+  margin: 0;
+}
+
+.validation-readiness-badge {
+  align-items: center;
+  border: 1px solid #dbe5f0;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 900;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+.validation-readiness-badge.ready {
+  background: #ecfdf3;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.validation-readiness-badge.attention {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+}
+
+.validation-confirmation-layout {
+  align-items: start;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+}
+
+.validation-confirmation-main {
+  display: grid;
+  gap: 14px;
+}
+
+.validation-executive-card {
+  background: #ffffff;
+  border: 1px solid #dbe5f0;
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.validation-executive-card.highlight {
+  border-color: #bfd8ff;
+  box-shadow: inset 3px 0 0 #2563eb, 0 12px 26px rgba(15, 76, 138, 0.055);
+}
+
+.validation-executive-card.readiness.ready {
+  background: #f7fef9;
+  border-color: #bbf7d0;
+}
+
+.validation-executive-card.readiness.attention {
+  background: #fffaf4;
+  border-color: #fed7aa;
+}
+
+.validation-executive-card-heading {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.validation-executive-card-heading.compact {
+  align-items: start;
+}
+
+.validation-executive-card-heading > span {
+  align-items: center;
+  background: #eef5ff;
+  border-radius: 10px;
+  color: #0f4c8a;
+  display: inline-flex;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.validation-executive-card.readiness.ready .validation-executive-card-heading > span {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.validation-executive-card.readiness.attention .validation-executive-card-heading > span {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.validation-executive-card-heading h3 {
+  color: #0b1f36;
+  font-size: 16px;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.validation-executive-card-heading p {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 650;
+  margin: 3px 0 0;
+}
+
+.validation-save-metrics {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.validation-save-metrics div {
+  background: #f8fbff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.validation-save-metrics svg {
+  color: #0f4c8a;
+}
+
+.validation-save-metrics span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.validation-save-metrics strong {
+  color: #0b1f36;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.validation-executive-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.validation-confirmation-checklist {
+  display: grid;
+  gap: 8px;
+}
+
+.validation-confirmation-checklist span {
+  align-items: center;
+  border-radius: 10px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 850;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 10px;
+}
+
+.validation-confirmation-checklist .done {
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+.validation-confirmation-checklist .attention {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.validation-confirmation-side {
+  background: #ffffff;
+  border: 1px solid #dbe5f0;
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.045);
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  position: sticky;
+  top: 16px;
+}
+
+.validation-confirmation-status {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+}
+
+.validation-confirmation-status > span:first-child {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.validation-confirmation-status > strong {
+  color: #0b1f36;
+  font-size: 20px;
+  line-height: 1;
+}
+
+@media (max-width: 1080px) {
+  .validation-confirmation-layout,
+  .validation-executive-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .validation-confirmation-side {
+    position: static;
+  }
+
+  .validation-save-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .validation-confirmation-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .validation-save-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
 .tooltip-wrap {
   display: inline-flex;
   min-width: 0;

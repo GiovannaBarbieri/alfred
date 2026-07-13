@@ -250,6 +250,7 @@ export function ValidationPage({
       {importWizardStep === "confirm" && (
         <ValidationActions
           fileName={fileName ?? result.filename}
+          result={result}
           session={currentSession}
           sessionId={result.sessionId}
           processingMessage={processingMessage}
