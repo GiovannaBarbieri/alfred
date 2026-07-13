@@ -33,11 +33,11 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
   const fileHistory = result.fileHistory;
   const historyTone = fileHistory?.exactDuplicate ? "warning" : fileHistory?.status === "nova_versao" ? "info" : "success";
   const historyBadgeLabel = fileHistory?.exactDuplicate
-    ? "Arquivo ja importado"
+    ? "Arquivo já importado"
     : fileHistory?.status === "nova_versao"
-      ? "Possivel atualizacao"
+      ? "Possível atualização"
       : fileHistory
-        ? "Importacao inedita"
+        ? "Importação inédita"
         : null;
   const classifiedRecords = Math.max(result.totalRows - (preview?.unclassifiedCount ?? 0), 0);
   const possibleInconsistencies = result.alertRows + result.blockedRows;
@@ -50,8 +50,8 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
   const validationSummaryMessage = hasBlocking
     ? "Bloqueios impedem continuar."
     : reviewItems > 0 || result.duplicates.length > 0
-      ? "Pronta, com revisoes pendentes."
-      : "Validada e pronta.";
+      ? "Importação pronta, com revisões pendentes."
+      : "Importação validada e pronta.";
   const nextStep = hasBlocking
     ? "validation"
     : result.duplicates.length > 0
@@ -72,24 +72,24 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
       : nextStep === "duplicates"
         ? "Resolver duplicidades"
         : nextStep === "classification"
-          ? "Revisar classificacoes"
-          : "Confirmar importacao";
+          ? "Revisar classificações"
+          : "Confirmar importação";
   const nextStepDetail =
     nextStep === "validation"
       ? "Existem problemas que impedem a continuidade."
       : nextStep === "duplicates"
         ? "Existem registros duplicados para revisar."
         : nextStep === "classification"
-          ? "Existem itens que precisam de validacao antes de salvar."
-          : "A importacao esta pronta para ser salva.";
+          ? "Existem itens que precisam de revisão antes da confirmação."
+          : "A importação está pronta para ser salva.";
   const nextStepButtonLabel =
     nextStep === "validation"
       ? "Ver bloqueios"
       : nextStep === "duplicates"
         ? "Revisar duplicidades"
         : nextStep === "classification"
-          ? "Revisar classificacoes"
-          : "Continuar para confirmacao";
+          ? "Revisar classificações"
+          : "Continuar para confirmação";
   const flowSteps = [
     { id: "upload", label: "Upload", status: "done" },
     { id: "validation", label: "Validação", status: hasBlocking ? "attention" : "done" },
@@ -107,7 +107,7 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
             <span className="eyebrow">Pré-validação</span>
             {historyBadgeLabel && <span className={`import-history-badge ${historyTone}`}>{historyBadgeLabel}</span>}
           </div>
-          <p>Confira o status e avance pela proxima acao.</p>
+          <p>Confira o status da importação e avance para a próxima etapa.</p>
         </div>
         <span className={`preview-status ${previewStatus.tone}`}>
           {previewStatus.icon}
@@ -168,7 +168,7 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
               </div>
               <div className="preview-health-list">
                 <PreviewHealthItem icon={<CheckCircle2 size={16} />} label="registros prontos" value={result.validRows} tone="success" />
-                <PreviewHealthItem icon={<AlertTriangle size={16} />} label="precisam de revisao" value={reviewItems} tone={reviewItems > 0 ? "warning" : "neutral"} />
+                <PreviewHealthItem icon={<AlertTriangle size={16} />} label="itens precisam de revisão" value={reviewItems} tone={reviewItems > 0 ? "warning" : "neutral"} />
                 <PreviewHealthItem icon={<Ban size={16} />} label="bloqueios" value={result.blockedRows} tone={result.blockedRows > 0 ? "danger" : "neutral"} />
                 <PreviewHealthItem icon={<CircleDot size={16} />} label="duplicidades" value={result.duplicates.length} tone={result.duplicates.length > 0 ? "warning" : "neutral"} />
               </div>
@@ -179,14 +179,14 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
                 <span><Sparkles size={17} /></span>
                 <div>
                   <h3>Qualidade da classificação</h3>
-                  <p>{hasClassificationIssues ? "Ha itens que exigem atencao." : "Tudo classificado corretamente."}</p>
+                  <p>{hasClassificationIssues ? "Há itens que exigem atenção." : "Tudo classificado corretamente."}</p>
                 </div>
               </div>
               <div className="preview-insight-list">
                 <InsightRow label="Classificados" value={classifiedRecords} tone="success" />
-                <InsightRow label="Nao classificados" value={preview?.unclassifiedCount ?? 0} tone={(preview?.unclassifiedCount ?? 0) > 0 ? "warning" : "neutral"} />
-                <InsightRow label="Baixa confianca" value={preview?.lowConfidenceCount ?? 0} tone={(preview?.lowConfidenceCount ?? 0) > 0 ? "warning" : "neutral"} />
-                <InsightRow label="Inconsistencias" value={possibleInconsistencies} tone={possibleInconsistencies > 0 ? "warning" : "neutral"} />
+                <InsightRow label="Não classificados" value={preview?.unclassifiedCount ?? 0} tone={(preview?.unclassifiedCount ?? 0) > 0 ? "warning" : "neutral"} />
+                <InsightRow label="Baixa confiança" value={preview?.lowConfidenceCount ?? 0} tone={(preview?.lowConfidenceCount ?? 0) > 0 ? "warning" : "neutral"} />
+                <InsightRow label="Inconsistências" value={possibleInconsistencies} tone={possibleInconsistencies > 0 ? "warning" : "neutral"} />
                 <InsightRow label="Duplicidades encontradas" value={result.duplicates.length} tone={result.duplicates.length > 0 ? "danger" : "neutral"} />
               </div>
             </section>
