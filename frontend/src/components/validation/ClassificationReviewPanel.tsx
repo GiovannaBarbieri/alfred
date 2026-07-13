@@ -11,6 +11,7 @@ import {
   ListChecks,
   MapPin,
   RotateCcw,
+  Search,
   ShieldAlert,
   Sparkles,
   Tags,
@@ -94,11 +95,11 @@ function confidenceTone(confidence: number) {
 
 function confidenceBadge(confidence: number) {
   const percentage = Math.round(confidence * 100);
-  if (confidence >= 0.95) return { tone: "very-high", label: "Muito alta", percentage };
-  if (confidence >= 0.85) return { tone: "high", label: "Alta", percentage };
-  if (confidence >= 0.7) return { tone: "medium", label: "Média", percentage };
-  if (confidence >= 0.4) return { tone: "low", label: "Baixa", percentage };
-  return { tone: "very-low", label: "Muito baixa", percentage };
+  if (confidence >= 0.95) return { variant: "success", label: "Muito alta", percentage };
+  if (confidence >= 0.85) return { variant: "success", label: "Alta", percentage };
+  if (confidence >= 0.7) return { variant: "info", label: "Media", percentage };
+  if (confidence >= 0.4) return { variant: "warning", label: "Baixa", percentage };
+  return { variant: "danger", label: "Muito baixa", percentage };
 }
 
 function matchesCategoryFilter(category: string, filter: QuickFilter) {
@@ -106,6 +107,97 @@ function matchesCategoryFilter(category: string, filter: QuickFilter) {
     return normalizeText(category) === normalizeText(filter.replace("category:", ""));
   }
   return true;
+}
+
+type SearchableSelectProps = {
+  ariaLabel: string;
+  disabled?: boolean;
+  emptyLabel?: string;
+  onChange: (value: string) => void;
+  options: string[];
+  placeholder: string;
+  searchPlaceholder?: string;
+  value: string;
+};
+
+function SearchableSelect({
+  ariaLabel,
+  disabled = false,
+  emptyLabel,
+  onChange,
+  options,
+  placeholder,
+  searchPlaceholder = "Buscar...",
+  value,
+}: SearchableSelectProps) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const filteredOptions = useMemo(() => {
+    const term = normalizeText(search);
+    if (!term) return options;
+    return options.filter((option) => normalizeText(option || emptyLabel).includes(term));
+  }, [emptyLabel, options, search]);
+
+  function selectOption(option: string) {
+    onChange(option);
+    setOpen(false);
+    setSearch("");
+  }
+
+  return (
+    <div
+      className={`classification-search-select ${open ? "open" : ""} ${disabled ? "disabled" : ""}`}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setOpen(false);
+          setSearch("");
+        }
+      }}
+    >
+      <button
+        aria-expanded={open}
+        aria-label={ariaLabel}
+        disabled={disabled}
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span className={value ? "" : "placeholder"}>{value || placeholder}</span>
+        <ChevronDown size={16} />
+      </button>
+      {open && !disabled && (
+        <div className="classification-search-select-menu">
+          <label className="classification-search-select-input">
+            <Search size={15} />
+            <input
+              autoFocus
+              placeholder={searchPlaceholder}
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </label>
+          <div className="classification-search-select-options" role="listbox">
+            {filteredOptions.length === 0 ? (
+              <div className="classification-search-select-empty">Nenhuma opção encontrada.</div>
+            ) : (
+              filteredOptions.map((option) => (
+                <button
+                  className={option === value ? "active" : ""}
+                  key={option || "__empty"}
+                  role="option"
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => selectOption(option)}
+                >
+                  <span>{option || emptyLabel || placeholder}</span>
+                  {option === value && <Check size={14} />}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function ClassificationReviewPanel({
@@ -381,10 +473,10 @@ export function ClassificationReviewPanel({
             </div>
 
             <div className="classification-review-summary" aria-label="Resumo da fila de revisão">
-              <span className="warning"><strong>{summary.attention}</strong> Pendências</span>
-              <span className={summary.conflicts > 0 ? "danger" : "neutral"}><strong>{summary.conflicts}</strong> Conflitos</span>
-              <span className={summary.unclassified > 0 ? "warning" : "neutral"}><strong>{summary.unclassified}</strong> Sem categoria</span>
-              <span className={summary.lowConfidence > 0 ? "warning" : "neutral"}><strong>{summary.lowConfidence}</strong> Baixa confiança</span>
+              <span className="classification-badge warning"><strong>{summary.attention}</strong> Pendências</span>
+              <span className={`classification-badge ${summary.conflicts > 0 ? "danger" : "neutral"}`}><strong>{summary.conflicts}</strong> Conflitos</span>
+              <span className={`classification-badge ${summary.unclassified > 0 ? "warning" : "neutral"}`}><strong>{summary.unclassified}</strong> Sem categoria</span>
+              <span className={`classification-badge ${summary.lowConfidence > 0 ? "warning" : "neutral"}`}><strong>{summary.lowConfidence}</strong> Baixa confiança</span>
             </div>
 
             <div className="classification-filter-row">
@@ -510,22 +602,24 @@ export function ClassificationReviewPanel({
                   {allVisibleSelected ? "Desmarcar visiveis" : "Selecionar todas visiveis"}
                 </button>
                 <strong>{selectedTasks.length} selecionada{selectedTasks.length === 1 ? "" : "s"}</strong>
-                <select value={bulkCategory} onChange={(event) => setBulkCategory(event.target.value)}>
-                  <option value="">Categoria</option>
-                  {categoryOptions.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-                <select value={bulkSubcategory} onChange={(event) => setBulkSubcategory(event.target.value)}>
-                  <option value="">Subcategoria</option>
-                  {subcategoryOptions.map((subcategory) => (
-                    <option key={subcategory} value={subcategory}>
-                      {subcategory}
-                    </option>
-                  ))}
-                </select>
+                <SearchableSelect
+                  ariaLabel="Selecionar categoria em lote"
+                  emptyLabel="Sem categoria em lote"
+                  options={["", ...categoryOptions]}
+                  placeholder="Categoria"
+                  searchPlaceholder="Buscar categoria..."
+                  value={bulkCategory}
+                  onChange={setBulkCategory}
+                />
+                <SearchableSelect
+                  ariaLabel="Selecionar subcategoria em lote"
+                  emptyLabel="Sem subcategoria em lote"
+                  options={["", ...subcategoryOptions]}
+                  placeholder="Subcategoria"
+                  searchPlaceholder="Buscar subcategoria..."
+                  value={bulkSubcategory}
+                  onChange={setBulkSubcategory}
+                />
                 <button className="primary-button compact" type="button" onClick={applyBulkChange}>
                   Aplicar em selecionadas
                 </button>
@@ -594,7 +688,7 @@ export function ClassificationReviewPanel({
                       </div>
                       <div className="classification-card-status">
                         <span
-                          className={`classification-confidence-badge ${confidence.tone}`}
+                          className={`classification-badge ${confidence.variant} confidence`}
                           title={`${confidence.percentage}% de confiança. Indica o quanto a IA está segura sobre esta sugestão.`}
                         >
                           <strong>{confidence.percentage}%</strong>
@@ -656,27 +750,27 @@ export function ClassificationReviewPanel({
                     <details className="classification-details">
                       <summary>Ver detalhes</summary>
                       <div className="classification-meta-row">
-                        <span>
+                        <span className="classification-badge neutral detail">
                           <UserRound size={14} />
                           <small>Colaborador</small>
                           <strong>{model.users.join(", ")}</strong>
                         </span>
-                        <span>
+                        <span className="classification-badge neutral detail">
                           <MapPin size={14} />
                           <small>Linhas da planilha</small>
                           <strong>{model.affectedLines.join(", ")}</strong>
                         </span>
-                        <span>
+                        <span className="classification-badge info detail">
                           <FileText size={14} />
                           <small>Registros</small>
                           <strong>{model.affectedLines.length}</strong>
                         </span>
-                        <span>
+                        <span className="classification-badge neutral detail">
                           <Tags size={14} />
                           <small>Origem</small>
                           <strong>{model.origin}</strong>
                         </span>
-                        <span>
+                        <span className="classification-badge neutral detail">
                           <Layers3 size={14} />
                           <small>Versão</small>
                           <strong>{model.classifierVersion || "Atual"}</strong>
@@ -700,31 +794,27 @@ export function ClassificationReviewPanel({
                       <div className="classification-suggestion-grid">
                         <label>
                           <span>Categoria</span>
-                          <select
+                          <SearchableSelect
+                            ariaLabel={`Selecionar categoria da task ${model.item.idTask}`}
                             disabled={model.accepted}
+                            options={categoryOptions}
+                            placeholder="Categoria"
+                            searchPlaceholder="Buscar categoria..."
                             value={model.category}
-                            onChange={(event) => updateLines(model.affectedLines, event.target.value, model.subcategory)}
-                          >
-                            {categoryOptions.map((category) => (
-                              <option key={category} value={category}>
-                                {category}
-                              </option>
-                            ))}
-                          </select>
+                            onChange={(category) => updateLines(model.affectedLines, category, model.subcategory)}
+                          />
                         </label>
                         <label>
                           <span>Subcategoria</span>
-                          <select
+                          <SearchableSelect
+                            ariaLabel={`Selecionar subcategoria da task ${model.item.idTask}`}
                             disabled={model.accepted}
+                            options={subcategoryOptions}
+                            placeholder="Subcategoria"
+                            searchPlaceholder="Buscar subcategoria..."
                             value={model.subcategory}
-                            onChange={(event) => updateLines(model.affectedLines, model.category, event.target.value)}
-                          >
-                            {subcategoryOptions.map((subcategory) => (
-                              <option key={subcategory} value={subcategory}>
-                                {subcategory}
-                              </option>
-                            ))}
-                          </select>
+                            onChange={(subcategory) => updateLines(model.affectedLines, model.category, subcategory)}
+                          />
                         </label>
                       </div>
                     </details>
