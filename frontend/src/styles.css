@@ -1546,19 +1546,17 @@ input {
   align-items: center;
   background: transparent;
   border-bottom: 1px solid #edf2f7;
-  border-radius: 0;
-  display: flex;
+  border-radius: 7px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
-  justify-content: space-between;
   min-height: 26px;
-  padding: 2px 0 5px;
+  padding: 5px 8px;
 }
 
 .preview-insight-row.warning,
 .preview-insight-row.danger {
-  border-radius: 7px;
   border-bottom-color: transparent;
-  padding: 5px 8px;
 }
 
 .preview-insight-row.warning {
@@ -1571,18 +1569,19 @@ input {
 
 .preview-insight-row:last-child {
   border-bottom: 0;
-  padding-bottom: 0;
 }
 
 .preview-insight-row span {
   color: #475569;
   font-size: 12px;
   font-weight: 500;
+  min-width: 0;
 }
 
 .preview-insight-row strong {
   border-radius: 999px;
   color: #0f172a;
+  font-variant-numeric: tabular-nums;
   font-size: 12px;
   min-width: 30px;
   padding: 3px 8px;
