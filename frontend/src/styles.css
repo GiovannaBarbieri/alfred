@@ -4681,6 +4681,80 @@ input {
   margin: 0;
 }
 
+.validation-confirmation-progress {
+  background: #f8fbff;
+  border: 1px solid #bfd8ff;
+  border-radius: 14px;
+  display: grid;
+  gap: 12px;
+  padding: 13px;
+}
+
+.validation-confirmation-progress.complete {
+  background: #f7fef9;
+  border-color: #bbf7d0;
+}
+
+.validation-confirmation-progress > div {
+  display: grid;
+  gap: 3px;
+}
+
+.validation-confirmation-progress strong {
+  color: #0b1f36;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.validation-confirmation-progress span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.validation-confirmation-progress ol {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.validation-confirmation-progress li {
+  align-items: center;
+  color: #94a3b8;
+  display: grid;
+  font-size: 12px;
+  font-weight: 850;
+  gap: 8px;
+  grid-template-columns: 18px minmax(0, 1fr);
+  min-height: 24px;
+}
+
+.validation-confirmation-progress li.done {
+  color: #15803d;
+}
+
+.validation-confirmation-progress li.active {
+  color: #0f4c8a;
+}
+
+.validation-confirmation-progress li > i {
+  border: 2px solid #cbd5e1;
+  border-radius: 999px;
+  height: 10px;
+  justify-self: center;
+  width: 10px;
+}
+
+.validation-confirmation-progress .button-spinner {
+  border-color: rgba(15, 76, 138, 0.18);
+  border-top-color: #0f4c8a;
+  height: 15px;
+  justify-self: center;
+  width: 15px;
+}
+
 @media (max-width: 1080px) {
   .validation-confirmation-layout,
   .validation-executive-grid {

@@ -30,6 +30,7 @@ export const sqlServerProcessingSteps = [
 
 const CLASSIFICATION_REVIEW_THRESHOLD = 0.9;
 const IMPORT_COMPLETION_PREVIEW_MS = 1000;
+const IMPORT_CONFIRMATION_SUCCESS_MS = 1200;
 
 function wait(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -375,7 +376,7 @@ export function useImportFlow({
     setIsCompleting(true);
     setError(null);
     setSuccessMessage(null);
-    setProcessingMessage("Salvando os dados da importacao...");
+    setProcessingMessage("Gravando registros...");
 
     try {
       const response = await completeImportSession(
@@ -383,6 +384,8 @@ export function useImportFlow({
         duplicateKeepLines,
         classificationOverridePayload,
       );
+      setProcessingMessage("Importacao confirmada com sucesso. Abrindo relatorios...");
+      await wait(IMPORT_CONFIRMATION_SUCCESS_MS);
       setFile(null);
       setResult(null);
       setSuccessMessage(null);

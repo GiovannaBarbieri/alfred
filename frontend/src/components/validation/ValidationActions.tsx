@@ -49,7 +49,14 @@ export function ValidationActions({
   const alertCount = result.alertRows;
   const isReady = canCompleteImport && !error;
   const readinessTone = isReady ? "ready" : "attention";
-  const displayProcessingMessage = isCompleting ? "Salvando dados no sistema..." : processingMessage;
+  const confirmationSucceeded = Boolean(processingMessage?.toLowerCase().includes("confirmada"));
+  const displayProcessingMessage = confirmationSucceeded ? processingMessage : isCompleting ? "Confirmando importacao..." : processingMessage;
+  const confirmationSteps = [
+    { label: "Validando importacao", status: isCompleting ? "done" : "pending" },
+    { label: "Gravando registros", status: confirmationSucceeded ? "done" : isCompleting ? "active" : "pending" },
+    { label: "Atualizando estatisticas", status: confirmationSucceeded ? "done" : "pending" },
+    { label: "Finalizando importacao", status: confirmationSucceeded ? "done" : "pending" },
+  ];
 
   return (
     <section className="validation-confirmation-executive">
@@ -229,6 +236,24 @@ export function ValidationActions({
             <div className="saving-status" role="status" aria-live="polite">
               <span className="loading-dot" />
               {displayProcessingMessage}
+            </div>
+          )}
+          {isCompleting && (
+            <div className={`validation-confirmation-progress ${confirmationSucceeded ? "complete" : ""}`} role="status" aria-live="polite">
+              <div>
+                <strong>{confirmationSucceeded ? "Importacao confirmada com sucesso" : "Confirmando importacao..."}</strong>
+                <span>{confirmationSucceeded ? "Tudo certo. Voce sera direcionado automaticamente." : "Estamos salvando os dados na base oficial."}</span>
+              </div>
+              <ol>
+                {confirmationSteps.map((step) => (
+                  <li className={step.status} key={step.label}>
+                    {step.status === "done" && <CheckCircle2 size={15} />}
+                    {step.status === "active" && <span className="button-spinner" />}
+                    {step.status === "pending" && <i />}
+                    {step.label}
+                  </li>
+                ))}
+              </ol>
             </div>
           )}
           {error && <p className="error-text">{error}</p>}
