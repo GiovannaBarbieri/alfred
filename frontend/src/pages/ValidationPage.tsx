@@ -377,12 +377,12 @@ export function ValidationPage({
               <div className="settings-modal-header">
                 <span>1</span>
                 <div>
-                  <h3 id="import-collaborator-title">Cadastro rapido de colaboradores</h3>
-                  <p>Associe um cargo aos colaboradores encontrados durante a importacao.</p>
+                  <h3 id="import-collaborator-title">Cadastro rápido de colaboradores</h3>
+                  <p>Associe um cargo aos colaboradores encontrados durante a importação.</p>
                 </div>
               </div>
               <span className={`import-collaborator-count-badge ${areAllCollaboratorsLinked ? "complete" : ""}`}>
-                {areAllCollaboratorsLinked ? "✓ Cadastro concluído" : `${pendingCollaboratorsCount} pendente${pendingCollaboratorsCount === 1 ? "" : "s"}`}
+                {areAllCollaboratorsLinked ? "Todos cadastrados" : `${pendingCollaboratorsCount} pendente${pendingCollaboratorsCount === 1 ? "" : "s"}`}
               </span>
             </div>
 
@@ -397,7 +397,7 @@ export function ValidationPage({
                 <div>
                   <strong>Cadastro concluído</strong>
                   <span>
-                    {linkedCollaboratorsCount} de {activeUnprofiledCollaborators.length} colaboradores
+                    {linkedCollaboratorsCount} de {activeUnprofiledCollaborators.length} colaboradores cadastrados
                   </span>
                 </div>
                 <b>{collaboratorProgressPercentage}%</b>
@@ -544,7 +544,7 @@ export function ValidationPage({
                 </button>
               </div>
               {!areAllCollaboratorsLinked && (
-                <p className="import-collaborator-footer-hint">Associe um cargo para todos os colaboradores antes de continuar.</p>
+                <p className="import-collaborator-footer-hint">Associe um cargo a todos os colaboradores antes de continuar.</p>
               )}
             </div>
           </form>
