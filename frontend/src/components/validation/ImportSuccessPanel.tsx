@@ -1,4 +1,4 @@
-import { BarChart3, CheckCircle2, Eye, FilePlus2 } from "lucide-react";
+import { CheckCircle2, Eye, FilePlus2 } from "lucide-react";
 import type { ImportCompleteResponse } from "../../types";
 import type { ImportCompletionSnapshot } from "../../hooks/useImportFlow";
 
@@ -7,7 +7,6 @@ type ImportSuccessPanelProps = {
     response: ImportCompleteResponse;
     snapshot: ImportCompletionSnapshot;
   };
-  onGoToDashboard: () => void;
   onNewImport: () => void;
   onViewImport: () => void;
 };
@@ -18,7 +17,6 @@ function formatHours(value: number) {
 
 export function ImportSuccessPanel({
   completion,
-  onGoToDashboard,
   onNewImport,
   onViewImport,
 }: ImportSuccessPanelProps) {
@@ -66,10 +64,6 @@ export function ImportSuccessPanel({
       </div>
 
       <div className="import-success-actions">
-        <button className="secondary-button compact" type="button" onClick={onGoToDashboard}>
-          <BarChart3 size={16} />
-          Ir para Dashboard
-        </button>
         <button className="primary-button compact" type="button" onClick={onNewImport}>
           <FilePlus2 size={16} />
           Nova importacao

@@ -2,7 +2,6 @@ import { AppShell } from "./components/AppShell";
 import { ImportWizard } from "./components/ImportWizard";
 import type { ImportWizardStep } from "./components/ImportWizard";
 import { ImportSuccessPanel } from "./components/validation/ImportSuccessPanel";
-import { DashboardPage } from "./pages/DashboardPage";
 import type { SettingsTab } from "./pages/SettingsPage";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { useImportFlow } from "./hooks/useImportFlow";
@@ -40,11 +39,11 @@ const defaultCategoryOptions = [
 
 const defaultSubcategoryOptions = ["Back", "Front", "QA", "Nao aplicavel", "Nao classificado"];
 const activeSectionStorageKey = "analise-horas:active-section";
-const restorableSections: SectionId[] = ["dashboard", "import", "reports", "settings"];
+const restorableSections: SectionId[] = ["import", "reports", "settings"];
 
 function getInitialActiveSection(): SectionId {
   const storedSection = window.localStorage.getItem(activeSectionStorageKey) as SectionId | null;
-  return storedSection && restorableSections.includes(storedSection) ? storedSection : "dashboard";
+  return storedSection && restorableSections.includes(storedSection) ? storedSection : "import";
 }
 
 function App() {
@@ -164,11 +163,6 @@ function App() {
     setActiveSection("import");
   }
 
-  function handleGoToDashboardAfterSuccess() {
-    setCompletedImport(null);
-    setActiveSection("dashboard");
-  }
-
   async function handleViewCompletedImport() {
     if (!completedImport) return;
     await dashboard.handleOpenReportProject(completedImport.response.importId);
@@ -195,10 +189,6 @@ function App() {
             disabled={!importFlow.result}
             onStepChange={handleImportWizardStepChange}
           />
-        )}
-
-        {activeSection === "dashboard" && (
-          <DashboardPage overview={dashboard.overview} />
         )}
 
         {activeSection === "import" && (
@@ -231,7 +221,6 @@ function App() {
         {activeSection === "validation" && completedImport && (
           <ImportSuccessPanel
             completion={completedImport}
-            onGoToDashboard={handleGoToDashboardAfterSuccess}
             onNewImport={handleNewImportAfterSuccess}
             onViewImport={handleViewCompletedImport}
           />

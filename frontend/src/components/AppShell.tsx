@@ -1,4 +1,4 @@
-import { ArrowLeft, BarChart3, Layers3, Network, Settings, Upload } from "lucide-react";
+import { ArrowLeft, Layers3, Network, Settings, Upload } from "lucide-react";
 import type { ReactNode } from "react";
 import { sectionMeta } from "../types/navigation";
 import type { SectionId } from "../types/navigation";
@@ -14,7 +14,6 @@ type AppShellProps = {
 };
 
 const navItems: Array<{ id: SectionId; label: string; icon: ReactNode }> = [
-  { id: "dashboard", label: "Dashboard", icon: <BarChart3 size={18} /> },
   { id: "import", label: "Importação", icon: <Upload size={18} /> },
   { id: "reports", label: "Relatórios", icon: <Layers3 size={18} /> },
   { id: "settings", label: "Configurações", icon: <Settings size={18} /> },
