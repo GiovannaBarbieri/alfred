@@ -230,6 +230,7 @@ export function ClassificationReviewPanel({
   const [bulkCategory, setBulkCategory] = useState("");
   const [bulkSubcategory, setBulkSubcategory] = useState("");
   const [acceptedTasks, setAcceptedTasks] = useState<string[]>([]);
+  const [expandedTasks, setExpandedTasks] = useState<string[]>([]);
   const [actionNotice, setActionNotice] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
@@ -374,6 +375,12 @@ export function ClassificationReviewPanel({
 
   function toggleTaskSelection(taskKey: string) {
     setSelectedTasks((current) =>
+      current.includes(taskKey) ? current.filter((key) => key !== taskKey) : [...current, taskKey],
+    );
+  }
+
+  function toggleTaskDetails(taskKey: string) {
+    setExpandedTasks((current) =>
       current.includes(taskKey) ? current.filter((key) => key !== taskKey) : [...current, taskKey],
     );
   }
@@ -682,6 +689,7 @@ export function ClassificationReviewPanel({
                 ...model.matchedKeywords.slice(0, 3).map((keyword) => `Palavra-chave: ${keyword}`),
               ].slice(0, 6);
               const primaryReason = reasons[0] ?? "Sugestão gerada a partir do padrão da atividade.";
+              const detailsExpanded = expandedTasks.includes(model.key);
 
               return (
                 <article
@@ -765,8 +773,17 @@ export function ClassificationReviewPanel({
                       </div>
                     </div>
 
-                    <details className="classification-details">
-                      <summary>Ver detalhes</summary>
+                    <div className={`classification-details ${detailsExpanded ? "open" : ""}`}>
+                      <button
+                        aria-expanded={detailsExpanded}
+                        className="classification-details-toggle"
+                        type="button"
+                        onClick={() => toggleTaskDetails(model.key)}
+                      >
+                        Ver detalhes
+                      </button>
+                      <div className="classification-details-panel" aria-hidden={!detailsExpanded}>
+                        <div className="classification-details-content">
                       <div className="classification-meta-row">
                         <span className="classification-badge neutral detail">
                           <UserRound size={14} />
@@ -835,7 +852,9 @@ export function ClassificationReviewPanel({
                           />
                         </label>
                       </div>
-                    </details>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </article>
               );
