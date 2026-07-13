@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 app = FastAPI(
-    title="Gerenciador de Projetos",
+    title="ADVISE Gerenciador de horas",
     version="0.1.0",
     description="API para importacao, validacao e analise de horas lancadas no TFS.",
 )

@@ -37,7 +37,7 @@ export function ImportSuccessPanel({
         <div>
           <p className="eyebrow">Fluxo finalizado</p>
           <h2>Importacao concluida com sucesso</h2>
-          <p>Os dados foram persistidos na base oficial e ja podem ser acompanhados nos paineis do Alfred.</p>
+          <p>Os dados foram persistidos na base oficial e ja podem ser acompanhados nos paineis do ADVISE Gerenciador de horas.</p>
         </div>
       </div>
 
