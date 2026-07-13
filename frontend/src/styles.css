@@ -2362,6 +2362,12 @@ input {
 
 .button-spinner {
   animation: spin 800ms linear infinite;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  border-top-color: #ffffff;
+  display: inline-flex;
+  height: 16px;
+  width: 16px;
 }
 
 .sqlserver-import-summary {
@@ -4337,8 +4343,26 @@ input {
 }
 
 .validation-button-stack .confirm-import-button {
-  box-shadow: 0 12px 24px rgba(15, 76, 138, 0.18);
-  min-height: 40px;
+  align-items: center;
+  border-radius: 11px;
+  box-shadow: 0 14px 28px rgba(15, 76, 138, 0.22);
+  display: inline-flex;
+  font-size: 14px;
+  gap: 8px;
+  justify-content: center;
+  min-height: 46px;
+  padding-inline: 18px;
+  transition: background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.validation-button-stack .confirm-import-button:not(:disabled):hover {
+  box-shadow: 0 18px 34px rgba(15, 76, 138, 0.3);
+  transform: translateY(-1px);
+}
+
+.validation-button-stack .confirm-import-button:disabled {
+  box-shadow: none;
+  transform: none;
 }
 
 .validation-confirmation-executive {

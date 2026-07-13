@@ -238,7 +238,17 @@ export function ValidationActions({
               Descartar importacao
             </button>
             <button className="primary-button compact confirm-import-button" disabled={!canCompleteImport || isCompleting} onClick={onComplete} type="button">
-              {isCompleting ? "Salvando..." : "Confirmar importacao"}
+              {isCompleting ? (
+                <>
+                  <span className="button-spinner" />
+                  Confirmando importacao...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 size={17} />
+                  Confirmar importacao
+                </>
+              )}
             </button>
           </div>
         </aside>
