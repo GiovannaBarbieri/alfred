@@ -109,6 +109,19 @@ function matchesCategoryFilter(category: string, filter: QuickFilter) {
   return true;
 }
 
+function collaboratorInitials(name: string) {
+  const parts = name
+    .replace(/[._-]+/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length === 0) return "?";
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
+
 type SearchableSelectProps = {
   ariaLabel: string;
   disabled?: boolean;
@@ -489,10 +502,11 @@ export function ClassificationReviewPanel({
                   }
                 }}
               >
-                <UserRound size={16} />
+                <Search size={16} />
                 <input
                   aria-expanded={collaboratorComboboxOpen}
                   aria-label="Filtrar por colaborador"
+                  placeholder={collaboratorComboboxOpen ? "Pesquisar colaborador..." : undefined}
                   role="combobox"
                   value={collaboratorComboboxOpen ? collaboratorSearch : selectedCollaborator || "Todos os colaboradores"}
                   onChange={(event) => {
@@ -526,6 +540,9 @@ export function ClassificationReviewPanel({
                         setCollaboratorSearch("");
                       }}
                     >
+                      <span className="classification-collaborator-avatar">
+                        <UserRound size={13} />
+                      </span>
                       <span>Todos os colaboradores</span>
                     </button>
                     {filteredCollaboratorOptions.length === 0 && (
@@ -543,6 +560,7 @@ export function ClassificationReviewPanel({
                           setCollaboratorSearch("");
                         }}
                       >
+                        <span className="classification-collaborator-avatar">{collaboratorInitials(user)}</span>
                         <span>{user}</span>
                       </button>
                     ))}

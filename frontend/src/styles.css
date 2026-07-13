@@ -3031,8 +3031,14 @@ input {
   min-height: 36px;
   padding: 0 8px;
   position: relative;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
   width: clamp(280px, 32vw, 320px);
   z-index: 20;
+}
+
+.classification-collaborator-combobox:hover {
+  background: #f8fbff;
+  border-color: #9fc6f8;
 }
 
 .classification-collaborator-combobox:focus-within {
@@ -3042,6 +3048,10 @@ input {
 
 .classification-collaborator-combobox > svg {
   color: #64748b;
+}
+
+.classification-collaborator-combobox:focus-within > svg {
+  color: #0f4c8a;
 }
 
 .classification-collaborator-combobox input {
@@ -3069,6 +3079,7 @@ input {
 }
 
 .classification-combobox-menu {
+  animation: selectMenuIn 180ms ease;
   background: #ffffff;
   border: 1px solid #dbe5f0;
   border-radius: 12px;
@@ -3093,22 +3104,46 @@ input {
 }
 
 .classification-combobox-menu button {
+  align-items: center;
   background: transparent;
   border: 0;
   border-radius: 8px;
   color: #344255;
   cursor: pointer;
+  display: grid;
   font-size: 13px;
   font-weight: 700;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr);
   min-height: 32px;
   padding: 0 9px;
   text-align: left;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
 .classification-combobox-menu button:hover,
 .classification-combobox-menu button.active {
   background: #eef5ff;
   color: #0f4c8a;
+}
+
+.classification-combobox-menu button:hover {
+  transform: translateX(1px);
+}
+
+.classification-collaborator-avatar {
+  align-items: center;
+  background: #e8f1ff;
+  border: 1px solid #cfe1ff;
+  border-radius: 999px;
+  color: #0f4c8a;
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 900;
+  height: 24px;
+  justify-content: center;
+  line-height: 1;
+  width: 24px;
 }
 
 .classification-combobox-empty {
