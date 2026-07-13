@@ -4497,6 +4497,40 @@ input {
   color: #0b1f36;
   font-size: 20px;
   line-height: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.validation-save-metrics .wide {
+  grid-column: span 2;
+}
+
+.validation-save-metrics .wide strong,
+.validation-save-metrics .status strong {
+  font-size: 15px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.validation-save-metrics .status {
+  background: #ecfdf3;
+  border-color: #bbf7d0;
+}
+
+.validation-save-metrics .status svg,
+.validation-save-metrics .status strong {
+  color: #15803d;
+}
+
+.validation-save-metrics .status.attention {
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.validation-save-metrics .status.attention svg,
+.validation-save-metrics .status.attention strong {
+  color: #9a3412;
 }
 
 .validation-executive-grid {
@@ -4596,6 +4630,10 @@ input {
 
   .validation-save-metrics {
     grid-template-columns: 1fr;
+  }
+
+  .validation-save-metrics .wide {
+    grid-column: span 1;
   }
 }
 

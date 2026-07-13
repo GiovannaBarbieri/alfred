@@ -251,6 +251,7 @@ export function ValidationPage({
         <ValidationActions
           fileName={fileName ?? result.filename}
           result={result}
+          classificationOverrides={classificationOverrides}
           processingMessage={processingMessage}
           error={error}
           isLoading={isLoading}

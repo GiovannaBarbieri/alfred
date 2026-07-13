@@ -4,6 +4,7 @@ import type { ImportValidationResponse } from "../../types";
 type ValidationActionsProps = {
   fileName: string;
   result: ImportValidationResponse;
+  classificationOverrides: Record<number, { category: string; subcategory: string }>;
   processingMessage: string | null;
   error: string | null;
   isLoading: boolean;
@@ -17,6 +18,7 @@ type ValidationActionsProps = {
 export function ValidationActions({
   fileName,
   result,
+  classificationOverrides,
   processingMessage,
   error,
   isLoading,
@@ -26,9 +28,24 @@ export function ValidationActions({
   onCancel,
   onComplete,
 }: ValidationActionsProps) {
+  const projectName = fileName.replace(/\.[^.]+$/, "");
   const totalHours = result.preview?.totalHours ?? 0;
   const collaboratorsCount = result.preview?.collaboratorsCount ?? 0;
   const tasksCount = result.preview?.tasksCount ?? 0;
+  const categoriesCount =
+    result.preview?.categoriesCount ??
+    new Set(
+      result.classifications
+        .map((classification) => classificationOverrides[classification.line]?.category ?? classification.category)
+        .filter((category) => category && category !== "Nao classificado"),
+    ).size;
+  const subcategoriesCount = new Set(
+    result.classifications
+      .map((classification) => classificationOverrides[classification.line]?.subcategory ?? classification.subcategory)
+      .filter((subcategory) => subcategory && subcategory !== "Nao classificado" && subcategory !== "Nao aplicavel"),
+  ).size;
+  const manuallyReviewedItems = Object.keys(classificationOverrides).length;
+  const automaticallyClassifiedItems = Math.max(result.validRows - manuallyReviewedItems, 0);
   const duplicateGroups = result.duplicates.length;
   const blockingCount = result.blockedRows;
   const alertCount = result.alertRows;
@@ -62,21 +79,36 @@ export function ValidationActions({
                 <Database size={18} />
               </span>
               <div>
-                <h3>O que sera salvo no banco</h3>
-                <p>{fileName}</p>
+                <h3>Resumo da importacao</h3>
+                <p>Principais numeros que serao persistidos apos a confirmacao.</p>
               </div>
             </div>
 
             <div className="validation-save-metrics">
-              <div>
+              <div className="wide">
+                <Database size={17} />
+                <span>Projeto</span>
+                <strong>{projectName}</strong>
+              </div>
+              <div className="wide">
                 <FileText size={17} />
-                <span>Registros validos</span>
-                <strong>{result.validRows}</strong>
+                <span>Arquivo</span>
+                <strong>{fileName}</strong>
               </div>
               <div>
                 <Clock3 size={17} />
-                <span>Horas</span>
+                <span>Horas importadas</span>
                 <strong>{totalHours.toFixed(2)}h</strong>
+              </div>
+              <div>
+                <FileText size={17} />
+                <span>Registros</span>
+                <strong>{result.validRows}</strong>
+              </div>
+              <div>
+                <ListChecks size={17} />
+                <span>Tasks</span>
+                <strong>{tasksCount}</strong>
               </div>
               <div>
                 <Users size={17} />
@@ -85,8 +117,38 @@ export function ValidationActions({
               </div>
               <div>
                 <ListChecks size={17} />
-                <span>Tasks</span>
-                <strong>{tasksCount}</strong>
+                <span>Categorias</span>
+                <strong>{categoriesCount}</strong>
+              </div>
+              <div>
+                <ListChecks size={17} />
+                <span>Subcategorias</span>
+                <strong>{subcategoriesCount}</strong>
+              </div>
+              <div>
+                <CheckCircle2 size={17} />
+                <span>Itens revisados manualmente</span>
+                <strong>{manuallyReviewedItems}</strong>
+              </div>
+              <div>
+                <ShieldCheck size={17} />
+                <span>Classificados automaticamente</span>
+                <strong>{automaticallyClassifiedItems}</strong>
+              </div>
+              <div>
+                <AlertTriangle size={17} />
+                <span>Duplicidades</span>
+                <strong>{duplicateGroups}</strong>
+              </div>
+              <div>
+                <AlertTriangle size={17} />
+                <span>Bloqueios</span>
+                <strong>{blockingCount}</strong>
+              </div>
+              <div className={`status ${isReady ? "ready" : "attention"}`}>
+                {isReady ? <CheckCircle2 size={17} /> : <AlertTriangle size={17} />}
+                <span>Status</span>
+                <strong>{isReady ? "Pronto para importacao" : "Revisao pendente"}</strong>
               </div>
             </div>
           </article>
