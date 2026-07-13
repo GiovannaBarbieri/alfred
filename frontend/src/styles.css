@@ -4755,6 +4755,113 @@ input {
   width: 15px;
 }
 
+.import-success-panel {
+  background: #ffffff;
+  border: 1px solid #bbf7d0;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  display: grid;
+  gap: 18px;
+  margin: 26px auto;
+  max-width: 920px;
+  padding: 28px;
+}
+
+.import-success-hero {
+  align-items: center;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.import-success-hero > span {
+  align-items: center;
+  background: #dcfce7;
+  border-radius: 18px;
+  color: #15803d;
+  display: inline-flex;
+  height: 62px;
+  justify-content: center;
+  width: 62px;
+}
+
+.import-success-hero h2 {
+  color: #0b1f36;
+  font-size: 26px;
+  line-height: 1.1;
+  margin: 4px 0;
+}
+
+.import-success-hero p:last-child {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 650;
+  margin: 0;
+}
+
+.import-success-metrics {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.import-success-metrics div {
+  background: #f7fef9;
+  border: 1px solid #dcfce7;
+  border-radius: 14px;
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+}
+
+.import-success-metrics strong {
+  color: #0b1f36;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.import-success-metrics span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.import-success-integrity {
+  align-items: center;
+  border-radius: 12px;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 850;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 13px;
+}
+
+.import-success-integrity.clean {
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+.import-success-integrity.attention {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.import-success-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.import-success-actions button {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+  min-height: 40px;
+}
+
 @media (max-width: 1080px) {
   .validation-confirmation-layout,
   .validation-executive-grid {
@@ -4766,6 +4873,10 @@ input {
   }
 
   .validation-save-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .import-success-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -4782,6 +4893,24 @@ input {
 
   .validation-save-metrics .wide {
     grid-column: span 1;
+  }
+
+  .import-success-panel {
+    padding: 20px;
+  }
+
+  .import-success-hero,
+  .import-success-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .import-success-actions {
+    justify-content: stretch;
+  }
+
+  .import-success-actions button {
+    justify-content: center;
+    width: 100%;
   }
 }
 

@@ -32,6 +32,13 @@ const CLASSIFICATION_REVIEW_THRESHOLD = 0.9;
 const IMPORT_COMPLETION_PREVIEW_MS = 1000;
 const IMPORT_CONFIRMATION_SUCCESS_MS = 1200;
 
+export type ImportCompletionSnapshot = {
+  totalHours: number;
+  tasksCount: number;
+  collaboratorsCount: number;
+  inconsistenciesCount: number;
+};
+
 function wait(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
@@ -60,7 +67,7 @@ export function useImportFlow({
   onCancelled,
 }: {
   onValidationReady: () => void;
-  onCompleted: (response: ImportCompleteResponse) => Promise<void>;
+  onCompleted: (response: ImportCompleteResponse, snapshot: ImportCompletionSnapshot) => Promise<void>;
   onCancelled: () => void;
 }) {
   const [importWizardStep, setImportWizardStep] = useState<ImportWizardStep>("upload");
@@ -384,6 +391,12 @@ export function useImportFlow({
         duplicateKeepLines,
         classificationOverridePayload,
       );
+      const completionSnapshot: ImportCompletionSnapshot = {
+        totalHours: result?.preview?.totalHours ?? 0,
+        tasksCount: result?.preview?.tasksCount ?? 0,
+        collaboratorsCount: result?.preview?.collaboratorsCount ?? 0,
+        inconsistenciesCount: (result?.blockedRows ?? 0) + (result?.alertRows ?? 0) + (result?.duplicates.length ?? 0),
+      };
       setProcessingMessage("Importacao confirmada com sucesso. Abrindo relatorios...");
       await wait(IMPORT_CONFIRMATION_SUCCESS_MS);
       setFile(null);
@@ -395,7 +408,7 @@ export function useImportFlow({
       setClassificationOverrides({});
       setShowAllClassifications(false);
       setImportWizardStep("upload");
-      await onCompleted(response);
+      await onCompleted(response, completionSnapshot);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado.");
       setProcessingMessage(null);

@@ -1,13 +1,16 @@
 import { AppShell } from "./components/AppShell";
 import { ImportWizard } from "./components/ImportWizard";
 import type { ImportWizardStep } from "./components/ImportWizard";
+import { ImportSuccessPanel } from "./components/validation/ImportSuccessPanel";
 import { DashboardPage } from "./pages/DashboardPage";
 import type { SettingsTab } from "./pages/SettingsPage";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { useImportFlow } from "./hooks/useImportFlow";
+import type { ImportCompletionSnapshot } from "./hooks/useImportFlow";
 import { useSettings } from "./hooks/useSettings";
 import { getImportDetail } from "./services/api";
 import type {
+  ImportCompleteResponse,
   ImportDetail,
 } from "./types";
 import type { SectionId } from "./types/navigation";
@@ -49,17 +52,24 @@ function App() {
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("categories");
   const dashboard = useDashboardData();
   const [selectedImport, setSelectedImport] = useState<ImportDetail | null>(null);
+  const [completedImport, setCompletedImport] = useState<{
+    response: ImportCompleteResponse;
+    snapshot: ImportCompletionSnapshot;
+  } | null>(null);
   const [isLoadingImportDetail, setIsLoadingImportDetail] = useState(false);
   const settings = useSettings(dashboard.refreshFilterOptions);
   const importFlow = useImportFlow({
     onValidationReady: () => setActiveSection("validation"),
-    onCompleted: async (response) => {
+    onCompleted: async (response, snapshot) => {
       await dashboard.refreshDashboard(dashboard.filters);
       await dashboard.refreshFilterOptions();
-      await dashboard.handleOpenReportProject(response.importId);
-      setActiveSection("reports");
+      setCompletedImport({ response, snapshot });
+      setActiveSection("validation");
     },
-    onCancelled: () => setActiveSection("import"),
+    onCancelled: () => {
+      setCompletedImport(null);
+      setActiveSection("import");
+    },
   });
   const categoryOptions = useMemo(() => {
     const active = settings.settingsCategories.filter((category) => category.active).map((category) => category.name);
@@ -144,8 +154,26 @@ function App() {
     if (!availableImportWizardSteps.includes(step)) {
       return;
     }
+    setCompletedImport(null);
     importFlow.setImportWizardStep(step);
     setActiveSection(step === "upload" ? "import" : "validation");
+  }
+
+  function handleNewImportAfterSuccess() {
+    setCompletedImport(null);
+    setActiveSection("import");
+  }
+
+  function handleGoToDashboardAfterSuccess() {
+    setCompletedImport(null);
+    setActiveSection("dashboard");
+  }
+
+  async function handleViewCompletedImport() {
+    if (!completedImport) return;
+    await dashboard.handleOpenReportProject(completedImport.response.importId);
+    setCompletedImport(null);
+    setActiveSection("reports");
   }
 
   return (
@@ -159,7 +187,7 @@ function App() {
       }
     >
       <Suspense fallback={<section className="panel loading-panel">Carregando tela...</section>}>
-        {(activeSection === "import" || activeSection === "validation") && (
+        {(activeSection === "import" || activeSection === "validation") && !completedImport && (
           <ImportWizard
             activeStep={importFlow.importWizardStep}
             availableSteps={availableImportWizardSteps}
@@ -200,7 +228,16 @@ function App() {
           />
         )}
 
-        {activeSection === "validation" && (
+        {activeSection === "validation" && completedImport && (
+          <ImportSuccessPanel
+            completion={completedImport}
+            onGoToDashboard={handleGoToDashboardAfterSuccess}
+            onNewImport={handleNewImportAfterSuccess}
+            onViewImport={handleViewCompletedImport}
+          />
+        )}
+
+        {activeSection === "validation" && !completedImport && (
           <ValidationPage
             result={importFlow.result}
             fileName={importFlow.file?.name ?? importFlow.currentSession?.filename ?? null}
