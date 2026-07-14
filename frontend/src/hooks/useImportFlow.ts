@@ -28,7 +28,6 @@ export const sqlServerProcessingSteps = [
   "Preparando tela de revisao",
 ] as const;
 
-const CLASSIFICATION_REVIEW_THRESHOLD = 0.9;
 const IMPORT_COMPLETION_PREVIEW_MS = 1000;
 const IMPORT_CONFIRMATION_SUCCESS_MS = 1200;
 
@@ -137,9 +136,7 @@ export function useImportFlow({
       const existing = grouped.get(key);
       const needsReview =
         classification.category === "Nao classificado" ||
-        classification.subcategory === "Nao classificado" ||
-        classification.confidence < CLASSIFICATION_REVIEW_THRESHOLD ||
-        classification.confidenceLevel === "baixa";
+        classification.subcategory === "Nao classificado";
 
       if (!existing) {
         grouped.set(key, {
@@ -150,9 +147,7 @@ export function useImportFlow({
           category: classification.category,
           subcategory: classification.subcategory,
           origin: classification.origin,
-          confidence: classification.confidence,
-          confidenceLevel: classification.confidenceLevel,
-          confidenceFactors: classification.confidenceFactors ?? [],
+          suggestionReasons: classification.confidenceFactors ?? [],
           matchedKeywords: classification.matchedKeywords ?? [],
           totalRecords: 1,
           needsReview,
@@ -163,18 +158,12 @@ export function useImportFlow({
       existing.lines.push(classification.line);
       existing.totalRecords += 1;
       existing.needsReview = existing.needsReview || needsReview;
-      existing.confidence = Math.min(existing.confidence, classification.confidence);
-      if (classification.confidenceLevel === "baixa") {
-        existing.confidenceLevel = "baixa";
-      } else if (classification.confidenceLevel === "media" && existing.confidenceLevel !== "baixa") {
-        existing.confidenceLevel = "media";
-      }
       if (!existing.users.includes(classification.loginUsuario)) {
         existing.users.push(classification.loginUsuario);
       }
       for (const factor of classification.confidenceFactors ?? []) {
-        if (!existing.confidenceFactors.includes(factor)) {
-          existing.confidenceFactors.push(factor);
+        if (!existing.suggestionReasons.includes(factor)) {
+          existing.suggestionReasons.push(factor);
         }
       }
       for (const keyword of classification.matchedKeywords ?? []) {

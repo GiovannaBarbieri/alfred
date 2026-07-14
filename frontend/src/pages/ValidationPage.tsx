@@ -322,7 +322,7 @@ export function ValidationPage({
             classifierVersion={classifierVersion}
           />
 
-          <ValidationResultsGrid result={result} blockingIssues={blockingIssues} alertIssues={alertIssues} />
+          <ValidationResultsGrid blockingIssues={blockingIssues} alertIssues={alertIssues} />
         </>
       )}
 
@@ -586,13 +586,12 @@ function hasPendingClassificationReview(
     };
     const hasMissingCategory = normalizeLogin(selected.category) === "nao classificado";
     const hasMissingProfile = isMissingOperationalProfile(selected.subcategory);
-    const hasLowConfidence = classification.confidence < 0.9 || classification.confidenceLevel === "baixa";
     const hasConflict = (classification.confidenceFactors ?? []).some((factor) => {
       const normalized = normalizeLogin(factor);
       return normalized.includes("multipl") || normalized.includes("conflit");
     });
 
-    return hasMissingCategory || hasMissingProfile || hasLowConfidence || hasConflict;
+    return hasMissingCategory || hasMissingProfile || hasConflict;
   });
 }
 

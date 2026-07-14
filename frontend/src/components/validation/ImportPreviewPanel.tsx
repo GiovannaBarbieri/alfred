@@ -28,7 +28,7 @@ type ImportPreviewPanelProps = {
 export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false, onStepChange }: ImportPreviewPanelProps) {
   const preview = result.preview;
   const hasBlocking = result.blockedRows > 0;
-  const pendingReview = (preview?.lowConfidenceCount ?? 0) + (preview?.unclassifiedCount ?? 0);
+  const pendingReview = preview?.unclassifiedCount ?? 0;
   const reviewItems = result.alertRows + pendingReview;
   const fileHistory = result.fileHistory;
   const historyTone = fileHistory?.exactDuplicate ? "warning" : fileHistory?.status === "nova_versao" ? "info" : "success";
@@ -43,7 +43,6 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
   const possibleInconsistencies = result.alertRows + result.blockedRows;
   const hasClassificationIssues =
     (preview?.unclassifiedCount ?? 0) > 0 ||
-    (preview?.lowConfidenceCount ?? 0) > 0 ||
     possibleInconsistencies > 0 ||
     result.duplicates.length > 0;
   const requiresClassificationReview = pendingReview > 0 || hasUnprofiledCollaborators;
@@ -185,7 +184,6 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
               <div className="preview-insight-list">
                 <InsightRow label="Classificados" value={classifiedRecords} tone="success" />
                 <InsightRow label="Não classificados" value={preview?.unclassifiedCount ?? 0} tone={(preview?.unclassifiedCount ?? 0) > 0 ? "warning" : "neutral"} />
-                <InsightRow label="Baixa confiança" value={preview?.lowConfidenceCount ?? 0} tone={(preview?.lowConfidenceCount ?? 0) > 0 ? "warning" : "neutral"} />
                 <InsightRow label="Inconsistências" value={possibleInconsistencies} tone={possibleInconsistencies > 0 ? "warning" : "neutral"} />
                 <InsightRow label="Duplicidades encontradas" value={result.duplicates.length} tone={result.duplicates.length > 0 ? "danger" : "neutral"} />
               </div>

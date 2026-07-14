@@ -12,7 +12,6 @@ import {
   MapPin,
   RotateCcw,
   Search,
-  ShieldAlert,
   Sparkles,
   Tags,
   UserRound,
@@ -40,13 +39,9 @@ type ClassificationReviewPanelProps = {
 type QuickFilter =
   | "all"
   | "smart"
-  | "low"
   | "unclassified"
   | "conflict"
   | "accepted"
-  | "confidence-high"
-  | "confidence-medium"
-  | "confidence-very-low"
   | `category:${string}`
   | `subcategory:${string}`
   | `origin:${string}`;
@@ -60,19 +55,15 @@ type CardModel = {
   category: string;
   subcategory: string;
   origin: string;
-  confidence: number;
-  confidenceLevel: string;
   classifierVersion?: string;
   factors: string[];
   matchedKeywords: string[];
-  lowConfidence: boolean;
   unclassified: boolean;
   conflict: boolean;
   needsAttention: boolean;
   accepted: boolean;
 };
 
-const REVIEW_CONFIDENCE_THRESHOLD = 0.9;
 const UNCLASSIFIED_VALUES = ["nao classificado", "não classificado", ""];
 const DEFAULT_ACTIVITIES_PER_PAGE = 25;
 const PAGE_SIZE_OPTIONS = [25, 50, 100];
@@ -94,21 +85,6 @@ function isConflictFactor(factor: string) {
   return normalized.includes("multipl") || normalized.includes("conflit");
 }
 
-function confidenceTone(confidence: number) {
-  if (confidence >= 0.9) return "high";
-  if (confidence >= 0.7) return "medium";
-  return "low";
-}
-
-function confidenceBadge(confidence: number) {
-  const percentage = Math.round(confidence * 100);
-  if (confidence >= 0.95) return { variant: "success", label: "Alta", percentage };
-  if (confidence >= 0.85) return { variant: "success", label: "Alta", percentage };
-  if (confidence >= 0.7) return { variant: "info", label: "Média", percentage };
-  if (confidence >= 0.4) return { variant: "warning", label: "Baixa", percentage };
-  return { variant: "danger", label: "Muito baixa", percentage };
-}
-
 function matchesAdvancedFilter(model: CardModel, filter: QuickFilter) {
   if (filter.startsWith("category:")) {
     return normalizeText(model.category) === normalizeText(filter.replace("category:", ""));
@@ -121,15 +97,6 @@ function matchesAdvancedFilter(model: CardModel, filter: QuickFilter) {
   }
   if (filter === "accepted") {
     return model.accepted;
-  }
-  if (filter === "confidence-high") {
-    return model.confidence >= 0.9;
-  }
-  if (filter === "confidence-medium") {
-    return model.confidence >= 0.7 && model.confidence < 0.9;
-  }
-  if (filter === "confidence-very-low") {
-    return model.confidence < 0.4;
   }
   return true;
 }
@@ -300,12 +267,10 @@ export function ClassificationReviewPanel({
         category: representativeClassification?.category ?? item.category,
         subcategory: representativeClassification?.subcategory ?? item.subcategory,
       };
-      const factors = representativeClassification?.confidenceFactors ?? item.confidenceFactors;
+      const factors = representativeClassification?.confidenceFactors ?? item.suggestionReasons;
       const matchedKeywords = representativeClassification?.matchedKeywords ?? item.matchedKeywords;
-      const confidence = representativeClassification?.confidence ?? item.confidence;
       const conflict = factors.some(isConflictFactor);
       const unclassified = isUnclassifiedValue(selected.category);
-      const lowConfidence = confidence < REVIEW_CONFIDENCE_THRESHOLD;
       const key = `${item.idTask}-${selectedCollaborator || "all"}`;
       const accepted = acceptedTasks.includes(key);
 
@@ -318,15 +283,12 @@ export function ClassificationReviewPanel({
         category: selected.category,
         subcategory: selected.subcategory,
         origin: representativeClassification?.origin ?? item.origin,
-        confidence,
-        confidenceLevel: representativeClassification?.confidenceLevel ?? item.confidenceLevel,
         classifierVersion: representativeClassification?.classifierVersion,
         factors,
         matchedKeywords,
-        lowConfidence,
         unclassified,
         conflict,
-        needsAttention: !accepted && (lowConfidence || unclassified || conflict || item.needsReview),
+        needsAttention: !accepted && (unclassified || conflict || item.needsReview),
         accepted,
       };
     });
@@ -341,7 +303,6 @@ export function ClassificationReviewPanel({
         if (!searchable.includes(search)) return false;
       }
       if (quickFilter === "smart") return model.needsAttention;
-      if (quickFilter === "low") return model.lowConfidence;
       if (quickFilter === "unclassified") return model.unclassified;
       if (quickFilter === "conflict") return model.conflict;
       return matchesAdvancedFilter(model, quickFilter);
@@ -363,11 +324,11 @@ export function ClassificationReviewPanel({
 
   const summary = useMemo(() => {
     const total = cardModels.length;
-    const lowConfidence = cardModels.filter((model) => model.lowConfidence).length;
     const unclassified = cardModels.filter((model) => model.unclassified).length;
     const conflicts = cardModels.filter((model) => model.conflict).length;
     const attention = cardModels.filter((model) => model.needsAttention).length;
-    return { total, lowConfidence, unclassified, conflicts, attention };
+    const reviewed = cardModels.filter((model) => model.accepted).length;
+    return { total, unclassified, conflicts, attention, reviewed };
   }, [cardModels]);
 
   const categoryDistribution = useMemo(() => {
@@ -550,33 +511,12 @@ export function ClassificationReviewPanel({
       count,
       icon: <FileText size={15} />,
     }));
-  const confidenceQuickFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = [
-    {
-      id: "confidence-high",
-      label: "Alta confiança",
-      count: cardModels.filter((model) => model.confidence >= 0.9).length,
-      icon: <CheckCircle2 size={15} />,
-    },
-    {
-      id: "confidence-medium",
-      label: "Confiança média",
-      count: cardModels.filter((model) => model.confidence >= 0.7 && model.confidence < 0.9).length,
-      icon: <ShieldAlert size={15} />,
-    },
-    {
-      id: "confidence-very-low",
-      label: "Muito baixa",
-      count: cardModels.filter((model) => model.confidence < 0.4).length,
-      icon: <AlertTriangle size={15} />,
-    },
-  ];
   const statusQuickFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = [
     { id: "all", label: "Todas as atividades", count: summary.total, icon: <ListChecks size={15} /> },
-    { id: "accepted", label: "Revisadas", count: cardModels.filter((model) => model.accepted).length, icon: <Check size={15} /> },
+    { id: "accepted", label: "Revisadas", count: summary.reviewed, icon: <Check size={15} /> },
   ];
   const pendingFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = [
     { id: "smart", label: "Pendências", count: summary.attention, icon: <Sparkles size={15} /> },
-    { id: "low", label: "Baixa confiança", count: summary.lowConfidence, icon: <ShieldAlert size={15} /> },
     { id: "unclassified", label: "Sem categoria", count: summary.unclassified, icon: <AlertTriangle size={15} /> },
     { id: "conflict", label: "Conflitos", count: summary.conflicts, icon: <Layers3 size={15} /> },
   ];
@@ -586,8 +526,7 @@ export function ClassificationReviewPanel({
     quickFilter === "accepted" ||
     quickFilter.startsWith("category:") ||
     quickFilter.startsWith("subcategory:") ||
-    quickFilter.startsWith("origin:") ||
-    quickFilter.startsWith("confidence-");
+    quickFilter.startsWith("origin:");
   const hasActiveToolbarFilter = Boolean(taskSearch || selectedCollaborator || quickFilter !== "smart");
 
   function selectFilter(filterId: QuickFilter) {
@@ -596,8 +535,7 @@ export function ClassificationReviewPanel({
       filterId === "accepted" ||
       filterId.startsWith("category:") ||
       filterId.startsWith("subcategory:") ||
-      filterId.startsWith("origin:") ||
-      filterId.startsWith("confidence-")
+      filterId.startsWith("origin:")
     ) {
       onToggleShowAllClassifications(true);
     }
@@ -765,13 +703,12 @@ export function ClassificationReviewPanel({
               >
                 <div className="classification-advanced-filter-heading">
                   <span>Filtros secundários</span>
-                  <small>Refine a fila por classificação, confiança, origem ou revisão.</small>
+                  <small>Refine a fila por classificação, origem ou revisão.</small>
                 </div>
                 {[
                   { label: "Status de revisão", filters: statusQuickFilters },
                   { label: "Categoria", filters: categoryQuickFilters },
                   { label: "Subcategoria", filters: subcategoryQuickFilters },
-                  { label: "Faixa de confiança", filters: confidenceQuickFilters },
                   { label: "Origem", filters: originQuickFilters },
                 ].map((group) => (
                   <div className="classification-advanced-filter-group" key={group.label}>
@@ -848,7 +785,6 @@ export function ClassificationReviewPanel({
             <div className="classification-list-column-header" aria-hidden="true">
               <span />
               <strong>Atividade</strong>
-              <strong>Confiança</strong>
               <strong>Categoria</strong>
               <strong>Subcategoria</strong>
               <strong>Ações</strong>
@@ -872,12 +808,9 @@ export function ClassificationReviewPanel({
             )}
 
             {paginatedCards.map((model) => {
-              const tone = confidenceTone(model.confidence);
-              const confidence = confidenceBadge(model.confidence);
               const isSelected = selectedTasks.includes(model.key);
               const pendingReasons = [
                 model.unclassified ? "Sem categoria" : null,
-                model.lowConfidence ? "Baixa confiança" : null,
                 model.conflict ? "Conflito" : null,
                 model.item.needsReview ? "Revisão necessária" : null,
               ].filter(Boolean);
@@ -892,9 +825,9 @@ export function ClassificationReviewPanel({
 
               return (
                 <article
-                  className={`classification-task-row ${tone} ${model.needsAttention ? "attention" : ""} ${
-                    isSelected ? "selected" : ""
-                  } ${model.accepted ? "accepted" : ""}`}
+                  className={`classification-task-row ${model.needsAttention ? "attention" : ""} ${isSelected ? "selected" : ""} ${
+                    model.accepted ? "accepted" : ""
+                  }`}
                   key={model.key}
                 >
                   <div className="classification-row-main">
@@ -912,13 +845,6 @@ export function ClassificationReviewPanel({
                       <span>Task {model.item.idTask}</span>
                       <strong title={model.item.title}>{model.item.title}</strong>
                     </div>
-
-                    <span
-                      className={`classification-badge ${confidence.variant} confidence classification-row-confidence`}
-                      title={`${confidence.percentage}% de confiança. Indica o quanto a IA está segura sobre esta sugestão.`}
-                    >
-                      {confidence.percentage}% · {confidence.label}
-                    </span>
 
                     <div className="classification-row-value">
                       <span>Categoria</span>
