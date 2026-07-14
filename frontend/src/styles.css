@@ -4418,6 +4418,20 @@ input {
   box-shadow: inset 3px 0 0 #2563eb, 0 12px 26px rgba(15, 76, 138, 0.055);
 }
 
+.validation-executive-card.highlight > .validation-executive-card-heading {
+  align-items: center;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 12px;
+}
+
+.validation-executive-card.highlight > .validation-executive-card-heading > span {
+  align-self: center;
+}
+
+.validation-executive-card.highlight > .validation-executive-card-heading h3 {
+  font-weight: 900;
+}
+
 .validation-executive-card.readiness {
   gap: 10px;
   padding: 14px;
