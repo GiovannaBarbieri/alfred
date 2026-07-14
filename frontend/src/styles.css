@@ -3642,6 +3642,177 @@ input {
   min-width: 88px;
 }
 
+.classification-task-row {
+  background: #ffffff;
+  border: 1px solid #dbe5f0;
+  border-left: 3px solid #2563eb;
+  border-radius: 10px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.035);
+  display: grid;
+  min-width: 0;
+  overflow: visible;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.classification-task-row:hover {
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.055);
+  transform: translateY(-1px);
+}
+
+.classification-task-row.high {
+  border-left-color: #16a34a;
+}
+
+.classification-task-row.medium {
+  border-left-color: #f59e0b;
+}
+
+.classification-task-row.low {
+  border-left-color: #ef4444;
+}
+
+.classification-task-row.selected {
+  background: #f0f7ff;
+  border-color: #9bc8ff;
+  border-left-color: #2563eb;
+}
+
+.classification-task-row.accepted {
+  background: #f8fffb;
+  border-color: #bbf7d0;
+  border-left-color: #16a34a;
+}
+
+.classification-row-main {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 22px minmax(220px, 1fr) minmax(112px, 0.42fr) minmax(140px, 0.5fr) minmax(150px, 0.55fr) minmax(168px, auto);
+  min-height: 64px;
+  min-width: 0;
+  padding: 7px 10px;
+}
+
+.classification-row-main .classification-card-check {
+  align-items: center;
+  justify-content: center;
+  padding-top: 0;
+}
+
+.classification-row-task,
+.classification-row-value {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.classification-row-task span,
+.classification-row-value span {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.classification-row-task strong,
+.classification-row-value strong {
+  color: #0b1f36;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.classification-row-task strong {
+  font-size: 14px;
+}
+
+.classification-row-confidence {
+  justify-self: start;
+  min-width: 104px;
+  white-space: nowrap;
+}
+
+.classification-row-actions {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.classification-row-actions .primary-button,
+.classification-row-actions .secondary-button,
+.classification-row-actions .accepted-action-button {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+  justify-content: center;
+  margin: 0;
+  min-height: 32px;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+.classification-row-actions .accepted-action-button {
+  background: #16a34a;
+  border: 1px solid #16a34a;
+  border-radius: 8px;
+  color: #ffffff;
+  cursor: default;
+  font-weight: 850;
+}
+
+.classification-row-actions .icon-only {
+  min-width: 34px;
+  padding: 0;
+}
+
+.classification-row-details {
+  border-top: 1px solid #e6edf5;
+  display: none;
+  gap: 10px;
+  padding: 10px 12px 12px 35px;
+}
+
+.classification-row-details.open {
+  animation: detailsFadeSlide 180ms ease;
+  display: grid;
+}
+
+.classification-row-detail-header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.classification-row-detail-header > span:last-child {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes detailsFadeSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .classification-meta-row {
   display: flex;
   flex-wrap: wrap;
@@ -4068,6 +4239,15 @@ input {
 }
 
 @media (max-width: 1180px) {
+  .classification-row-main {
+    grid-template-columns: 22px minmax(190px, 1fr) minmax(108px, auto) minmax(130px, 0.5fr) minmax(140px, 0.5fr);
+  }
+
+  .classification-row-actions {
+    grid-column: 2 / -1;
+    justify-content: flex-start;
+  }
+
   .classification-review-queue {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -4106,6 +4286,36 @@ input {
 
   .classification-card-status {
     justify-content: flex-start;
+  }
+
+  .classification-row-main {
+    gap: 8px;
+    grid-template-columns: 22px minmax(0, 1fr);
+    min-height: auto;
+    padding: 9px 10px;
+  }
+
+  .classification-row-confidence,
+  .classification-row-value,
+  .classification-row-actions {
+    grid-column: 2;
+  }
+
+  .classification-row-actions {
+    justify-content: flex-start;
+  }
+
+  .classification-row-details {
+    padding-left: 12px;
+  }
+
+  .classification-row-detail-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .classification-row-detail-header > span:last-child {
+    white-space: normal;
   }
 
   .classification-review-queue {

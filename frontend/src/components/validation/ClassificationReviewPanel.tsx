@@ -709,97 +709,76 @@ export function ClassificationReviewPanel({
 
               return (
                 <article
-                  className={`classification-task-card ${tone} ${isSelected ? "selected" : ""} ${model.accepted ? "accepted" : ""}`}
+                  className={`classification-task-row ${tone} ${isSelected ? "selected" : ""} ${model.accepted ? "accepted" : ""}`}
                   key={model.key}
                 >
-                  <label className="classification-card-check" aria-label={`Selecionar task ${model.item.idTask}`}>
-                    <input
-                      checked={isSelected}
-                      disabled={model.accepted}
-                      type="checkbox"
-                      onChange={() => toggleTaskSelection(model.key)}
-                    />
-                    <span />
-                  </label>
+                  <div className="classification-row-main">
+                    <label className="classification-card-check" aria-label={`Selecionar task ${model.item.idTask}`}>
+                      <input
+                        checked={isSelected}
+                        disabled={model.accepted}
+                        type="checkbox"
+                        onChange={() => toggleTaskSelection(model.key)}
+                      />
+                      <span />
+                    </label>
 
-                  <div className="classification-card-body">
-                    <div className="classification-card-top">
-                      <div className="classification-card-title">
-                        <span>Task {model.item.idTask}</span>
-                        <h3>{model.item.title}</h3>
-                      </div>
-                      <div className="classification-card-status">
-                        <span
-                          className={`classification-badge ${confidence.variant} confidence`}
-                          title={`${confidence.percentage}% de confiança. Indica o quanto a IA está segura sobre esta sugestão.`}
-                        >
-                          <strong>{confidence.percentage}%</strong>
-                          {confidence.label} confiança
-                        </span>
-                      </div>
+                    <div className="classification-row-task">
+                      <span>Task {model.item.idTask}</span>
+                      <strong title={model.item.title}>{model.item.title}</strong>
                     </div>
 
-                    <div className="classification-review-queue">
-                      <div className={`classification-review-cell pending ${model.needsAttention ? "attention" : "ready"}`}>
-                        <span>Pendência</span>
-                        <strong>{model.accepted ? "Aceito" : pendingLabel}</strong>
-                      </div>
-                      <div className="classification-review-cell suggestion decision">
-                        <span>Categoria</span>
-                        <strong>{model.category || "Não classificado"}</strong>
-                      </div>
-                      <div className="classification-review-cell suggestion decision">
-                        <span>Subcategoria</span>
-                        <strong>{model.subcategory || "Sem subcategoria"}</strong>
-                      </div>
-                      <div className="classification-review-cell reason">
-                        <span>Motivo</span>
-                        <strong>{primaryReason}</strong>
-                      </div>
-                      <div className="classification-review-cell action">
-                        <span>Ações</span>
-                        <div>
-                          {model.accepted ? (
-                            <>
-                              <button className="accepted-action-button compact" disabled type="button">
-                                <CheckCircle2 size={14} />
-                                Aceito
-                              </button>
-                              <button className="secondary-button compact" type="button" onClick={() => undoSuggestion(model)}>
-                                <RotateCcw size={14} />
-                                Desfazer
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <button
-                                className="primary-button compact"
-                                type="button"
-                                onClick={() => acceptSuggestion(model)}
-                              >
-                                <Check size={14} />
-                                Aceitar
-                              </button>
-                              <button className="secondary-button compact" type="button" onClick={() => toggleTaskSelection(model.key)}>
-                                {isSelected ? "Selecionada" : "Selecionar"}
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </div>
+                    <span
+                      className={`classification-badge ${confidence.variant} confidence classification-row-confidence`}
+                      title={`${confidence.percentage}% de confiança. Indica o quanto a IA está segura sobre esta sugestão.`}
+                    >
+                      <strong>{confidence.percentage}%</strong>
+                      {confidence.label}
+                    </span>
+
+                    <div className="classification-row-value">
+                      <span>Categoria</span>
+                      <strong>{model.category || "Não classificado"}</strong>
                     </div>
 
-                    <div className={`classification-details ${detailsExpanded ? "open" : ""}`}>
-                      <button
-                        aria-expanded={detailsExpanded}
-                        className="classification-details-toggle"
-                        type="button"
-                        onClick={() => toggleTaskDetails(model.key)}
-                      >
-                        Ver detalhes
-                      </button>
-                      <div className="classification-details-panel" aria-hidden={!detailsExpanded}>
-                        <div className="classification-details-content">
+                    <div className="classification-row-value">
+                      <span>Subcategoria</span>
+                      <strong>{model.subcategory || "Sem subcategoria"}</strong>
+                    </div>
+
+                    <div className="classification-row-actions">
+                      {model.accepted ? (
+                        <>
+                          <button className="accepted-action-button compact" disabled type="button">
+                            <CheckCircle2 size={14} />
+                            Aceito
+                          </button>
+                          <button className="secondary-button compact icon-only" type="button" onClick={() => undoSuggestion(model)} title="Desfazer aceite">
+                            <RotateCcw size={14} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button className="primary-button compact" type="button" onClick={() => acceptSuggestion(model)}>
+                            <Check size={14} />
+                            Aceitar
+                          </button>
+                          <button className="secondary-button compact" type="button" onClick={() => toggleTaskDetails(model.key)}>
+                            {detailsExpanded ? "Ocultar" : "Revisar"}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className={`classification-row-details ${detailsExpanded ? "open" : ""}`} aria-hidden={!detailsExpanded}>
+                    <div className="classification-row-detail-header">
+                      <span className={`classification-badge ${model.needsAttention ? "warning" : "success"}`}>
+                        {model.accepted ? "Aceito" : pendingLabel}
+                      </span>
+                      <span>{primaryReason}</span>
+                    </div>
+                    <div className="classification-details-content">
                       <div className="classification-meta-row">
                         <span className="classification-badge neutral detail">
                           <UserRound size={14} />
@@ -867,8 +846,6 @@ export function ClassificationReviewPanel({
                             onChange={(subcategory) => updateLines(model.affectedLines, model.category, subcategory)}
                           />
                         </label>
-                      </div>
-                        </div>
                       </div>
                     </div>
                   </div>
