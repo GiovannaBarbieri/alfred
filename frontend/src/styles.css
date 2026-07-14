@@ -4533,9 +4533,10 @@ input {
 }
 
 .validation-save-metrics .compact {
-  align-items: center;
+  align-content: center;
   grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 48px;
+  min-height: 58px;
+  padding: 11px 12px;
 }
 
 .validation-save-metrics svg {
