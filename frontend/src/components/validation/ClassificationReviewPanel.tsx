@@ -43,7 +43,13 @@ type QuickFilter =
   | "low"
   | "unclassified"
   | "conflict"
-  | `category:${string}`;
+  | "accepted"
+  | "confidence-high"
+  | "confidence-medium"
+  | "confidence-very-low"
+  | `category:${string}`
+  | `subcategory:${string}`
+  | `origin:${string}`;
 
 type CardModel = {
   key: string;
@@ -102,9 +108,27 @@ function confidenceBadge(confidence: number) {
   return { variant: "danger", label: "Muito baixa", percentage };
 }
 
-function matchesCategoryFilter(category: string, filter: QuickFilter) {
+function matchesAdvancedFilter(model: CardModel, filter: QuickFilter) {
   if (filter.startsWith("category:")) {
-    return normalizeText(category) === normalizeText(filter.replace("category:", ""));
+    return normalizeText(model.category) === normalizeText(filter.replace("category:", ""));
+  }
+  if (filter.startsWith("subcategory:")) {
+    return normalizeText(model.subcategory) === normalizeText(filter.replace("subcategory:", ""));
+  }
+  if (filter.startsWith("origin:")) {
+    return normalizeText(model.origin) === normalizeText(filter.replace("origin:", ""));
+  }
+  if (filter === "accepted") {
+    return model.accepted;
+  }
+  if (filter === "confidence-high") {
+    return model.confidence >= 0.9;
+  }
+  if (filter === "confidence-medium") {
+    return model.confidence >= 0.7 && model.confidence < 0.9;
+  }
+  if (filter === "confidence-very-low") {
+    return model.confidence < 0.4;
   }
   return true;
 }
@@ -317,7 +341,7 @@ export function ClassificationReviewPanel({
       if (quickFilter === "low") return model.lowConfidence;
       if (quickFilter === "unclassified") return model.unclassified;
       if (quickFilter === "conflict") return model.conflict;
-      return matchesCategoryFilter(model.category, quickFilter);
+      return matchesAdvancedFilter(model, quickFilter);
     });
   }, [cardModels, quickFilter, selectedCollaborator, taskSearch]);
 
@@ -486,22 +510,85 @@ export function ClassificationReviewPanel({
       icon: <Tags size={15} />,
     }));
 
+  const subcategoryCounts = new Map<string, number>();
+  const originCounts = new Map<string, number>();
+  cardModels.forEach((model) => {
+    if (model.subcategory) {
+      const key = normalizeText(model.subcategory);
+      subcategoryCounts.set(key, (subcategoryCounts.get(key) ?? 0) + 1);
+    }
+    if (model.origin) {
+      originCounts.set(model.origin, (originCounts.get(model.origin) ?? 0) + 1);
+    }
+  });
+  const subcategoryQuickFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> =
+    subcategoryOptions
+      .filter(Boolean)
+      .map((subcategory) => ({
+        id: `subcategory:${subcategory}` as QuickFilter,
+        label: subcategory,
+        count: subcategoryCounts.get(normalizeText(subcategory)) ?? 0,
+        icon: <Tags size={15} />,
+      }));
+  const originQuickFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = Array.from(
+    originCounts.entries(),
+  )
+    .sort((a, b) => b[1] - a[1])
+    .map(([origin, count]) => ({
+      id: `origin:${origin}` as QuickFilter,
+      label: origin,
+      count,
+      icon: <FileText size={15} />,
+    }));
+  const confidenceQuickFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = [
+    {
+      id: "confidence-high",
+      label: "Alta confiança",
+      count: cardModels.filter((model) => model.confidence >= 0.9).length,
+      icon: <CheckCircle2 size={15} />,
+    },
+    {
+      id: "confidence-medium",
+      label: "Confiança média",
+      count: cardModels.filter((model) => model.confidence >= 0.7 && model.confidence < 0.9).length,
+      icon: <ShieldAlert size={15} />,
+    },
+    {
+      id: "confidence-very-low",
+      label: "Muito baixa",
+      count: cardModels.filter((model) => model.confidence < 0.4).length,
+      icon: <AlertTriangle size={15} />,
+    },
+  ];
+  const statusQuickFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = [
+    { id: "all", label: "Todas as atividades", count: summary.total, icon: <ListChecks size={15} /> },
+    { id: "accepted", label: "Revisadas", count: cardModels.filter((model) => model.accepted).length, icon: <Check size={15} /> },
+  ];
   const pendingFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = [
     { id: "smart", label: "Pendências", count: summary.attention, icon: <Sparkles size={15} /> },
     { id: "low", label: "Baixa confiança", count: summary.lowConfidence, icon: <ShieldAlert size={15} /> },
     { id: "unclassified", label: "Sem categoria", count: summary.unclassified, icon: <AlertTriangle size={15} /> },
     { id: "conflict", label: "Conflitos", count: summary.conflicts, icon: <Layers3 size={15} /> },
   ];
-  const advancedFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = [
-    { id: "all", label: "Todas as atividades", count: summary.total, icon: <ListChecks size={15} /> },
-    ...categoryQuickFilters,
-  ];
   const hasPendingItems = summary.attention > 0;
-  const hasActiveAdvancedFilter = quickFilter === "all" || quickFilter.startsWith("category:");
+  const hasActiveAdvancedFilter =
+    quickFilter === "all" ||
+    quickFilter === "accepted" ||
+    quickFilter.startsWith("category:") ||
+    quickFilter.startsWith("subcategory:") ||
+    quickFilter.startsWith("origin:") ||
+    quickFilter.startsWith("confidence-");
   const hasActiveToolbarFilter = Boolean(taskSearch || selectedCollaborator || quickFilter !== "smart");
 
   function selectFilter(filterId: QuickFilter) {
-    if (filterId === "all" || filterId.startsWith("category:")) {
+    if (
+      filterId === "all" ||
+      filterId === "accepted" ||
+      filterId.startsWith("category:") ||
+      filterId.startsWith("subcategory:") ||
+      filterId.startsWith("origin:") ||
+      filterId.startsWith("confidence-")
+    ) {
       onToggleShowAllClassifications(true);
     }
     setQuickFilter(filterId);
@@ -667,22 +754,34 @@ export function ClassificationReviewPanel({
                 aria-label="Filtros avançados"
               >
                 <div className="classification-advanced-filter-heading">
-                  <span>Categorias e demais classificações</span>
+                  <span>Filtros secundários</span>
+                  <small>Refine a fila por classificação, confiança, origem ou revisão.</small>
                 </div>
-                <div className="classification-chip-row">
-                  {advancedFilters.map((filter) => (
-                    <button
-                      className={`classification-chip subtle ${quickFilter === filter.id ? "active" : ""}`}
-                      key={filter.id}
-                      type="button"
-                      onClick={() => selectFilter(filter.id)}
-                    >
-                      {filter.icon}
-                      {filter.label}
-                      {typeof filter.count === "number" && <span>{filter.count}</span>}
-                    </button>
-                  ))}
-                </div>
+                {[
+                  { label: "Status de revisão", filters: statusQuickFilters },
+                  { label: "Categoria", filters: categoryQuickFilters },
+                  { label: "Subcategoria", filters: subcategoryQuickFilters },
+                  { label: "Faixa de confiança", filters: confidenceQuickFilters },
+                  { label: "Origem", filters: originQuickFilters },
+                ].map((group) => (
+                  <div className="classification-advanced-filter-group" key={group.label}>
+                    <span>{group.label}</span>
+                    <div className="classification-chip-row">
+                      {group.filters.map((filter) => (
+                        <button
+                          className={`classification-chip subtle ${quickFilter === filter.id ? "active" : ""}`}
+                          key={filter.id}
+                          type="button"
+                          onClick={() => selectFilter(filter.id)}
+                        >
+                          {filter.icon}
+                          {filter.label}
+                          {typeof filter.count === "number" && <span>{filter.count}</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
