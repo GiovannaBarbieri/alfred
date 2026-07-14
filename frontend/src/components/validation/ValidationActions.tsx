@@ -126,7 +126,7 @@ export function ValidationActions({
               <div className={`status ${isReady ? "ready" : "attention"}`}>
                 {isReady ? <CheckCircle2 size={17} /> : <AlertTriangle size={17} />}
                 <span>Status</span>
-                <strong>{isReady ? "Pronto para importação" : "Revisão pendente"}</strong>
+                <strong>{isReady ? "Sem bloqueios" : "Revisão pendente"}</strong>
               </div>
             </div>
           </article>
@@ -136,7 +136,7 @@ export function ValidationActions({
               <div className="validation-executive-card-heading">
                 <span>{isReady ? <ShieldCheck size={18} /> : <AlertTriangle size={18} />}</span>
                 <div>
-                  <h3>{isReady ? "Pronto para salvar" : "Ainda existem pontos de atenção"}</h3>
+                  <h3>{isReady ? "Validações concluídas" : "Ainda existem pontos de atenção"}</h3>
                   <p>
                     {isReady
                       ? "Validações concluídas e sem bloqueios."
@@ -204,8 +204,8 @@ export function ValidationActions({
 
         <aside className="validation-confirmation-side">
           <div className="validation-confirmation-status">
-            <span>Status</span>
-            <strong>{isReady ? "Importação pronta" : "Revisão pendente"}</strong>
+            <span>Ações</span>
+            <strong>Escolha como prosseguir</strong>
             <p>Os dados serão gravados na base oficial somente após a confirmação.</p>
           </div>
 
