@@ -50,7 +50,7 @@ export function ValidationActions({
   const isReady = canCompleteImport && !error;
   const readinessTone = isReady ? "ready" : "attention";
   const confirmationSucceeded = Boolean(processingMessage?.toLowerCase().includes("confirmada"));
-  const displayProcessingMessage = confirmationSucceeded ? processingMessage : isCompleting ? "Confirmando importação..." : processingMessage;
+  const displayProcessingMessage = confirmationSucceeded ? processingMessage : isCompleting ? "Confirmando importação..." : null;
   const confirmationSteps = [
     { label: "Validando importação", status: isCompleting ? "done" : "pending" },
     { label: "Gravando registros", status: confirmationSucceeded ? "done" : isCompleting ? "active" : "pending" },
@@ -107,15 +107,10 @@ export function ValidationActions({
                   <strong>{metric.value}</strong>
                 </div>
               ))}
-              <div className="wide">
+              <div className="wide project-context">
                 <Database size={17} />
                 <span>Projeto</span>
                 <strong>{projectName}</strong>
-              </div>
-              <div className="wide">
-                <FileText size={17} />
-                <span>Arquivo</span>
-                <strong>{fileName}</strong>
               </div>
               {secondaryMetrics.map((metric) => (
                 <div className="compact" key={metric.label}>
@@ -136,7 +131,7 @@ export function ValidationActions({
               <div className="validation-executive-card-heading">
                 <span>{isReady ? <ShieldCheck size={18} /> : <AlertTriangle size={18} />}</span>
                 <div>
-                  <h3>{isReady ? "Validações concluídas" : "Ainda existem pontos de atenção"}</h3>
+                  <h3>{isReady ? "Conferência final" : "Ainda existem pontos de atenção"}</h3>
                   <p>
                     {isReady
                       ? "Validações concluídas e sem bloqueios."
@@ -205,13 +200,10 @@ export function ValidationActions({
         <aside className="validation-confirmation-side">
           <div className="validation-confirmation-actions-title">
             <span>Área de decisão</span>
-            <strong>Ações</strong>
+            <strong>Ações da importação</strong>
           </div>
 
           <div className="validation-button-stack">
-            <button className="secondary-button compact danger" disabled={isLoading || isCompleting} onClick={onCancel} type="button">
-              Descartar importação
-            </button>
             <button className="primary-button compact confirm-import-button" disabled={!canCompleteImport || isCompleting} onClick={onComplete} type="button">
               {isCompleting ? (
                 <>
@@ -224,6 +216,9 @@ export function ValidationActions({
                   Confirmar importação
                 </>
               )}
+            </button>
+            <button className="secondary-button compact danger" disabled={isLoading || isCompleting} onClick={onCancel} type="button">
+              Descartar importação
             </button>
           </div>
 

@@ -4335,13 +4335,17 @@ input {
 
 .validation-button-stack {
   display: grid;
-  gap: 10px;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.8fr);
+  gap: 8px;
+  grid-template-columns: 1fr;
 }
 
 .validation-button-stack .danger {
+  background: #ffffff;
   border-color: #fecaca;
   color: #b91c1c;
+  justify-content: center;
+  min-height: 38px;
+  width: 100%;
 }
 
 .validation-button-stack .danger:hover {
@@ -4357,7 +4361,7 @@ input {
   font-size: 15px;
   gap: 8px;
   justify-content: center;
-  min-height: 50px;
+  min-height: 54px;
   padding-inline: 22px;
   transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
   width: 100%;
@@ -4617,6 +4621,11 @@ input {
   padding: 9px 10px;
 }
 
+.validation-save-metrics .wide.project-context {
+  grid-column: 1 / -1;
+  min-height: 54px;
+}
+
 .validation-save-metrics .wide strong,
 .validation-save-metrics .status strong {
   font-size: 14px;
@@ -4691,8 +4700,8 @@ input {
   border-radius: 14px;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.045);
   display: grid;
-  gap: 10px;
-  padding: 14px;
+  gap: 12px;
+  padding: 16px;
   position: sticky;
   top: 16px;
 }
