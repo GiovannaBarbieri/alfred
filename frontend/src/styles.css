@@ -4556,8 +4556,11 @@ input {
 }
 
 .validation-save-metrics .primary {
-  background: #f8fbff;
-  min-height: 92px;
+  background: #eef5ff;
+  border-color: #bfd8ff;
+  box-shadow: 0 8px 18px rgba(15, 76, 138, 0.07);
+  min-height: 104px;
+  padding: 12px;
 }
 
 .validation-save-metrics .compact {
@@ -4587,14 +4590,22 @@ input {
 }
 
 .validation-save-metrics .wide {
+  background: #ffffff;
   grid-column: span 2;
+  min-height: 62px;
+  padding: 9px 10px;
 }
 
 .validation-save-metrics .wide strong,
 .validation-save-metrics .status strong {
-  font-size: 15px;
+  font-size: 14px;
+  font-weight: 800;
   line-height: 1.25;
   white-space: nowrap;
+}
+
+.validation-save-metrics .primary strong {
+  font-size: 24px;
 }
 
 .validation-save-metrics .compact strong {

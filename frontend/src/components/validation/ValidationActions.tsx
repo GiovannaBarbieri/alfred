@@ -100,6 +100,13 @@ export function ValidationActions({
             </div>
 
             <div className="validation-save-metrics">
+              {primaryMetrics.map((metric) => (
+                <div className="primary" key={metric.label}>
+                  {metric.icon}
+                  <span>{metric.label}</span>
+                  <strong>{metric.value}</strong>
+                </div>
+              ))}
               <div className="wide">
                 <Database size={17} />
                 <span>Projeto</span>
@@ -110,13 +117,6 @@ export function ValidationActions({
                 <span>Arquivo</span>
                 <strong>{fileName}</strong>
               </div>
-              {primaryMetrics.map((metric) => (
-                <div className="primary" key={metric.label}>
-                  {metric.icon}
-                  <span>{metric.label}</span>
-                  <strong>{metric.value}</strong>
-                </div>
-              ))}
               {secondaryMetrics.map((metric) => (
                 <div className="compact" key={metric.label}>
                   <span>{metric.label}</span>
