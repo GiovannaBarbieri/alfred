@@ -7,6 +7,7 @@ export type ClassificationReviewGroup = {
   subcategory: string;
   origin: string;
   suggestionReasons: string[];
+  reviewReasons: string[];
   matchedKeywords: string[];
   totalRecords: number;
   needsReview: boolean;

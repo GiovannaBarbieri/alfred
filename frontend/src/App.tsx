@@ -60,7 +60,18 @@ function App() {
   const completedImportRedirectRef = useRef<number | null>(null);
   const [isLoadingImportDetail, setIsLoadingImportDetail] = useState(false);
   const settings = useSettings(dashboard.refreshFilterOptions);
+  const categoryOptions = useMemo(() => {
+    const active = settings.settingsCategories.filter((category) => category.active).map((category) => category.name);
+    return active.length > 0 ? active : defaultCategoryOptions;
+  }, [settings.settingsCategories]);
+  const subcategoryOptions = useMemo(() => {
+    const active = settings.settingsSubcategories
+      .filter((subcategory) => subcategory.active)
+      .map((subcategory) => subcategory.name);
+    return active.length > 0 ? active : defaultSubcategoryOptions;
+  }, [settings.settingsSubcategories]);
   const importFlow = useImportFlow({
+    categoryOptions,
     onValidationReady: () => setActiveSection("validation"),
     onCompleted: async (response, snapshot) => {
       await dashboard.refreshDashboard(dashboard.filters);
@@ -74,17 +85,8 @@ function App() {
       setCompletedImport(null);
       setActiveSection("import");
     },
+    subcategoryOptions,
   });
-  const categoryOptions = useMemo(() => {
-    const active = settings.settingsCategories.filter((category) => category.active).map((category) => category.name);
-    return active.length > 0 ? active : defaultCategoryOptions;
-  }, [settings.settingsCategories]);
-  const subcategoryOptions = useMemo(() => {
-    const active = settings.settingsSubcategories
-      .filter((subcategory) => subcategory.active)
-      .map((subcategory) => subcategory.name);
-    return active.length > 0 ? active : defaultSubcategoryOptions;
-  }, [settings.settingsSubcategories]);
   const collaboratorLoginOptions = useMemo(() => {
     const logins = new Set<string>();
     dashboard.filterOptions.users.forEach((option) => logins.add(option.value));

@@ -7,6 +7,7 @@ import { ValidationActions } from "../components/validation/ValidationActions";
 import { ValidationEmptyState } from "../components/validation/ValidationEmptyState";
 import { ValidationResultsGrid } from "../components/validation/ValidationResultsGrid";
 import { ValidationSummary } from "../components/validation/ValidationSummary";
+import { reviewReasonsForClassification } from "../utils/classificationReviewCriteria";
 import type { ImportIssue, ImportSessionSummary, ImportValidationResponse, SettingItem } from "../types";
 import type { ClassificationReviewGroup } from "../types/validation";
 import type { ImportWizardStep } from "../components/ImportWizard";
@@ -221,7 +222,10 @@ export function ValidationPage({
         type: "success",
         message: `${totalCreated} colaborador${totalCreated === 1 ? "" : "es"} cadastrado${totalCreated === 1 ? "" : "s"} com sucesso.`,
       });
-      if (canCompleteImport && !hasPendingClassificationReview(result, nextClassificationOverrides)) {
+      if (
+        canCompleteImport &&
+        !hasPendingClassificationReview(result, nextClassificationOverrides, categoryOptions, subcategoryOptions)
+      ) {
         onImportWizardStepChange("confirm");
       }
     } catch (err) {
@@ -578,20 +582,24 @@ function isMissingOperationalProfile(value: string): boolean {
 function hasPendingClassificationReview(
   result: ImportValidationResponse,
   classificationOverrides: Record<number, { category: string; subcategory: string }>,
+  categoryOptions: string[],
+  subcategoryOptions: string[],
 ): boolean {
   return result.classifications.some((classification) => {
     const selected = classificationOverrides[classification.line] ?? {
       category: classification.category,
       subcategory: classification.subcategory,
     };
-    const hasMissingCategory = normalizeLogin(selected.category) === "nao classificado";
-    const hasMissingProfile = isMissingOperationalProfile(selected.subcategory);
-    const hasConflict = (classification.confidenceFactors ?? []).some((factor) => {
-      const normalized = normalizeLogin(factor);
-      return normalized.includes("multipl") || normalized.includes("conflit");
-    });
-
-    return hasMissingCategory || hasMissingProfile || hasConflict;
+    return (
+      reviewReasonsForClassification(
+        {
+          ...classification,
+          category: selected.category,
+          subcategory: selected.subcategory,
+        },
+        { categoryOptions, issues: result.issues, subcategoryOptions },
+      ).length > 0
+    );
   });
 }
 

@@ -44,7 +44,8 @@ type QuickFilter =
   | "accepted"
   | `category:${string}`
   | `subcategory:${string}`
-  | `origin:${string}`;
+  | `origin:${string}`
+  | `reason:${string}`;
 
 type CardModel = {
   key: string;
@@ -57,6 +58,7 @@ type CardModel = {
   origin: string;
   classifierVersion?: string;
   factors: string[];
+  reviewReasons: string[];
   matchedKeywords: string[];
   unclassified: boolean;
   conflict: boolean;
@@ -94,6 +96,10 @@ function matchesAdvancedFilter(model: CardModel, filter: QuickFilter) {
   }
   if (filter.startsWith("origin:")) {
     return normalizeText(model.origin) === normalizeText(filter.replace("origin:", ""));
+  }
+  if (filter.startsWith("reason:")) {
+    const reason = filter.replace("reason:", "");
+    return model.reviewReasons.some((item) => normalizeText(item) === normalizeText(reason));
   }
   if (filter === "accepted") {
     return model.accepted;
@@ -268,8 +274,9 @@ export function ClassificationReviewPanel({
         subcategory: representativeClassification?.subcategory ?? item.subcategory,
       };
       const factors = representativeClassification?.confidenceFactors ?? item.suggestionReasons;
+      const reviewReasons = item.reviewReasons;
       const matchedKeywords = representativeClassification?.matchedKeywords ?? item.matchedKeywords;
-      const conflict = factors.some(isConflictFactor);
+      const conflict = factors.some(isConflictFactor) || reviewReasons.some(isConflictFactor);
       const unclassified = isUnclassifiedValue(selected.category);
       const key = `${item.idTask}-${selectedCollaborator || "all"}`;
       const accepted = acceptedTasks.includes(key);
@@ -285,6 +292,7 @@ export function ClassificationReviewPanel({
         origin: representativeClassification?.origin ?? item.origin,
         classifierVersion: representativeClassification?.classifierVersion,
         factors,
+        reviewReasons,
         matchedKeywords,
         unclassified,
         conflict,
@@ -511,6 +519,22 @@ export function ClassificationReviewPanel({
       count,
       icon: <FileText size={15} />,
     }));
+  const reasonCounts = new Map<string, number>();
+  cardModels.forEach((model) => {
+    model.reviewReasons.forEach((reason) => {
+      reasonCounts.set(reason, (reasonCounts.get(reason) ?? 0) + 1);
+    });
+  });
+  const reviewReasonFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = Array.from(
+    reasonCounts.entries(),
+  )
+    .sort((a, b) => b[1] - a[1])
+    .map(([reason, count]) => ({
+      id: `reason:${reason}` as QuickFilter,
+      label: reason,
+      count,
+      icon: <AlertTriangle size={15} />,
+    }));
   const statusQuickFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = [
     { id: "all", label: "Todas as atividades", count: summary.total, icon: <ListChecks size={15} /> },
     { id: "accepted", label: "Revisadas", count: summary.reviewed, icon: <Check size={15} /> },
@@ -526,7 +550,8 @@ export function ClassificationReviewPanel({
     quickFilter === "accepted" ||
     quickFilter.startsWith("category:") ||
     quickFilter.startsWith("subcategory:") ||
-    quickFilter.startsWith("origin:");
+    quickFilter.startsWith("origin:") ||
+    quickFilter.startsWith("reason:");
   const hasActiveToolbarFilter = Boolean(taskSearch || selectedCollaborator || quickFilter !== "smart");
 
   function selectFilter(filterId: QuickFilter) {
@@ -535,7 +560,8 @@ export function ClassificationReviewPanel({
       filterId === "accepted" ||
       filterId.startsWith("category:") ||
       filterId.startsWith("subcategory:") ||
-      filterId.startsWith("origin:")
+      filterId.startsWith("origin:") ||
+      filterId.startsWith("reason:")
     ) {
       onToggleShowAllClassifications(true);
     }
@@ -709,6 +735,7 @@ export function ClassificationReviewPanel({
                   { label: "Status de revisão", filters: statusQuickFilters },
                   { label: "Categoria", filters: categoryQuickFilters },
                   { label: "Subcategoria", filters: subcategoryQuickFilters },
+                  { label: "Motivo da revisão", filters: reviewReasonFilters },
                   { label: "Origem", filters: originQuickFilters },
                 ].map((group) => (
                   <div className="classification-advanced-filter-group" key={group.label}>
@@ -810,15 +837,17 @@ export function ClassificationReviewPanel({
             {paginatedCards.map((model) => {
               const isSelected = selectedTasks.includes(model.key);
               const pendingReasons = [
-                model.unclassified ? "Sem categoria" : null,
-                model.conflict ? "Conflito" : null,
-                model.item.needsReview ? "Revisão necessária" : null,
+                ...model.reviewReasons,
+                model.unclassified && model.reviewReasons.length === 0 ? "Sem categoria" : null,
+                model.conflict && model.reviewReasons.length === 0 ? "Conflito" : null,
+                model.item.needsReview && model.reviewReasons.length === 0 ? "Revisão necessária" : null,
               ].filter(Boolean);
               const pendingLabel = pendingReasons.length > 0 ? pendingReasons.join(" · ") : "Sugestão pronta";
               const editExpanded = expandedTasks.includes(model.key);
               const detailsExpanded = detailTasks.includes(model.key);
               const editDraft = editDrafts[model.key] ?? { category: model.category, subcategory: model.subcategory };
               const reasons = [
+                ...model.reviewReasons,
                 ...model.factors,
                 ...model.matchedKeywords.slice(0, 3).map((keyword) => `Palavra-chave: ${keyword}`),
               ].slice(0, 6);

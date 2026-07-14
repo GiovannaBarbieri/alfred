@@ -11,6 +11,7 @@ import {
 import type { ImportWizardStep } from "../components/ImportWizard";
 import type { ImportCompleteResponse, ImportSessionSummary, ImportValidationResponse } from "../types";
 import type { ClassificationReviewGroup } from "../types/validation";
+import { reviewReasonsForClassification } from "../utils/classificationReviewCriteria";
 
 export const importProcessingSteps = [
   "Preparando importacao",
@@ -64,10 +65,14 @@ export function useImportFlow({
   onValidationReady,
   onCompleted,
   onCancelled,
+  categoryOptions = [],
+  subcategoryOptions = [],
 }: {
   onValidationReady: () => void;
   onCompleted: (response: ImportCompleteResponse, snapshot: ImportCompletionSnapshot) => Promise<void>;
   onCancelled: () => void;
+  categoryOptions?: string[];
+  subcategoryOptions?: string[];
 }) {
   const [importWizardStep, setImportWizardStep] = useState<ImportWizardStep>("upload");
   const [currentSession, setCurrentSession] = useState<ImportSessionSummary | null>(null);
@@ -134,9 +139,12 @@ export function useImportFlow({
     for (const classification of result?.classifications ?? []) {
       const key = classification.idTask || `linha-${classification.line}`;
       const existing = grouped.get(key);
-      const needsReview =
-        classification.category === "Nao classificado" ||
-        classification.subcategory === "Nao classificado";
+      const reviewReasons = reviewReasonsForClassification(classification, {
+        categoryOptions,
+        subcategoryOptions,
+        issues: result?.issues ?? [],
+      });
+      const needsReview = reviewReasons.length > 0;
 
       if (!existing) {
         grouped.set(key, {
@@ -148,6 +156,7 @@ export function useImportFlow({
           subcategory: classification.subcategory,
           origin: classification.origin,
           suggestionReasons: classification.confidenceFactors ?? [],
+          reviewReasons,
           matchedKeywords: classification.matchedKeywords ?? [],
           totalRecords: 1,
           needsReview,
@@ -158,6 +167,11 @@ export function useImportFlow({
       existing.lines.push(classification.line);
       existing.totalRecords += 1;
       existing.needsReview = existing.needsReview || needsReview;
+      for (const reason of reviewReasons) {
+        if (!existing.reviewReasons.includes(reason)) {
+          existing.reviewReasons.push(reason);
+        }
+      }
       if (!existing.users.includes(classification.loginUsuario)) {
         existing.users.push(classification.loginUsuario);
       }
@@ -182,7 +196,7 @@ export function useImportFlow({
     return Array.from(grouped.values())
       .filter((group) => showAllClassifications || group.needsReview)
       .sort((a, b) => a.idTask.localeCompare(b.idTask));
-  }, [result, showAllClassifications]);
+  }, [categoryOptions, result, showAllClassifications, subcategoryOptions]);
   const availableWizardSteps = useMemo<ImportWizardStep[]>(() => {
     const steps: ImportWizardStep[] = ["upload"];
     if (!result) return steps;
