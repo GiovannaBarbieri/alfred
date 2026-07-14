@@ -203,9 +203,35 @@ export function ValidationActions({
         </div>
 
         <aside className="validation-confirmation-side">
+          <div className="validation-confirmation-actions-title">
+            <span>Área de decisão</span>
+            <strong>Ações</strong>
+          </div>
+
+          <div className="validation-button-stack">
+            <button className="secondary-button compact danger" disabled={isLoading || isCompleting} onClick={onCancel} type="button">
+              Descartar importação
+            </button>
+            <button className="primary-button compact confirm-import-button" disabled={!canCompleteImport || isCompleting} onClick={onComplete} type="button">
+              {isCompleting ? (
+                <>
+                  <span className="button-spinner" />
+                  Confirmando importação...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 size={17} />
+                  Confirmar importação
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="validation-confirmation-side-separator" aria-hidden="true" />
+
           <div className="validation-confirmation-status">
-            <span>Ações</span>
-            <strong>Escolha como prosseguir</strong>
+            <span>Status</span>
+            <strong>{isReady ? "Sem bloqueios" : "Revisão pendente"}</strong>
             <p>Os dados serão gravados na base oficial somente após a confirmação.</p>
           </div>
 
@@ -234,25 +260,6 @@ export function ValidationActions({
             </div>
           )}
           {error && <p className="error-text">{error}</p>}
-
-          <div className="validation-button-stack">
-            <button className="secondary-button compact danger" disabled={isLoading || isCompleting} onClick={onCancel} type="button">
-              Descartar importação
-            </button>
-            <button className="primary-button compact confirm-import-button" disabled={!canCompleteImport || isCompleting} onClick={onComplete} type="button">
-              {isCompleting ? (
-                <>
-                  <span className="button-spinner" />
-                  Confirmando importação...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 size={17} />
-                  Confirmar importação
-                </>
-              )}
-            </button>
-          </div>
         </aside>
       </div>
     </section>
