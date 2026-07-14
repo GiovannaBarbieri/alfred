@@ -184,20 +184,20 @@ export function ValidationActions({
                   <p>Sinais que liberam a gravação.</p>
                 </div>
               </div>
-              <div className="validation-confirmation-checklist">
-                <span className={blockingCount === 0 ? "done" : "attention"}>
+              <ul className="validation-confirmation-checklist">
+                <li className={blockingCount === 0 ? "done" : "attention"}>
                   {blockingCount === 0 ? <CheckCircle2 size={15} /> : <AlertTriangle size={15} />}
-                  {blockingCount} bloqueios
-                </span>
-                <span className={duplicateGroups === 0 ? "done" : "attention"}>
+                  {blockingCount === 0 ? "Nenhum bloqueio encontrado" : `${blockingCount} bloqueio${blockingCount === 1 ? "" : "s"} encontrado${blockingCount === 1 ? "" : "s"}`}
+                </li>
+                <li className={duplicateGroups === 0 ? "done" : "attention"}>
                   {duplicateGroups === 0 ? <CheckCircle2 size={15} /> : <AlertTriangle size={15} />}
-                  {duplicateGroups} grupos duplicados
-                </span>
-                <span className={alertCount === 0 ? "done" : "attention"}>
+                  {duplicateGroups === 0 ? "Nenhuma duplicidade encontrada" : `${duplicateGroups} grupo${duplicateGroups === 1 ? "" : "s"} duplicado${duplicateGroups === 1 ? "" : "s"}`}
+                </li>
+                <li className={alertCount === 0 ? "done" : "attention"}>
                   {alertCount === 0 ? <CheckCircle2 size={15} /> : <AlertTriangle size={15} />}
-                  {alertCount} alertas
-                </span>
-              </div>
+                  {alertCount === 0 ? "Nenhum alerta pendente" : `${alertCount} alerta${alertCount === 1 ? "" : "s"} pendente${alertCount === 1 ? "" : "s"}`}
+                </li>
+              </ul>
             </article>
           </div>
         </div>

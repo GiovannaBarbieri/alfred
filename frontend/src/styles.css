@@ -4640,27 +4640,27 @@ input {
 
 .validation-confirmation-checklist {
   display: grid;
-  gap: 8px;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.validation-confirmation-checklist span {
+.validation-confirmation-checklist li {
   align-items: center;
-  border-radius: 10px;
   display: inline-flex;
   font-size: 12px;
-  font-weight: 850;
+  font-weight: 800;
   gap: 7px;
-  min-height: 34px;
-  padding: 0 10px;
+  line-height: 1.35;
+  min-height: 22px;
 }
 
 .validation-confirmation-checklist .done {
-  background: #ecfdf3;
   color: #15803d;
 }
 
 .validation-confirmation-checklist .attention {
-  background: #fff7ed;
   color: #9a3412;
 }
 
