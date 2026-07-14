@@ -5,11 +5,8 @@ import {
   ChevronDown,
   Check,
   CheckCircle2,
-  FileText,
   Layers3,
-  Lightbulb,
   ListChecks,
-  MapPin,
   RotateCcw,
   Search,
   ShieldAlert,
@@ -231,6 +228,7 @@ export function ClassificationReviewPanel({
   const [bulkSubcategory, setBulkSubcategory] = useState("");
   const [acceptedTasks, setAcceptedTasks] = useState<string[]>([]);
   const [expandedTasks, setExpandedTasks] = useState<string[]>([]);
+  const [editDrafts, setEditDrafts] = useState<Record<string, { category: string; subcategory: string }>>({});
   const [actionNotice, setActionNotice] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
@@ -363,6 +361,12 @@ export function ClassificationReviewPanel({
     updateLines(model.affectedLines, model.category, model.subcategory);
     setAcceptedTasks((current) => (current.includes(model.key) ? current : [...current, model.key]));
     setSelectedTasks((current) => current.filter((key) => key !== model.key));
+    setExpandedTasks((current) => current.filter((key) => key !== model.key));
+    setEditDrafts((current) => {
+      const next = { ...current };
+      delete next[model.key];
+      return next;
+    });
     setActionNotice(`Sugestao aceita para Task ${model.item.idTask}.`);
     window.setTimeout(() => setActionNotice(""), 2600);
   }
@@ -379,10 +383,46 @@ export function ClassificationReviewPanel({
     );
   }
 
-  function toggleTaskDetails(taskKey: string) {
-    setExpandedTasks((current) =>
-      current.includes(taskKey) ? current.filter((key) => key !== taskKey) : [...current, taskKey],
-    );
+  function toggleTaskDetails(model: CardModel) {
+    const isOpen = expandedTasks.includes(model.key);
+    if (isOpen) {
+      cancelTaskEdit(model.key);
+      return;
+    }
+
+    setEditDrafts((current) => ({
+      ...current,
+      [model.key]: { category: model.category, subcategory: model.subcategory },
+    }));
+    setExpandedTasks((current) => [...current, model.key]);
+  }
+
+  function updateTaskEditDraft(taskKey: string, field: "category" | "subcategory", value: string) {
+    setEditDrafts((current) => ({
+      ...current,
+      [taskKey]: {
+        category: current[taskKey]?.category ?? "",
+        subcategory: current[taskKey]?.subcategory ?? "",
+        [field]: value,
+      },
+    }));
+  }
+
+  function saveTaskEdit(model: CardModel) {
+    const draft = editDrafts[model.key] ?? { category: model.category, subcategory: model.subcategory };
+    updateLines(model.affectedLines, draft.category, draft.subcategory);
+    cancelTaskEdit(model.key);
+    setActionNotice(`Classificação atualizada para Task ${model.item.idTask}.`);
+    window.setTimeout(() => setActionNotice(""), 2600);
+  }
+
+  function cancelTaskEdit(taskKey: string) {
+    setExpandedTasks((current) => current.filter((key) => key !== taskKey));
+    setEditDrafts((current) => {
+      const next = { ...current };
+      delete next[taskKey];
+      return next;
+    });
   }
 
   function toggleVisibleSelection() {
@@ -700,12 +740,8 @@ export function ClassificationReviewPanel({
                 model.item.needsReview ? "Revisão necessária" : null,
               ].filter(Boolean);
               const pendingLabel = pendingReasons.length > 0 ? pendingReasons.join(" · ") : "Sugestão pronta";
-              const reasons = [
-                ...model.factors,
-                ...model.matchedKeywords.slice(0, 3).map((keyword) => `Palavra-chave: ${keyword}`),
-              ].slice(0, 6);
-              const primaryReason = reasons[0] ?? "Sugestão gerada a partir do padrão da atividade.";
               const detailsExpanded = expandedTasks.includes(model.key);
+              const editDraft = editDrafts[model.key] ?? { category: model.category, subcategory: model.subcategory };
 
               return (
                 <article
@@ -762,7 +798,7 @@ export function ClassificationReviewPanel({
                             <Check size={14} />
                             Aceitar
                           </button>
-                          <button className="secondary-button compact" type="button" onClick={() => toggleTaskDetails(model.key)}>
+                          <button className="secondary-button compact" type="button" onClick={() => toggleTaskDetails(model)}>
                             Editar
                           </button>
                         </>
@@ -771,80 +807,38 @@ export function ClassificationReviewPanel({
                   </div>
 
                   <div className={`classification-row-details ${detailsExpanded ? "open" : ""}`} aria-hidden={!detailsExpanded}>
-                    <div className="classification-row-detail-header">
-                      <span className={`classification-badge ${model.needsAttention ? "warning" : "success"}`}>
-                        {model.accepted ? "Aceito" : pendingLabel}
-                      </span>
-                      <span>{primaryReason}</span>
-                    </div>
-                    <div className="classification-details-content">
-                      <div className="classification-meta-row">
-                        <span className="classification-badge neutral detail">
-                          <UserRound size={14} />
-                          <small>Colaborador</small>
-                          <strong>{model.users.join(", ")}</strong>
-                        </span>
-                        <span className="classification-badge neutral detail">
-                          <MapPin size={14} />
-                          <small>Linhas da planilha</small>
-                          <strong>{model.affectedLines.join(", ")}</strong>
-                        </span>
-                        <span className="classification-badge info detail">
-                          <FileText size={14} />
-                          <small>Registros</small>
-                          <strong>{model.affectedLines.length}</strong>
-                        </span>
-                        <span className="classification-badge neutral detail">
-                          <Tags size={14} />
-                          <small>Origem</small>
-                          <strong>{model.origin}</strong>
-                        </span>
-                        <span className="classification-badge neutral detail">
-                          <Layers3 size={14} />
-                          <small>Versão</small>
-                          <strong>{model.classifierVersion || "Atual"}</strong>
-                        </span>
-                      </div>
-                      <div className="classification-reasons" role="note" aria-label="Motivo da classificação">
-                        <strong>
-                          <Lightbulb size={14} />
-                          Motivo da classificação
-                        </strong>
-                        {reasons.length > 0 ? (
-                          <ul>
-                            {reasons.map((reason) => (
-                              <li key={reason}>{reason}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p>Nenhum motivo detalhado retornado pelo classificador.</p>
-                        )}
-                      </div>
-                      <div className="classification-suggestion-grid">
-                        <label>
-                          <span>Categoria</span>
-                          <SearchableSelect
-                            ariaLabel={`Selecionar categoria da task ${model.item.idTask}`}
-                            disabled={model.accepted}
-                            options={categoryOptions}
-                            placeholder="Categoria"
-                            searchPlaceholder="Buscar categoria..."
-                            value={model.category}
-                            onChange={(category) => updateLines(model.affectedLines, category, model.subcategory)}
-                          />
-                        </label>
-                        <label>
-                          <span>Subcategoria</span>
-                          <SearchableSelect
-                            ariaLabel={`Selecionar subcategoria da task ${model.item.idTask}`}
-                            disabled={model.accepted}
-                            options={subcategoryOptions}
-                            placeholder="Subcategoria"
-                            searchPlaceholder="Buscar subcategoria..."
-                            value={model.subcategory}
-                            onChange={(subcategory) => updateLines(model.affectedLines, model.category, subcategory)}
-                          />
-                        </label>
+                    <div className="classification-row-edit-panel">
+                      <label>
+                        <span>Categoria</span>
+                        <SearchableSelect
+                          ariaLabel={`Selecionar categoria da task ${model.item.idTask}`}
+                          disabled={model.accepted}
+                          options={categoryOptions}
+                          placeholder="Categoria"
+                          searchPlaceholder="Buscar categoria..."
+                          value={editDraft.category}
+                          onChange={(category) => updateTaskEditDraft(model.key, "category", category)}
+                        />
+                      </label>
+                      <label>
+                        <span>Subcategoria</span>
+                        <SearchableSelect
+                          ariaLabel={`Selecionar subcategoria da task ${model.item.idTask}`}
+                          disabled={model.accepted}
+                          options={subcategoryOptions}
+                          placeholder="Subcategoria"
+                          searchPlaceholder="Buscar subcategoria..."
+                          value={editDraft.subcategory}
+                          onChange={(subcategory) => updateTaskEditDraft(model.key, "subcategory", subcategory)}
+                        />
+                      </label>
+                      <div className="classification-row-edit-actions">
+                        <button className="primary-button compact" type="button" onClick={() => saveTaskEdit(model)}>
+                          Salvar
+                        </button>
+                        <button className="secondary-button compact" type="button" onClick={() => cancelTaskEdit(model.key)}>
+                          Cancelar
+                        </button>
                       </div>
                     </div>
                   </div>

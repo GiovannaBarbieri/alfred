@@ -3784,8 +3784,7 @@ input {
 .classification-row-details {
   border-top: 1px solid #e6edf5;
   display: none;
-  gap: 10px;
-  padding: 10px 12px 12px 35px;
+  padding: 8px 12px 10px 35px;
 }
 
 .classification-row-details.open {
@@ -3808,6 +3807,42 @@ input {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.classification-row-edit-panel {
+  align-items: end;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(210px, 1fr) minmax(220px, 1fr) auto;
+}
+
+.classification-row-edit-panel label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.classification-row-edit-panel label > span {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.classification-row-edit-panel .classification-search-select > button {
+  min-height: 34px;
+}
+
+.classification-row-edit-actions {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.classification-row-edit-actions .primary-button,
+.classification-row-edit-actions .secondary-button {
+  min-height: 34px;
 }
 
 @keyframes detailsFadeSlide {
@@ -4325,6 +4360,14 @@ input {
 
   .classification-row-detail-header > span:last-child {
     white-space: normal;
+  }
+
+  .classification-row-edit-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .classification-row-edit-actions {
+    justify-content: flex-start;
   }
 
   .classification-review-queue {
