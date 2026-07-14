@@ -214,8 +214,12 @@ export function ValidationActions({
 
           <div className="validation-confirmation-status">
             <span>Status</span>
-            <strong>{isReady ? "Sem bloqueios" : "Revisão pendente"}</strong>
-            <p>Os dados serão gravados na base oficial somente após a confirmação.</p>
+            <strong>{isReady ? "Pronto para confirmação" : "Revisão pendente"}</strong>
+            <p>
+              {isReady
+                ? "Nenhum bloqueio foi encontrado. Os dados poderão ser gravados na base oficial após a confirmação."
+                : "Revise os pontos pendentes antes de gravar os dados na base oficial."}
+            </p>
           </div>
 
           {displayProcessingMessage && (
