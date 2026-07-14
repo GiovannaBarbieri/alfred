@@ -111,11 +111,6 @@ export function ValidationActions({
                   <strong>{metric.value}</strong>
                 </div>
               ))}
-              <div className={`status ${isReady ? "ready" : "attention"}`}>
-                {isReady ? <CheckCircle2 size={17} /> : <AlertTriangle size={17} />}
-                <span>Status</span>
-                <strong>{isReady ? "Sem bloqueios" : "Revisão pendente"}</strong>
-              </div>
             </div>
           </article>
 

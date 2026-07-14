@@ -4574,8 +4574,7 @@ input {
   grid-column: span 2;
 }
 
-.validation-save-metrics .wide strong,
-.validation-save-metrics .status strong {
+.validation-save-metrics .wide strong {
   font-size: 14px;
   font-weight: 800;
   line-height: 1.25;
@@ -4588,38 +4587,6 @@ input {
 
 .validation-save-metrics .compact strong {
   font-size: 16px;
-}
-
-.validation-save-metrics .status {
-  align-items: center;
-  background: #ecfdf3;
-  border-color: #bbf7d0;
-  grid-template-columns: auto minmax(0, 1fr);
-  min-height: 48px;
-}
-
-.validation-save-metrics .status svg {
-  grid-row: span 2;
-}
-
-.validation-save-metrics .status span,
-.validation-save-metrics .status strong {
-  grid-column: 2;
-}
-
-.validation-save-metrics .status svg,
-.validation-save-metrics .status strong {
-  color: #15803d;
-}
-
-.validation-save-metrics .status.attention {
-  background: #fff7ed;
-  border-color: #fed7aa;
-}
-
-.validation-save-metrics .status.attention svg,
-.validation-save-metrics .status.attention strong {
-  color: #9a3412;
 }
 
 .validation-executive-grid {
