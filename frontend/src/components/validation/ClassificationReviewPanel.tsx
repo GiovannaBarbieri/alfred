@@ -305,7 +305,7 @@ export function ClassificationReviewPanel({
   const visibleCards = useMemo(() => {
     return cardModels.filter((model) => {
       if (selectedCollaborator && model.affectedLines.length === 0) return false;
-      if (quickFilter === "smart") return model.needsAttention || model.accepted;
+      if (quickFilter === "smart") return model.needsAttention;
       if (quickFilter === "low") return model.lowConfidence;
       if (quickFilter === "unclassified") return model.unclassified;
       if (quickFilter === "conflict") return model.conflict;
@@ -763,7 +763,7 @@ export function ClassificationReviewPanel({
                             Aceitar
                           </button>
                           <button className="secondary-button compact" type="button" onClick={() => toggleTaskDetails(model.key)}>
-                            {detailsExpanded ? "Ocultar" : "Revisar"}
+                            Editar
                           </button>
                         </>
                       )}
