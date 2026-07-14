@@ -4432,55 +4432,6 @@ input {
   font-weight: 900;
 }
 
-.validation-executive-card.readiness {
-  gap: 10px;
-  padding: 14px;
-}
-
-.validation-executive-card.readiness.attention {
-  background: #fffaf4;
-  border-color: #fed7aa;
-}
-
-.validation-ready-checks {
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  display: grid;
-  gap: 6px;
-  padding: 0;
-}
-
-.validation-ready-checks span {
-  align-items: center;
-  color: #0b1f36;
-  display: inline-flex;
-  font-size: 12px;
-  font-weight: 850;
-  gap: 6px;
-  line-height: 1.25;
-}
-
-.validation-ready-checks span svg {
-  color: rgb(var(--color-success-rgb));
-}
-
-.validation-ready-checks.attention {
-  border-color: #fed7aa;
-}
-
-.validation-ready-checks.attention span {
-  color: #9a3412;
-}
-
-.validation-ready-note {
-  color: #475569;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.3;
-  margin: 2px 0 0;
-}
-
 .validation-executive-card-heading {
   align-items: center;
   display: grid;
@@ -4501,11 +4452,6 @@ input {
   height: 36px;
   justify-content: center;
   width: 36px;
-}
-
-.validation-executive-card.readiness.attention .validation-executive-card-heading > span {
-  background: #ffedd5;
-  color: #9a3412;
 }
 
 .validation-executive-card-heading h3 {
@@ -4601,17 +4547,6 @@ input {
   font-size: 16px;
 }
 
-.validation-executive-grid {
-  align-items: stretch;
-  display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.validation-executive-grid > .validation-executive-card {
-  height: 100%;
-}
-
 .validation-confirmation-checklist {
   display: grid;
   gap: 8px;
@@ -4652,6 +4587,21 @@ input {
   padding: 16px;
   position: sticky;
   top: 16px;
+}
+
+.validation-confirmation-side-column {
+  display: grid;
+  gap: 14px;
+  position: sticky;
+  top: 16px;
+}
+
+.validation-confirmation-side-column .validation-confirmation-side {
+  position: static;
+}
+
+.side-checklist-card {
+  width: 100%;
 }
 
 .validation-confirmation-actions-title {
@@ -4890,11 +4840,11 @@ input {
 }
 
 @media (max-width: 1080px) {
-  .validation-confirmation-layout,
-  .validation-executive-grid {
+  .validation-confirmation-layout {
     grid-template-columns: 1fr;
   }
 
+  .validation-confirmation-side-column,
   .validation-confirmation-side {
     position: static;
   }
