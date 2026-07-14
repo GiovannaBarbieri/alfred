@@ -74,7 +74,8 @@ type CardModel = {
 
 const REVIEW_CONFIDENCE_THRESHOLD = 0.9;
 const UNCLASSIFIED_VALUES = ["nao classificado", "não classificado", ""];
-const ACTIVITIES_PER_PAGE = 20;
+const DEFAULT_ACTIVITIES_PER_PAGE = 25;
+const PAGE_SIZE_OPTIONS = [25, 50, 100];
 
 function normalizeText(value: string | undefined | null) {
   return String(value ?? "")
@@ -260,6 +261,7 @@ export function ClassificationReviewPanel({
   const [taskSearch, setTaskSearch] = useState("");
   const [actionNotice, setActionNotice] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [activitiesPerPage, setActivitiesPerPage] = useState(DEFAULT_ACTIVITIES_PER_PAGE);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [collaboratorComboboxOpen, setCollaboratorComboboxOpen] = useState(false);
   const [collaboratorSearch, setCollaboratorSearch] = useState("");
@@ -346,9 +348,9 @@ export function ClassificationReviewPanel({
     });
   }, [cardModels, quickFilter, selectedCollaborator, taskSearch]);
 
-  const totalPages = Math.max(1, Math.ceil(visibleCards.length / ACTIVITIES_PER_PAGE));
-  const pageStartIndex = visibleCards.length === 0 ? 0 : (currentPage - 1) * ACTIVITIES_PER_PAGE;
-  const pageEndIndex = Math.min(pageStartIndex + ACTIVITIES_PER_PAGE, visibleCards.length);
+  const totalPages = Math.max(1, Math.ceil(visibleCards.length / activitiesPerPage));
+  const pageStartIndex = visibleCards.length === 0 ? 0 : (currentPage - 1) * activitiesPerPage;
+  const pageEndIndex = Math.min(pageStartIndex + activitiesPerPage, visibleCards.length);
   const paginatedCards = visibleCards.slice(pageStartIndex, pageEndIndex);
 
   useEffect(() => {
@@ -1067,10 +1069,10 @@ export function ClassificationReviewPanel({
             {visibleCards.length > 0 && (
               <div className="classification-footer-pagination" aria-label="Paginação das atividades">
                 <div className="classification-pagination-summary">
-                  <span>Mostrando</span>
                   <strong>{pageStartIndex + 1}–{pageEndIndex}</strong>
                   <span>de</span>
-                  <strong>{visibleCards.length} atividades</strong>
+                  <strong>{visibleCards.length}</strong>
+                  <span>atividades</span>
                 </div>
                 <div className="classification-pagination-controls">
                   <button
@@ -1103,10 +1105,20 @@ export function ClassificationReviewPanel({
                   </button>
                 </div>
                 <label className="classification-page-size">
-                  <select aria-label="Itens por página" disabled value={ACTIVITIES_PER_PAGE} onChange={() => undefined}>
-                    <option value={20}>20</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
+                  <span>por página</span>
+                  <select
+                    aria-label="Atividades por página"
+                    value={activitiesPerPage}
+                    onChange={(event) => {
+                      setActivitiesPerPage(Number(event.target.value));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    {PAGE_SIZE_OPTIONS.map((size) => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
                   </select>
                 </label>
               </div>
