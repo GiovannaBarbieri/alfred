@@ -4400,7 +4400,7 @@ input {
 
 .validation-confirmation-main {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .validation-executive-card {
@@ -4602,9 +4602,14 @@ input {
 }
 
 .validation-executive-grid {
+  align-items: stretch;
   display: grid;
-  gap: 12px;
+  gap: 14px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.validation-executive-grid > .validation-executive-card {
+  height: 100%;
 }
 
 .validation-confirmation-checklist {
