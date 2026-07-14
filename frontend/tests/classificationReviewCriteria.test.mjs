@@ -7,7 +7,7 @@ const baseClassification = {
   line: 1,
   idTask: "123",
   loginUsuario: "ana.silva",
-  tituloTask: "Implementar fluxo",
+  tituloTask: "[Desenvolvimento] Implementar fluxo",
   category: "Desenvolvimento",
   subcategory: "Back",
   origin: "regra",
@@ -64,6 +64,32 @@ test("atividade válida não entra na revisão", () => {
       },
     ),
     [],
+  );
+});
+
+test("atividade sem categoria no primeiro colchete entra na revisão", () => {
+  assert.deepEqual(
+    reasons(
+      { tituloTask: "Implementar fluxo" },
+      {
+        categoryOptions: ["Desenvolvimento"],
+        subcategoryOptions: ["Back"],
+      },
+    ),
+    ["Categoria fora do padrão do título"],
+  );
+});
+
+test("atividade com categoria inválida no primeiro colchete entra na revisão", () => {
+  assert.deepEqual(
+    reasons(
+      { tituloTask: "[Produto] Implementar fluxo" },
+      {
+        categoryOptions: ["Desenvolvimento"],
+        subcategoryOptions: ["Back"],
+      },
+    ),
+    ["Categoria fora do padrão do título"],
   );
 });
 

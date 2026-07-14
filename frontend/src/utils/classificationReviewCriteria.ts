@@ -7,6 +7,7 @@ const PENDING_ORIGINS = new Set(["pendente"]);
 const CONFLICT_ISSUE_CODES = new Set(["conflicting_categories", "conflicting_category"]);
 const SUBCATEGORY_ISSUE_CODES = new Set(["missing_technical_profile"]);
 const MANUAL_REVIEW_ISSUE_CODES = new Set(["generic_title"]);
+const LEADING_BRACKETS_PATTERN = /^\s*\[([^\]]+)\]/;
 
 function normalizeReviewValue(value: string | undefined | null) {
   return String(value ?? "")
@@ -25,6 +26,21 @@ function isKnownOption(value: string | undefined | null, options: string[]) {
   if (!options.length) return true;
   const normalized = normalizeReviewValue(value);
   return options.some((option) => normalizeReviewValue(option) === normalized);
+}
+
+function leadingTitleCategories(title: string | undefined | null) {
+  const match = String(title ?? "").match(LEADING_BRACKETS_PATTERN);
+  if (!match) return [];
+  return match[1]
+    .split(/[,;/|]+|\s+e\s+/i)
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function hasValidLeadingCategory(title: string | undefined | null, categoryOptions: string[]) {
+  if (!categoryOptions.length) return leadingTitleCategories(title).length > 0;
+  const normalizedOptions = new Set(categoryOptions.map((option) => normalizeReviewValue(option)));
+  return leadingTitleCategories(title).some((category) => normalizedOptions.has(normalizeReviewValue(category)));
 }
 
 function hasConflictReason(reasons: string[]) {
@@ -48,6 +64,10 @@ export function reviewReasonsForClassification(
     reasons.add("Sem categoria");
   } else if (!isKnownOption(classification.category, categoryOptions)) {
     reasons.add("Categoria não encontrada nas regras");
+  }
+
+  if (!hasValidLeadingCategory(classification.tituloTask, categoryOptions)) {
+    reasons.add("Categoria fora do padrão do título");
   }
 
   if (isBlankOrUnclassified(classification.subcategory)) {
