@@ -843,6 +843,15 @@ export function ClassificationReviewPanel({
               </span>
             </div>
 
+            <div className="classification-list-column-header" aria-hidden="true">
+              <span />
+              <strong>Atividade</strong>
+              <strong>Confiança</strong>
+              <strong>Categoria</strong>
+              <strong>Subcategoria</strong>
+              <strong>Ações</strong>
+            </div>
+
             {visibleCards.length === 0 && (
               <div className="classification-empty-state">
                 <CheckCircle2 size={24} />
