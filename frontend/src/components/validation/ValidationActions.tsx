@@ -66,8 +66,8 @@ export function ValidationActions({
   const secondaryMetrics = [
     { label: "Categorias", value: categoriesCount },
     { label: "Subcategorias", value: subcategoriesCount },
-    { label: "Revisados manualmente", value: manuallyReviewedItems },
-    { label: "Automáticos", value: automaticallyClassifiedItems },
+    { label: "Itens revisados manualmente", value: manuallyReviewedItems },
+    { label: "Classificados automaticamente", value: automaticallyClassifiedItems },
     { label: "Duplicidades", value: duplicateGroups },
     { label: "Bloqueios", value: blockingCount },
   ];
