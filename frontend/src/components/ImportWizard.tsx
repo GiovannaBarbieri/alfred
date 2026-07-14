@@ -5,7 +5,7 @@ const importWizardSteps: Array<{ id: ImportWizardStep; title: string }> = [
   { id: "preview", title: "Pré-visualização" },
   { id: "duplicates", title: "Duplicidades" },
   { id: "classification", title: "Classificação" },
-  { id: "confirm", title: "Confirmar" },
+  { id: "confirm", title: "Confirmação" },
 ];
 
 export function ImportWizard({
@@ -40,7 +40,7 @@ export function ImportWizard({
             onClick={() => onStepChange(step.id)}
             title={isUnavailable ? "Nada para revisar nesta etapa" : undefined}
           >
-            <span>{index + 1}</span>
+            <span aria-hidden="true">{isDone ? "✓" : index + 1}</span>
             <strong>{step.title}</strong>
           </button>
         );

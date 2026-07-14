@@ -1097,10 +1097,18 @@ input {
   color: #123c69;
 }
 
-.wizard-step.active span,
-.wizard-step.done span {
+.wizard-step.active span {
   background: #123c69;
   color: #ffffff;
+}
+
+.wizard-step.done span {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.wizard-step.done strong {
+  color: #166534;
 }
 
 .wizard-step.done:not(:last-child)::after {
