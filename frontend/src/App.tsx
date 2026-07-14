@@ -163,6 +163,14 @@ function App() {
     setActiveSection("import");
   }
 
+  const headerOverride =
+    activeSection === "validation" && importFlow.importWizardStep === "confirm" && !completedImport
+      ? {
+          title: "Confirmação da importação",
+          description: "Revise os dados antes de gravá-los definitivamente.",
+        }
+      : null;
+
   async function handleViewCompletedImport() {
     if (!completedImport) return;
     await dashboard.handleOpenReportProject(completedImport.response.importId);
@@ -174,6 +182,7 @@ function App() {
     <AppShell
       activeSection={activeSection}
       onSectionChange={setActiveSection}
+      headerOverride={headerOverride}
       headerBackAction={
         activeSection === "reports" && dashboard.selectedReportImportId
           ? { label: "Relatórios", onClick: dashboard.handleBackToReportProjects }

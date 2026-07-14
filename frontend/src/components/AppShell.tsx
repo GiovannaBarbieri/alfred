@@ -6,6 +6,10 @@ import type { SectionId } from "../types/navigation";
 type AppShellProps = {
   activeSection: SectionId;
   onSectionChange: (section: SectionId) => void;
+  headerOverride?: {
+    title: string;
+    description: string;
+  } | null;
   headerBackAction?: {
     label: string;
     onClick: () => void;
@@ -19,7 +23,9 @@ const navItems: Array<{ id: SectionId; label: string; icon: ReactNode }> = [
   { id: "settings", label: "Configurações", icon: <Settings size={18} /> },
 ];
 
-export function AppShell({ activeSection, onSectionChange, headerBackAction, children }: AppShellProps) {
+export function AppShell({ activeSection, onSectionChange, headerOverride, headerBackAction, children }: AppShellProps) {
+  const headerMeta = headerOverride ?? sectionMeta[activeSection];
+
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -57,9 +63,9 @@ export function AppShell({ activeSection, onSectionChange, headerBackAction, chi
                 {headerBackAction.label}
               </button>
             ) : (
-              <h1>{sectionMeta[activeSection].title}</h1>
+              <h1>{headerMeta.title}</h1>
             )}
-            <p>{sectionMeta[activeSection].description}</p>
+            <p>{headerMeta.description}</p>
           </div>
         </header>
 

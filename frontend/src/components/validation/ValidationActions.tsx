@@ -74,18 +74,6 @@ export function ValidationActions({
 
   return (
     <section className="validation-confirmation-executive">
-      <div className="validation-confirmation-hero">
-        <div>
-          <span className="eyebrow">Resumo executivo</span>
-          <h2>Confirmação da importação</h2>
-          <p>Revise o que será salvo e confirme apenas quando tudo estiver pronto.</p>
-        </div>
-        <span className={`validation-readiness-badge ${readinessTone}`}>
-          {isReady ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
-          {isReady ? "Pronto para salvar" : "Revisão necessária"}
-        </span>
-      </div>
-
       <div className="validation-confirmation-layout">
         <div className="validation-confirmation-main">
           <article className="validation-executive-card highlight">

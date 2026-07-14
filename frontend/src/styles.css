@@ -4387,58 +4387,7 @@ input {
 .validation-confirmation-executive {
   display: grid;
   gap: 12px;
-  margin: 14px 0 18px;
-}
-
-.validation-confirmation-hero {
-  align-items: center;
-  background: #ffffff;
-  border: 1px solid #dbe5f0;
-  border-radius: 14px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.045);
-  display: flex;
-  gap: 14px;
-  justify-content: space-between;
-  padding: 14px 18px;
-}
-
-.validation-confirmation-hero h2 {
-  color: #0b1f36;
-  font-size: 22px;
-  line-height: 1.1;
-  margin: 3px 0;
-}
-
-.validation-confirmation-hero p {
-  color: #64748b;
-  font-size: 13px;
-  font-weight: 650;
-  margin: 0;
-}
-
-.validation-readiness-badge {
-  align-items: center;
-  border: 1px solid #dbe5f0;
-  border-radius: 999px;
-  display: inline-flex;
-  font-size: 12px;
-  font-weight: 900;
-  gap: 7px;
-  min-height: 34px;
-  padding: 0 12px;
-  white-space: nowrap;
-}
-
-.validation-readiness-badge.ready {
-  background: #ecfdf3;
-  border-color: #bbf7d0;
-  color: #15803d;
-}
-
-.validation-readiness-badge.attention {
-  background: #fff7ed;
-  border-color: #fed7aa;
-  color: #9a3412;
+  margin: 12px 0 18px;
 }
 
 .validation-confirmation-layout {
@@ -4972,11 +4921,6 @@ input {
 }
 
 @media (max-width: 680px) {
-  .validation-confirmation-hero {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
   .validation-save-metrics {
     grid-template-columns: 1fr;
   }
