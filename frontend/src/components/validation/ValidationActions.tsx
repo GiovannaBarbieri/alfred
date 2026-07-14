@@ -50,12 +50,12 @@ export function ValidationActions({
   const isReady = canCompleteImport && !error;
   const readinessTone = isReady ? "ready" : "attention";
   const confirmationSucceeded = Boolean(processingMessage?.toLowerCase().includes("confirmada"));
-  const displayProcessingMessage = confirmationSucceeded ? processingMessage : isCompleting ? "Confirmando importacao..." : processingMessage;
+  const displayProcessingMessage = confirmationSucceeded ? processingMessage : isCompleting ? "Confirmando importação..." : processingMessage;
   const confirmationSteps = [
-    { label: "Validando importacao", status: isCompleting ? "done" : "pending" },
+    { label: "Validando importação", status: isCompleting ? "done" : "pending" },
     { label: "Gravando registros", status: confirmationSucceeded ? "done" : isCompleting ? "active" : "pending" },
-    { label: "Atualizando estatisticas", status: confirmationSucceeded ? "done" : "pending" },
-    { label: "Finalizando importacao", status: confirmationSucceeded ? "done" : "pending" },
+    { label: "Atualizando estatísticas", status: confirmationSucceeded ? "done" : "pending" },
+    { label: "Finalizando importação", status: confirmationSucceeded ? "done" : "pending" },
   ];
   const primaryMetrics = [
     { icon: <Clock3 size={17} />, label: "Horas", value: `${totalHours.toFixed(2)}h` },
@@ -77,12 +77,12 @@ export function ValidationActions({
       <div className="validation-confirmation-hero">
         <div>
           <span className="eyebrow">Resumo executivo</span>
-          <h2>Confirmacao da importacao</h2>
-          <p>Revise o que sera salvo e confirme apenas quando tudo estiver pronto.</p>
+          <h2>Confirmação da importação</h2>
+          <p>Revise o que será salvo e confirme apenas quando tudo estiver pronto.</p>
         </div>
         <span className={`validation-readiness-badge ${readinessTone}`}>
           {isReady ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
-          {isReady ? "Pronto para salvar" : "Revisao necessaria"}
+          {isReady ? "Pronto para salvar" : "Revisão necessária"}
         </span>
       </div>
 
@@ -94,8 +94,8 @@ export function ValidationActions({
                 <Database size={18} />
               </span>
               <div>
-                <h3>Resumo da importacao</h3>
-                <p>Dados que serao gravados na base oficial.</p>
+                <h3>Resumo da importação</h3>
+                <p>Dados que serão gravados na base oficial.</p>
               </div>
             </div>
 
@@ -126,7 +126,7 @@ export function ValidationActions({
               <div className={`status ${isReady ? "ready" : "attention"}`}>
                 {isReady ? <CheckCircle2 size={17} /> : <AlertTriangle size={17} />}
                 <span>Status</span>
-                <strong>{isReady ? "Pronto para importacao" : "Revisao pendente"}</strong>
+                <strong>{isReady ? "Pronto para importação" : "Revisão pendente"}</strong>
               </div>
             </div>
           </article>
@@ -136,11 +136,11 @@ export function ValidationActions({
               <div className="validation-executive-card-heading">
                 <span>{isReady ? <ShieldCheck size={18} /> : <AlertTriangle size={18} />}</span>
                 <div>
-                  <h3>{isReady ? "Pronto para salvar" : "Ainda existem pontos de atencao"}</h3>
+                  <h3>{isReady ? "Pronto para salvar" : "Ainda existem pontos de atenção"}</h3>
                   <p>
                     {isReady
-                      ? "Validacoes concluidas e sem bloqueios."
-                      : "Revise bloqueios, duplicidades ou classificacoes antes de salvar."}
+                      ? "Validações concluídas e sem bloqueios."
+                      : "Revise bloqueios, duplicidades ou classificações antes de salvar."}
                   </p>
                 </div>
               </div>
@@ -149,7 +149,7 @@ export function ValidationActions({
                   <div className="validation-ready-checks">
                     <span>
                       <CheckCircle2 size={15} />
-                      Todas as validacoes foram concluidas.
+                      Todas as validações foram concluídas.
                     </span>
                     <span>
                       <CheckCircle2 size={15} />
@@ -157,18 +157,18 @@ export function ValidationActions({
                     </span>
                     <span>
                       <CheckCircle2 size={15} />
-                      Os dados estao prontos para serem gravados definitivamente.
+                      Os dados estão prontos para serem gravados definitivamente.
                     </span>
                   </div>
                   <p className="validation-ready-note">
-                    Apos confirmar, os dados serao gravados definitivamente.
+                    Após confirmar, os dados serão gravados definitivamente.
                   </p>
                 </>
               ) : (
                 <div className="validation-ready-checks attention">
                   <span>
                     <AlertTriangle size={15} />
-                    Existem pontos que ainda precisam de revisao.
+                    Existem pontos que ainda precisam de revisão.
                   </span>
                 </div>
               )}
@@ -181,7 +181,7 @@ export function ValidationActions({
                 </span>
                 <div>
                   <h3>Checklist final</h3>
-                  <p>Sinais que liberam a gravacao.</p>
+                  <p>Sinais que liberam a gravação.</p>
                 </div>
               </div>
               <div className="validation-confirmation-checklist">
@@ -205,8 +205,8 @@ export function ValidationActions({
         <aside className="validation-confirmation-side">
           <div className="validation-confirmation-status">
             <span>Status</span>
-            <strong>{isReady ? "Importacao pronta" : "Revisao pendente"}</strong>
-            <p>Os dados so entram na base oficial apos a confirmacao.</p>
+            <strong>{isReady ? "Importação pronta" : "Revisão pendente"}</strong>
+            <p>Os dados serão gravados na base oficial somente após a confirmação.</p>
           </div>
 
           {displayProcessingMessage && (
@@ -218,8 +218,8 @@ export function ValidationActions({
           {isCompleting && (
             <div className={`validation-confirmation-progress ${confirmationSucceeded ? "complete" : ""}`} role="status" aria-live="polite">
               <div>
-                <strong>{confirmationSucceeded ? "Importacao confirmada com sucesso" : "Confirmando importacao..."}</strong>
-                <span>{confirmationSucceeded ? "Tudo certo. Voce sera direcionado automaticamente." : "Estamos salvando os dados na base oficial."}</span>
+                <strong>{confirmationSucceeded ? "Importação confirmada com sucesso" : "Confirmando importação..."}</strong>
+                <span>{confirmationSucceeded ? "Tudo certo. Você será direcionado automaticamente." : "Estamos salvando os dados na base oficial."}</span>
               </div>
               <ol>
                 {confirmationSteps.map((step) => (
@@ -237,18 +237,18 @@ export function ValidationActions({
 
           <div className="validation-button-stack">
             <button className="secondary-button compact danger" disabled={isLoading || isCompleting} onClick={onCancel} type="button">
-              Descartar importacao
+              Descartar importação
             </button>
             <button className="primary-button compact confirm-import-button" disabled={!canCompleteImport || isCompleting} onClick={onComplete} type="button">
               {isCompleting ? (
                 <>
                   <span className="button-spinner" />
-                  Confirmando importacao...
+                  Confirmando importação...
                 </>
               ) : (
                 <>
                   <CheckCircle2 size={17} />
-                  Confirmar importacao
+                  Confirmar importação
                 </>
               )}
             </button>
