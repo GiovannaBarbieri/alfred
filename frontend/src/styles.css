@@ -3749,6 +3749,7 @@ input {
 .classification-row-actions {
   align-items: center;
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   justify-content: flex-end;
   min-width: 0;
@@ -3774,6 +3775,12 @@ input {
   color: #ffffff;
   cursor: default;
   font-weight: 850;
+}
+
+.classification-row-actions .secondary-button[aria-expanded="true"] {
+  background: #eaf3ff;
+  border-color: #9bc8ff;
+  color: #0f4c8a;
 }
 
 .classification-row-actions .icon-only {
@@ -3843,6 +3850,41 @@ input {
 .classification-row-edit-actions .primary-button,
 .classification-row-edit-actions .secondary-button {
   min-height: 34px;
+}
+
+.classification-row-details.technical {
+  background: #fbfdff;
+}
+
+.classification-row-detail-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.classification-row-detail-panel .classification-meta-row {
+  padding-top: 0;
+}
+
+.classification-row-detail-panel .classification-badge.detail {
+  min-height: 26px;
+  padding: 4px 8px;
+}
+
+.classification-row-detail-panel .classification-reasons.compact {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  box-shadow: inset 3px 0 0 #3b82f6;
+  gap: 5px;
+  padding: 8px 10px;
+}
+
+.classification-row-detail-panel .classification-reasons.compact strong {
+  color: #0f4c8a;
+}
+
+.classification-row-detail-panel .classification-reasons.compact li,
+.classification-row-detail-panel .classification-reasons.compact p {
+  color: #1e3a5f;
 }
 
 @keyframes detailsFadeSlide {
