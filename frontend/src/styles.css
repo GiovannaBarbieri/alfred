@@ -4559,10 +4559,12 @@ input {
 }
 
 .validation-save-metrics .wide {
+  align-content: center;
   background: #ffffff;
+  gap: 2px;
   grid-column: span 2;
-  min-height: 58px;
-  padding: 9px 10px;
+  min-height: 40px;
+  padding: 6px 10px;
 }
 
 .validation-save-metrics .wide.project-context {
