@@ -3686,11 +3686,11 @@ input {
 .classification-row-main {
   align-items: center;
   display: grid;
-  gap: 10px;
-  grid-template-columns: 22px minmax(220px, 1fr) minmax(112px, 0.42fr) minmax(140px, 0.5fr) minmax(150px, 0.55fr) minmax(168px, auto);
+  gap: 12px;
+  grid-template-columns: 22px minmax(300px, 1.35fr) minmax(112px, 0.34fr) minmax(130px, 0.38fr) minmax(145px, 0.42fr) minmax(168px, auto);
   min-height: 64px;
   min-width: 0;
-  padding: 7px 10px;
+  padding: 7px 12px;
 }
 
 .classification-row-main .classification-card-check {
@@ -3702,23 +3702,29 @@ input {
 .classification-row-task,
 .classification-row-value {
   display: grid;
-  gap: 3px;
+  gap: 2px;
   min-width: 0;
 }
 
 .classification-row-task span,
 .classification-row-value span {
   color: #64748b;
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 850;
   letter-spacing: 0;
   text-transform: uppercase;
 }
 
+.classification-row-task span {
+  color: #7b8798;
+  font-size: 10px;
+  font-weight: 800;
+}
+
 .classification-row-task strong,
 .classification-row-value strong {
   color: #0b1f36;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 850;
   line-height: 1.2;
   min-width: 0;
@@ -3728,7 +3734,8 @@ input {
 }
 
 .classification-row-task strong {
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 900;
 }
 
 .classification-row-confidence {
@@ -4240,7 +4247,7 @@ input {
 
 @media (max-width: 1180px) {
   .classification-row-main {
-    grid-template-columns: 22px minmax(190px, 1fr) minmax(108px, auto) minmax(130px, 0.5fr) minmax(140px, 0.5fr);
+    grid-template-columns: 22px minmax(240px, 1fr) minmax(108px, auto) minmax(128px, 0.42fr) minmax(138px, 0.45fr);
   }
 
   .classification-row-actions {
