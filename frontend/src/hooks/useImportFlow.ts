@@ -397,7 +397,7 @@ export function useImportFlow({
         collaboratorsCount: result?.preview?.collaboratorsCount ?? 0,
         inconsistenciesCount: (result?.blockedRows ?? 0) + (result?.alertRows ?? 0) + (result?.duplicates.length ?? 0),
       };
-      setProcessingMessage("Importacao confirmada com sucesso. Abrindo relatorios...");
+      setProcessingMessage("Importação confirmada com sucesso. Abrindo o projeto...");
       await wait(IMPORT_CONFIRMATION_SUCCESS_MS);
       setFile(null);
       setResult(null);

@@ -13,7 +13,7 @@ import type {
   ImportDetail,
 } from "./types";
 import type { SectionId } from "./types/navigation";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 const HistoryPage = lazy(() => import("./pages/HistoryPage").then((module) => ({ default: module.HistoryPage })));
 const ImportPage = lazy(() => import("./pages/ImportPage").then((module) => ({ default: module.ImportPage })));
@@ -55,6 +55,9 @@ function App() {
     response: ImportCompleteResponse;
     snapshot: ImportCompletionSnapshot;
   } | null>(null);
+  const [completedImportRedirectError, setCompletedImportRedirectError] = useState<string | null>(null);
+  const [isOpeningCompletedImport, setIsOpeningCompletedImport] = useState(false);
+  const completedImportRedirectRef = useRef<number | null>(null);
   const [isLoadingImportDetail, setIsLoadingImportDetail] = useState(false);
   const settings = useSettings(dashboard.refreshFilterOptions);
   const importFlow = useImportFlow({
@@ -62,6 +65,8 @@ function App() {
     onCompleted: async (response, snapshot) => {
       await dashboard.refreshDashboard(dashboard.filters);
       await dashboard.refreshFilterOptions();
+      setCompletedImportRedirectError(null);
+      setIsOpeningCompletedImport(true);
       setCompletedImport({ response, snapshot });
       setActiveSection("validation");
     },
@@ -131,6 +136,38 @@ function App() {
     }
   }, [activeSection]);
 
+  useEffect(() => {
+    if (!completedImport) return;
+
+    const importId = completedImport.response.importId;
+    if (!importId) {
+      setCompletedImportRedirectError("A importação foi concluída, mas o identificador do projeto não foi retornado.");
+      setIsOpeningCompletedImport(false);
+      return;
+    }
+    if (completedImportRedirectRef.current === importId) return;
+
+    completedImportRedirectRef.current = importId;
+    setCompletedImportRedirectError(null);
+    setIsOpeningCompletedImport(true);
+
+    const timeoutId = window.setTimeout(() => {
+      void (async () => {
+        try {
+          await dashboard.handleOpenReportProject(importId);
+          setCompletedImport(null);
+          setActiveSection("reports");
+        } catch (err) {
+          setCompletedImportRedirectError(err instanceof Error ? err.message : "Não foi possível abrir o projeto automaticamente.");
+        } finally {
+          setIsOpeningCompletedImport(false);
+        }
+      })();
+    }, 1000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [completedImport]);
+
   async function handleOpenImport(importId: number) {
     setIsLoadingImportDetail(true);
     importFlow.setError(null);
@@ -160,6 +197,8 @@ function App() {
 
   function handleNewImportAfterSuccess() {
     setCompletedImport(null);
+    setCompletedImportRedirectError(null);
+    setIsOpeningCompletedImport(false);
     setActiveSection("import");
   }
 
@@ -173,9 +212,17 @@ function App() {
 
   async function handleViewCompletedImport() {
     if (!completedImport) return;
-    await dashboard.handleOpenReportProject(completedImport.response.importId);
-    setCompletedImport(null);
-    setActiveSection("reports");
+    setCompletedImportRedirectError(null);
+    setIsOpeningCompletedImport(true);
+    try {
+      await dashboard.handleOpenReportProject(completedImport.response.importId);
+      setCompletedImport(null);
+      setActiveSection("reports");
+    } catch (err) {
+      setCompletedImportRedirectError(err instanceof Error ? err.message : "Não foi possível abrir o projeto.");
+    } finally {
+      setIsOpeningCompletedImport(false);
+    }
   }
 
   return (
@@ -230,6 +277,8 @@ function App() {
         {activeSection === "validation" && completedImport && (
           <ImportSuccessPanel
             completion={completedImport}
+            isOpeningProject={isOpeningCompletedImport}
+            redirectError={completedImportRedirectError}
             onNewImport={handleNewImportAfterSuccess}
             onViewImport={handleViewCompletedImport}
           />
