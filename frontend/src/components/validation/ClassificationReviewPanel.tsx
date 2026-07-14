@@ -890,7 +890,9 @@ export function ClassificationReviewPanel({
 
               return (
                 <article
-                  className={`classification-task-row ${tone} ${isSelected ? "selected" : ""} ${model.accepted ? "accepted" : ""}`}
+                  className={`classification-task-row ${tone} ${model.needsAttention ? "attention" : ""} ${
+                    isSelected ? "selected" : ""
+                  } ${model.accepted ? "accepted" : ""}`}
                   key={model.key}
                 >
                   <div className="classification-row-main">
