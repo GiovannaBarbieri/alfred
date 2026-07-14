@@ -4656,7 +4656,7 @@ input {
 .validation-confirmation-side-separator {
   background: #e2e8f0;
   height: 1px;
-  margin: 2px 0;
+  margin: 10px 0 4px;
 }
 
 .validation-confirmation-status {
