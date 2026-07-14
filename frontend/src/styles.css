@@ -1,4 +1,5 @@
 :root {
+  --color-success-rgb: 21 128 61;
   color: #172033;
   background: #f4f7fb;
   font-family:
@@ -1103,16 +1104,16 @@ input {
 }
 
 .wizard-step.done span {
-  background: #dcfce7;
-  color: #15803d;
+  background: rgb(var(--color-success-rgb) / 0.14);
+  color: rgb(var(--color-success-rgb));
 }
 
 .wizard-step.done strong {
-  color: #166534;
+  color: rgb(var(--color-success-rgb));
 }
 
 .wizard-step.done:not(:last-child)::after {
-  background: #123c69;
+  background: rgb(var(--color-success-rgb) / 0.48);
 }
 
 .import-preview-panel {
