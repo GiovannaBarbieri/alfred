@@ -95,9 +95,9 @@ function confidenceTone(confidence: number) {
 
 function confidenceBadge(confidence: number) {
   const percentage = Math.round(confidence * 100);
-  if (confidence >= 0.95) return { variant: "success", label: "Muito alta", percentage };
+  if (confidence >= 0.95) return { variant: "success", label: "Alta", percentage };
   if (confidence >= 0.85) return { variant: "success", label: "Alta", percentage };
-  if (confidence >= 0.7) return { variant: "info", label: "Media", percentage };
+  if (confidence >= 0.7) return { variant: "info", label: "Média", percentage };
   if (confidence >= 0.4) return { variant: "warning", label: "Baixa", percentage };
   return { variant: "danger", label: "Muito baixa", percentage };
 }
@@ -732,8 +732,7 @@ export function ClassificationReviewPanel({
                       className={`classification-badge ${confidence.variant} confidence classification-row-confidence`}
                       title={`${confidence.percentage}% de confiança. Indica o quanto a IA está segura sobre esta sugestão.`}
                     >
-                      <strong>{confidence.percentage}%</strong>
-                      {confidence.label}
+                      {confidence.percentage}% · {confidence.label}
                     </span>
 
                     <div className="classification-row-value">

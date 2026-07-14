@@ -2989,7 +2989,9 @@ input {
   cursor: help;
   font-size: 11px;
   font-weight: 850;
-  min-height: 28px;
+  gap: 0;
+  min-height: 24px;
+  padding: 0 8px;
 }
 
 .classification-badge.confidence strong {
@@ -3740,7 +3742,7 @@ input {
 
 .classification-row-confidence {
   justify-self: start;
-  min-width: 104px;
+  min-width: 0;
   white-space: nowrap;
 }
 
