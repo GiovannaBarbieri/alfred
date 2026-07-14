@@ -17,7 +17,7 @@ import {
   Tags,
   UserRound,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { SetStateAction } from "react";
 import type { ImportWizardStep } from "../ImportWizard";
 import type { ImportValidationResponse } from "../../types";
@@ -263,6 +263,7 @@ export function ClassificationReviewPanel({
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [collaboratorComboboxOpen, setCollaboratorComboboxOpen] = useState(false);
   const [collaboratorSearch, setCollaboratorSearch] = useState("");
+  const selectVisibleCheckboxRef = useRef<HTMLInputElement | null>(null);
 
   const classificationsByLine = useMemo(
     () => new Map(result.classifications.map((classification) => [classification.line, classification])),
@@ -379,7 +380,14 @@ export function ClassificationReviewPanel({
 
   const selectedVisibleCount = visibleCards.filter((model) => selectedTasks.includes(model.key)).length;
   const allVisibleSelected = visibleCards.length > 0 && selectedVisibleCount === visibleCards.length;
+  const someVisibleSelected = selectedVisibleCount > 0 && !allVisibleSelected;
   const paginationPages = buildPaginationPages(currentPage, totalPages);
+
+  useEffect(() => {
+    if (selectVisibleCheckboxRef.current) {
+      selectVisibleCheckboxRef.current.indeterminate = someVisibleSelected;
+    }
+  }, [someVisibleSelected]);
 
   function updateLines(lines: number[], category: string, subcategory: string) {
     onClassificationOverridesChange((current) => {
@@ -787,9 +795,6 @@ export function ClassificationReviewPanel({
 
             {selectedTasks.length > 0 && (
               <div className="classification-bulk-bar active">
-                <button className="link-action" type="button" onClick={toggleVisibleSelection}>
-                  {allVisibleSelected ? "Desmarcar visiveis" : "Selecionar todas visiveis"}
-                </button>
                 <strong>{selectedTasks.length} selecionada{selectedTasks.length === 1 ? "" : "s"}</strong>
                 <SearchableSelect
                   ariaLabel="Selecionar categoria em lote"
@@ -820,6 +825,24 @@ export function ClassificationReviewPanel({
           </div>
 
           <div className="classification-card-list">
+            <div className="classification-list-header">
+              <label className="classification-select-visible">
+                <input
+                  ref={selectVisibleCheckboxRef}
+                  checked={allVisibleSelected}
+                  disabled={visibleCards.length === 0}
+                  type="checkbox"
+                  onChange={toggleVisibleSelection}
+                />
+                <span />
+                <strong>Selecionar visíveis</strong>
+              </label>
+              <span>
+                {selectedVisibleCount} de {visibleCards.length} atividade{visibleCards.length === 1 ? "" : "s"} visível
+                {visibleCards.length === 1 ? "" : "is"} selecionada{selectedVisibleCount === 1 ? "" : "s"}
+              </span>
+            </div>
+
             {visibleCards.length === 0 && (
               <div className="classification-empty-state">
                 <CheckCircle2 size={24} />

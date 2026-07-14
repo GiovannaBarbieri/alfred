@@ -2849,6 +2849,100 @@ input {
   min-width: 0;
 }
 
+.classification-list-header {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #dbe5f0;
+  border-radius: 10px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  min-height: 40px;
+  padding: 7px 12px;
+}
+
+.classification-list-header > span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.classification-select-visible {
+  align-items: center;
+  color: #0b1f36;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.classification-select-visible input {
+  height: 1px;
+  opacity: 0;
+  position: absolute;
+  width: 1px;
+}
+
+.classification-select-visible > span {
+  background: #ffffff;
+  border: 1.5px solid #b7c6d8;
+  border-radius: 6px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 17px;
+  position: relative;
+  transition: all 180ms ease;
+  width: 17px;
+}
+
+.classification-select-visible strong {
+  font-size: 13px;
+  font-weight: 850;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.classification-select-visible input:checked + span,
+.classification-select-visible input:indeterminate + span {
+  background: #0f4c8a;
+  border-color: #0f4c8a;
+}
+
+.classification-select-visible input:checked + span::after {
+  border: solid #ffffff;
+  border-width: 0 2px 2px 0;
+  content: "";
+  height: 8px;
+  left: 5px;
+  position: absolute;
+  top: 1px;
+  transform: rotate(45deg);
+  width: 4px;
+}
+
+.classification-select-visible input:indeterminate + span::after {
+  background: #ffffff;
+  border-radius: 999px;
+  content: "";
+  height: 2px;
+  left: 4px;
+  position: absolute;
+  top: 7px;
+  width: 7px;
+}
+
+.classification-select-visible input:focus-visible + span {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.classification-select-visible input:disabled + span {
+  background: #f1f5f9;
+  border-color: #dbe5f0;
+  cursor: not-allowed;
+}
+
 .classification-stage-header {
   align-items: center;
   display: flex;
@@ -4458,6 +4552,16 @@ input {
 
   .classification-advanced-filter-group {
     grid-template-columns: 1fr;
+  }
+
+  .classification-list-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .classification-list-header > span {
+    white-space: normal;
   }
 
   .classification-task-card {
