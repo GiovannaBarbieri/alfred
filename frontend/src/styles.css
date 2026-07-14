@@ -2901,8 +2901,55 @@ input {
 
 .classification-toolbar-card {
   display: grid;
-  gap: 9px;
-  padding: 12px;
+  gap: 8px;
+  padding: 10px;
+}
+
+.classification-filter-toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.classification-search-control {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #cbd8e6;
+  border-radius: 10px;
+  color: #64748b;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 36px;
+  padding: 0 10px;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+  width: clamp(260px, 28vw, 360px);
+}
+
+.classification-search-control:hover {
+  background: #f8fbff;
+  border-color: #9fc6f8;
+}
+
+.classification-search-control:focus-within {
+  border-color: #8bbcf7;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.classification-search-control:focus-within svg {
+  color: #0f4c8a;
+}
+
+.classification-search-control input {
+  background: transparent;
+  border: 0;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+  min-width: 0;
+  outline: 0;
+  padding: 0;
 }
 
 .classification-filter-heading {
@@ -4359,6 +4406,10 @@ input {
   }
 
   .classification-collaborator-combobox {
+    width: 100%;
+  }
+
+  .classification-search-control {
     width: 100%;
   }
 
