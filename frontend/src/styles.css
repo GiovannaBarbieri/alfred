@@ -1217,38 +1217,8 @@ input {
 
 .import-preview-main,
 .preview-side-panel {
-  display: contents;
-}
-
-.import-preview-grid {
-  display: contents;
-}
-
-.preview-health-card,
-.preview-next-step-card,
-.preview-insights-card,
-.preview-side-panel > .preview-card {
-  height: 100%;
-}
-
-.preview-health-card,
-.preview-insights-card {
-  grid-column: 1;
-}
-
-.preview-next-step-card,
-.preview-side-panel > .preview-card {
-  grid-column: 2;
-}
-
-.preview-health-card,
-.preview-next-step-card {
-  grid-row: 1;
-}
-
-.preview-insights-card,
-.preview-side-panel > .preview-card {
-  grid-row: 2;
+  display: grid;
+  gap: 8px;
 }
 
 .preview-next-step-card {
@@ -1258,6 +1228,7 @@ input {
   color: #ffffff;
   display: grid;
   gap: 6px;
+  min-height: 202px;
   padding: 12px;
 }
 
@@ -12699,14 +12670,6 @@ input {
   .export-actions,
 .filters-grid {
     grid-template-columns: 1fr;
-  }
-
-  .preview-health-card,
-  .preview-next-step-card,
-  .preview-insights-card,
-  .preview-side-panel > .preview-card {
-    grid-column: auto;
-    grid-row: auto;
   }
 
   .category-donut-layout {
