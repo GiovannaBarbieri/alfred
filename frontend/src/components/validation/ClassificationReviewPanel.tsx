@@ -598,7 +598,6 @@ export function ClassificationReviewPanel({
                     </div>
 
                     <div className="classification-row-value">
-                      <span>Categoria</span>
                       <SearchableSelect
                         ariaLabel={`Selecionar categoria da task ${model.item.idTask}`}
                         disabled={model.accepted}
@@ -611,7 +610,6 @@ export function ClassificationReviewPanel({
                     </div>
 
                     <div className="classification-row-value">
-                      <span>Subcategoria</span>
                       <SearchableSelect
                         ariaLabel={`Selecionar subcategoria da task ${model.item.idTask}`}
                         disabled={model.accepted}

@@ -2877,8 +2877,8 @@ input {
 }
 
 .classification-card-list {
-  --classification-row-grid: 20px minmax(360px, 45%) minmax(180px, 20%) minmax(180px, 20%) minmax(160px, 15%);
-  gap: 10px;
+  --classification-row-grid: 20px minmax(360px, 1fr) minmax(168px, 0.38fr) minmax(168px, 0.38fr) 128px;
+  gap: 8px;
 }
 
 .classification-select-visible {
@@ -3804,12 +3804,12 @@ input {
 .classification-row-main {
   align-items: center;
   display: grid;
-  column-gap: 16px;
-  row-gap: 6px;
+  column-gap: 10px;
+  row-gap: 0;
   grid-template-columns: var(--classification-row-grid);
-  min-height: 66px;
+  min-height: 56px;
   min-width: 0;
-  padding: 8px 12px;
+  padding: 6px 10px;
 }
 
 .classification-row-main .classification-card-check {
@@ -3821,7 +3821,7 @@ input {
 .classification-row-task,
 .classification-row-value {
   display: grid;
-  gap: 2px;
+  gap: 0;
   min-width: 0;
 }
 
@@ -3869,6 +3869,7 @@ input {
 .classification-row-task strong {
   font-size: 15px;
   font-weight: 600;
+  line-height: 1.15;
 }
 
 .classification-row-meta-inline {
@@ -3876,14 +3877,14 @@ input {
   color: rgba(100, 116, 139, 0.82);
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
 }
 
 .classification-row-meta-inline span {
   align-items: center;
   display: inline-flex;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 400;
   gap: 4px;
   line-height: 1.2;
@@ -3902,14 +3903,14 @@ input {
 
 .classification-row-value {
   align-content: center;
-  min-height: 48px;
+  min-height: 34px;
   padding: 1px 0;
 }
 
 .classification-row-value .classification-search-select > button {
   border-radius: 8px;
   font-size: 12px;
-  min-height: 35px;
+  min-height: 34px;
   padding: 0 8px;
 }
 
@@ -3940,7 +3941,7 @@ input {
   gap: 6px;
   justify-content: center;
   margin: 0;
-  min-height: 38px;
+  min-height: 34px;
   padding: 0 9px;
   white-space: nowrap;
 }
@@ -3949,7 +3950,7 @@ input {
 .classification-row-actions .secondary-button,
 .classification-row-actions .accepted-action-button {
   min-width: 0;
-  width: 168px;
+  width: 112px;
 }
 
 .classification-row-actions .primary-button,
@@ -4376,7 +4377,7 @@ input {
 
 @media (max-width: 1180px) {
   .classification-card-list {
-    --classification-row-grid: 20px minmax(280px, 1fr) minmax(160px, 0.46fr) minmax(160px, 0.46fr);
+    --classification-row-grid: 20px minmax(280px, 1fr) minmax(150px, 0.42fr) minmax(150px, 0.42fr);
   }
 
   .classification-row-actions {
@@ -4437,7 +4438,7 @@ input {
     gap: 8px;
     grid-template-columns: 20px minmax(0, 1fr);
     min-height: auto;
-    padding: 8px 10px;
+    padding: 7px 10px;
   }
 
   .classification-row-main .classification-card-check {
@@ -4455,7 +4456,7 @@ input {
 
   .classification-row-actions .primary-button,
   .classification-row-actions .accepted-action-button {
-    width: 168px;
+    width: 112px;
   }
 
   .classification-review-queue {
