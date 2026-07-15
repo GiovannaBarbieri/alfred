@@ -8,7 +8,6 @@ import {
   FileText,
   Layers3,
   Lightbulb,
-  ListChecks,
   MapPin,
   RotateCcw,
   Search,
@@ -37,15 +36,8 @@ type ClassificationReviewPanelProps = {
 };
 
 type QuickFilter =
-  | "all"
   | "smart"
-  | "unclassified"
-  | "conflict"
-  | "accepted"
-  | `category:${string}`
-  | `subcategory:${string}`
-  | `origin:${string}`
-  | `reason:${string}`;
+  | "unclassified";
 
 type CardModel = {
   key: string;
@@ -85,26 +77,6 @@ function isUnclassifiedValue(value: string | undefined | null) {
 function isConflictFactor(factor: string) {
   const normalized = normalizeText(factor);
   return normalized.includes("multipl") || normalized.includes("conflit");
-}
-
-function matchesAdvancedFilter(model: CardModel, filter: QuickFilter) {
-  if (filter.startsWith("category:")) {
-    return normalizeText(model.category) === normalizeText(filter.replace("category:", ""));
-  }
-  if (filter.startsWith("subcategory:")) {
-    return normalizeText(model.subcategory) === normalizeText(filter.replace("subcategory:", ""));
-  }
-  if (filter.startsWith("origin:")) {
-    return normalizeText(model.origin) === normalizeText(filter.replace("origin:", ""));
-  }
-  if (filter.startsWith("reason:")) {
-    const reason = filter.replace("reason:", "");
-    return model.reviewReasons.some((item) => normalizeText(item) === normalizeText(reason));
-  }
-  if (filter === "accepted") {
-    return model.accepted;
-  }
-  return true;
 }
 
 function collaboratorInitials(name: string) {
@@ -231,11 +203,9 @@ export function ClassificationReviewPanel({
   const [expandedTasks, setExpandedTasks] = useState<string[]>([]);
   const [detailTasks, setDetailTasks] = useState<string[]>([]);
   const [editDrafts, setEditDrafts] = useState<Record<string, { category: string; subcategory: string }>>({});
-  const [taskSearch, setTaskSearch] = useState("");
   const [actionNotice, setActionNotice] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [activitiesPerPage, setActivitiesPerPage] = useState(DEFAULT_ACTIVITIES_PER_PAGE);
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [collaboratorComboboxOpen, setCollaboratorComboboxOpen] = useState(false);
   const [collaboratorSearch, setCollaboratorSearch] = useState("");
   const selectVisibleCheckboxRef = useRef<HTMLInputElement | null>(null);
@@ -303,19 +273,13 @@ export function ClassificationReviewPanel({
   }, [acceptedTasks, classificationReviewGroups, classificationsByLine, classificationOverrides, selectedCollaborator]);
 
   const visibleCards = useMemo(() => {
-    const search = normalizeText(taskSearch);
     return cardModels.filter((model) => {
       if (selectedCollaborator && model.affectedLines.length === 0) return false;
-      if (search) {
-        const searchable = normalizeText(`${model.item.idTask} ${model.item.title}`);
-        if (!searchable.includes(search)) return false;
-      }
       if (quickFilter === "smart") return model.needsAttention;
       if (quickFilter === "unclassified") return model.unclassified;
-      if (quickFilter === "conflict") return model.conflict;
-      return matchesAdvancedFilter(model, quickFilter);
+      return true;
     });
-  }, [cardModels, quickFilter, selectedCollaborator, taskSearch]);
+  }, [cardModels, quickFilter, selectedCollaborator]);
 
   const totalPages = Math.max(1, Math.ceil(visibleCards.length / activitiesPerPage));
   const pageStartIndex = visibleCards.length === 0 ? 0 : (currentPage - 1) * activitiesPerPage;
@@ -324,7 +288,7 @@ export function ClassificationReviewPanel({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [quickFilter, selectedCollaborator, showAllClassifications, taskSearch]);
+  }, [quickFilter, selectedCollaborator, showAllClassifications]);
 
   useEffect(() => {
     setCurrentPage((page) => Math.min(page, totalPages));
@@ -333,20 +297,9 @@ export function ClassificationReviewPanel({
   const summary = useMemo(() => {
     const total = cardModels.length;
     const unclassified = cardModels.filter((model) => model.unclassified).length;
-    const conflicts = cardModels.filter((model) => model.conflict).length;
     const attention = cardModels.filter((model) => model.needsAttention).length;
     const reviewed = cardModels.filter((model) => model.accepted).length;
-    return { total, unclassified, conflicts, attention, reviewed };
-  }, [cardModels]);
-
-  const categoryDistribution = useMemo(() => {
-    const counts = new Map<string, number>();
-    cardModels.forEach((model) => {
-      counts.set(model.category || "Nao classificado", (counts.get(model.category || "Nao classificado") ?? 0) + 1);
-    });
-    return Array.from(counts.entries())
-      .map(([category, count]) => ({ category, count }))
-      .sort((a, b) => b.count - a.count);
+    return { total, unclassified, attention, reviewed };
   }, [cardModels]);
 
   const selectedVisibleCount = visibleCards.filter((model) => selectedTasks.includes(model.key)).length;
@@ -479,107 +432,26 @@ export function ClassificationReviewPanel({
 
   if (result.classifications.length === 0) return null;
 
-  const categoryCounts = new Map(categoryDistribution.map((item) => [normalizeText(item.category), item.count]));
-  const categoryQuickFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = categoryOptions
-    .filter((category) => !isUnclassifiedValue(category))
-    .map((category) => ({
-      id: `category:${category}` as QuickFilter,
-      label: category,
-      count: categoryCounts.get(normalizeText(category)) ?? 0,
-      icon: <Tags size={15} />,
-    }));
-
-  const subcategoryCounts = new Map<string, number>();
-  const originCounts = new Map<string, number>();
-  cardModels.forEach((model) => {
-    if (model.subcategory) {
-      const key = normalizeText(model.subcategory);
-      subcategoryCounts.set(key, (subcategoryCounts.get(key) ?? 0) + 1);
-    }
-    if (model.origin) {
-      originCounts.set(model.origin, (originCounts.get(model.origin) ?? 0) + 1);
-    }
-  });
-  const subcategoryQuickFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> =
-    subcategoryOptions
-      .filter(Boolean)
-      .map((subcategory) => ({
-        id: `subcategory:${subcategory}` as QuickFilter,
-        label: subcategory,
-        count: subcategoryCounts.get(normalizeText(subcategory)) ?? 0,
-        icon: <Tags size={15} />,
-      }));
-  const originQuickFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = Array.from(
-    originCounts.entries(),
-  )
-    .sort((a, b) => b[1] - a[1])
-    .map(([origin, count]) => ({
-      id: `origin:${origin}` as QuickFilter,
-      label: origin,
-      count,
-      icon: <FileText size={15} />,
-    }));
-  const reasonCounts = new Map<string, number>();
-  cardModels.forEach((model) => {
-    model.reviewReasons.forEach((reason) => {
-      reasonCounts.set(reason, (reasonCounts.get(reason) ?? 0) + 1);
-    });
-  });
-  const reviewReasonFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = Array.from(
-    reasonCounts.entries(),
-  )
-    .sort((a, b) => b[1] - a[1])
-    .map(([reason, count]) => ({
-      id: `reason:${reason}` as QuickFilter,
-      label: reason,
-      count,
-      icon: <AlertTriangle size={15} />,
-    }));
-  const statusQuickFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = [
-    { id: "all", label: "Todas as atividades", count: summary.total, icon: <ListChecks size={15} /> },
-    { id: "accepted", label: "Revisadas", count: summary.reviewed, icon: <Check size={15} /> },
-  ];
   const pendingFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = [
     { id: "smart", label: "Pendências", count: summary.attention, icon: <Sparkles size={15} /> },
     { id: "unclassified", label: "Sem categoria", count: summary.unclassified, icon: <AlertTriangle size={15} /> },
-    { id: "conflict", label: "Conflitos", count: summary.conflicts, icon: <Layers3 size={15} /> },
   ];
   const hasPendingItems = summary.attention > 0;
-  const hasActiveAdvancedFilter =
-    quickFilter === "all" ||
-    quickFilter === "accepted" ||
-    quickFilter.startsWith("category:") ||
-    quickFilter.startsWith("subcategory:") ||
-    quickFilter.startsWith("origin:") ||
-    quickFilter.startsWith("reason:");
-  const hasActiveToolbarFilter = Boolean(taskSearch || selectedCollaborator || quickFilter !== "smart");
+  const hasActiveToolbarFilter = Boolean(selectedCollaborator || quickFilter !== "smart");
 
   function selectFilter(filterId: QuickFilter) {
-    if (
-      filterId === "all" ||
-      filterId === "accepted" ||
-      filterId.startsWith("category:") ||
-      filterId.startsWith("subcategory:") ||
-      filterId.startsWith("origin:") ||
-      filterId.startsWith("reason:")
-    ) {
-      onToggleShowAllClassifications(true);
-    }
     setQuickFilter(filterId);
   }
 
   function reviewAllActivities() {
     onToggleShowAllClassifications(true);
-    setQuickFilter("all");
-    setShowMoreFilters(true);
+    setQuickFilter("smart");
   }
 
   function clearFilters() {
-    setTaskSearch("");
     setSelectedCollaborator("");
     setCollaboratorSearch("");
     setCollaboratorComboboxOpen(false);
-    setShowMoreFilters(false);
     onToggleShowAllClassifications(false);
     setQuickFilter("smart");
   }
@@ -608,16 +480,6 @@ export function ClassificationReviewPanel({
 
           <div className="classification-toolbar-card">
             <div className="classification-filter-toolbar" aria-label="Filtros da fila de revisão">
-              <label className="classification-search-control">
-                <Search size={16} />
-                <input
-                  aria-label="Pesquisar por ID ou título"
-                  placeholder="Pesquisar por ID ou título..."
-                  value={taskSearch}
-                  onChange={(event) => setTaskSearch(event.target.value)}
-                />
-              </label>
-
               <div
                 className="classification-collaborator-combobox"
                 onBlur={(event) => {
@@ -705,59 +567,12 @@ export function ClassificationReviewPanel({
                   {typeof filter.count === "number" && <span>{filter.count}</span>}
                 </button>
               ))}
-              <button
-                className={`classification-chip more-filter ${showMoreFilters ? "active" : ""}`}
-                aria-expanded={showMoreFilters}
-                type="button"
-                onClick={() => setShowMoreFilters((current) => !current)}
-              >
-                <ChevronDown size={15} />
-                {showMoreFilters ? "Menos filtros" : "Mais filtros"}
-              </button>
-
               {hasActiveToolbarFilter && (
                 <button className="classification-clear-filters" type="button" onClick={clearFilters}>
                   Limpar filtros
                 </button>
               )}
             </div>
-
-            {showMoreFilters && (
-              <div
-                className={`classification-advanced-filters ${hasActiveAdvancedFilter ? "has-active-filter" : ""}`}
-                aria-label="Filtros avançados"
-              >
-                <div className="classification-advanced-filter-heading">
-                  <span>Filtros secundários</span>
-                  <small>Refine a fila por classificação, origem ou revisão.</small>
-                </div>
-                {[
-                  { label: "Status de revisão", filters: statusQuickFilters },
-                  { label: "Categoria", filters: categoryQuickFilters },
-                  { label: "Subcategoria", filters: subcategoryQuickFilters },
-                  { label: "Motivo da revisão", filters: reviewReasonFilters },
-                  { label: "Origem", filters: originQuickFilters },
-                ].map((group) => (
-                  <div className="classification-advanced-filter-group" key={group.label}>
-                    <span>{group.label}</span>
-                    <div className="classification-chip-row">
-                      {group.filters.map((filter) => (
-                        <button
-                          className={`classification-chip subtle ${quickFilter === filter.id ? "active" : ""}`}
-                          key={filter.id}
-                          type="button"
-                          onClick={() => selectFilter(filter.id)}
-                        >
-                          {filter.icon}
-                          {filter.label}
-                          {typeof filter.count === "number" && <span>{filter.count}</span>}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
 
             {selectedTasks.length > 0 && (
               <div className="classification-bulk-bar active">
