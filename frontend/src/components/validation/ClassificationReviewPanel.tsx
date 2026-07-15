@@ -428,6 +428,7 @@ export function ClassificationReviewPanel({
       });
       return next;
     });
+    setSelectedTasks([]);
   }
 
   if (result.classifications.length === 0) return null;
@@ -479,7 +480,20 @@ export function ClassificationReviewPanel({
           </div>
 
           <div className="classification-toolbar-card">
+            {selectedTasks.length === 0 ? (
             <div className="classification-filter-toolbar" aria-label="Filtros da fila de revisão">
+              <label className="classification-select-visible">
+                <input
+                  ref={selectVisibleCheckboxRef}
+                  checked={allVisibleSelected}
+                  disabled={visibleCards.length === 0}
+                  type="checkbox"
+                  onChange={toggleVisibleSelection}
+                />
+                <span />
+                <strong>Selecionar visíveis</strong>
+              </label>
+
               <div
                 className="classification-collaborator-combobox"
                 onBlur={(event) => {
@@ -573,10 +587,9 @@ export function ClassificationReviewPanel({
                 </button>
               )}
             </div>
-
-            {selectedTasks.length > 0 && (
-              <div className="classification-bulk-bar active">
-                <strong>{selectedTasks.length} selecionada{selectedTasks.length === 1 ? "" : "s"}</strong>
+            ) : (
+              <div className="classification-bulk-bar active" role="region" aria-label="Ações em massa">
+                <strong>{selectedTasks.length} atividade{selectedTasks.length === 1 ? "" : "s"} selecionada{selectedTasks.length === 1 ? "" : "s"}</strong>
                 <SearchableSelect
                   ariaLabel="Selecionar categoria em lote"
                   emptyLabel="Sem categoria em lote"
@@ -596,34 +609,16 @@ export function ClassificationReviewPanel({
                   onChange={setBulkSubcategory}
                 />
                 <button className="primary-button compact" type="button" onClick={applyBulkChange}>
-                  Aplicar em selecionadas
+                  Aplicar
                 </button>
                 <button className="secondary-button compact" type="button" onClick={() => setSelectedTasks([])}>
-                  Limpar
+                  Limpar seleção
                 </button>
               </div>
             )}
           </div>
 
           <div className="classification-card-list">
-            <div className="classification-list-header">
-              <label className="classification-select-visible">
-                <input
-                  ref={selectVisibleCheckboxRef}
-                  checked={allVisibleSelected}
-                  disabled={visibleCards.length === 0}
-                  type="checkbox"
-                  onChange={toggleVisibleSelection}
-                />
-                <span />
-                <strong>Selecionar visíveis</strong>
-              </label>
-              <span>
-                {selectedVisibleCount} de {visibleCards.length} atividade{visibleCards.length === 1 ? "" : "s"} visível
-                {visibleCards.length === 1 ? "" : "is"} selecionada{selectedVisibleCount === 1 ? "" : "s"}
-              </span>
-            </div>
-
             <div className="classification-list-column-header" aria-hidden="true">
               <span />
               <strong>Atividade</strong>
