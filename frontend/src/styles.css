@@ -2877,7 +2877,7 @@ input {
 }
 
 .classification-card-list {
-  --classification-row-grid: 22px minmax(420px, 2fr) minmax(128px, 0.34fr) minmax(138px, 0.38fr) minmax(208px, auto);
+  --classification-row-grid: 24px minmax(450px, 2.1fr) minmax(120px, 0.31fr) minmax(130px, 0.35fr) minmax(190px, auto);
   gap: 7px;
 }
 
@@ -3749,7 +3749,7 @@ input {
 .classification-task-row {
   background: #ffffff;
   border: 1px solid #dbe5f0;
-  border-left: 3px solid #cbd5e1;
+  border-left: 2px solid #cbd5e1;
   border-radius: 11px;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.028);
   display: grid;
@@ -3769,7 +3769,7 @@ input {
 }
 
 .classification-task-row.attention {
-  border-left-color: #dc2626;
+  border-left-color: #ef8f8f;
 }
 
 .classification-task-row.selected {
@@ -3797,7 +3797,8 @@ input {
 .classification-row-main {
   align-items: start;
   display: grid;
-  gap: 10px;
+  column-gap: 12px;
+  row-gap: 6px;
   grid-template-columns: var(--classification-row-grid);
   min-height: 60px;
   min-width: 0;
@@ -3807,20 +3808,20 @@ input {
 .classification-row-main .classification-card-check {
   align-items: center;
   justify-content: center;
-  padding-top: 23px;
+  padding-top: 24px;
 }
 
 .classification-row-task,
 .classification-row-value {
   display: grid;
-  gap: 3px;
+  gap: 2px;
   min-width: 0;
 }
 
 .classification-row-task span,
 .classification-row-value span {
   color: #64748b;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -3838,7 +3839,7 @@ input {
   justify-content: center;
   line-height: 1;
   min-height: 18px;
-  padding: 0 6px;
+  padding: 0 5px;
   width: fit-content;
 }
 
@@ -3861,7 +3862,7 @@ input {
 
 .classification-row-meta-inline {
   align-items: center;
-  color: #64748b;
+  color: rgba(100, 116, 139, 0.82);
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -3882,12 +3883,14 @@ input {
 }
 
 .classification-row-meta-inline svg {
-  color: #7b8798;
+  color: rgba(123, 135, 152, 0.72);
   flex: 0 0 auto;
+  height: 12px;
+  width: 12px;
 }
 
 .classification-row-value {
-  min-height: 38px;
+  min-height: 36px;
   padding: 1px 0;
 }
 
@@ -3908,7 +3911,7 @@ input {
   gap: 6px;
   justify-content: center;
   margin: 0;
-  min-height: 36px;
+  min-height: 34px;
   padding: 0 9px;
   white-space: nowrap;
 }
@@ -4396,7 +4399,7 @@ input {
 
 @media (max-width: 1180px) {
   .classification-card-list {
-    --classification-row-grid: 22px minmax(300px, 1fr) minmax(118px, 0.34fr) minmax(126px, 0.38fr);
+    --classification-row-grid: 24px minmax(320px, 1fr) minmax(110px, 0.31fr) minmax(118px, 0.35fr);
   }
 
   .classification-row-actions {
@@ -4455,7 +4458,7 @@ input {
 
   .classification-row-main {
     gap: 8px;
-    grid-template-columns: 22px minmax(0, 1fr);
+    grid-template-columns: 24px minmax(0, 1fr);
     min-height: auto;
     padding: 8px 10px;
   }

@@ -689,7 +689,7 @@ export function ClassificationReviewPanel({
                             type="button"
                             onClick={() => toggleTaskEdit(model)}
                           >
-                            Editar classificação
+                            Editar
                           </button>
                         </>
                       )}
