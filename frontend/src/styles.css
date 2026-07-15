@@ -2877,8 +2877,8 @@ input {
 }
 
 .classification-card-list {
-  --classification-row-grid: 22px minmax(360px, 1.7fr) minmax(150px, 0.42fr) minmax(165px, 0.48fr) minmax(168px, auto);
-  gap: 0;
+  --classification-row-grid: 22px minmax(360px, 1.7fr) minmax(142px, 0.42fr) minmax(150px, 0.46fr) minmax(220px, auto);
+  gap: 9px;
 }
 
 .classification-select-visible {
@@ -2966,39 +2966,6 @@ input {
   background: #f1f5f9;
   border-color: #dbe5f0;
   cursor: not-allowed;
-}
-
-.classification-list-column-header {
-  align-items: center;
-  background: #f6f9fc;
-  border: 0;
-  border-bottom: 1px solid #dbe5f0;
-  border-left: 3px solid transparent;
-  border-radius: 0;
-  color: #64748b;
-  display: grid;
-  gap: 12px;
-  grid-template-columns: var(--classification-row-grid);
-  min-height: 28px;
-  padding: 0 12px;
-}
-
-.classification-list-column-header strong {
-  font-size: 10px;
-  font-weight: 750;
-  letter-spacing: 0;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.classification-list-column-header > span {
-  height: 16px;
-  width: 16px;
-}
-
-.classification-list-column-header strong:last-child {
-  justify-self: end;
-  padding-right: 4px;
 }
 
 .classification-stage-header {
@@ -3791,10 +3758,9 @@ input {
   transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
-.classification-list-column-header + .classification-task-row,
 .classification-task-row + .classification-task-row,
 .classification-empty-state + .classification-task-row {
-  margin-top: 9px;
+  margin-top: 0;
 }
 
 .classification-task-row:hover {
@@ -3833,9 +3799,9 @@ input {
   display: grid;
   gap: 12px;
   grid-template-columns: var(--classification-row-grid);
-  min-height: 64px;
+  min-height: 68px;
   min-width: 0;
-  padding: 7px 12px;
+  padding: 9px 12px;
 }
 
 .classification-row-main .classification-card-check {
@@ -3847,23 +3813,33 @@ input {
 .classification-row-task,
 .classification-row-value {
   display: grid;
-  gap: 2px;
+  gap: 4px;
   min-width: 0;
 }
 
 .classification-row-task span,
 .classification-row-value span {
   color: #64748b;
-  font-size: 9.5px;
-  font-weight: 850;
+  font-size: 11px;
+  font-weight: 750;
   letter-spacing: 0;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
-.classification-row-task span {
-  color: #7b8798;
-  font-size: 10px;
+.classification-row-task .classification-task-id {
+  align-items: center;
+  background: #eef4fb;
+  border: 1px solid #dbe7f4;
+  border-radius: 999px;
+  color: #4a6584;
+  display: inline-flex;
+  font-size: 10.5px;
   font-weight: 800;
+  justify-content: center;
+  line-height: 1;
+  min-height: 20px;
+  padding: 0 8px;
+  width: fit-content;
 }
 
 .classification-row-task strong,
@@ -3881,6 +3857,11 @@ input {
 .classification-row-task strong {
   font-size: 15px;
   font-weight: 900;
+}
+
+.classification-row-value {
+  min-height: 42px;
+  padding: 2px 0;
 }
 
 .classification-row-actions {
@@ -4466,10 +4447,6 @@ input {
     --classification-row-grid: 22px minmax(280px, 1fr) minmax(132px, 0.42fr) minmax(142px, 0.45fr);
   }
 
-  .classification-list-column-header strong:last-child {
-    display: none;
-  }
-
   .classification-row-actions {
     grid-column: 2 / -1;
     justify-content: flex-start;
@@ -4506,10 +4483,6 @@ input {
   .classification-bulk-actions {
     margin-left: 0;
     width: 100%;
-  }
-
-  .classification-list-column-header {
-    display: none;
   }
 
   .classification-toolbar-card {

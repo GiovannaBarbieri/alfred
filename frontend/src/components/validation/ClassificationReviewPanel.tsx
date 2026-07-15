@@ -623,14 +623,6 @@ export function ClassificationReviewPanel({
           </div>
 
           <div className="classification-card-list">
-            <div className="classification-list-column-header" aria-hidden="true">
-              <span />
-              <strong>Atividade</strong>
-              <strong>Categoria</strong>
-              <strong>Subcategoria</strong>
-              <strong>Ações</strong>
-            </div>
-
             {visibleCards.length === 0 && (
               <div className="classification-empty-state">
                 <CheckCircle2 size={24} />
@@ -685,7 +677,7 @@ export function ClassificationReviewPanel({
                     </label>
 
                     <div className="classification-row-task">
-                      <span>Task {model.item.idTask}</span>
+                      <span className="classification-task-id">#{model.item.idTask}</span>
                       <strong title={model.item.title}>{model.item.title}</strong>
                     </div>
 
