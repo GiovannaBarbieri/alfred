@@ -1228,7 +1228,6 @@ input {
   color: #ffffff;
   display: grid;
   gap: 6px;
-  min-height: 202px;
   padding: 12px;
 }
 
