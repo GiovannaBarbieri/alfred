@@ -88,14 +88,15 @@ class ImportServiceTests(unittest.TestCase):
         self.assertEqual(result.blockedRows, 0)
         self.assertTrue(any(issue.code == "zero_duration" and issue.severity == "alerta" for issue in result.issues))
 
-    def test_keyword_classification_handles_definition_terms(self) -> None:
+    def test_title_without_category_prefix_stays_pending_even_with_known_terms(self) -> None:
         result = validate_import_file(
             "horas.csv",
             csv_bytes([row(TituloTask="Analisando e levantando regra da migracao")]),
         )
 
-        self.assertEqual(result.classifications[0].category, "Definicao")
-        self.assertEqual(result.classifications[0].origin, "regra")
+        self.assertEqual(result.classifications[0].category, "Nao classificado")
+        self.assertEqual(result.classifications[0].origin, "pendente")
+        self.assertTrue(any(issue.code == "title_outside_pattern" for issue in result.issues))
 
     def test_manual_overrides_can_apply_to_all_records_from_same_task(self) -> None:
         rows = [

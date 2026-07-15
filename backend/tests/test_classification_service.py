@@ -99,6 +99,22 @@ class ClassificationServiceTest(unittest.TestCase):
         self.assertIsNotNone(issue)
         self.assertEqual(issue.code, "title_outside_pattern")
 
+    def test_keeps_keyword_matches_pending_without_category_prefix(self) -> None:
+        suggestion, issue = classify_title(
+            "Criar servico de integracao",
+            5,
+            "dev.back",
+            "126",
+            settings=SETTINGS,
+            collaborator_subcategories={"dev.back": "Back"},
+        )
+
+        self.assertEqual(suggestion.category, "Nao classificado")
+        self.assertEqual(suggestion.subcategory, "Back")
+        self.assertEqual(suggestion.origin, "pendente")
+        self.assertIsNotNone(issue)
+        self.assertEqual(issue.code, "title_outside_pattern")
+
     def test_conflict_check_ignores_category_prefix(self) -> None:
         count = matched_category_count("[Desenvolvimento] - Corrigir bug na integracao", settings=SETTINGS)
 

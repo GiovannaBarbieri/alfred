@@ -88,18 +88,6 @@ def classify_title(
             collaborator_subcategories=collaborator_subcategories,
         ), _unknown_title_category_issue(line_number, title)
 
-    keyword_suggestion = _classify_by_keywords(
-        title=title,
-        line_number=line_number,
-        login_usuario=login_usuario,
-        id_task=id_task,
-        keywords=keywords,
-        rules=rules,
-        collaborator_subcategories=collaborator_subcategories,
-    )
-    if keyword_suggestion:
-        return keyword_suggestion, None
-
     return _unclassified_suggestion(
         title=title,
         line_number=line_number,
