@@ -4500,6 +4500,10 @@ input {
   padding: 0 2px;
 }
 
+.classification-footer-pagination.single-page {
+  grid-template-columns: minmax(170px, 1fr);
+}
+
 .ghost-button {
   background: transparent;
   border: 1px solid transparent;

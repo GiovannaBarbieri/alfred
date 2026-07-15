@@ -269,6 +269,7 @@ export function ClassificationReviewPanel({
   const pageStartIndex = visibleCards.length === 0 ? 0 : (currentPage - 1) * activitiesPerPage;
   const pageEndIndex = Math.min(pageStartIndex + activitiesPerPage, visibleCards.length);
   const paginatedCards = visibleCards.slice(pageStartIndex, pageEndIndex);
+  const hasMultiplePages = totalPages > 1;
 
   useEffect(() => {
     setCurrentPage(1);
@@ -650,13 +651,15 @@ export function ClassificationReviewPanel({
 
           <div className="classification-review-footer">
             {visibleCards.length > 0 && (
-              <div className="classification-footer-pagination" aria-label="Paginação das atividades">
+              <div className={`classification-footer-pagination ${hasMultiplePages ? "" : "single-page"}`} aria-label="Paginação das atividades">
                 <div className="classification-pagination-summary">
                   <strong>{pageStartIndex + 1}–{pageEndIndex}</strong>
                   <span>de</span>
                   <strong>{visibleCards.length}</strong>
                   <span>atividades</span>
                 </div>
+                {hasMultiplePages && (
+                  <>
                 <div className="classification-pagination-controls">
                   <button
                     className="classification-page-arrow"
@@ -704,6 +707,8 @@ export function ClassificationReviewPanel({
                     ))}
                   </select>
                 </label>
+                  </>
+                )}
               </div>
             )}
 
