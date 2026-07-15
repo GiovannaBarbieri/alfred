@@ -3408,8 +3408,8 @@ input {
   border-radius: 12px;
   display: flex;
   flex-wrap: nowrap;
-  gap: 7px;
-  min-height: 36px;
+  gap: 9px;
+  min-height: 40px;
   overflow-x: auto;
   padding: 6px 8px;
 }
@@ -3420,12 +3420,39 @@ input {
 
 .classification-bulk-bar strong {
   color: #0f4c8a;
+  flex: 0 0 auto;
   font-size: 13px;
+  line-height: 1;
+  min-width: max-content;
+  white-space: nowrap;
 }
 
 .classification-bulk-bar .classification-search-select {
-  flex: 0 0 190px;
-  width: 190px;
+  flex: 0 0 200px;
+  width: 200px;
+}
+
+.classification-bulk-bar .classification-search-select > button,
+.classification-bulk-bar .primary-button.compact,
+.classification-bulk-bar .secondary-button.compact {
+  min-height: 38px;
+}
+
+.classification-bulk-bar .primary-button.compact,
+.classification-bulk-bar .secondary-button.compact {
+  flex: 0 0 auto;
+  margin-top: 0;
+  padding: 0 14px;
+  white-space: nowrap;
+  width: auto;
+}
+
+.classification-bulk-bar .primary-button.compact {
+  min-width: 104px;
+}
+
+.classification-bulk-bar .secondary-button.compact {
+  min-width: 138px;
 }
 
 .classification-action-toast {
