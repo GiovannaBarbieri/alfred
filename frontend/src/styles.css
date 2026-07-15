@@ -2877,7 +2877,7 @@ input {
 }
 
 .classification-card-list {
-  --classification-row-grid: 20px minmax(420px, 1fr) minmax(156px, 14%) minmax(166px, 14%) 128px;
+  --classification-row-grid: 20px minmax(360px, 45%) minmax(180px, 20%) minmax(180px, 20%) minmax(160px, 15%);
   gap: 7px;
 }
 
@@ -3796,20 +3796,20 @@ input {
 }
 
 .classification-row-main {
-  align-items: start;
+  align-items: center;
   display: grid;
-  column-gap: 9px;
+  column-gap: 22px;
   row-gap: 6px;
   grid-template-columns: var(--classification-row-grid);
-  min-height: 60px;
+  min-height: 66px;
   min-width: 0;
-  padding: 7px 10px;
+  padding: 8px 12px;
 }
 
 .classification-row-main .classification-card-check {
   align-items: center;
   justify-content: center;
-  padding-top: 23px;
+  padding-top: 0;
 }
 
 .classification-row-task,
@@ -3819,10 +3819,14 @@ input {
   min-width: 0;
 }
 
+.classification-row-task {
+  align-content: start;
+}
+
 .classification-row-task span,
 .classification-row-value span {
   color: #64748b;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -3891,15 +3895,15 @@ input {
 }
 
 .classification-row-value {
-  align-content: start;
-  min-height: 44px;
+  align-content: center;
+  min-height: 48px;
   padding: 1px 0;
 }
 
 .classification-row-value .classification-search-select > button {
   border-radius: 8px;
   font-size: 12px;
-  min-height: 32px;
+  min-height: 38px;
   padding: 0 8px;
 }
 
@@ -3914,11 +3918,11 @@ input {
 }
 
 .classification-row-actions {
-  align-items: flex-start;
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  justify-content: flex-end;
+  justify-content: center;
   min-width: 0;
 }
 
@@ -3930,7 +3934,7 @@ input {
   gap: 6px;
   justify-content: center;
   margin: 0;
-  min-height: 34px;
+  min-height: 38px;
   padding: 0 9px;
   white-space: nowrap;
 }
@@ -3938,7 +3942,8 @@ input {
 .classification-row-actions .primary-button,
 .classification-row-actions .secondary-button,
 .classification-row-actions .accepted-action-button {
-  min-width: 84px;
+  min-width: 0;
+  width: 168px;
 }
 
 .classification-row-actions .primary-button,
@@ -4365,7 +4370,7 @@ input {
 
 @media (max-width: 1180px) {
   .classification-card-list {
-    --classification-row-grid: 20px minmax(280px, 1fr) minmax(150px, 0.42fr) minmax(160px, 0.45fr);
+    --classification-row-grid: 20px minmax(280px, 1fr) minmax(160px, 0.46fr) minmax(160px, 0.46fr);
   }
 
   .classification-row-actions {
@@ -4440,6 +4445,11 @@ input {
 
   .classification-row-actions {
     justify-content: flex-start;
+  }
+
+  .classification-row-actions .primary-button,
+  .classification-row-actions .accepted-action-button {
+    width: 168px;
   }
 
   .classification-review-queue {
