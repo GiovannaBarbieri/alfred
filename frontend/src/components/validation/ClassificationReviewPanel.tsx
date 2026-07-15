@@ -589,31 +589,35 @@ export function ClassificationReviewPanel({
             </div>
             ) : (
               <div className="classification-bulk-bar active" role="region" aria-label="Ações em massa">
-                <strong>{selectedTasks.length} atividade{selectedTasks.length === 1 ? "" : "s"} selecionada{selectedTasks.length === 1 ? "" : "s"}</strong>
-                <SearchableSelect
-                  ariaLabel="Selecionar categoria em lote"
-                  emptyLabel="Sem categoria em lote"
-                  options={["", ...categoryOptions]}
-                  placeholder="Categoria"
-                  searchPlaceholder="Buscar categoria..."
-                  value={bulkCategory}
-                  onChange={setBulkCategory}
-                />
-                <SearchableSelect
-                  ariaLabel="Selecionar subcategoria em lote"
-                  emptyLabel="Sem subcategoria em lote"
-                  options={["", ...subcategoryOptions]}
-                  placeholder="Subcategoria"
-                  searchPlaceholder="Buscar subcategoria..."
-                  value={bulkSubcategory}
-                  onChange={setBulkSubcategory}
-                />
-                <button className="primary-button compact" type="button" onClick={applyBulkChange}>
-                  Aplicar
-                </button>
-                <button className="secondary-button compact" type="button" onClick={() => setSelectedTasks([])}>
-                  Limpar seleção
-                </button>
+                <div className="classification-bulk-controls">
+                  <strong>{selectedTasks.length} atividade{selectedTasks.length === 1 ? "" : "s"} selecionada{selectedTasks.length === 1 ? "" : "s"}</strong>
+                  <SearchableSelect
+                    ariaLabel="Selecionar categoria em lote"
+                    emptyLabel="Sem categoria em lote"
+                    options={["", ...categoryOptions]}
+                    placeholder="Categoria"
+                    searchPlaceholder="Buscar categoria..."
+                    value={bulkCategory}
+                    onChange={setBulkCategory}
+                  />
+                  <SearchableSelect
+                    ariaLabel="Selecionar subcategoria em lote"
+                    emptyLabel="Sem subcategoria em lote"
+                    options={["", ...subcategoryOptions]}
+                    placeholder="Subcategoria"
+                    searchPlaceholder="Buscar subcategoria..."
+                    value={bulkSubcategory}
+                    onChange={setBulkSubcategory}
+                  />
+                </div>
+                <div className="classification-bulk-actions">
+                  <button className="secondary-button compact" type="button" onClick={() => setSelectedTasks([])}>
+                    Limpar seleção
+                  </button>
+                  <button className="primary-button compact" type="button" onClick={applyBulkChange}>
+                    Aplicar
+                  </button>
+                </div>
               </div>
             )}
           </div>

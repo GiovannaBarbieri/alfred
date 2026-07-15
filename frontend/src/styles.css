@@ -3407,11 +3407,11 @@ input {
   border: 1px solid #cfe1ff;
   border-radius: 12px;
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 9px;
+  justify-content: space-between;
   min-height: 40px;
-  overflow-x: auto;
-  padding: 6px 8px;
+  padding: 6px 7px;
 }
 
 .classification-bulk-bar.active {
@@ -3425,6 +3425,23 @@ input {
   line-height: 1;
   min-width: max-content;
   white-space: nowrap;
+}
+
+.classification-bulk-controls,
+.classification-bulk-actions {
+  align-items: center;
+  display: flex;
+  flex: 0 1 auto;
+  gap: 9px;
+}
+
+.classification-bulk-controls {
+  min-width: 0;
+}
+
+.classification-bulk-actions {
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .classification-bulk-bar .classification-search-select {
@@ -4468,6 +4485,11 @@ input {
   }
 
   .classification-collaborator-combobox {
+    width: 100%;
+  }
+
+  .classification-bulk-actions {
+    margin-left: 0;
     width: 100%;
   }
 
