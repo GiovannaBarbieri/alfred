@@ -2877,7 +2877,7 @@ input {
 }
 
 .classification-card-list {
-  --classification-row-grid: 24px minmax(450px, 2.1fr) minmax(120px, 0.31fr) minmax(130px, 0.35fr) minmax(190px, auto);
+  --classification-row-grid: 20px minmax(460px, 1fr) minmax(116px, 14%) minmax(126px, 14%) 188px;
   gap: 7px;
 }
 
@@ -3755,7 +3755,7 @@ input {
   display: grid;
   min-width: 0;
   overflow: visible;
-  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  transition: background 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 }
 
 .classification-task-row + .classification-task-row,
@@ -3764,7 +3764,8 @@ input {
 }
 
 .classification-task-row:hover {
-  box-shadow: 0 7px 16px rgba(15, 23, 42, 0.045);
+  background: #fbfcfe;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.04);
   transform: translateY(-1px);
 }
 
@@ -3797,18 +3798,18 @@ input {
 .classification-row-main {
   align-items: start;
   display: grid;
-  column-gap: 12px;
+  column-gap: 9px;
   row-gap: 6px;
   grid-template-columns: var(--classification-row-grid);
   min-height: 60px;
   min-width: 0;
-  padding: 7px 11px;
+  padding: 7px 10px;
 }
 
 .classification-row-main .classification-card-check {
   align-items: center;
   justify-content: center;
-  padding-top: 24px;
+  padding-top: 23px;
 }
 
 .classification-row-task,
@@ -3917,6 +3918,12 @@ input {
 }
 
 .classification-row-actions .primary-button,
+.classification-row-actions .secondary-button,
+.classification-row-actions .accepted-action-button {
+  min-width: 84px;
+}
+
+.classification-row-actions .primary-button,
 .classification-row-actions .secondary-button {
   font-weight: 500;
 }
@@ -3929,8 +3936,8 @@ input {
 }
 
 .classification-row-actions .accepted-action-button {
-  background: #ecfdf3;
-  border: 1px solid #bbf7d0;
+  background: #dcfce7;
+  border: 1px solid #86efac;
   border-radius: 8px;
   color: #15803d;
   cursor: default;
@@ -4399,7 +4406,7 @@ input {
 
 @media (max-width: 1180px) {
   .classification-card-list {
-    --classification-row-grid: 24px minmax(320px, 1fr) minmax(110px, 0.31fr) minmax(118px, 0.35fr);
+    --classification-row-grid: 20px minmax(320px, 1fr) minmax(106px, 14%) minmax(112px, 14%);
   }
 
   .classification-row-actions {
@@ -4458,13 +4465,13 @@ input {
 
   .classification-row-main {
     gap: 8px;
-    grid-template-columns: 24px minmax(0, 1fr);
+    grid-template-columns: 20px minmax(0, 1fr);
     min-height: auto;
     padding: 8px 10px;
   }
 
   .classification-row-main .classification-card-check {
-    padding-top: 22px;
+    padding-top: 23px;
   }
 
   .classification-row-value,
