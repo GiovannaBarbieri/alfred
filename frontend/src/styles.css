@@ -2878,7 +2878,7 @@ input {
 
 .classification-card-list {
   --classification-row-grid: 20px minmax(360px, 45%) minmax(180px, 20%) minmax(180px, 20%) minmax(160px, 15%);
-  gap: 7px;
+  gap: 10px;
 }
 
 .classification-select-visible {
@@ -2971,29 +2971,35 @@ input {
 .classification-stage-header {
   align-items: center;
   display: flex;
-  gap: 18px;
+  gap: 14px;
   justify-content: space-between;
-  padding: 2px 2px 4px;
+  padding: 0 2px 2px;
 }
 
 .classification-stage-header > div:first-child {
   display: grid;
-  gap: 3px;
+  gap: 2px;
   min-width: 0;
+}
+
+.classification-stage-header .eyebrow {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .classification-stage-header h2 {
   color: #0b1f36;
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 19px;
+  font-weight: 700;
   line-height: 1.15;
   margin: 0;
 }
 
 .classification-stage-header p {
   color: #64748b;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 400;
   margin: 0;
 }
 
@@ -3764,8 +3770,8 @@ input {
 }
 
 .classification-task-row:hover {
-  background: #fbfcfe;
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.04);
+  background: #f8fafc;
+  box-shadow: 0 7px 16px rgba(15, 23, 42, 0.045);
   transform: translateY(-1px);
 }
 
@@ -3798,7 +3804,7 @@ input {
 .classification-row-main {
   align-items: center;
   display: grid;
-  column-gap: 22px;
+  column-gap: 16px;
   row-gap: 6px;
   grid-template-columns: var(--classification-row-grid);
   min-height: 66px;
@@ -3839,12 +3845,12 @@ input {
   border-radius: 999px;
   color: #64748b;
   display: inline-flex;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 500;
   justify-content: center;
   line-height: 1;
-  min-height: 18px;
-  padding: 0 5px;
+  min-height: 17px;
+  padding: 0 4px;
   width: fit-content;
 }
 
@@ -3903,7 +3909,7 @@ input {
 .classification-row-value .classification-search-select > button {
   border-radius: 8px;
   font-size: 12px;
-  min-height: 38px;
+  min-height: 35px;
   padding: 0 8px;
 }
 
@@ -3954,8 +3960,8 @@ input {
 .classification-row-actions .primary-button svg,
 .classification-row-actions .secondary-button svg,
 .classification-row-actions .accepted-action-button svg {
-  height: 13px;
-  width: 13px;
+  height: 12px;
+  width: 12px;
 }
 
 .classification-row-actions .accepted-action-button {
