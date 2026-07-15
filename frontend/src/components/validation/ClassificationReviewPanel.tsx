@@ -86,10 +86,13 @@ function collaboratorInitials(name: string) {
 
 type SearchableSelectProps = {
   ariaLabel: string;
+  buttonRef?: (element: HTMLButtonElement | null) => void;
   disabled?: boolean;
   emptyLabel?: string;
   onChange: (value: string) => void;
+  onOpenChange?: (open: boolean) => void;
   options: string[];
+  open?: boolean;
   placeholder: string;
   searchPlaceholder?: string;
   value: string;
@@ -97,49 +100,62 @@ type SearchableSelectProps = {
 
 function SearchableSelect({
   ariaLabel,
+  buttonRef,
   disabled = false,
   emptyLabel,
   onChange,
+  onOpenChange,
   options,
+  open,
   placeholder,
   searchPlaceholder = "Buscar...",
   value,
 }: SearchableSelectProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const isOpen = open ?? internalOpen;
   const filteredOptions = useMemo(() => {
     const term = normalizeText(search);
     if (!term) return options;
     return options.filter((option) => normalizeText(option || emptyLabel).includes(term));
   }, [emptyLabel, options, search]);
 
+  function setSelectOpen(nextOpen: boolean) {
+    if (onOpenChange) {
+      onOpenChange(nextOpen);
+      return;
+    }
+    setInternalOpen(nextOpen);
+  }
+
   function selectOption(option: string) {
     onChange(option);
-    setOpen(false);
+    setSelectOpen(false);
     setSearch("");
   }
 
   return (
     <div
-      className={`classification-search-select ${open ? "open" : ""} ${disabled ? "disabled" : ""}`}
+      className={`classification-search-select ${isOpen ? "open" : ""} ${disabled ? "disabled" : ""}`}
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-          setOpen(false);
+          setSelectOpen(false);
           setSearch("");
         }
       }}
     >
       <button
-        aria-expanded={open}
+        aria-expanded={isOpen}
         aria-label={ariaLabel}
         disabled={disabled}
+        ref={buttonRef}
         type="button"
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => setSelectOpen(!isOpen)}
       >
         <span className={value ? "" : "placeholder"}>{value || placeholder}</span>
         <ChevronDown size={16} />
       </button>
-      {open && !disabled && (
+      {isOpen && !disabled && (
         <div className="classification-search-select-menu">
           <label className="classification-search-select-input">
             <Search size={15} />
@@ -197,6 +213,10 @@ export function ClassificationReviewPanel({
   const [activitiesPerPage, setActivitiesPerPage] = useState(DEFAULT_ACTIVITIES_PER_PAGE);
   const [collaboratorComboboxOpen, setCollaboratorComboboxOpen] = useState(false);
   const [collaboratorSearch, setCollaboratorSearch] = useState("");
+  const [openSelectKey, setOpenSelectKey] = useState("");
+  const categorySelectRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const subcategorySelectRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const acceptButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const selectVisibleCheckboxRef = useRef<HTMLInputElement | null>(null);
 
   const classificationsByLine = useMemo(
@@ -312,6 +332,7 @@ export function ClassificationReviewPanel({
     updateLines(model.affectedLines, model.category, model.subcategory);
     setAcceptedTasks((current) => (current.includes(model.key) ? current : [...current, model.key]));
     setSelectedTasks((current) => current.filter((key) => key !== model.key));
+    setOpenSelectKey("");
     setActionNotice(`Sugestao aceita para Task ${model.item.idTask}.`);
     window.setTimeout(() => setActionNotice(""), 2600);
   }
@@ -517,20 +538,24 @@ export function ClassificationReviewPanel({
                   <SearchableSelect
                     ariaLabel="Selecionar categoria em lote"
                     emptyLabel="Sem categoria em lote"
+                    open={openSelectKey === "bulk:category"}
                     options={["", ...categoryOptions]}
                     placeholder="Categoria"
                     searchPlaceholder="Buscar categoria..."
                     value={bulkCategory}
                     onChange={setBulkCategory}
+                    onOpenChange={(open) => setOpenSelectKey(open ? "bulk:category" : "")}
                   />
                   <SearchableSelect
                     ariaLabel="Selecionar subcategoria em lote"
                     emptyLabel="Sem subcategoria em lote"
+                    open={openSelectKey === "bulk:subcategory"}
                     options={["", ...subcategoryOptions]}
                     placeholder="Subcategoria"
                     searchPlaceholder="Buscar subcategoria..."
                     value={bulkSubcategory}
                     onChange={setBulkSubcategory}
+                    onOpenChange={(open) => setOpenSelectKey(open ? "bulk:subcategory" : "")}
                   />
                 </div>
                 <div className="classification-bulk-actions">
@@ -565,6 +590,8 @@ export function ClassificationReviewPanel({
 
             {paginatedCards.map((model) => {
               const isSelected = selectedTasks.includes(model.key);
+              const categorySelectKey = `${model.key}:category`;
+              const subcategorySelectKey = `${model.key}:subcategory`;
               return (
                 <article
                   className={`classification-task-row ${model.needsAttention ? "attention" : ""} ${isSelected ? "selected" : ""} ${
@@ -601,24 +628,40 @@ export function ClassificationReviewPanel({
                     <div className="classification-row-value">
                       <SearchableSelect
                         ariaLabel={`Selecionar categoria da task ${model.item.idTask}`}
+                        buttonRef={(element) => {
+                          categorySelectRefs.current[model.key] = element;
+                        }}
                         disabled={model.accepted}
+                        open={openSelectKey === categorySelectKey}
                         options={categoryOptions}
                         placeholder="Categoria"
                         searchPlaceholder="Buscar categoria..."
                         value={model.category}
-                        onChange={(category) => updateLines(model.affectedLines, category, model.subcategory)}
+                        onChange={(category) => {
+                          updateLines(model.affectedLines, category, model.subcategory);
+                          window.setTimeout(() => subcategorySelectRefs.current[model.key]?.focus(), 0);
+                        }}
+                        onOpenChange={(open) => setOpenSelectKey(open ? categorySelectKey : "")}
                       />
                     </div>
 
                     <div className="classification-row-value">
                       <SearchableSelect
                         ariaLabel={`Selecionar subcategoria da task ${model.item.idTask}`}
+                        buttonRef={(element) => {
+                          subcategorySelectRefs.current[model.key] = element;
+                        }}
                         disabled={model.accepted}
+                        open={openSelectKey === subcategorySelectKey}
                         options={subcategoryOptions}
                         placeholder="Subcategoria"
                         searchPlaceholder="Buscar subcategoria..."
                         value={model.subcategory}
-                        onChange={(subcategory) => updateLines(model.affectedLines, model.category, subcategory)}
+                        onChange={(subcategory) => {
+                          updateLines(model.affectedLines, model.category, subcategory);
+                          window.setTimeout(() => acceptButtonRefs.current[model.key]?.focus(), 0);
+                        }}
+                        onOpenChange={(open) => setOpenSelectKey(open ? subcategorySelectKey : "")}
                       />
                     </div>
 
@@ -635,7 +678,14 @@ export function ClassificationReviewPanel({
                         </>
                       ) : (
                         <>
-                          <button className="primary-button compact" type="button" onClick={() => acceptSuggestion(model)}>
+                          <button
+                            className="primary-button compact"
+                            ref={(element) => {
+                              acceptButtonRefs.current[model.key] = element;
+                            }}
+                            type="button"
+                            onClick={() => acceptSuggestion(model)}
+                          >
                             <Check size={14} />
                             Aceitar
                           </button>
