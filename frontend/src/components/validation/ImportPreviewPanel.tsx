@@ -116,7 +116,7 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
 
       <div className="preview-metric-grid">
         <PreviewMetric icon={<Clock size={17} />} label="Horas" value={`${preview?.totalHours.toFixed(2) ?? "0.00"}h`} />
-        <PreviewMetric icon={<ClipboardList size={17} />} label="Registros" value={result.totalRows.toString()} />
+        <PreviewMetric icon={<ClipboardList size={17} />} label="Registros importados" value={result.totalRows.toString()} />
         <PreviewMetric icon={<Users size={17} />} label="Colaboradores" value={(preview?.collaboratorsCount ?? 0).toString()} />
         <PreviewMetric icon={<Tags size={17} />} label="Tasks" value={(preview?.tasksCount ?? 0).toString()} />
         <PreviewMetric icon={<ClipboardCheck size={17} />} label="Itens classificados" value={String(classifiedRecords)} />
@@ -167,7 +167,7 @@ export function ImportPreviewPanel({ result, hasUnprofiledCollaborators = false,
               </div>
               <div className="preview-health-list">
                 <PreviewHealthItem icon={<CheckCircle2 size={16} />} label="registros prontos" value={result.validRows} tone="success" />
-                <PreviewHealthItem icon={<AlertTriangle size={16} />} label="itens precisam de revisão" value={reviewItems} tone={reviewItems > 0 ? "warning" : "neutral"} />
+                <PreviewHealthItem icon={<AlertTriangle size={16} />} label="pendências de revisão" value={reviewItems} tone={reviewItems > 0 ? "warning" : "neutral"} />
                 <PreviewHealthItem icon={<Ban size={16} />} label="bloqueios" value={result.blockedRows} tone={result.blockedRows > 0 ? "danger" : "neutral"} />
                 <PreviewHealthItem icon={<CircleDot size={16} />} label="duplicidades" value={result.duplicates.length} tone={result.duplicates.length > 0 ? "warning" : "neutral"} />
               </div>
