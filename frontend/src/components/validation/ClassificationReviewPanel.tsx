@@ -6,13 +6,9 @@ import {
   Check,
   CheckCircle2,
   FileText,
-  Layers3,
-  Lightbulb,
-  MapPin,
   RotateCcw,
   Search,
   Sparkles,
-  Tags,
   UserRound,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -47,11 +43,7 @@ type CardModel = {
   users: string[];
   category: string;
   subcategory: string;
-  origin: string;
-  classifierVersion?: string;
-  factors: string[];
   reviewReasons: string[];
-  matchedKeywords: string[];
   unclassified: boolean;
   conflict: boolean;
   needsAttention: boolean;
@@ -201,7 +193,6 @@ export function ClassificationReviewPanel({
   const [bulkSubcategory, setBulkSubcategory] = useState("");
   const [acceptedTasks, setAcceptedTasks] = useState<string[]>([]);
   const [expandedTasks, setExpandedTasks] = useState<string[]>([]);
-  const [detailTasks, setDetailTasks] = useState<string[]>([]);
   const [editDrafts, setEditDrafts] = useState<Record<string, { category: string; subcategory: string }>>({});
   const [actionNotice, setActionNotice] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -245,7 +236,6 @@ export function ClassificationReviewPanel({
       };
       const factors = representativeClassification?.confidenceFactors ?? item.suggestionReasons;
       const reviewReasons = item.reviewReasons;
-      const matchedKeywords = representativeClassification?.matchedKeywords ?? item.matchedKeywords;
       const conflict = factors.some(isConflictFactor) || reviewReasons.some(isConflictFactor);
       const unclassified = isUnclassifiedValue(selected.category);
       const key = `${item.idTask}-${selectedCollaborator || "all"}`;
@@ -259,11 +249,7 @@ export function ClassificationReviewPanel({
         users: selectedCollaborator ? [selectedCollaborator] : item.users,
         category: selected.category,
         subcategory: selected.subcategory,
-        origin: representativeClassification?.origin ?? item.origin,
-        classifierVersion: representativeClassification?.classifierVersion,
-        factors,
         reviewReasons,
-        matchedKeywords,
         unclassified,
         conflict,
         needsAttention: !accepted && (unclassified || conflict || item.needsReview),
@@ -328,7 +314,6 @@ export function ClassificationReviewPanel({
     setAcceptedTasks((current) => (current.includes(model.key) ? current : [...current, model.key]));
     setSelectedTasks((current) => current.filter((key) => key !== model.key));
     setExpandedTasks((current) => current.filter((key) => key !== model.key));
-    setDetailTasks((current) => current.filter((key) => key !== model.key));
     setEditDrafts((current) => {
       const next = { ...current };
       delete next[model.key];
@@ -361,20 +346,7 @@ export function ClassificationReviewPanel({
       ...current,
       [model.key]: { category: model.category, subcategory: model.subcategory },
     }));
-    setDetailTasks((current) => current.filter((key) => key !== model.key));
     setExpandedTasks((current) => [...current, model.key]);
-  }
-
-  function toggleTaskDetails(taskKey: string) {
-    setExpandedTasks((current) => current.filter((key) => key !== taskKey));
-    setEditDrafts((current) => {
-      const next = { ...current };
-      delete next[taskKey];
-      return next;
-    });
-    setDetailTasks((current) =>
-      current.includes(taskKey) ? current.filter((key) => key !== taskKey) : [...current, taskKey],
-    );
   }
 
   function updateTaskEditDraft(taskKey: string, field: "category" | "subcategory", value: string) {
@@ -650,14 +622,7 @@ export function ClassificationReviewPanel({
               ].filter(Boolean);
               const pendingLabel = pendingReasons.length > 0 ? pendingReasons.join(" · ") : "Sugestão pronta";
               const editExpanded = expandedTasks.includes(model.key);
-              const detailsExpanded = detailTasks.includes(model.key);
               const editDraft = editDrafts[model.key] ?? { category: model.category, subcategory: model.subcategory };
-              const reasons = [
-                ...model.reviewReasons,
-                ...model.factors,
-                ...model.matchedKeywords.slice(0, 3).map((keyword) => `Palavra-chave: ${keyword}`),
-              ].slice(0, 6);
-
               return (
                 <article
                   className={`classification-task-row ${model.needsAttention ? "attention" : ""} ${isSelected ? "selected" : ""} ${
@@ -679,6 +644,16 @@ export function ClassificationReviewPanel({
                     <div className="classification-row-task">
                       <span className="classification-task-id">#{model.item.idTask}</span>
                       <strong title={model.item.title}>{model.item.title}</strong>
+                      <div className="classification-row-meta-inline">
+                        <span title={model.users.join(", ")}>
+                          <UserRound size={13} />
+                          {model.users.join(", ")}
+                        </span>
+                        <span>
+                          <FileText size={13} />
+                          {model.affectedLines.length} registro{model.affectedLines.length === 1 ? "" : "s"}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="classification-row-value">
@@ -701,14 +676,6 @@ export function ClassificationReviewPanel({
                           <button className="secondary-button compact icon-only" type="button" onClick={() => undoSuggestion(model)} title="Desfazer aceite">
                             <RotateCcw size={14} />
                           </button>
-                          <button
-                            aria-expanded={detailsExpanded}
-                            className="secondary-button compact"
-                            type="button"
-                            onClick={() => toggleTaskDetails(model.key)}
-                          >
-                            Ver detalhes
-                          </button>
                         </>
                       ) : (
                         <>
@@ -723,14 +690,6 @@ export function ClassificationReviewPanel({
                             onClick={() => toggleTaskEdit(model)}
                           >
                             Editar classificação
-                          </button>
-                          <button
-                            aria-expanded={detailsExpanded}
-                            className="secondary-button compact"
-                            type="button"
-                            onClick={() => toggleTaskDetails(model.key)}
-                          >
-                            Ver detalhes
                           </button>
                         </>
                       )}
@@ -774,52 +733,6 @@ export function ClassificationReviewPanel({
                     </div>
                   </div>
 
-                  <div className={`classification-row-details technical ${detailsExpanded ? "open" : ""}`} aria-hidden={!detailsExpanded}>
-                    <div className="classification-row-detail-panel">
-                      <div className="classification-meta-row">
-                        <span className="classification-badge neutral detail">
-                          <UserRound size={14} />
-                          <small>Colaborador</small>
-                          <strong>{model.users.join(", ")}</strong>
-                        </span>
-                        <span className="classification-badge neutral detail">
-                          <MapPin size={14} />
-                          <small>Linhas da planilha</small>
-                          <strong>{model.affectedLines.join(", ")}</strong>
-                        </span>
-                        <span className="classification-badge info detail">
-                          <FileText size={14} />
-                          <small>Registros</small>
-                          <strong>{model.affectedLines.length}</strong>
-                        </span>
-                        <span className="classification-badge neutral detail">
-                          <Tags size={14} />
-                          <small>Origem</small>
-                          <strong>{model.origin}</strong>
-                        </span>
-                        <span className="classification-badge neutral detail">
-                          <Layers3 size={14} />
-                          <small>Versão</small>
-                          <strong>{model.classifierVersion || "Atual"}</strong>
-                        </span>
-                      </div>
-                      <div className="classification-reasons compact" role="note" aria-label="Motivo da classificação">
-                        <strong>
-                          <Lightbulb size={14} />
-                          Motivo da classificação
-                        </strong>
-                        {reasons.length > 0 ? (
-                          <ul>
-                            {reasons.map((reason) => (
-                              <li key={reason}>{reason}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p>Nenhum motivo detalhado retornado pelo classificador.</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
                 </article>
               );
             })}
