@@ -10,6 +10,7 @@ type ValidationActionsProps = {
   isLoading: boolean;
   isCompleting: boolean;
   canCompleteImport: boolean;
+  pendingClassificationReviewCount: number;
   onCancel: () => void;
   onComplete: () => void;
 };
@@ -23,6 +24,7 @@ export function ValidationActions({
   isLoading,
   isCompleting,
   canCompleteImport,
+  pendingClassificationReviewCount,
   onCancel,
   onComplete,
 }: ValidationActionsProps) {
@@ -46,7 +48,7 @@ export function ValidationActions({
   const automaticallyClassifiedItems = Math.max(result.validRows - manuallyReviewedItems, 0);
   const duplicateGroups = result.duplicates.length;
   const blockingCount = result.blockedRows;
-  const alertCount = result.alertRows;
+  const alertCount = pendingClassificationReviewCount;
   const isReady = canCompleteImport && !error;
   const confirmationSucceeded = Boolean(processingMessage?.toLowerCase().includes("confirmada"));
   const displayProcessingMessage = confirmationSucceeded ? processingMessage : isCompleting ? "Confirmando importação..." : null;

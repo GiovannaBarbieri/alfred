@@ -224,7 +224,7 @@ export function ValidationPage({
       });
       if (
         canCompleteImport &&
-        !hasPendingClassificationReview(result, nextClassificationOverrides, categoryOptions, subcategoryOptions)
+        countPendingClassificationReview(result, nextClassificationOverrides, categoryOptions, subcategoryOptions) === 0
       ) {
         onImportWizardStepChange("confirm");
       }
@@ -303,6 +303,12 @@ export function ValidationPage({
     new Set(result.classifications.map((classification) => classification.classifierVersion).filter(Boolean)),
   );
   const classifierVersion = classifierVersions.length === 1 ? classifierVersions[0] : classifierVersions.length > 1 ? "multi" : undefined;
+  const pendingClassificationReviewCount = countPendingClassificationReview(
+    result,
+    classificationOverrides,
+    categoryOptions,
+    subcategoryOptions,
+  );
 
   if (importWizardStep === "preview") {
     return (
@@ -362,6 +368,7 @@ export function ValidationPage({
           isLoading={isLoading}
           isCompleting={isCompleting}
           canCompleteImport={canCompleteImport}
+          pendingClassificationReviewCount={pendingClassificationReviewCount}
           onCancel={onCancel}
           onComplete={onComplete}
         />
@@ -579,13 +586,13 @@ function isMissingOperationalProfile(value: string): boolean {
   return normalized === "" || normalized === "nao aplicavel" || normalized === "nao classificado";
 }
 
-function hasPendingClassificationReview(
+function countPendingClassificationReview(
   result: ImportValidationResponse,
   classificationOverrides: Record<number, { category: string; subcategory: string }>,
   categoryOptions: string[],
   subcategoryOptions: string[],
-): boolean {
-  return result.classifications.some((classification) => {
+): number {
+  return result.classifications.filter((classification) => {
     const selected = classificationOverrides[classification.line] ?? {
       category: classification.category,
       subcategory: classification.subcategory,
@@ -600,7 +607,7 @@ function hasPendingClassificationReview(
         { categoryOptions, issues: result.issues, subcategoryOptions },
       ).length > 0
     );
-  });
+  }).length;
 }
 
 function formatCollaboratorName(login: string): string {
