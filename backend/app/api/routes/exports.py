@@ -1,6 +1,7 @@
 import csv
 import io
 from datetime import date, datetime
+from pathlib import Path
 from typing import Literal
 
 from fastapi import APIRouter, HTTPException, Query
@@ -217,7 +218,18 @@ def export_project_analysis_xlsx(
 ) -> StreamingResponse:
     with get_connection() as connection:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT nome_arquivo FROM importacoes WHERE id = %s", [import_id])
+            cursor.execute(
+                """
+                SELECT
+                    nome_arquivo,
+                    data_importacao,
+                    total_registros,
+                    registros_validos
+                FROM importacoes
+                WHERE id = %s
+                """,
+                [import_id],
+            )
             import_row = cursor.fetchone()
             if not import_row:
                 raise HTTPException(status_code=404, detail="Importacao nao encontrada.")
@@ -315,6 +327,47 @@ def export_project_analysis_xlsx(
             workbook = Workbook()
             index_sheet = workbook.active
             index_sheet.title = "Indice"
+            summary_sheet = workbook.create_sheet("Resumo")
+
+            cursor.execute(
+                """
+                WITH resumo AS (
+                    SELECT
+                        COALESCE(SUM(l.duracao_segundos), 0) AS total_segundos,
+                        COUNT(*) AS total_registros,
+                        COUNT(DISTINCT l.login_usuario) AS colaboradores,
+                        COUNT(DISTINCT l.id_task) AS tasks,
+                        COUNT(DISTINCT l.categoria_id) FILTER (WHERE l.categoria_id IS NOT NULL) AS categorias
+                    FROM lancamentos_horas l
+                    WHERE l.importacao_id = %s
+                ),
+                principal_colaborador AS (
+                    SELECT
+                        l.login_usuario,
+                        SUM(l.duracao_segundos) AS total_segundos
+                    FROM lancamentos_horas l
+                    WHERE l.importacao_id = %s
+                    GROUP BY l.login_usuario
+                    ORDER BY total_segundos DESC, l.login_usuario
+                    LIMIT 1
+                )
+                SELECT
+                    r.total_segundos,
+                    ROUND((r.total_segundos::numeric / 3600), 2) AS total_horas,
+                    r.total_registros,
+                    r.colaboradores,
+                    r.tasks,
+                    r.categorias,
+                    ROUND(((r.total_segundos::numeric / 3600) / NULLIF(r.colaboradores, 0)), 2) AS media_por_colaborador,
+                    pc.login_usuario AS principal_colaborador,
+                    ROUND((COALESCE(pc.total_segundos, 0)::numeric / 3600), 2) AS principal_colaborador_horas
+                FROM resumo r
+                LEFT JOIN principal_colaborador pc ON TRUE
+                """,
+                [import_id, import_id],
+            )
+            summary_row = cursor.fetchone()
+            _append_project_summary_sheet(summary_sheet, import_row, summary_row, user)
 
             for title, sql in sheets:
                 cursor.execute(sql, [import_id])
@@ -635,6 +688,61 @@ def _append_sheet(sheet, headers: list[str], rows: list[list]) -> None:
     _autosize_columns(sheet)
 
 
+def _append_project_summary_sheet(sheet, import_row, summary_row, user: str | None) -> None:
+    filename = import_row["nome_arquivo"]
+    project_name = Path(filename).stem
+    total_hours = float(summary_row["total_horas"] or 0) if summary_row else 0.0
+    records_count = int(summary_row["total_registros"] or 0) if summary_row else 0
+    collaborators_count = int(summary_row["colaboradores"] or 0) if summary_row else 0
+    tasks_count = int(summary_row["tasks"] or 0) if summary_row else 0
+    categories_count = int(summary_row["categorias"] or 0) if summary_row else 0
+    average_by_collaborator = float(summary_row["media_por_colaborador"] or 0) if summary_row else 0.0
+    top_collaborator = summary_row["principal_colaborador"] if summary_row and summary_row["principal_colaborador"] else "-"
+    top_collaborator_hours = float(summary_row["principal_colaborador_horas"] or 0) if summary_row else 0.0
+
+    rows = [
+        ["Projeto", project_name],
+        ["Arquivo", filename],
+        ["Filtro colaborador", user or "Todos"],
+        ["Atualizado em", format_datetime_br(import_row["data_importacao"])],
+        ["Total de horas", total_hours],
+        ["Registros", records_count],
+        ["Colaboradores", collaborators_count],
+        ["Tasks", tasks_count],
+        ["Categorias", categories_count],
+        ["Media por colaborador", average_by_collaborator],
+        ["Principal colaborador", top_collaborator],
+        ["Horas do principal colaborador", top_collaborator_hours],
+        ["Registros validos na importacao", import_row["registros_validos"]],
+    ]
+
+    sheet.sheet_view.showGridLines = False
+    sheet.append(["Resumo do projeto"])
+    sheet.append(["Indicador", "Valor"])
+    for row in rows:
+        sheet.append(row)
+
+    title_fill = PatternFill("solid", fgColor="123C69")
+    sheet["A1"].font = Font(bold=True, color="FFFFFF", size=14)
+    sheet["A1"].fill = title_fill
+    sheet.merge_cells("A1:B1")
+
+    header_fill = PatternFill("solid", fgColor="E8F1FF")
+    for cell in sheet[2]:
+        cell.font = Font(bold=True)
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center")
+
+    for row in sheet.iter_rows(min_row=3, max_row=sheet.max_row):
+        row[0].font = Font(bold=True)
+        row[0].fill = PatternFill("solid", fgColor="F8FBFF")
+        if isinstance(row[1].value, float):
+            row[1].number_format = '#,##0.00'
+
+    sheet.freeze_panes = "A3"
+    _autosize_columns(sheet)
+
+
 def _append_index_sheet(index_sheet, worksheets, filename: str, user: str | None) -> None:
     index_sheet.sheet_view.showGridLines = False
     index_sheet.append(["Analise operacional de horas"])
@@ -655,6 +763,7 @@ def _append_index_sheet(index_sheet, worksheets, filename: str, user: str | None
         cell.fill = PatternFill("solid", fgColor="E8F1FF")
 
     descriptions = {
+        "Resumo": "Indicadores gerais do projeto exportado.",
         "Diario_Total": "Linha do tempo diaria do total do projeto.",
         "Dia_Colaborador": "Horas por dia e colaborador.",
         "Semana_Colaborador": "Horas por semana e colaborador.",
