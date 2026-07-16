@@ -4505,6 +4505,22 @@ input {
   color: #0b1f36;
 }
 
+.classification-empty-state.completion {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  border-style: solid;
+  color: #335b83;
+}
+
+.classification-completion-spinner {
+  animation: spin 720ms linear infinite;
+  border: 2px solid #bfdbfe;
+  border-radius: 999px;
+  border-top-color: #0f4c8a;
+  height: 24px;
+  width: 24px;
+}
+
 .classification-review-footer {
   display: grid;
   margin-top: 2px;

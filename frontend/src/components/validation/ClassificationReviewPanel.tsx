@@ -206,6 +206,7 @@ export function ClassificationReviewPanel({
   const [bulkSubcategory, setBulkSubcategory] = useState("");
   const [acceptedTasks, setAcceptedTasks] = useState<string[]>([]);
   const [actionNotice, setActionNotice] = useState("");
+  const [isCompletingReview, setIsCompletingReview] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [activitiesPerPage, setActivitiesPerPage] = useState(DEFAULT_ACTIVITIES_PER_PAGE);
   const [collaboratorComboboxOpen, setCollaboratorComboboxOpen] = useState(false);
@@ -214,6 +215,8 @@ export function ClassificationReviewPanel({
   const categorySelectRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const subcategorySelectRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const acceptButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const completionStartedRef = useRef(false);
+  const completionTimeoutRef = useRef<number | null>(null);
   const selectVisibleCheckboxRef = useRef<HTMLInputElement | null>(null);
 
   const classificationsByLine = useMemo(
@@ -281,6 +284,23 @@ export function ClassificationReviewPanel({
     });
   }, [cardModels, quickFilter, selectedCollaborator]);
 
+  const globalMandatoryPendingCount = useMemo(() => {
+    return classificationReviewGroups.filter((item) => {
+      const representativeLine = item.lines[0];
+      const representativeClassification = classificationsByLine.get(representativeLine);
+      const selected = classificationOverrides[representativeLine] ?? {
+        category: representativeClassification?.category ?? item.category,
+        subcategory: representativeClassification?.subcategory ?? item.subcategory,
+      };
+      const factors = representativeClassification?.confidenceFactors ?? item.suggestionReasons;
+      const reviewReasons = item.reviewReasons;
+      const conflict = factors.some(isConflictFactor) || reviewReasons.some(isConflictFactor);
+      const unclassified = isUnclassifiedValue(selected.category);
+      const accepted = acceptedTasks.includes(`${item.idTask}-all`);
+      return !accepted && (unclassified || conflict || item.needsReview);
+    }).length;
+  }, [acceptedTasks, classificationReviewGroups, classificationsByLine, classificationOverrides]);
+
   const totalPages = Math.max(1, Math.ceil(visibleCards.length / activitiesPerPage));
   const pageStartIndex = visibleCards.length === 0 ? 0 : (currentPage - 1) * activitiesPerPage;
   const pageEndIndex = Math.min(pageStartIndex + activitiesPerPage, visibleCards.length);
@@ -314,6 +334,32 @@ export function ClassificationReviewPanel({
     }
   }, [someVisibleSelected]);
 
+  useEffect(() => {
+    if (result.classifications.length > 0 && globalMandatoryPendingCount === 0) {
+      startCompletionFlow();
+    }
+  }, [globalMandatoryPendingCount, result.classifications.length]);
+
+  useEffect(() => {
+    return () => {
+      if (completionTimeoutRef.current) {
+        window.clearTimeout(completionTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  function startCompletionFlow() {
+    if (completionStartedRef.current) return;
+    completionStartedRef.current = true;
+    setIsCompletingReview(true);
+    setSelectedTasks([]);
+    setOpenSelectKey("");
+    setActionNotice("Todas as pendências foram resolvidas. Abrindo a confirmação da importação...");
+    completionTimeoutRef.current = window.setTimeout(() => {
+      onStepChange("confirm");
+    }, 850);
+  }
+
   function updateLines(lines: number[], category: string, subcategory: string) {
     onClassificationOverridesChange((current) => {
       const next = { ...current };
@@ -325,27 +371,35 @@ export function ClassificationReviewPanel({
   }
 
   function acceptSuggestion(model: CardModel) {
+    if (isCompletingReview) return;
     updateLines(model.affectedLines, model.category, model.subcategory);
     setAcceptedTasks((current) => (current.includes(model.key) ? current : [...current, model.key]));
     setSelectedTasks((current) => current.filter((key) => key !== model.key));
     setOpenSelectKey("");
     setActionNotice(`Sugestao aceita para Task ${model.item.idTask}.`);
-    window.setTimeout(() => setActionNotice(""), 2600);
+    window.setTimeout(() => {
+      if (!completionStartedRef.current) setActionNotice("");
+    }, 2600);
   }
 
   function undoSuggestion(model: CardModel) {
+    if (isCompletingReview) return;
     setAcceptedTasks((current) => current.filter((key) => key !== model.key));
     setActionNotice(`Aceite desfeito para Task ${model.item.idTask}.`);
-    window.setTimeout(() => setActionNotice(""), 2600);
+    window.setTimeout(() => {
+      if (!completionStartedRef.current) setActionNotice("");
+    }, 2600);
   }
 
   function toggleTaskSelection(taskKey: string) {
+    if (isCompletingReview) return;
     setSelectedTasks((current) =>
       current.includes(taskKey) ? current.filter((key) => key !== taskKey) : [...current, taskKey],
     );
   }
 
   function toggleVisibleSelection() {
+    if (isCompletingReview) return;
     const visibleKeys = visibleCards.map((model) => model.key);
     setSelectedTasks((current) => {
       if (allVisibleSelected) return current.filter((key) => !visibleKeys.includes(key));
@@ -354,7 +408,7 @@ export function ClassificationReviewPanel({
   }
 
   function applyBulkChange() {
-    if (selectedTasks.length === 0 || (!bulkCategory && !bulkSubcategory)) return;
+    if (isCompletingReview || selectedTasks.length === 0 || (!bulkCategory && !bulkSubcategory)) return;
     const selectedModels = cardModels.filter((model) => selectedTasks.includes(model.key));
     onClassificationOverridesChange((current) => {
       const next = { ...current };
@@ -376,19 +430,15 @@ export function ClassificationReviewPanel({
   const pendingFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = [
     { id: "smart", label: "Pendências", count: summary.attention, icon: <Sparkles size={15} /> },
   ];
-  const hasPendingItems = summary.attention > 0;
   const hasActiveToolbarFilter = Boolean(selectedCollaborator || quickFilter !== "smart");
 
   function selectFilter(filterId: QuickFilter) {
+    if (isCompletingReview) return;
     setQuickFilter(filterId);
   }
 
-  function reviewAllActivities() {
-    onToggleShowAllClassifications(true);
-    setQuickFilter("smart");
-  }
-
   function clearFilters() {
+    if (isCompletingReview) return;
     setSelectedCollaborator("");
     setCollaboratorSearch("");
     setCollaboratorComboboxOpen(false);
@@ -407,11 +457,11 @@ export function ClassificationReviewPanel({
               <p>Revise sugestões da IA em lote, sem editar registro por registro.</p>
             </div>
             <div className="classification-stage-actions">
-              <button className="ghost-button compact" type="button" onClick={() => onStepChange("preview")}>
+              <button className="ghost-button compact" disabled={isCompletingReview} type="button" onClick={() => onStepChange("preview")}>
                 <ArrowLeft size={16} />
                 Voltar
               </button>
-              <button className="primary-button compact" type="button" onClick={() => onStepChange("confirm")}>
+              <button className="primary-button compact" disabled={isCompletingReview} type="button" onClick={() => onStepChange("confirm")}>
                 Confirmar revisão
                 <ArrowRight size={16} />
               </button>
@@ -425,7 +475,7 @@ export function ClassificationReviewPanel({
                 <input
                   ref={selectVisibleCheckboxRef}
                   checked={allVisibleSelected}
-                  disabled={visibleCards.length === 0}
+                  disabled={visibleCards.length === 0 || isCompletingReview}
                   type="checkbox"
                   onChange={toggleVisibleSelection}
                 />
@@ -446,20 +496,24 @@ export function ClassificationReviewPanel({
                 <input
                   aria-expanded={collaboratorComboboxOpen}
                   aria-label="Filtrar por colaborador"
+                  disabled={isCompletingReview}
                   placeholder={collaboratorComboboxOpen ? "Pesquisar colaborador..." : undefined}
                   role="combobox"
                   value={collaboratorComboboxOpen ? collaboratorSearch : selectedCollaborator || "Todos os colaboradores"}
                   onChange={(event) => {
+                    if (isCompletingReview) return;
                     setCollaboratorSearch(event.target.value);
                     setCollaboratorComboboxOpen(true);
                   }}
                   onFocus={() => {
+                    if (isCompletingReview) return;
                     setCollaboratorComboboxOpen(true);
                     setCollaboratorSearch("");
                   }}
                 />
                 <button
                   aria-label="Abrir lista de colaboradores"
+                  disabled={isCompletingReview}
                   type="button"
                   onClick={() => {
                     setCollaboratorComboboxOpen((current) => !current);
@@ -488,7 +542,7 @@ export function ClassificationReviewPanel({
                     {filteredCollaboratorOptions.length === 0 && (
                       <div className="classification-combobox-empty">Nenhum colaborador encontrado.</div>
                     )}
-                    {filteredCollaboratorOptions.map((user) => (
+                  {filteredCollaboratorOptions.map((user) => (
                       <button
                         className={selectedCollaborator === user ? "active" : ""}
                         key={user}
@@ -512,6 +566,7 @@ export function ClassificationReviewPanel({
                 <button
                   className={`classification-chip ${quickFilter === filter.id ? "active" : ""}`}
                   key={filter.id}
+                  disabled={isCompletingReview}
                   type="button"
                   onClick={() => selectFilter(filter.id)}
                 >
@@ -521,7 +576,7 @@ export function ClassificationReviewPanel({
                 </button>
               ))}
               {hasActiveToolbarFilter && (
-                <button className="classification-clear-filters" type="button" onClick={clearFilters}>
+                <button className="classification-clear-filters" disabled={isCompletingReview} type="button" onClick={clearFilters}>
                   Limpar filtros
                 </button>
               )}
@@ -538,6 +593,7 @@ export function ClassificationReviewPanel({
                     placeholder="Categoria"
                     searchPlaceholder="Buscar categoria..."
                     value={bulkCategory}
+                    disabled={isCompletingReview}
                     onChange={setBulkCategory}
                     onOpenChange={(open) => setOpenSelectKey(open ? "bulk:category" : "")}
                   />
@@ -549,15 +605,16 @@ export function ClassificationReviewPanel({
                     placeholder="Subcategoria"
                     searchPlaceholder="Buscar subcategoria..."
                     value={bulkSubcategory}
+                    disabled={isCompletingReview}
                     onChange={setBulkSubcategory}
                     onOpenChange={(open) => setOpenSelectKey(open ? "bulk:subcategory" : "")}
                   />
                 </div>
                 <div className="classification-bulk-actions">
-                  <button className="secondary-button compact" type="button" onClick={() => setSelectedTasks([])}>
+                  <button className="secondary-button compact" disabled={isCompletingReview} type="button" onClick={() => setSelectedTasks([])}>
                     Limpar seleção
                   </button>
-                  <button className="primary-button compact" type="button" onClick={applyBulkChange}>
+                  <button className="primary-button compact" disabled={isCompletingReview} type="button" onClick={applyBulkChange}>
                     Aplicar
                   </button>
                 </div>
@@ -567,18 +624,24 @@ export function ClassificationReviewPanel({
 
           <div className="classification-card-list">
             {visibleCards.length === 0 && (
-              <div className="classification-empty-state">
-                <CheckCircle2 size={24} />
-                <strong>{hasPendingItems ? "Nenhuma pendência neste filtro." : "Todas as pendências foram resolvidas."}</strong>
-                <span>
-                  {hasPendingItems
-                    ? "Altere o filtro de pendências para continuar a revisão."
-                    : "Se quiser, revise também as atividades classificadas automaticamente."}
-                </span>
-                {!hasPendingItems && (
-                  <button className="secondary-button compact" type="button" onClick={reviewAllActivities}>
-                    Revisar todas as atividades
-                  </button>
+              <div className={`classification-empty-state ${isCompletingReview || globalMandatoryPendingCount === 0 ? "completion" : ""}`} role="status" aria-live="polite">
+                {isCompletingReview || globalMandatoryPendingCount === 0 ? (
+                  <>
+                    <span className="classification-completion-spinner" aria-hidden="true" />
+                    <strong>Todas as pendências foram resolvidas.</strong>
+                    <span>Abrindo a confirmação da importação...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 size={24} />
+                    <strong>Nenhuma pendência neste filtro.</strong>
+                    <span>Altere ou limpe os filtros para continuar a revisão.</span>
+                    {hasActiveToolbarFilter && (
+                      <button className="secondary-button compact" type="button" onClick={clearFilters}>
+                        Limpar filtros
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -598,7 +661,7 @@ export function ClassificationReviewPanel({
                     <label className="classification-card-check" aria-label={`Selecionar task ${model.item.idTask}`}>
                       <input
                         checked={isSelected}
-                        disabled={model.accepted}
+                        disabled={model.accepted || isCompletingReview}
                         type="checkbox"
                         onChange={() => toggleTaskSelection(model.key)}
                       />
@@ -626,7 +689,7 @@ export function ClassificationReviewPanel({
                         buttonRef={(element) => {
                           categorySelectRefs.current[model.key] = element;
                         }}
-                        disabled={model.accepted}
+                        disabled={model.accepted || isCompletingReview}
                         open={openSelectKey === categorySelectKey}
                         options={categoryOptions}
                         placeholder="Categoria"
@@ -646,7 +709,7 @@ export function ClassificationReviewPanel({
                         buttonRef={(element) => {
                           subcategorySelectRefs.current[model.key] = element;
                         }}
-                        disabled={model.accepted}
+                        disabled={model.accepted || isCompletingReview}
                         open={openSelectKey === subcategorySelectKey}
                         options={subcategoryOptions}
                         placeholder="Subcategoria"
@@ -667,7 +730,7 @@ export function ClassificationReviewPanel({
                             <CheckCircle2 size={14} />
                             Aceito
                           </button>
-                          <button className="secondary-button compact icon-only" type="button" onClick={() => undoSuggestion(model)} title="Desfazer aceite">
+                          <button className="secondary-button compact icon-only" disabled={isCompletingReview} type="button" onClick={() => undoSuggestion(model)} title="Desfazer aceite">
                             <RotateCcw size={14} />
                           </button>
                         </>
@@ -678,6 +741,7 @@ export function ClassificationReviewPanel({
                             ref={(element) => {
                               acceptButtonRefs.current[model.key] = element;
                             }}
+                            disabled={isCompletingReview}
                             type="button"
                             onClick={() => acceptSuggestion(model)}
                           >
