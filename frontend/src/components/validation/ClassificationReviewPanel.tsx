@@ -1,5 +1,4 @@
 import {
-  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   ChevronDown,
@@ -31,9 +30,7 @@ type ClassificationReviewPanelProps = {
   ) => void;
 };
 
-type QuickFilter =
-  | "smart"
-  | "unclassified";
+type QuickFilter = "smart";
 
 type CardModel = {
   key: string;
@@ -280,7 +277,6 @@ export function ClassificationReviewPanel({
     return cardModels.filter((model) => {
       if (selectedCollaborator && model.affectedLines.length === 0) return false;
       if (quickFilter === "smart") return model.needsAttention;
-      if (quickFilter === "unclassified") return model.unclassified;
       return true;
     });
   }, [cardModels, quickFilter, selectedCollaborator]);
@@ -379,7 +375,6 @@ export function ClassificationReviewPanel({
 
   const pendingFilters: Array<{ id: QuickFilter; label: string; count?: number; icon: JSX.Element }> = [
     { id: "smart", label: "Pendências", count: summary.attention, icon: <Sparkles size={15} /> },
-    { id: "unclassified", label: "Sem categoria", count: summary.unclassified, icon: <AlertTriangle size={15} /> },
   ];
   const hasPendingItems = summary.attention > 0;
   const hasActiveToolbarFilter = Boolean(selectedCollaborator || quickFilter !== "smart");
