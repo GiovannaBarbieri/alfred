@@ -30,6 +30,7 @@ export function useProjectReportData({
   const excelExportUrl = selectedImportId
     ? buildExportUrl("/exports/project-analysis.xlsx", undefined, {
         importId: String(selectedImportId),
+        t: String(Date.now()),
         ...(selectedCollaborator ? { user: selectedCollaborator } : {}),
       })
     : "#";
