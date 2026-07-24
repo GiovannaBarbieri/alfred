@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     sqlserver_trust_cert: bool = True
     sqlserver_connection_timeout_seconds: int = 10
     sqlserver_request_timeout: int = 60000
+    general_indicator_processing_timeout_seconds: int = 900
+    backend_build_identifier: str | None = None
 
     model_config = SettingsConfigDict(env_file=(ROOT_DIR / ".env", ".env"), extra="ignore")
 

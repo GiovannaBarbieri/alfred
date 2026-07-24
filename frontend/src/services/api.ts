@@ -31,11 +31,16 @@ import type {
   SavedProjectComparisonDetail,
   SavedProjectComparisonSummary,
   SettingItem,
+  SettingsBootstrap,
   KeywordItem,
   TimelinePoint,
   AuditLogItem,
   AnalyticsInsight,
   AnalyticsInsightsResponse,
+  GeneralIndicatorConsultationResponse,
+  GeneralIndicatorConsultationJobResponse,
+  GeneralIndicatorConsultationProgress,
+  GeneralIndicatorFinalizedResponse,
 } from "../types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api";
@@ -442,6 +447,12 @@ export async function getCategories(): Promise<SettingItem[]> {
   return response.json();
 }
 
+export async function getSettingsBootstrap(): Promise<SettingsBootstrap> {
+  const response = await fetch(`${API_BASE_URL}/settings/bootstrap`);
+  if (!response.ok) throw new Error("Não foi possível carregar as configurações.");
+  return response.json();
+}
+
 export async function createCategory(payload: {
   name: string;
   description?: string | null;
@@ -621,11 +632,12 @@ export async function createCollaboratorProfile(
   loginUsuario: string,
   subcategoryId: number,
   active = true,
+  participatesInGeneralIndicators = true,
 ): Promise<CollaboratorProfileItem> {
   const response = await fetch(`${API_BASE_URL}/settings/collaborator-profiles`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ loginUsuario, subcategoryId, active }),
+    body: JSON.stringify({ loginUsuario, subcategoryId, active, participatesInGeneralIndicators }),
   });
   if (!response.ok) {
     const error = await response.json().catch(() => null);
@@ -636,7 +648,7 @@ export async function createCollaboratorProfile(
 
 export async function updateCollaboratorProfile(
   profileId: number,
-  payload: { loginUsuario?: string; subcategoryId?: number; active?: boolean },
+  payload: { loginUsuario?: string; subcategoryId?: number; active?: boolean; participatesInGeneralIndicators?: boolean },
 ): Promise<CollaboratorProfileItem> {
   const response = await fetch(`${API_BASE_URL}/settings/collaborator-profiles/${profileId}`, {
     method: "PATCH",
@@ -751,4 +763,114 @@ export async function updateAnalyticsInsightStatus(
     throw new Error(payload?.detail ?? "Não foi possível atualizar o insight.");
   }
   return response.json();
+}
+
+export async function consultGeneralIndicatorLaunches(
+  startDate: string,
+  endDate: string,
+  onProgress?: (progress: GeneralIndicatorConsultationProgress) => void,
+): Promise<GeneralIndicatorConsultationResponse> {
+  const params = new URLSearchParams({ startDate, endDate });
+  const response = await fetch(`${API_BASE_URL}/general-indicators/consultations?${params.toString()}`, { method: "POST" });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.detail ?? "Não foi possível iniciar a consulta dos indicadores.");
+  }
+  const job = await response.json() as GeneralIndicatorConsultationJobResponse;
+  onProgress?.(job.progress);
+  return waitForGeneralIndicatorConsultation(job.consultationId, onProgress);
+}
+
+export async function waitForGeneralIndicatorConsultation(
+  consultationId: number,
+  onProgress?: (progress: GeneralIndicatorConsultationProgress) => void,
+): Promise<GeneralIndicatorConsultationResponse> {
+  while (true) {
+    await wait(1000);
+    const pollResponse = await fetch(
+      `${API_BASE_URL}/general-indicators/consultations/${consultationId}?page=1&pageSize=100`,
+    );
+    if (!pollResponse.ok) {
+      const payload = await pollResponse.json().catch(() => null);
+      throw new Error(payload?.detail ?? "Não foi possível acompanhar a consulta dos indicadores.");
+    }
+    const payload = await pollResponse.json() as GeneralIndicatorConsultationResponse | GeneralIndicatorConsultationJobResponse;
+    if (payload.status === "ERRO") throw new Error(payload.error ?? "A consulta dos indicadores falhou.");
+    if (payload.status !== "CONSULTANDO") return payload as GeneralIndicatorConsultationResponse;
+    onProgress?.(payload.progress);
+  }
+}
+
+export async function refreshGeneralIndicatorPendings(
+  consultationId: number,
+): Promise<GeneralIndicatorConsultationResponse> {
+  const response = await fetch(
+    `${API_BASE_URL}/general-indicators/consultations/${consultationId}/pending-refresh`,
+    { method: "POST" },
+  );
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.detail ?? "Não foi possível atualizar as pendências.");
+  }
+  return response.json();
+}
+
+export async function refreshFullGeneralIndicatorConsultation(
+  consultationId: number,
+): Promise<GeneralIndicatorConsultationResponse> {
+  const response = await fetch(
+    `${API_BASE_URL}/general-indicators/consultations/${consultationId}/full-refresh?confirm=true`,
+    { method: "POST" },
+  );
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.detail ?? "Não foi possível refazer a consulta completa.");
+  }
+  return response.json();
+}
+
+export async function finalizeGeneralIndicatorConsultation(
+  consultationId: number,
+): Promise<GeneralIndicatorFinalizedResponse> {
+  const response = await fetch(
+    `${API_BASE_URL}/general-indicators/consultations/${consultationId}/finalize`,
+    { method: "POST" },
+  );
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.detail ?? "Não foi possível finalizar os indicadores.");
+  }
+  return response.json();
+}
+
+export async function getGeneralIndicatorAuditPage(
+  consultationId: number,
+  page: number,
+  pageSize = 100,
+): Promise<GeneralIndicatorFinalizedResponse> {
+  const response = await fetch(
+    `${API_BASE_URL}/general-indicators/consultations/${consultationId}/audit?page=${page}&pageSize=${pageSize}`,
+  );
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.detail ?? "Não foi possível carregar a página da auditoria.");
+  }
+  return response.json();
+}
+
+export async function getGeneralIndicatorResult(
+  consultationId: number,
+): Promise<GeneralIndicatorFinalizedResponse> {
+  const response = await fetch(
+    `${API_BASE_URL}/general-indicators/consultations/${consultationId}/result`,
+  );
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.detail ?? "Não foi possível carregar o resultado dos indicadores.");
+  }
+  return response.json();
+}
+
+function wait(milliseconds: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }

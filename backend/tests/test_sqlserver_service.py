@@ -1,4 +1,5 @@
 import unittest
+from datetime import date
 from unittest.mock import patch
 
 from app.services.sqlserver_service import (
@@ -6,9 +7,15 @@ from app.services.sqlserver_service import (
     SQLServerConfigurationError,
     SQLServerIdNotFoundError,
     SQLServerInvalidIdError,
+    SQLServerQueryError,
     _connection_string,
+    _map_pyodbc_error,
     dataframe_to_import_content,
     normalize_sqlserver_rows,
+    query_general_indicator_raw_launches,
+    query_general_indicator_raw_launches_by_ids,
+    query_tfs_indicator_items,
+    query_tfs_task_hierarchies,
     resolve_sqlserver_id_type,
     validate_sqlserver_ids,
 )
@@ -133,6 +140,96 @@ class SQLServerServiceTests(unittest.TestCase):
 
         with self.assertRaises(SQLServerConfigurationError):
             _connection_string()
+
+    @patch("app.services.sqlserver_service._execute_query")
+    def test_raw_launch_query_preserves_source_unit_without_hierarchy_joins(self, execute_query) -> None:
+        execute_query.return_value = []
+
+        query_general_indicator_raw_launches(start_date=date(2026, 1, 1), end_date=date(2026, 6, 30))
+
+        query, params = execute_query.call_args.args
+        self.assertEqual(params, ["2026-01-01", "2026-07-01"])
+        self.assertIn("Lancamento.ID AS IdLancamento", query)
+        self.assertIn("Lancamento.TaskID AS IdTask", query)
+        self.assertNotIn("LinksAre", query)
+        self.assertNotIn("WorkItemLONgTexts", query)
+
+    @patch("app.services.sqlserver_service._execute_query")
+    def test_selective_raw_launch_query_uses_only_requested_ids_in_safe_batches(self, execute_query) -> None:
+        execute_query.side_effect = [[{"IdLancamento": 1}], [{"IdLancamento": 251}]]
+
+        rows = query_general_indicator_raw_launches_by_ids([*range(1, 302), 1])
+
+        self.assertEqual(rows, [{"IdLancamento": 1}, {"IdLancamento": 251}])
+        self.assertEqual(execute_query.call_count, 2)
+        self.assertEqual(execute_query.call_args_list[0].args[1], list(range(1, 251)))
+        self.assertEqual(execute_query.call_args_list[1].args[1], list(range(251, 302)))
+        self.assertNotIn("DataHoraCadastro >=", execute_query.call_args_list[0].args[0])
+
+    @patch("app.services.sqlserver_service._execute_query")
+    def test_task_hierarchy_query_uses_unique_ids_and_safe_batches(self, execute_query) -> None:
+        execute_query.side_effect = [
+            [
+                {"IdItem": 1, "ItemWorkItemType": "Task", "ItemTitle": "Task", "IdParent": 301, "ParentWorkItemType": "PBI", "ParentTitle": "PBI"},
+                {"IdItem": 301, "ItemWorkItemType": "PBI", "ItemTitle": "PBI", "IdParent": 200, "ParentWorkItemType": "Feature", "ParentTitle": "Feature"},
+                {"IdItem": 200, "ItemWorkItemType": "Feature", "ItemTitle": "Feature", "IdParent": 100, "ParentWorkItemType": "Epic", "ParentTitle": "Epic"},
+            ],
+        ]
+
+        rows = query_tfs_task_hierarchies([*range(1, 902), 1])
+
+        self.assertEqual(rows[0]["IdTask"], 1)
+        self.assertEqual(rows[0]["IdParent"], 301)
+        self.assertEqual(rows[0]["IdFeat"], 200)
+        self.assertEqual(rows[0]["IdEpic"], 100)
+        self.assertEqual(execute_query.call_count, 1)
+        self.assertEqual(execute_query.call_args_list[0].args[1], list(range(1, 902)))
+        self.assertIn("ParentWorkItemType", execute_query.call_args_list[0].args[0])
+        self.assertIn("ItemWorkItemType", execute_query.call_args_list[0].args[0])
+        self.assertIn("ItemTitle", execute_query.call_args_list[0].args[0])
+        self.assertIn("ParentTitle", execute_query.call_args_list[0].args[0])
+        self.assertIn("ORDER BY Item.Rev DESC, Item.RevisedDate DESC", execute_query.call_args_list[0].args[0])
+        self.assertIn("ORDER BY Title.Rev DESC", execute_query.call_args_list[0].args[0])
+        self.assertNotIn("NOLOCK", execute_query.call_args_list[0].args[0].upper())
+
+    @patch("app.services.sqlserver_service._execute_query")
+    def test_tfs_metadata_query_reuses_ids_for_type_and_tags(self, execute_query) -> None:
+        execute_query.return_value = []
+
+        query_tfs_indicator_items([20, 10, 20])
+
+        query, params = execute_query.call_args.args
+        self.assertEqual(params, [10, 20, 10, 20])
+        self.assertIn("WorkItemType", query)
+        self.assertIn("tbl_WorkItemCoreLatest", query)
+        self.assertIn("tbl_PropertyValue", query)
+        self.assertIn("tbl_TagDefinition", query)
+
+    @patch("app.services.sqlserver_service._execute_query")
+    def test_tfs_metadata_query_splits_large_id_lists_into_safe_batches(self, execute_query) -> None:
+        execute_query.side_effect = [
+            [{"ID": 1}],
+            [{"ID": 201}],
+            [{"ID": 401}],
+            [{"ID": 601}],
+            [{"ID": 801}],
+        ]
+
+        rows = query_tfs_indicator_items(range(1, 902))
+
+        self.assertEqual(rows, [{"ID": 1}, {"ID": 201}, {"ID": 401}, {"ID": 601}, {"ID": 801}])
+        self.assertEqual(execute_query.call_count, 5)
+        first_params = execute_query.call_args_list[0].args[1]
+        last_params = execute_query.call_args_list[4].args[1]
+        self.assertEqual(len(first_params), 400)
+        self.assertEqual(last_params, [*range(801, 902), *range(801, 902)])
+
+    def test_query_error_is_not_misclassified_only_because_driver_mentions_sql_server(self) -> None:
+        error = Exception("42S02", "[Microsoft][ODBC Driver 17 for SQL Server] Invalid object name")
+
+        mapped = _map_pyodbc_error(error, fallback=SQLServerQueryError)
+
+        self.assertIsInstance(mapped, SQLServerQueryError)
 
 
 if __name__ == "__main__":

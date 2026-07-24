@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS perfis_colaborador (
     login_usuario VARCHAR(180) NOT NULL UNIQUE,
     subcategoria_id INTEGER NOT NULL REFERENCES subcategorias(id),
     ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    participa_indicadores_gerais BOOLEAN NOT NULL DEFAULT TRUE,
     criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 

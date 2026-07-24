@@ -110,7 +110,7 @@ type SettingsPageProps = {
   onCreateAvailableCollaboratorProfile: (loginUsuario: string) => void;
   onIgnoreAvailableCollaborator: (loginUsuario: string) => void;
   onRestoreIgnoredCollaborator: (ignoredId: number) => void;
-  onUpdateCollaboratorProfile: (profile: CollaboratorProfileItem) => void;
+  onUpdateCollaboratorProfile: (profile: CollaboratorProfileItem, participatesInGeneralIndicators?: boolean) => void;
   onToggleCollaboratorProfile: (profile: CollaboratorProfileItem) => void;
   onDeleteCollaboratorProfile: (profile: CollaboratorProfileItem) => void;
 };

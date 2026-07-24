@@ -1,4 +1,27 @@
-export type SectionId = "dashboard" | "analytics" | "import" | "validation" | "reports" | "history" | "settings" | "audit";
+export type SectionId = "dashboard" | "analytics" | "import" | "validation" | "reports" | "general-indicators" | "my-reports" | "history" | "settings" | "distribution-weights" | "audit";
+
+export const projectSectionIds: SectionId[] = ["import", "validation", "reports", "history"];
+export const analysisReportSectionIds: SectionId[] = [
+  ...projectSectionIds,
+  "general-indicators",
+  "my-reports",
+];
+
+export function isAnalysisReportSection(section: SectionId) {
+  return analysisReportSectionIds.includes(section);
+}
+
+export function analysisReportActiveItem(section: SectionId): "import" | "general-indicators" | "my-reports" | null {
+  if (projectSectionIds.includes(section)) return "import";
+  if (section === "general-indicators" || section === "my-reports") return section;
+  return null;
+}
+
+export function projectModuleActiveItem(section: SectionId): "import" | "reports" | null {
+  if (section === "import" || section === "validation") return "import";
+  if (section === "reports" || section === "history") return "reports";
+  return null;
+}
 
 export const sectionMeta: Record<SectionId, { title: string; description: string }> = {
   dashboard: {
@@ -21,6 +44,14 @@ export const sectionMeta: Record<SectionId, { title: string; description: string
     title: "Relatórios",
     description: "Analise horas por colaborador, Epic, PBI, categoria e subcategoria.",
   },
+  "general-indicators": {
+    title: "Indicadores Gerais",
+    description: "Acompanhe os indicadores trimestrais da TI com dados consultados diretamente do TFS.",
+  },
+  "my-reports": {
+    title: "Meus Relatórios",
+    description: "Consulte e acesse as análises finalizadas no Alfred.",
+  },
   history: {
     title: "Histórico",
     description: "Consulte importações salvas, ocorrências e registros consolidados.",
@@ -28,6 +59,10 @@ export const sectionMeta: Record<SectionId, { title: string; description: string
   settings: {
     title: "Configurações",
     description: "Gerencie categorias, cargos e colaboradores utilizados na classificação das atividades.",
+  },
+  "distribution-weights": {
+    title: "Pesos de distribuição",
+    description: "Administre a influência das categorias na redistribuição de Atualização do sistema.",
   },
   audit: {
     title: "Auditoria",

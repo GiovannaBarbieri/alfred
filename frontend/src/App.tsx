@@ -9,6 +9,7 @@ import type { ImportCompletionSnapshot } from "./hooks/useImportFlow";
 import { useSettings } from "./hooks/useSettings";
 import { getImportDetail } from "./services/api";
 import type {
+  AnnualReportFlowContext,
   ImportCompleteResponse,
   ImportDetail,
 } from "./types";
@@ -18,7 +19,12 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 const HistoryPage = lazy(() => import("./pages/HistoryPage").then((module) => ({ default: module.HistoryPage })));
 const ImportPage = lazy(() => import("./pages/ImportPage").then((module) => ({ default: module.ImportPage })));
 const ReportsPage = lazy(() => import("./pages/ReportsPage").then((module) => ({ default: module.ReportsPage })));
+const GeneralIndicatorsPage = lazy(() => import("./pages/GeneralIndicatorsFlowPage").then((module) => ({ default: module.GeneralIndicatorsFlowPage })));
+const MyReportsPage = lazy(() => import("./pages/MyReportsPage").then((module) => ({ default: module.MyReportsPage })));
 const SettingsPage = lazy(() => import("./pages/SettingsPage").then((module) => ({ default: module.SettingsPage })));
+const DistributionWeightsSettingsPage = lazy(() =>
+  import("./pages/DistributionWeightsSettingsPage").then((module) => ({ default: module.DistributionWeightsSettingsPage })),
+);
 const AuditPage = lazy(() => import("./pages/AuditPage").then((module) => ({ default: module.AuditPage })));
 const ValidationPage = lazy(() =>
   import("./pages/ValidationPage").then((module) => ({ default: module.ValidationPage })),
@@ -39,7 +45,7 @@ const defaultCategoryOptions = [
 
 const defaultSubcategoryOptions = ["Back", "Front", "QA", "Nao aplicavel", "Nao classificado"];
 const activeSectionStorageKey = "analise-horas:active-section";
-const restorableSections: SectionId[] = ["import", "reports", "settings"];
+const restorableSections: SectionId[] = ["import", "reports", "general-indicators", "my-reports", "settings", "distribution-weights"];
 
 function getInitialActiveSection(): SectionId {
   const storedSection = window.localStorage.getItem(activeSectionStorageKey) as SectionId | null;
@@ -48,6 +54,8 @@ function getInitialActiveSection(): SectionId {
 
 function App() {
   const [activeSection, setActiveSection] = useState<SectionId>(getInitialActiveSection);
+  const [annualReportUpdate, setAnnualReportUpdate] = useState<AnnualReportFlowContext | null>(null);
+  const [annualReportToOpen, setAnnualReportToOpen] = useState<number | null>(null);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("categories");
   const dashboard = useDashboardData();
   const [selectedImport, setSelectedImport] = useState<ImportDetail | null>(null);
@@ -231,10 +239,11 @@ function App() {
     <AppShell
       activeSection={activeSection}
       onSectionChange={setActiveSection}
+      hideHeader={activeSection === "my-reports"}
       headerOverride={headerOverride}
       headerBackAction={
         activeSection === "reports" && dashboard.selectedReportImportId
-          ? { label: "Relatórios", onClick: dashboard.handleBackToReportProjects }
+          ? { label: "Projetos", onClick: dashboard.handleBackToReportProjects }
           : null
       }
     >
@@ -342,7 +351,29 @@ function App() {
           />
         )}
 
+        {activeSection === "general-indicators" && (
+          <GeneralIndicatorsPage
+            annualUpdate={annualReportUpdate}
+            onAnnualUpdateCompleted={(reportId) => {
+              setAnnualReportUpdate(null);
+              setAnnualReportToOpen(reportId);
+              setActiveSection("my-reports");
+            }}
+          />
+        )}
+
+        {activeSection === "my-reports" && (
+          <MyReportsPage
+            onGoToGeneralIndicators={() => { setAnnualReportUpdate(null); setActiveSection("general-indicators"); }}
+            onStartAnnualUpdate={(context) => { setAnnualReportUpdate(context); setActiveSection("general-indicators"); }}
+            openReportId={annualReportToOpen}
+            onOpenReportHandled={() => setAnnualReportToOpen(null)}
+          />
+        )}
+
         {activeSection === "audit" && <AuditPage />}
+
+        {activeSection === "distribution-weights" && <DistributionWeightsSettingsPage />}
 
         {activeSection === "settings" && (
           <SettingsPage

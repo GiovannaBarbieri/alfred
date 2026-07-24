@@ -9,12 +9,7 @@ import {
   deleteCategory,
   deleteCollaboratorProfile,
   deleteSubcategory,
-  getCategories,
-  getClassificationRules,
-  getCollaboratorProfiles,
-  getIgnoredCollaborators,
-  getKeywords,
-  getSubcategories,
+  getSettingsBootstrap,
   ignoreCollaborator,
   restoreIgnoredCollaborator,
   updateCategory,
@@ -30,6 +25,7 @@ import type {
   KeywordItem,
   SettingItem,
 } from "../types";
+import { primeDistributionWeightsCache } from "../services/distributionWeightsService";
 
 export function useSettings(onCategoryChanged: () => Promise<void>) {
   const [settingsCategories, setSettingsCategories] = useState<SettingItem[]>([]);
@@ -73,14 +69,14 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
   const [availableProfileSubcategoryDrafts, setAvailableProfileSubcategoryDrafts] = useState<Record<string, string>>({});
 
   async function refreshSettings() {
-    const [categories, subcategories, keywords, rules, profiles, ignored] = await Promise.all([
-      getCategories(),
-      getSubcategories(),
-      getKeywords(),
-      getClassificationRules(),
-      getCollaboratorProfiles(),
-      getIgnoredCollaborators(),
-    ]);
+    const bootstrap = await getSettingsBootstrap();
+    const categories = bootstrap.categories;
+    const subcategories = bootstrap.subcategories;
+    const keywords = bootstrap.keywords;
+    const rules = bootstrap.classificationRules;
+    const profiles = bootstrap.collaboratorProfiles;
+    const ignored = bootstrap.ignoredCollaborators;
+    primeDistributionWeightsCache(bootstrap.distributionWeights);
     setSettingsCategories(categories);
     setSettingsSubcategories(subcategories);
     setSettingsKeywords(keywords);
@@ -307,7 +303,10 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
     await refreshSettings();
   }
 
-  async function handleUpdateCollaboratorProfile(profile: CollaboratorProfileItem) {
+  async function handleUpdateCollaboratorProfile(
+    profile: CollaboratorProfileItem,
+    participatesInGeneralIndicators = profile.participatesInGeneralIndicators,
+  ) {
     const loginUsuario = profileLoginDrafts[profile.id]?.trim();
     const subcategoryId = Number(profileSubcategoryDrafts[profile.id] || profile.subcategoryId);
     const active = profileActiveDrafts[profile.id] ?? profile.active;
@@ -317,8 +316,13 @@ export function useSettings(onCategoryChanged: () => Promise<void>) {
       (item) => item.id !== profile.id && item.active && normalizeCollaboratorLogin(item.loginUsuario) === normalizedLogin,
     );
     if (active && hasActiveLink) throw new Error("Este colaborador já possui um vínculo ativo cadastrado.");
-    if (loginUsuario === profile.loginUsuario && subcategoryId === profile.subcategoryId && active === profile.active) return;
-    await updateCollaboratorProfile(profile.id, { loginUsuario, subcategoryId, active });
+    if (
+      loginUsuario === profile.loginUsuario
+      && subcategoryId === profile.subcategoryId
+      && active === profile.active
+      && participatesInGeneralIndicators === profile.participatesInGeneralIndicators
+    ) return;
+    await updateCollaboratorProfile(profile.id, { loginUsuario, subcategoryId, active, participatesInGeneralIndicators });
     await refreshSettings();
   }
 

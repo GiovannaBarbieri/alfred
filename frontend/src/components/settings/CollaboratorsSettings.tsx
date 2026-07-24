@@ -12,7 +12,7 @@ type CollaboratorsSettingsProps = {
   onProfileLoginDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onProfileSubcategoryDraftsChange: (updater: SetStateAction<Record<number, string>>) => void;
   onProfileActiveDraftsChange: (updater: SetStateAction<Record<number, boolean>>) => void;
-  onUpdateCollaboratorProfile: (profile: CollaboratorProfileItem) => Promise<void> | void;
+  onUpdateCollaboratorProfile: (profile: CollaboratorProfileItem, participatesInGeneralIndicators?: boolean) => Promise<void> | void;
   onToggleCollaboratorProfile: (profile: CollaboratorProfileItem) => Promise<void> | void;
   onDeleteCollaboratorProfile: (profile: CollaboratorProfileItem) => Promise<void> | void;
 };
@@ -63,6 +63,7 @@ export function CollaboratorsSettings({
 }: CollaboratorsSettingsProps) {
   const [activeActionId, setActiveActionId] = useState<number | null>(null);
   const [editingProfile, setEditingProfile] = useState<CollaboratorProfileItem | null>(null);
+  const [participatesInGeneralIndicators, setParticipatesInGeneralIndicators] = useState(true);
   const [collaboratorFeedback, setCollaboratorFeedback] = useState<string | null>(null);
   const [collaboratorError, setCollaboratorError] = useState<string | null>(null);
   const subcategoryById = useMemo(
@@ -112,13 +113,14 @@ export function CollaboratorsSettings({
     setActiveActionId(null);
     setCollaboratorFeedback(null);
     setCollaboratorError(null);
+    setParticipatesInGeneralIndicators(profile.participatesInGeneralIndicators);
     setEditingProfile(profile);
   }
 
   async function handleSaveEdit() {
     if (!editingProfile) return;
     try {
-      await onUpdateCollaboratorProfile(editingProfile);
+      await onUpdateCollaboratorProfile(editingProfile, participatesInGeneralIndicators);
       setEditingProfile(null);
       setCollaboratorFeedback("Vínculo atualizado com sucesso.");
     } catch (error) {
@@ -178,6 +180,7 @@ export function CollaboratorsSettings({
           <span>Colaborador</span>
           <span>Cargo</span>
           <span>Grupo</span>
+          <span>Indicadores Gerais</span>
           <span>Situação</span>
           <span>Ações</span>
         </div>
@@ -197,6 +200,10 @@ export function CollaboratorsSettings({
               </span>
               <span className="settings-muted-cell">{profile.subcategory}</span>
               <span className={`settings-group-badge ${getGroupBadgeClass(group)}`}>{group}</span>
+              <span className={`settings-status ${profile.participatesInGeneralIndicators ? "active" : "inactive"}`}>
+                <i aria-hidden="true" />
+                {profile.participatesInGeneralIndicators ? "Participa" : "N\u00e3o participa"}
+              </span>
               <span className={`settings-status ${profile.active ? "active" : "inactive"}`}>
                 <i aria-hidden="true" />
                 {profile.active ? "Ativo" : "Inativo"}
@@ -281,6 +288,16 @@ export function CollaboratorsSettings({
               >
                 <option value="true">Ativo</option>
                 <option value="false">Inativo</option>
+              </select>
+            </label>
+            <label>
+              <span>Participa dos Indicadores Gerais?</span>
+              <select
+                value={String(participatesInGeneralIndicators)}
+                onChange={(event) => setParticipatesInGeneralIndicators(event.target.value === "true")}
+              >
+                <option value="true">Sim</option>
+                <option value="false">{"N\u00e3o"}</option>
               </select>
             </label>
             <footer>

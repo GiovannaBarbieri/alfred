@@ -1,7 +1,16 @@
-import { ArrowLeft, Layers3, Network, Settings, Upload } from "lucide-react";
-import type { ReactNode } from "react";
-import { sectionMeta } from "../types/navigation";
+import { ArrowLeft, ChevronDown, FileBarChart, Files, FolderKanban, FolderOpen, Gauge, ListChecks, Network, Settings, SlidersHorizontal, Upload } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import {
+  analysisReportActiveItem,
+  projectModuleActiveItem,
+  sectionMeta,
+} from "../types/navigation";
 import type { SectionId } from "../types/navigation";
+import {
+  navigationGroupForSection,
+  toggleNavigationGroup,
+  type NavigationGroupId,
+} from "../utils/navigationAccordion";
 
 type AppShellProps = {
   activeSection: SectionId;
@@ -14,17 +23,34 @@ type AppShellProps = {
     label: string;
     onClick: () => void;
   } | null;
+  hideHeader?: boolean;
   children: ReactNode;
 };
 
-const navItems: Array<{ id: SectionId; label: string; icon: ReactNode }> = [
-  { id: "import", label: "Importação", icon: <Upload size={18} /> },
-  { id: "reports", label: "Relatórios", icon: <Layers3 size={18} /> },
-  { id: "settings", label: "Configurações", icon: <Settings size={18} /> },
+const analysisReportItems: Array<{ id: "import" | "general-indicators" | "my-reports"; label: string; icon: ReactNode }> = [
+  { id: "import", label: "Projetos", icon: <FolderKanban size={17} /> },
+  { id: "general-indicators", label: "Indicadores Gerais", icon: <Gauge size={17} /> },
+  { id: "my-reports", label: "Meus Relatórios", icon: <Files size={17} /> },
 ];
 
-export function AppShell({ activeSection, onSectionChange, headerOverride, headerBackAction, children }: AppShellProps) {
+export function AppShell({ activeSection, onSectionChange, headerOverride, headerBackAction, hideHeader = false, children }: AppShellProps) {
   const headerMeta = headerOverride ?? sectionMeta[activeSection];
+  const analysisActiveItem = analysisReportActiveItem(activeSection);
+  const projectActiveItem = projectModuleActiveItem(activeSection);
+  const [expandedGroup, setExpandedGroup] = useState<NavigationGroupId | null>(
+    () => navigationGroupForSection(activeSection),
+  );
+  const analysisExpanded = expandedGroup === "reports";
+  const settingsExpanded = expandedGroup === "settings";
+
+  useEffect(() => {
+    const activeGroup = navigationGroupForSection(activeSection);
+    if (activeGroup) setExpandedGroup(activeGroup);
+  }, [activeSection]);
+
+  function toggleGroup(group: NavigationGroupId) {
+    setExpandedGroup((current) => toggleNavigationGroup(current, group));
+  }
 
   return (
     <main className="app-shell">
@@ -40,22 +66,87 @@ export function AppShell({ activeSection, onSectionChange, headerOverride, heade
         </div>
 
         <nav className="nav-list" aria-label="Navegação principal">
-          {navItems.map((item) => (
+          <div className="nav-group">
             <button
-              key={item.id}
-              className={`nav-item ${activeSection === item.id ? "active" : ""}`}
+              className="nav-item nav-group-trigger"
               type="button"
-              onClick={() => onSectionChange(item.id)}
+              aria-expanded={analysisExpanded}
+              aria-controls="analysis-reports-navigation"
+              onClick={() => toggleGroup("reports")}
             >
-              {item.icon}
-              {item.label}
+              <FileBarChart size={18} />
+              <span>Relatórios</span>
+              <ChevronDown className="nav-group-chevron" size={16} />
             </button>
-          ))}
+            <div
+              className="nav-submenu"
+              id="analysis-reports-navigation"
+              aria-hidden={!analysisExpanded}
+            >
+              <div className="nav-submenu-inner">
+                {analysisReportItems.map((item) => (
+                  <button
+                    key={item.id}
+                    className={`nav-subitem ${analysisActiveItem === item.id ? "active" : ""}`}
+                    type="button"
+                    tabIndex={analysisExpanded ? 0 : -1}
+                    aria-current={analysisActiveItem === item.id ? "page" : undefined}
+                    onClick={() => onSectionChange(item.id)}
+                  >
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="nav-group">
+            <button
+              className="nav-item nav-group-trigger"
+              type="button"
+              aria-expanded={settingsExpanded}
+              aria-controls="settings-navigation"
+              onClick={() => toggleGroup("settings")}
+            >
+              <Settings size={18} />
+              <span>Configurações</span>
+              <ChevronDown className="nav-group-chevron" size={16} />
+            </button>
+            <div
+              className="nav-submenu"
+              id="settings-navigation"
+              aria-hidden={!settingsExpanded}
+            >
+              <div className="nav-submenu-inner">
+                <button
+                  className={`nav-subitem ${activeSection === "settings" ? "active" : ""}`}
+                  type="button"
+                  tabIndex={settingsExpanded ? 0 : -1}
+                  aria-current={activeSection === "settings" ? "page" : undefined}
+                  onClick={() => onSectionChange("settings")}
+                >
+                  <ListChecks size={17} />
+                  <span>Configurações gerais</span>
+                </button>
+                <button
+                  className={`nav-subitem ${activeSection === "distribution-weights" ? "active" : ""}`}
+                  type="button"
+                  tabIndex={settingsExpanded ? 0 : -1}
+                  aria-current={activeSection === "distribution-weights" ? "page" : undefined}
+                  onClick={() => onSectionChange("distribution-weights")}
+                >
+                  <SlidersHorizontal size={17} />
+                  <span>Pesos de distribuição</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </nav>
       </aside>
 
       <section className="content">
-        <header className="page-header">
+        {!hideHeader && <header className="page-header">
           <div>
             {headerBackAction ? (
               <button className="page-title-back" type="button" onClick={headerBackAction.onClick}>
@@ -67,7 +158,30 @@ export function AppShell({ activeSection, onSectionChange, headerOverride, heade
             )}
             <p>{headerMeta.description}</p>
           </div>
-        </header>
+        </header>}
+
+        {projectActiveItem && (
+          <nav className="project-module-navigation" aria-label="Navegação do módulo Projetos">
+            <button
+              className={projectActiveItem === "import" ? "active" : ""}
+              type="button"
+              aria-current={projectActiveItem === "import" ? "page" : undefined}
+              onClick={() => onSectionChange("import")}
+            >
+              <Upload size={16} />
+              Importação
+            </button>
+            <button
+              className={projectActiveItem === "reports" ? "active" : ""}
+              type="button"
+              aria-current={projectActiveItem === "reports" ? "page" : undefined}
+              onClick={() => onSectionChange("reports")}
+            >
+              <FolderOpen size={16} />
+              Relatórios de projetos
+            </button>
+          </nav>
+        )}
 
         {children}
       </section>

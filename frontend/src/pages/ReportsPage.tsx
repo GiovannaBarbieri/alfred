@@ -219,6 +219,8 @@ export function ReportsPage({
       <nav className="report-breadcrumb" aria-label="Localização do relatório">
         <span>Relatórios</span>
         <span aria-hidden="true">/</span>
+        <span>Projetos</span>
+        <span aria-hidden="true">/</span>
         <strong>{projectTitle}</strong>
         <span aria-hidden="true">/</span>
         <span>{activeProjectTabLabel}</span>

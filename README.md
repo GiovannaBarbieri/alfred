@@ -45,6 +45,7 @@ backend/
     schemas/             Contratos de entrada e saida
     services/            Regras e fluxo de importacao
     main.py              App FastAPI
+  migrations/            Migrations SQL versionadas do PostgreSQL
 database/
   init.sql               Estrutura inicial do banco
 docs/                    Documentacao funcional e tecnica
@@ -285,6 +286,74 @@ Exportacoes disponiveis:
 ```text
 Excel Operacional
 CSV/XLSX tecnicos da API
+```
+
+## Indicadores Gerais
+
+O modulo `Indicadores Gerais` consulta o SQL Server/TFS sob demanda por periodo, sem importar planilhas. O fluxo inicial preserva uma unidade por `IdLancamento`, resolve em lote a hierarquia Task -> PBI/Bug -> Feature -> Epic, le as TAGs 1/2/3 exclusivamente da Feature e identifica Bugs pelo tipo real do pai da Task.
+
+O frontend inicia a consulta de forma assincrona, sem manter uma requisicao HTTP aberta durante todo o processamento:
+
+```text
+POST /api/general-indicators/consultations?startDate=2026-01-01&endDate=2026-03-31
+GET /api/general-indicators/consultations/{consultaId}?page=1&pageSize=100
+```
+
+O segundo endpoint informa a etapa, percentual, contagens e tempo decorrido enquanto a consulta estiver em andamento. Depois da validacao, retorna no maximo 500 lancamentos por pagina. O endpoint sincronico `/consultation` permanece apenas para compatibilidade tecnica e tambem aplica paginacao.
+
+Cada execucao e persistida em `general_indicator_consultations`; os lancamentos tecnicos ficam em
+`general_indicator_launches` e as inconsistencias em `general_indicator_inconsistencies`. O retorno
+informa `canFinalize=false` enquanto existir qualquer inconsistencia impeditiva. Problemas de TAG
+sao agrupados por Feature, enquanto duracao, data, hierarquia e duplicidade permanecem rastreaveis
+por `IdLancamento`.
+
+Depois da correcao no TFS, as pendencias impeditivas podem ser atualizadas sem repetir a consulta inteira:
+
+```text
+POST /api/general-indicators/consultations/{consultaId}/pending-refresh
+```
+
+Somente as Features, Tasks, pais e lancamentos afetados sao reconsultados. Os demais lancamentos tecnicos sao preservados. A consulta completa continua disponivel como acao secundaria e exige confirmacao explicita:
+
+```text
+POST /api/general-indicators/consultations/{consultaId}/full-refresh?confirm=true
+```
+
+As tentativas de atualizacao ficam registradas em `general_indicator_updates`. Inconsistencias antigas sao mantidas como historico inativo, e apenas a versao ativa participa da proxima atualizacao. Uma execucao finalizada ou ja em atualizacao nao pode ser sobrescrita. Nenhuma dessas acoes finaliza a consulta nem calcula KPIs automaticamente.
+
+Quando a consulta estiver `PRONTA_PARA_FINALIZAR`, o resultado oficial e gerado explicitamente por:
+
+```text
+POST /api/general-indicators/consultations/{consultaId}/finalize
+```
+
+A finalizacao usa somente os lancamentos validados e persistidos, sem nova consulta ao TFS. O resultado oficial, a data de finalizacao, os KPIs, a composicao, a distribuicao mensal e a auditoria sao persistidos na propria consulta. Enquanto houver pendencias impeditivas ou a consulta estiver vazia, a finalizacao e recusada.
+
+A auditoria final tambem e paginada:
+
+```text
+GET /api/general-indicators/consultations/{consultaId}/audit?page=1&pageSize=100
+```
+
+As consultas oficiais ao SQL Server nao usam `NOLOCK`. Cada execucao registra no resumo a quantidade estimada de consultas em lote e o tempo gasto nas etapas de lancamentos, hierarquia e Features, permitindo comparar cargas mensais e anuais.
+
+O modulo reutiliza as mesmas variaveis `SQLSERVER_*` da importacao direta. O usuario configurado deve ter acesso somente leitura tambem a `tbl_WorkItemCoreLatest`, `tbl_PropertyValue`, `tbl_PropertyDefinition` e `tbl_TagDefinition`, alem dos objetos ja usados pela consulta de lancamentos.
+
+### Migrations do banco
+
+As tabelas do modulo sao mantidas por migrations SQL versionadas em `backend/migrations`. Na inicializacao, o backend:
+
+1. cria a tabela de controle `schema_migrations`, quando necessario;
+2. adquire um lock transacional para impedir execucoes simultaneas;
+3. valida o checksum das migrations ja aplicadas;
+4. executa somente as versoes pendentes;
+5. inicia os demais servicos apenas depois da conclusao.
+
+A migration inicial do modulo e `0001_general_indicators.sql`. Uma migration aplicada nunca deve ser editada; alteracoes futuras devem usar um novo arquivo com a proxima versao. Para executar manualmente:
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -c "from app.services.migration_service import run_database_migrations; print(run_database_migrations())"
 ```
 
 ## Documentos

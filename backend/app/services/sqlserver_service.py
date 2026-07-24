@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import re
 from collections.abc import Sequence
+from datetime import date, timedelta
 from typing import Any, Literal
 
 import pandas as pd
@@ -14,6 +15,17 @@ logger = logging.getLogger(__name__)
 
 SQLServerIdType = Literal["auto", "epic", "feature"]
 ResolvedSQLServerIdType = Literal["epic", "feature"]
+_TFS_INDICATOR_BATCH_SIZE = 200
+_TFS_HIERARCHY_BATCH_SIZE = 1000
+_GENERAL_INDICATOR_RAW_REFRESH_BATCH_SIZE = 250
+GENERAL_INDICATOR_FEATURE_BATCH_SIZE = _TFS_INDICATOR_BATCH_SIZE
+GENERAL_INDICATOR_HIERARCHY_BATCH_SIZE = _TFS_HIERARCHY_BATCH_SIZE
+
+
+class TFSHierarchyRows(list[dict[str, Any]]):
+    def __init__(self, rows: Sequence[dict[str, Any]], *, query_count: int) -> None:
+        super().__init__(rows)
+        self.query_count = query_count
 
 SQLSERVER_IMPORT_COLUMNS = [
     "IdLancamento",
@@ -97,6 +109,175 @@ def query_import_dataframe(*, ids: Sequence[int | str], id_type: SQLServerIdType
     if dataframe.empty:
         raise SQLServerEmptyResultError("Consulta sem registros normalizaveis.")
     return dataframe
+
+
+def query_general_indicator_raw_launches(*, start_date: date, end_date: date) -> list[dict[str, Any]]:
+    """Consulta uma linha de origem por lançamento, sem resolver a hierarquia do TFS."""
+    exclusive_end = end_date + timedelta(days=1)
+    return _execute_query(_GENERAL_INDICATOR_RAW_LAUNCHES_QUERY, [start_date.isoformat(), exclusive_end.isoformat()])
+
+
+def query_general_indicator_raw_launches_by_ids(ids: Sequence[int | str]) -> list[dict[str, Any]]:
+    numeric_ids = validate_sqlserver_ids(ids) if ids else []
+    rows: list[dict[str, Any]] = []
+    for offset in range(0, len(numeric_ids), _GENERAL_INDICATOR_RAW_REFRESH_BATCH_SIZE):
+        batch = numeric_ids[offset : offset + _GENERAL_INDICATOR_RAW_REFRESH_BATCH_SIZE]
+        query = _GENERAL_INDICATOR_RAW_LAUNCHES_BY_IDS_QUERY.replace("{id_placeholders}", _placeholders(batch))
+        rows.extend(_execute_query(query, list(batch)))
+    return rows
+
+
+def query_tfs_task_hierarchies(ids: Sequence[int | str]) -> list[dict[str, Any]]:
+    """Resolve em lote Task -> pai -> Feature -> Epic, preservando candidatos ambíguos."""
+    numeric_ids = validate_sqlserver_ids(ids) if ids else []
+    if not numeric_ids:
+        return []
+
+    cache: dict[int, list[dict[str, Any]]] = {}
+    query_count = 0
+
+    def load_direct_parents(item_ids: Sequence[int]) -> None:
+        nonlocal query_count
+        missing = sorted({item_id for item_id in item_ids if item_id not in cache})
+        for offset in range(0, len(missing), _TFS_HIERARCHY_BATCH_SIZE):
+            batch = missing[offset : offset + _TFS_HIERARCHY_BATCH_SIZE]
+            query = _TFS_DIRECT_PARENTS_QUERY.replace("{id_placeholders}", _placeholders(batch))
+            query_count += 1
+            grouped = {item_id: [] for item_id in batch}
+            for row in _execute_query(query, list(batch)):
+                item_id = _numeric_id(row.get("IdItem"))
+                if item_id is not None and item_id in grouped:
+                    grouped[item_id].append(row)
+            cache.update(grouped)
+
+    load_direct_parents(numeric_ids)
+    paths = [
+        {"root": task_id, "current": task_id, "depth": 0, "visited": {task_id}, "task": cache[task_id][0]}
+        for task_id in numeric_ids
+        if cache.get(task_id)
+    ]
+    resolved_parents: list[dict[str, Any]] = []
+    for _ in range(20):
+        if not paths:
+            break
+        load_direct_parents([int(path["current"]) for path in paths])
+        next_paths: list[dict[str, Any]] = []
+        for path in paths:
+            for edge in cache.get(int(path["current"]), []):
+                parent_id = _numeric_id(edge.get("IdParent"))
+                if parent_id is None or parent_id in path["visited"]:
+                    continue
+                parent_type = edge.get("ParentWorkItemType")
+                depth = int(path["depth"]) + 1
+                if _is_classification_parent_type(parent_type):
+                    resolved_parents.append(
+                        {
+                            **path,
+                            "parentId": parent_id,
+                            "parentType": parent_type,
+                            "parentTitle": edge.get("ParentTitle"),
+                            "parentDepth": depth,
+                        }
+                    )
+                else:
+                    next_paths.append(
+                        {
+                            **path,
+                            "current": parent_id,
+                            "depth": depth,
+                            "visited": {*path["visited"], parent_id},
+                        }
+                    )
+        paths = next_paths
+
+    load_direct_parents([int(path["parentId"]) for path in resolved_parents])
+    feature_candidates: list[dict[str, Any]] = []
+    for path in resolved_parents:
+        for edge in cache.get(int(path["parentId"]), []) or [{}]:
+            feature_candidates.append(
+                {
+                    **path,
+                    "featureId": _numeric_id(edge.get("IdParent")),
+                    "featureType": edge.get("ParentWorkItemType"),
+                    "featureTitle": edge.get("ParentTitle"),
+                }
+            )
+
+    load_direct_parents(
+        [int(path["featureId"]) for path in feature_candidates if path.get("featureId") is not None]
+    )
+    result: list[dict[str, Any]] = []
+    for path in feature_candidates:
+        feature_id = path.get("featureId")
+        epic_edges = cache.get(int(feature_id), []) if feature_id is not None else []
+        for epic_edge in epic_edges or [{}]:
+            task = path["task"]
+            result.append(
+                {
+                    "IdTask": path["root"],
+                    "TaskWorkItemType": task.get("ItemWorkItemType"),
+                    "TaskTitle": task.get("ItemTitle"),
+                    "IdParent": path["parentId"],
+                    "ParentWorkItemType": path["parentType"],
+                    "ParentTitle": path["parentTitle"],
+                    "ParentDepth": path["parentDepth"],
+                    "IdFeat": feature_id,
+                    "FeatureWorkItemType": path.get("featureType"),
+                    "FeatureTitle": path.get("featureTitle"),
+                    "IdEpic": _numeric_id(epic_edge.get("IdParent")),
+                    "EpicWorkItemType": epic_edge.get("ParentWorkItemType"),
+                    "EpicTitle": epic_edge.get("ParentTitle"),
+                }
+            )
+    resolved_root_ids = {int(path["root"]) for path in resolved_parents}
+    for task_id in numeric_ids:
+        if task_id in resolved_root_ids or not cache.get(task_id):
+            continue
+        task = cache[task_id][0]
+        result.append(
+            {
+                "IdTask": task_id,
+                "TaskWorkItemType": task.get("ItemWorkItemType"),
+                "TaskTitle": task.get("ItemTitle"),
+                "IdParent": None,
+                "ParentWorkItemType": None,
+                "ParentTitle": None,
+                "ParentDepth": None,
+                "IdFeat": None,
+                "FeatureWorkItemType": None,
+                "FeatureTitle": None,
+                "IdEpic": None,
+                "EpicWorkItemType": None,
+                "EpicTitle": None,
+            }
+        )
+    return TFSHierarchyRows(result, query_count=query_count)
+
+
+def _numeric_id(value: Any) -> int | None:
+    text = str(value or "").strip()
+    return int(text) if text.isdigit() else None
+
+
+def _is_classification_parent_type(value: Any) -> bool:
+    return str(value or "").strip().casefold() in {"pbi", "product backlog item", "bug"}
+
+
+def query_tfs_indicator_items(ids: Sequence[int | str]) -> list[dict[str, Any]]:
+    numeric_ids = validate_sqlserver_ids(ids) if ids else []
+    if not numeric_ids:
+        return []
+
+    rows: list[dict[str, Any]] = []
+    for offset in range(0, len(numeric_ids), _TFS_INDICATOR_BATCH_SIZE):
+        batch = numeric_ids[offset : offset + _TFS_INDICATOR_BATCH_SIZE]
+        query = _TFS_INDICATOR_ITEMS_QUERY.replace("{id_placeholders}", _placeholders(batch))
+        query = query.replace(
+            "{artifact_placeholders}",
+            ", ".join("CONVERT(binary(4), ?)" for _ in batch),
+        )
+        rows.extend(_execute_query(query, [*batch, *batch]))
+    return rows
 
 
 def validate_sqlserver_ids(ids: Sequence[int | str]) -> list[int]:
@@ -267,7 +448,7 @@ def _map_pyodbc_error(exc: Exception, *, fallback: type[SQLServerIntegrationErro
     sqlstate = str(exc.args[0]).upper() if getattr(exc, "args", None) else ""
     if sqlstate in {"HYT00", "HYT01"} or "query timeout" in message or "login timeout" in message or "timed out" in message:
         return SQLServerTimeoutError(str(exc))
-    if "login" in message or "server" in message or "network" in message or "connection" in message:
+    if sqlstate.startswith("08") or "login failed" in message or "network-related" in message or "connection refused" in message:
         return SQLServerConnectionError(str(exc))
     return fallback(str(exc))
 
@@ -312,7 +493,7 @@ SELECT DISTINCT
   TitFeat.Words AS TituloFeat,
   TitEpic.ID AS IdEpic,
   TitEpic.Words AS TituloEpic
-FROM advise.RegistroHorario AS Lancamento WITH (NOLOCK)
+FROM advise.RegistroHorario AS Lancamento
 LEFT JOIN WorkItemLONgTexts AS TitTask WITH (NOLOCK) ON TitTask.ID = Lancamento.TaskID
   AND TitTask.FldID = 1
   AND TitTask.Rev = (
@@ -336,4 +517,246 @@ LEFT JOIN LinksAre AS Epic WITH (NOLOCK) ON Epic.TargetID = Feat.SourceID
 LEFT JOIN WorkItemLONgTexts AS TitEpic WITH (NOLOCK) ON TitEpic.ID = Epic.SourceID
   AND TitEpic.FldID = 1
   AND TitEpic.Rev = 1
+""".strip()
+
+
+_GENERAL_INDICATOR_RAW_LAUNCHES_QUERY = """
+SELECT
+  Lancamento.ID AS IdLancamento,
+  Lancamento.DataHoraCadastro,
+  Lancamento.TaskID AS Task,
+  Lancamento.LoginUsuario,
+  Lancamento.DataHoraInicio,
+  Lancamento.DataHoraFim,
+  Lancamento.TempoDuracao,
+  Lancamento.TaskID AS IdTask
+FROM advise.RegistroHorario AS Lancamento
+WHERE Lancamento.DataHoraCadastro >= ?
+  AND Lancamento.DataHoraCadastro < ?
+ORDER BY Lancamento.DataHoraCadastro, Lancamento.ID
+""".strip()
+
+
+_GENERAL_INDICATOR_RAW_LAUNCHES_BY_IDS_QUERY = """
+SELECT
+  Lancamento.ID AS IdLancamento,
+  Lancamento.DataHoraCadastro,
+  Lancamento.TaskID AS Task,
+  Lancamento.LoginUsuario,
+  Lancamento.DataHoraInicio,
+  Lancamento.DataHoraFim,
+  Lancamento.TempoDuracao,
+  Lancamento.TaskID AS IdTask
+FROM advise.RegistroHorario AS Lancamento
+WHERE Lancamento.ID IN ({id_placeholders})
+ORDER BY Lancamento.ID
+""".strip()
+
+
+_TFS_DIRECT_PARENTS_QUERY = """
+WITH LatestItems AS (
+  SELECT
+    Item.ID,
+    Item.WorkItemType,
+    ROW_NUMBER() OVER (PARTITION BY Item.ID ORDER BY Item.Rev DESC, Item.RevisedDate DESC) AS RowNumber
+  FROM dbo.tbl_WorkItemCoreLatest AS Item
+  WHERE Item.ID IN ({id_placeholders})
+)
+SELECT DISTINCT
+  Item.ID AS IdItem,
+  Item.WorkItemType AS ItemWorkItemType,
+  ItemTitle.Title AS ItemTitle,
+  ParentLink.SourceID AS IdParent,
+  ParentItem.WorkItemType AS ParentWorkItemType,
+  ParentTitle.Title AS ParentTitle
+FROM LatestItems AS Item
+OUTER APPLY (
+  SELECT TOP (1) CONVERT(nvarchar(max), Title.Words) AS Title
+  FROM dbo.WorkItemLONgTexts AS Title
+  WHERE Title.ID = Item.ID AND Title.FldID = 1
+  ORDER BY Title.Rev DESC
+) AS ItemTitle
+LEFT JOIN dbo.LinksAre AS ParentLink
+  ON ParentLink.TargetID = Item.ID AND ParentLink.LinkType = 2
+OUTER APPLY (
+  SELECT TOP (1) Candidate.WorkItemType
+  FROM dbo.tbl_WorkItemCoreLatest AS Candidate
+  WHERE Candidate.ID = ParentLink.SourceID
+  ORDER BY Candidate.Rev DESC, Candidate.RevisedDate DESC
+) AS ParentItem
+OUTER APPLY (
+  SELECT TOP (1) CONVERT(nvarchar(max), Title.Words) AS Title
+  FROM dbo.WorkItemLONgTexts AS Title
+  WHERE Title.ID = ParentLink.SourceID AND Title.FldID = 1
+  ORDER BY Title.Rev DESC
+) AS ParentTitle
+WHERE Item.RowNumber = 1
+""".strip()
+
+
+_TFS_TASK_HIERARCHIES_QUERY = """
+WITH LatestTasks AS (
+  SELECT
+    Item.ID,
+    Item.WorkItemType,
+    ROW_NUMBER() OVER (PARTITION BY Item.ID ORDER BY Item.Rev DESC, Item.RevisedDate DESC) AS RowNumber
+  FROM dbo.tbl_WorkItemCoreLatest AS Item
+  WHERE Item.ID IN ({id_placeholders})
+),
+ParentPaths AS (
+  SELECT
+    Task.ID AS RootTaskID,
+    Task.ID AS CurrentID,
+    Task.WorkItemType AS CurrentWorkItemType,
+    CONVERT(varchar(max), CONCAT('/', Task.ID, '/')) AS VisitedPath,
+    0 AS Depth
+  FROM LatestTasks AS Task
+  WHERE Task.RowNumber = 1
+
+  UNION ALL
+
+  SELECT
+    Path.RootTaskID,
+    ParentLink.SourceID AS CurrentID,
+    ParentItem.WorkItemType AS CurrentWorkItemType,
+    CONVERT(varchar(max), CONCAT(Path.VisitedPath, ParentLink.SourceID, '/')) AS VisitedPath,
+    Path.Depth + 1 AS Depth
+  FROM ParentPaths AS Path
+  INNER JOIN dbo.LinksAre AS ParentLink
+    ON ParentLink.TargetID = Path.CurrentID
+    AND ParentLink.LinkType = 2
+  INNER JOIN dbo.tbl_WorkItemCoreLatest AS ParentItem
+    ON ParentItem.ID = ParentLink.SourceID
+  WHERE Path.Depth < 20
+    AND LOWER(LTRIM(RTRIM(Path.CurrentWorkItemType))) NOT IN ('pbi', 'product backlog item', 'bug')
+    AND CHARINDEX(CONCAT('/', ParentLink.SourceID, '/'), Path.VisitedPath) = 0
+),
+TypedPaths AS (
+  SELECT
+    Path.RootTaskID,
+    Path.CurrentID,
+    Path.Depth,
+    Path.CurrentWorkItemType AS WorkItemType,
+    DENSE_RANK() OVER (PARTITION BY Path.RootTaskID ORDER BY Path.Depth) AS CandidateDepth
+  FROM ParentPaths AS Path
+  WHERE Path.Depth > 0
+    AND LOWER(LTRIM(RTRIM(Path.CurrentWorkItemType))) IN ('pbi', 'product backlog item', 'bug')
+),
+ClassificationParents AS (
+  SELECT RootTaskID, CurrentID, Depth, WorkItemType
+  FROM TypedPaths
+  WHERE CandidateDepth = 1
+)
+SELECT DISTINCT
+  Task.ID AS IdTask,
+  Task.WorkItemType AS TaskWorkItemType,
+  TaskTitle.Title AS TaskTitle,
+  ClassificationParent.CurrentID AS IdParent,
+  ClassificationParent.WorkItemType AS ParentWorkItemType,
+  ParentTitle.Title AS ParentTitle,
+  ClassificationParent.Depth AS ParentDepth,
+  FeatureLink.SourceID AS IdFeat,
+  FeatureItem.WorkItemType AS FeatureWorkItemType,
+  FeatureTitle.Title AS FeatureTitle,
+  EpicLink.SourceID AS IdEpic,
+  EpicItem.WorkItemType AS EpicWorkItemType,
+  EpicTitle.Title AS EpicTitle
+FROM LatestTasks AS Task
+OUTER APPLY (
+  SELECT TOP (1) CONVERT(nvarchar(max), Title.Words) AS Title
+  FROM dbo.WorkItemLONgTexts AS Title
+  WHERE Title.ID = Task.ID AND Title.FldID = 1
+  ORDER BY Title.Rev DESC
+) AS TaskTitle
+LEFT JOIN ClassificationParents AS ClassificationParent
+  ON ClassificationParent.RootTaskID = Task.ID
+OUTER APPLY (
+  SELECT TOP (1) CONVERT(nvarchar(max), Title.Words) AS Title
+  FROM dbo.WorkItemLONgTexts AS Title
+  WHERE Title.ID = ClassificationParent.CurrentID AND Title.FldID = 1
+  ORDER BY Title.Rev DESC
+) AS ParentTitle
+LEFT JOIN LinksAre AS FeatureLink
+  ON FeatureLink.TargetID = ClassificationParent.CurrentID AND FeatureLink.LinkType = 2
+OUTER APPLY (
+  SELECT TOP (1) Item.WorkItemType
+  FROM dbo.tbl_WorkItemCoreLatest AS Item
+  WHERE Item.ID = FeatureLink.SourceID
+  ORDER BY Item.Rev DESC, Item.RevisedDate DESC
+) AS FeatureItem
+OUTER APPLY (
+  SELECT TOP (1) CONVERT(nvarchar(max), Title.Words) AS Title
+  FROM dbo.WorkItemLONgTexts AS Title
+  WHERE Title.ID = FeatureLink.SourceID AND Title.FldID = 1
+  ORDER BY Title.Rev DESC
+) AS FeatureTitle
+LEFT JOIN LinksAre AS EpicLink
+  ON EpicLink.TargetID = FeatureLink.SourceID AND EpicLink.LinkType = 2
+OUTER APPLY (
+  SELECT TOP (1) Item.WorkItemType
+  FROM dbo.tbl_WorkItemCoreLatest AS Item
+  WHERE Item.ID = EpicLink.SourceID
+  ORDER BY Item.Rev DESC, Item.RevisedDate DESC
+) AS EpicItem
+OUTER APPLY (
+  SELECT TOP (1) CONVERT(nvarchar(max), Title.Words) AS Title
+  FROM dbo.WorkItemLONgTexts AS Title
+  WHERE Title.ID = EpicLink.SourceID AND Title.FldID = 1
+  ORDER BY Title.Rev DESC
+) AS EpicTitle
+WHERE Task.RowNumber = 1
+OPTION (MAXRECURSION 20)
+""".strip()
+
+
+_TFS_INDICATOR_ITEMS_QUERY = """
+WITH LatestItems AS (
+  SELECT
+    Item.ID,
+    Item.WorkItemType,
+    ROW_NUMBER() OVER (PARTITION BY Item.ID ORDER BY Item.Rev DESC, Item.RevisedDate DESC) AS RowNumber
+  FROM dbo.tbl_WorkItemCoreLatest AS Item
+  WHERE Item.ID IN ({id_placeholders})
+),
+TagHistory AS (
+  SELECT
+    CONVERT(int, Valor.ArtifactId) AS ID,
+    Tag.Name AS TagName,
+    Valor.IntValue,
+    ROW_NUMBER() OVER (
+      PARTITION BY Valor.ArtifactId, Valor.PropertyId
+      ORDER BY Valor.Version DESC, Valor.ChangedDate DESC
+    ) AS RowNumber
+  FROM dbo.tbl_PropertyValue AS Valor
+  INNER JOIN dbo.tbl_PropertyDefinition AS Propriedade
+    ON Propriedade.PartitionId = Valor.PartitionId
+    AND Propriedade.DataspaceId = Valor.DataspaceId
+    AND Propriedade.PropertyId = Valor.PropertyId
+  INNER JOIN dbo.tbl_TagDefinition AS Tag
+    ON Tag.PartitionId = Valor.PartitionId
+    AND CONVERT(nvarchar(36), Tag.TagId) = RIGHT(Propriedade.Name, 36)
+  WHERE Valor.InternalKindId = 18
+    AND Valor.PartitionId = 1
+    AND Valor.ArtifactId IN ({artifact_placeholders})
+),
+LatestTags AS (
+  SELECT ID, TagName
+  FROM TagHistory
+  WHERE RowNumber = 1 AND COALESCE(IntValue, 0) = 0
+),
+GroupedTags AS (
+  SELECT DISTINCT Tags.ID,
+    STUFF((
+      SELECT '; ' + TagsInternas.TagName
+      FROM LatestTags AS TagsInternas
+      WHERE TagsInternas.ID = Tags.ID
+      ORDER BY TagsInternas.TagName
+      FOR XML PATH(''), TYPE
+    ).value('.', 'nvarchar(max)'), 1, 2, '') AS Tags
+  FROM LatestTags AS Tags
+)
+SELECT Item.ID, Item.WorkItemType, Tags.Tags
+FROM LatestItems AS Item
+LEFT JOIN GroupedTags AS Tags ON Tags.ID = Item.ID
+WHERE Item.RowNumber = 1
 """.strip()

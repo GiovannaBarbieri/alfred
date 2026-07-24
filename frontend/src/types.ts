@@ -628,6 +628,16 @@ export type SettingItem = {
   displayOrder?: number | null;
 };
 
+export type SettingsBootstrap = {
+  categories: SettingItem[];
+  subcategories: SettingItem[];
+  keywords: KeywordItem[];
+  classificationRules: ClassificationRuleItem[];
+  collaboratorProfiles: CollaboratorProfileItem[];
+  ignoredCollaborators: IgnoredCollaboratorItem[];
+  distributionWeights: import("./types/distributionWeights").DistributionWeightConfiguration;
+};
+
 export type KeywordItem = {
   id: number;
   keyword: string;
@@ -655,6 +665,7 @@ export type CollaboratorProfileItem = {
   subcategoryId: number;
   subcategory: string;
   active: boolean;
+  participatesInGeneralIndicators: boolean;
 };
 
 export type IgnoredCollaboratorItem = {
@@ -736,3 +747,445 @@ export type AnalyticsInsightsResponse = {
   filters: AnalyticsFilters;
   insights: AnalyticsInsight[];
 };
+
+export type GeneralIndicatorStatus = "within_target" | "attention" | "alert" | "critical";
+
+export type GeneralIndicatorKpi = {
+  hours: number;
+  percentage: number;
+  target?: number;
+  limit?: number;
+  difference: number;
+  status: GeneralIndicatorStatus;
+};
+
+export type GeneralIndicatorCategory = {
+  category: string;
+  originalHours: number;
+  allocatedHours: number;
+  adjustedHours: number;
+  percentage: number;
+};
+
+export type GeneralIndicatorMonth = {
+  month: string;
+  label: string;
+  totalHours: number;
+  projectsImprovementsPercentage: number;
+  errorsBugsPercentage: number;
+  categories: Record<string, number>;
+};
+
+export type GeneralIndicatorIssue = {
+  type: string;
+  idLancamento: string | null;
+  message: string;
+  details: Record<string, unknown>;
+};
+
+export type GeneralIndicatorClassifiedLaunch = {
+  idLancamento: string | null;
+  launchDate: string | null;
+  durationOriginal: string | null;
+  durationSeconds: number | null;
+  durationHours: number | null;
+  user: string | null;
+  idTask: string | null;
+  idParent: string | null;
+  parentItemId: string | null;
+  parentWorkItemType: string | null;
+  parentItemType: string | null;
+  parentItemTitle: string | null;
+  idFeature: string | null;
+  featureId: string | null;
+  featureWorkItemType: string | null;
+  featureTitle: string | null;
+  featureTags: string | null;
+  idEpic: string | null;
+  tag1: string | null;
+  tag2: string | null;
+  tag3: string | null;
+  finalCategory: string | null;
+  isBug: boolean;
+  isUpdateSystem: boolean;
+  monthYear: string | null;
+  quarter: number | null;
+  year: number | null;
+  validationState: "pending" | "valid" | "blocking" | "auto_treated" | "disregarded";
+  participatesInGeneralIndicators: boolean;
+  disregardedFromGeneralIndicators: boolean;
+  eligibleForOfficialCalculation?: boolean;
+  exclusionReason?: string | null;
+  validatedCategory?: string | null;
+  classificationState: "classified" | "hierarchy_pending" | "hierarchy_ambiguous" | "parent_pending" | "feature_pending" | "feature_type_invalid" | "feature_tags_pending";
+  trace: Record<string, unknown>;
+};
+
+export type GeneralIndicatorConsultationResponse = {
+  consultationId: number;
+  annualReportId?: number | null;
+  stage: "consultation_classified" | "validation_completed";
+  nextStage: "validation" | "correction" | "finalization";
+  status: "COM_INCONSISTENCIAS" | "PRONTA_PARA_FINALIZAR";
+  canFinalize: boolean;
+  requiresFullRefresh?: boolean;
+  validatedAt: string;
+  period: { startDate: string; endDate: string };
+  summary: {
+    sourceRowCount: number;
+    uniqueLaunchCount: number;
+    classifiedCount: number;
+    pendingClassificationCount: number;
+    duplicateIdCount: number;
+    validLaunchCount: number;
+    consideredLaunchCount: number;
+    disregardedLaunchCount: number;
+    excludedCollaboratorCount: number;
+    affectedLaunchCount: number;
+    inconsistencyCount: number;
+    pendingCount: number;
+    blockingInconsistencyCount: number;
+    autoTreatedInconsistencyCount: number;
+    inconsistencyCountsByType: Record<string, number>;
+    affectedFeatureCount: number;
+    validHours: number;
+    grossHours: number;
+    consideredHours: number;
+    disregardedHours: number;
+    affectedHours: number;
+  };
+  launches: GeneralIndicatorClassifiedLaunch[];
+  pagination?: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+  diagnostics: {
+    duplicates: Array<Record<string, unknown>>;
+    unresolvedTaskIds: string[];
+    unresolvedParentIds: string[];
+    unresolvedFeatureIds: string[];
+  };
+  inconsistencies: {
+    items: Array<{
+      type: string;
+      severity: "IMPEDITIVA" | "TRATADA_AUTOMATICAMENTE";
+      scope: "feature" | "launch";
+      idLancamento: string | null;
+      idFeature: string | null;
+      originalText: string | null;
+      message: string;
+      blocking: boolean;
+      treatment: string | null;
+      status: "ABERTA" | "TRATADA";
+      affectedLaunchIds: string[];
+      details: Record<string, unknown>;
+    }>;
+    byFeature: Array<Record<string, unknown>>;
+    byLaunch: Array<Record<string, unknown>>;
+  };
+  updateSummary?: {
+    type: "SELETIVA" | "COMPLETA";
+    pendingBefore: number;
+    resolvedPendingCount: number;
+    remainingPendingCount: number;
+    requeriedFeatureCount: number;
+    revalidatedLaunchCount: number;
+    newInconsistencyCount: number;
+    status: "COM_INCONSISTENCIAS" | "PRONTA_PARA_FINALIZAR";
+    updatedAt: string;
+  };
+};
+
+export type GeneralIndicatorConsultationProgress = {
+  stage: string;
+  percentage: number;
+  message: string;
+  sourceRowCount?: number;
+  uniqueLaunchCount?: number;
+  uniqueTaskCount?: number;
+  uniqueFeatureCount?: number;
+  elapsedSeconds?: number;
+};
+
+export type GeneralIndicatorConsultationJobResponse = {
+  consultationId: number;
+  annualReportId?: number | null;
+  status: "CONSULTANDO" | "ERRO";
+  period: { startDate: string; endDate: string };
+  progress: GeneralIndicatorConsultationProgress;
+  error?: string | null;
+};
+
+export type GeneralIndicatorInconsistencyHistory = {
+  id: number;
+  idLancamento: string | null;
+  idFeature: string | null;
+  type: string;
+  severity: string;
+  scope: string;
+  originalText: string | null;
+  message: string;
+  blocking: boolean;
+  treatment: string | null;
+  status: string;
+  active: boolean;
+  affectedLaunchIds: string[];
+  details: Record<string, unknown>;
+  createdAt: string;
+  lastValidatedAt: string;
+};
+
+export type GeneralIndicatorFinalizedResponse = {
+  contractVersion?: number;
+  consultationId: number;
+  status: "FINALIZADA";
+  period: { startDate: string; endDate: string };
+  consultedAt: string;
+  finalizedAt: string;
+  metadata?: {
+    consultationId: number;
+    consultedAt: string | null;
+    validatedAt: string | null;
+    finalizedAt: string | null;
+    initiatedBy: string | null;
+    finalizedBy: string | null;
+    resultContractVersion: number;
+    calculationVersion: string | null;
+    classificationVersion: string | null;
+    distributionRulesVersion: string | null;
+    targetsVersion: string | null;
+    backendBuild: string | null;
+  } | null;
+  summary?: {
+    foundLaunchCount: number | null;
+    uniqueLaunchCount: number | null;
+    consideredLaunchCount: number | null;
+    disregardedLaunchCount: number | null;
+    excludedCollaboratorCount: number | null;
+    excludedCollaborators: string[];
+    grossHours: number | null;
+    consideredHours: number | null;
+    disregardedHours: number | null;
+    inconsistencyCount?: number | null;
+    pendingCount: number | null;
+    affectedLaunchCount: number | null;
+    affectedHours: number | null;
+  } | null;
+  rules?: Record<string, unknown> | null;
+  integrity?: {
+    algorithm: string;
+    launchSnapshotHash: string | null;
+    resultHash: string | null;
+  } | null;
+  recordCount: number;
+  totalHours: number;
+  kpis: { projectsImprovements: GeneralIndicatorKpi; errorsBugs: GeneralIndicatorKpi };
+  categories: GeneralIndicatorCategory[];
+  distribution: Array<{
+    month: string;
+    label: string;
+    competence?: { startDate: string; endDate: string };
+    updateSystemHours: number;
+    distributionBaseHours: number;
+    maintenanceHours: number;
+    newProjectHours: number;
+    improvementHours: number;
+    itErrorHours: number;
+    bugHours?: number;
+    distributedHours: number;
+    isBalanced: boolean;
+  }>;
+  months: Array<{
+    month: string;
+    label: string;
+    totalHours: number;
+    projectsImprovements: GeneralIndicatorKpi;
+    errorsBugs: GeneralIndicatorKpi;
+    categories: Record<string, number>;
+    competence?: { startDate: string; endDate: string };
+  }>;
+  quarters?: Array<{
+    quarter: string;
+    label: string;
+    competence: { startDate: string; endDate: string };
+    totalHours: number;
+    newProjectHours: number;
+    improvementHours: number;
+    itErrorHours: number;
+    bugHours: number;
+    projectsImprovements: GeneralIndicatorKpi;
+    errorsBugs: GeneralIndicatorKpi;
+  }>;
+  audit: Array<{
+    idLancamento: string | null;
+    date: string | null;
+    collaborator: string | null;
+    durationHours: number | null;
+    idTask: string | null;
+    idParent: string | null;
+    parentType: string | null;
+    idFeature: string | null;
+    originalTags: string | null;
+    tags: string[];
+    originalCategory?: string | null;
+    finalCategory: string | null;
+    month: string | null;
+    kpiParticipation: string[];
+    allocatedHours: number;
+    isUpdateSystem: boolean;
+    validationState: "valid" | "auto_treated";
+    validationIssues: Array<{
+      type: string;
+      severity: string;
+      status: string;
+      message: string;
+      treatment: string | null;
+      originalText: string | null;
+    }>;
+    includedInOfficialCalculation: boolean;
+    participatesInGeneralIndicators?: boolean;
+    disregardedFromGeneralIndicators?: boolean;
+    exclusionReason: string | null;
+    sourceOccurrenceCount: number;
+    sourceRows: Array<Record<string, unknown>>;
+    validationHistory: GeneralIndicatorInconsistencyHistory[];
+  }>;
+  inconsistencyHistory: GeneralIndicatorInconsistencyHistory[];
+  auditPagination?: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+};
+
+export type SavedReportType = "GENERAL_INDICATORS";
+export type AnnualReportUpdateStatus = "IDLE" | "PROCESSING" | "PENDING_CORRECTIONS" | "READY_TO_FINALIZE" | "FAILED";
+
+export type AnnualReportListItem = {
+  id: number;
+  name: string;
+  type: SavedReportType;
+  year: number;
+  currentRevisionNumber: number;
+  periodStart: string;
+  periodEnd: string;
+  createdAt: string;
+  updatedAt: string;
+  finalizedAt: string;
+  totalHours: number;
+  consideredLaunchCount: number;
+  excludedCollaboratorCount: number;
+  projectsImprovementsPercentage: number | null;
+  projectsImprovementsStatus: string | null;
+  errorsBugsPercentage: number | null;
+  errorsBugsStatus: string | null;
+  hasUpdateInProgress: boolean;
+  updateStatus: AnnualReportUpdateStatus;
+  responsible: string | null;
+};
+
+export type AnnualReportListResponse = {
+  items: AnnualReportListItem[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+};
+
+export type AnnualReportCurrentRevision = {
+  id: number;
+  consultationId: number;
+  revisionNumber: number;
+  periodStart: string;
+  periodEnd: string;
+  finalizedAt: string;
+  responsible: string | null;
+  snapshotContractVersion: number;
+  resultHash: string | null;
+  previousRevisionId: number | null;
+};
+
+export type AnnualReportUpdateState = {
+  consultationId: number | null;
+  status: AnnualReportUpdateStatus;
+  currentPeriodEnd: string;
+  requestedPeriodEnd: string | null;
+  createdAt: string | null;
+  createdBy: string | null;
+  inconsistenciesCount: number;
+  canContinue: boolean;
+  canFinalize: boolean;
+};
+
+export type AnnualReportDetail = {
+  report: AnnualReportListItem;
+  currentRevision: AnnualReportCurrentRevision;
+  snapshot: GeneralIndicatorFinalizedResponse;
+  update: AnnualReportUpdateState;
+  revisionCount: number;
+};
+
+export type ReportListParams = {
+  type?: SavedReportType;
+  year?: number | null;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+};
+
+export type AnnualReportUpdateRequest = {
+  newPeriodEnd: string;
+  actor?: string | null;
+};
+
+export type AnnualReportUpdateResponse = {
+  reportId: number;
+  consultationId: number;
+  status: AnnualReportUpdateStatus;
+  periodStart: string;
+  periodEnd: string;
+};
+
+export type AnnualReportFlowContext = AnnualReportUpdateResponse & {
+  reportName: string;
+};
+
+export type AnnualReportRevisionSummary = {
+  id: number;
+  consultationId: number;
+  revisionNumber: number;
+  periodStart: string;
+  periodEnd: string;
+  finalizedAt: string;
+  createdBy: string | null;
+  previousRevisionId: number | null;
+};
+
+export type AnnualReportDeleteResponse = {
+  deleted: boolean;
+  id: number;
+  type: SavedReportType;
+  year: number;
+  deletedRevisionCount: number;
+  deletedConsultationCount: number;
+  deletedAt: string;
+};
+
+export type ReportActionState =
+  | { type: "delete"; report: AnnualReportListItem }
+  | null;
+
+export type SavedReportViewState = {
+  source: "saved-report";
+  reportId: number;
+  readOnly: true;
+  detail: AnnualReportDetail;
+};
+
+export type SavedReportListItem = AnnualReportListItem;
+export type SavedReportListResponse = AnnualReportListResponse;
+export type SavedReportDetail = AnnualReportDetail;
+export type ReportDeleteResponse = AnnualReportDeleteResponse;

@@ -1,13 +1,178 @@
 import unicodedata
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from psycopg import errors
 from pydantic import BaseModel
 
 from app.db import get_connection
 from app.repositories.audit_repository import insert_audit_log
+from app.schemas.distribution_weights import (
+    DistributionWeightConfigurationResponse,
+    DistributionWeightUpdateRequest,
+)
+from app.services.distribution_weights_service import (
+    get_distribution_weight_configuration,
+    reset_distribution_weight_configuration,
+    save_distribution_weight_configuration,
+)
 
 router = APIRouter()
+
+
+@router.get("/distribution-weights", response_model=DistributionWeightConfigurationResponse)
+def get_distribution_weights() -> DistributionWeightConfigurationResponse:
+    return get_distribution_weight_configuration()
+
+
+@router.put("/distribution-weights", response_model=DistributionWeightConfigurationResponse)
+def update_distribution_weights(
+    payload: DistributionWeightUpdateRequest,
+    user: str | None = Header(default=None, alias="X-User"),
+) -> DistributionWeightConfigurationResponse:
+    return save_distribution_weight_configuration(payload.items, user=user)
+
+
+@router.post("/distribution-weights/restore-defaults", response_model=DistributionWeightConfigurationResponse)
+def restore_distribution_weights(
+    user: str | None = Header(default=None, alias="X-User"),
+) -> DistributionWeightConfigurationResponse:
+    return reset_distribution_weight_configuration(user=user)
+
+
+@router.get("/bootstrap")
+def get_settings_bootstrap() -> dict:
+    """Carrega a configuração geral usando uma única conexão PostgreSQL."""
+    with get_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT id, nome, ativa, descricao, ordem_exibicao "
+                "FROM categorias ORDER BY ordem_exibicao NULLS LAST, nome"
+            )
+            categories = [_setting_response(row) for row in cursor.fetchall()]
+
+            cursor.execute(
+                "SELECT id, nome, ativa, grupo, alias_ia, ordem_exibicao "
+                "FROM subcategorias ORDER BY ordem_exibicao NULLS LAST, nome"
+            )
+            subcategories = [_setting_response(row) for row in cursor.fetchall()]
+
+            cursor.execute(
+                """
+                SELECT
+                    p.id,
+                    p.palavra,
+                    p.ativa,
+                    c.id AS categoria_id,
+                    c.nome AS categoria
+                FROM palavras_chave_categoria p
+                JOIN categorias c ON c.id = p.categoria_id
+                ORDER BY c.nome, p.palavra
+                """
+            )
+            keywords = [_keyword_response(row) for row in cursor.fetchall()]
+
+            cursor.execute(
+                """
+                SELECT
+                    r.id,
+                    r.nome,
+                    r.categoria_id,
+                    c.nome AS categoria,
+                    r.subcategoria_id,
+                    s.nome AS subcategoria,
+                    r.palavras_chave,
+                    r.prioridade,
+                    r.ativa,
+                    r.versao
+                FROM classification_rules r
+                JOIN categorias c ON c.id = r.categoria_id
+                LEFT JOIN subcategorias s ON s.id = r.subcategoria_id
+                ORDER BY r.ativa DESC, r.prioridade DESC, r.nome
+                """
+            )
+            rules = [_classification_rule_response(row) for row in cursor.fetchall()]
+
+            cursor.execute(
+                """
+                SELECT
+                    p.id,
+                    p.login_usuario,
+                    p.subcategoria_id,
+                    p.ativo,
+                    p.participa_indicadores_gerais,
+                    s.nome AS subcategoria
+                FROM perfis_colaborador p
+                JOIN subcategorias s ON s.id = p.subcategoria_id
+                ORDER BY p.login_usuario
+                """
+            )
+            profiles = [_collaborator_profile_response(row) for row in cursor.fetchall()]
+
+            cursor.execute(
+                """
+                SELECT id, login_usuario, ativo
+                FROM colaboradores_ignorados
+                WHERE ativo = TRUE
+                ORDER BY login_usuario
+                """
+            )
+            ignored = [_ignored_collaborator_response(row) for row in cursor.fetchall()]
+
+            cursor.execute(
+                """
+                SELECT
+                    category_name,
+                    distribution_weight,
+                    default_weight,
+                    active,
+                    updated_at,
+                    updated_by
+                FROM general_indicator_distribution_weights
+                ORDER BY
+                    CASE category_name
+                        WHEN 'Novo projeto' THEN 1
+                        WHEN 'Melhoria' THEN 2
+                        WHEN 'Erro TI' THEN 3
+                        WHEN 'Bug' THEN 4
+                        WHEN 'Manutenção' THEN 5
+                        ELSE 99
+                    END,
+                    category_name
+                """
+            )
+            distribution_rows = list(cursor.fetchall())
+            distribution_weights = {
+                "items": [
+                    {
+                        "category": row["category_name"],
+                        "weight": int(row["distribution_weight"]),
+                        "defaultWeight": int(row["default_weight"]),
+                        "active": bool(row["active"]),
+                        "updatedAt": row["updated_at"],
+                        "updatedBy": row["updated_by"],
+                    }
+                    for row in distribution_rows
+                ],
+                "updatedAt": max(
+                    (row["updated_at"] for row in distribution_rows),
+                    default=None,
+                ),
+                "updatedBy": max(
+                    distribution_rows,
+                    key=lambda row: row["updated_at"],
+                    default={},
+                ).get("updated_by"),
+            }
+
+    return {
+        "categories": categories,
+        "subcategories": subcategories,
+        "keywords": keywords,
+        "classificationRules": rules,
+        "collaboratorProfiles": profiles,
+        "ignoredCollaborators": ignored,
+        "distributionWeights": distribution_weights,
+    }
 
 
 class NamePayload(BaseModel):
@@ -58,12 +223,14 @@ class CollaboratorProfilePayload(BaseModel):
     loginUsuario: str
     subcategoryId: int
     active: bool = True
+    participatesInGeneralIndicators: bool = True
 
 
 class CollaboratorProfileUpdatePayload(BaseModel):
     loginUsuario: str | None = None
     subcategoryId: int | None = None
     active: bool | None = None
+    participatesInGeneralIndicators: bool | None = None
 
 
 class IgnoredCollaboratorPayload(BaseModel):
@@ -145,6 +312,7 @@ def _collaborator_profile_response(row: dict) -> dict:
         "subcategoryId": row["subcategoria_id"],
         "subcategory": row.get("subcategoria", ""),
         "active": row["ativo"],
+        "participatesInGeneralIndicators": row.get("participa_indicadores_gerais", True),
     }
 
 
@@ -554,6 +722,7 @@ def list_collaborator_profiles() -> list[dict]:
                     p.login_usuario,
                     p.subcategoria_id,
                     p.ativo,
+                    p.participa_indicadores_gerais,
                     s.nome AS subcategoria
                 FROM perfis_colaborador p
                 JOIN subcategorias s ON s.id = p.subcategoria_id
@@ -578,13 +747,23 @@ def create_collaborator_profile(payload: CollaboratorProfilePayload) -> dict:
 
             cursor.execute(
                 """
-                INSERT INTO perfis_colaborador (login_usuario, subcategoria_id, ativo)
-                VALUES (%s, %s, %s)
+                INSERT INTO perfis_colaborador (
+                    login_usuario, subcategoria_id, ativo, participa_indicadores_gerais
+                )
+                VALUES (%s, %s, %s, %s)
                 ON CONFLICT (login_usuario)
-                DO UPDATE SET subcategoria_id = EXCLUDED.subcategoria_id, ativo = EXCLUDED.ativo
-                RETURNING id, login_usuario, subcategoria_id, ativo
+                DO UPDATE SET
+                    subcategoria_id = EXCLUDED.subcategoria_id,
+                    ativo = EXCLUDED.ativo,
+                    participa_indicadores_gerais = EXCLUDED.participa_indicadores_gerais
+                RETURNING id, login_usuario, subcategoria_id, ativo, participa_indicadores_gerais
                 """,
-                (login_usuario, payload.subcategoryId, payload.active),
+                (
+                    login_usuario,
+                    payload.subcategoryId,
+                    payload.active,
+                    payload.participatesInGeneralIndicators,
+                ),
             )
             row = cursor.fetchone()
             cursor.execute("SELECT nome FROM subcategorias WHERE id = %s", (row["subcategoria_id"],))
@@ -607,7 +786,12 @@ def update_collaborator_profile(profile_id: int, payload: CollaboratorProfileUpd
     login_usuario = payload.loginUsuario.strip().lower() if payload.loginUsuario is not None else None
     if payload.loginUsuario is not None and not login_usuario:
         raise HTTPException(status_code=400, detail="Login do colaborador e obrigatorio.")
-    if login_usuario is None and payload.subcategoryId is None and payload.active is None:
+    if (
+        login_usuario is None
+        and payload.subcategoryId is None
+        and payload.active is None
+        and payload.participatesInGeneralIndicators is None
+    ):
         raise HTTPException(status_code=400, detail="Informe login, subcategoria ou status para atualizar.")
 
     with get_connection() as connection:
@@ -619,6 +803,7 @@ def update_collaborator_profile(profile_id: int, payload: CollaboratorProfileUpd
                     p.login_usuario,
                     p.subcategoria_id,
                     p.ativo,
+                    p.participa_indicadores_gerais,
                     s.nome AS subcategoria
                 FROM perfis_colaborador p
                 JOIN subcategorias s ON s.id = p.subcategoria_id
@@ -645,11 +830,18 @@ def update_collaborator_profile(profile_id: int, payload: CollaboratorProfileUpd
                 SET
                     login_usuario = COALESCE(%s, login_usuario),
                     subcategoria_id = COALESCE(%s, subcategoria_id),
-                    ativo = COALESCE(%s, ativo)
+                    ativo = COALESCE(%s, ativo),
+                    participa_indicadores_gerais = COALESCE(%s, participa_indicadores_gerais)
                 WHERE id = %s
-                RETURNING id, login_usuario, subcategoria_id, ativo
+                RETURNING id, login_usuario, subcategoria_id, ativo, participa_indicadores_gerais
                 """,
-                (login_usuario, payload.subcategoryId, payload.active, profile_id),
+                (
+                    login_usuario,
+                    payload.subcategoryId,
+                    payload.active,
+                    payload.participatesInGeneralIndicators,
+                    profile_id,
+                ),
             )
             row = cursor.fetchone()
             cursor.execute("SELECT nome FROM subcategorias WHERE id = %s", (row["subcategoria_id"],))
@@ -679,6 +871,7 @@ def delete_collaborator_profile(profile_id: int) -> dict:
                     p.login_usuario,
                     p.subcategoria_id,
                     p.ativo,
+                    p.participa_indicadores_gerais,
                     s.nome AS subcategoria
                 FROM perfis_colaborador p
                 JOIN subcategorias s ON s.id = p.subcategoria_id
@@ -694,7 +887,7 @@ def delete_collaborator_profile(profile_id: int) -> dict:
                 """
                 DELETE FROM perfis_colaborador
                 WHERE id = %s
-                RETURNING id, login_usuario, subcategoria_id, ativo
+                RETURNING id, login_usuario, subcategoria_id, ativo, participa_indicadores_gerais
                 """,
                 (profile_id,),
             )
