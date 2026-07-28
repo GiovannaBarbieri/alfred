@@ -7,15 +7,15 @@ import {
 } from "../../utils/generalIndicatorIssuePresentation";
 import { isCompletedGeneralIndicatorValidation } from "../../utils/generalIndicatorState";
 
-type Operation = "consultation" | "pending" | "full" | "finalization" | null;
+type Operation = "consultation" | "pending" | "finalization" | null;
 
 type Props = {
   consultation: GeneralIndicatorConsultationResponse;
   operation: Operation;
   onRefreshPendings: () => void;
-  onRefreshFull: () => void;
   onFinalize: () => void;
-  onBack: () => void;
+  reportName: string;
+  onReportNameChange: (value: string) => void;
 };
 
 const issueNames: Record<string, string> = {
@@ -60,9 +60,9 @@ export function GeneralIndicatorConsultationPanel({
   consultation,
   operation,
   onRefreshPendings,
-  onRefreshFull,
   onFinalize,
-  onBack,
+  reportName,
+  onReportNameChange,
 }: Props) {
   const isEmpty = consultation.summary.uniqueLaunchCount === 0;
   const featureGroups = groupFeatureIssues(consultation);
@@ -84,7 +84,7 @@ export function GeneralIndicatorConsultationPanel({
       <ol className="general-indicator-steps" aria-label="Etapas dos indicadores gerais">
         <li className="done"><CheckCircle2 size={15} /><span>1. Consulta</span></li>
         <li className={consultation.canFinalize ? "done" : "current"}><span>{"2. Valida\u00e7\u00e3o"}</span></li>
-        <li className={consultation.canFinalize ? "current" : "pending"}><span>3. Indicadores</span></li>
+        <li className={consultation.canFinalize ? "current" : "pending"}><span>3. Salvar relatório</span></li>
       </ol>
 
       <article className={`panel general-indicator-consultation-summary${validationCompleted ? " completed" : ""}`}>
@@ -120,18 +120,22 @@ export function GeneralIndicatorConsultationPanel({
         </div>
         {validationCompleted && (
           <footer className="general-indicator-success-footer">
-            <div className="general-indicator-success-confirmation" role="status">
-              <CheckCircle2 size={17} />
-              <span>Nenhuma pendência encontrada.</span>
-            </div>
+            <label className="general-indicator-report-name">
+              <span>Nome do relatório</span>
+              <input
+                type="text"
+                required
+                maxLength={255}
+                value={reportName}
+                onChange={(event) => onReportNameChange(event.target.value)}
+                disabled={busy}
+                aria-describedby="general-indicator-report-name-help"
+              />
+              <small id="general-indicator-report-name-help">Você poderá alterar este nome posteriormente em Meus Relatórios.</small>
+            </label>
             <div className="general-indicator-success-actions">
-              <button className="secondary-button" type="button" onClick={onBack} disabled={busy}>{"Alterar período"}</button>
-              <button className="secondary-button" type="button" onClick={onRefreshFull} disabled={busy}>
-                <RefreshCw size={15} className={operation === "full" ? "spinning" : ""} />
-                {operation === "full" ? "Refazendo..." : "Refazer consulta"}
-              </button>
-              <button className="primary-button" type="button" onClick={onFinalize} disabled={busy}>
-                {operation === "finalization" ? "Gerando..." : "Gerar indicadores"}
+              <button className="primary-button" type="button" onClick={onFinalize} disabled={busy || !reportName.trim()}>
+                {operation === "finalization" ? "Salvando..." : "Salvar relatório"}
               </button>
             </div>
           </footer>
@@ -153,7 +157,7 @@ export function GeneralIndicatorConsultationPanel({
       {consultation.requiresFullRefresh && (
         <div className="error-banner" role="alert">
           <AlertTriangle size={18} />
-          Esta consulta foi criada com uma versão antiga da hierarquia. Use Refazer consulta completa para reconstruir PBI/Bug, Feature e TAGs no TFS.
+          Esta consulta foi criada com uma versão antiga da hierarquia. Clique em Consultar no card superior para executar uma nova consulta completa.
         </div>
       )}
 
@@ -258,13 +262,6 @@ export function GeneralIndicatorConsultationPanel({
             </button>
           )}
         </div>
-        <div className="general-indicator-secondary-actions">
-          <button className="secondary-button" type="button" onClick={onBack} disabled={busy}>{"Alterar per\u00edodo"}</button>
-          <button className="secondary-button" type="button" onClick={onRefreshFull} disabled={busy}>
-            <RefreshCw size={15} className={operation === "full" ? "spinning" : ""} />
-            {operation === "full" ? "Refazendo..." : "Refazer consulta"}
-          </button>
-        </div>
       </div>}
       {!consultation.requiresFullRefresh && !consultation.canFinalize && !isEmpty && <p className="general-indicator-action-help">{"A finaliza\u00e7\u00e3o permanece bloqueada at\u00e9 a corre\u00e7\u00e3o das pend\u00eancias."}</p>}
     </section>
@@ -277,7 +274,7 @@ function mainTitle(consultation: GeneralIndicatorConsultationResponse, isEmpty: 
 }
 
 function mainMessage(consultation: GeneralIndicatorConsultationResponse, isEmpty: boolean, pendingCount: number) {
-  if (isEmpty) return "Altere o per\u00edodo ou refa\u00e7a a consulta.";
+  if (isEmpty) return "Ajuste o período no card superior e clique em Consultar.";
   if (consultation.canFinalize) return "Todos os lan\u00e7amentos considerados foram validados. Os indicadores j\u00e1 podem ser gerados.";
   return `${pendingCount.toLocaleString("pt-BR")} pend\u00eancia(s) precisam ser corrigidas antes da finaliza\u00e7\u00e3o.`;
 }

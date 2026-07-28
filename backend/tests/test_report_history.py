@@ -62,9 +62,7 @@ class ReportHistoryRepositoryTests(unittest.TestCase):
         connection, cursor = connection_with_cursor()
         detail = report_row(version=1, status="CURRENT", current=True)
         cursor.fetchone.side_effect = [
-            None,
-            {"id": 1, "current_revision_id": None, "current_period_end": date(2026, 6, 30)},
-            {"next_version": 1},
+            {"id": 1},
             {"id": 10},
             detail,
         ]
@@ -77,14 +75,13 @@ class ReportHistoryRepositoryTests(unittest.TestCase):
 
         self.assertEqual(result["version_number"], 1)
         insert = next(call for call in cursor.execute.call_args_list if "INSERT INTO report_history" in call.args[0])
-        self.assertEqual(insert.args[1][6], 1)
+        self.assertIn("1, 'CURRENT', TRUE", insert.args[0])
 
-    def test_second_finalization_increments_version_and_supersedes_current(self) -> None:
+    def test_second_finalization_creates_an_independent_report(self) -> None:
         connection, cursor = connection_with_cursor()
-        detail = report_row(version=2, status="CURRENT", current=True)
+        detail = report_row(version=1, status="CURRENT", current=True)
         cursor.fetchone.side_effect = [
-            {"id": 1, "current_revision_id": 10, "current_period_end": date(2026, 3, 31)},
-            {"next_version": 2},
+            {"id": 2},
             {"id": 11},
             detail,
         ]
@@ -96,15 +93,13 @@ class ReportHistoryRepositoryTests(unittest.TestCase):
         )
 
         statements = [call.args[0] for call in cursor.execute.call_args_list]
-        self.assertTrue(any("report_status = 'SUPERSEDED'" in sql for sql in statements))
-        self.assertTrue(any("superseded_by_id = %s" in sql for sql in statements))
+        self.assertFalse(any("report_status = 'SUPERSEDED'" in sql for sql in statements))
+        self.assertFalse(any("superseded_by_id = %s" in sql for sql in statements))
 
     def test_finalization_uses_transaction_advisory_lock_for_period(self) -> None:
         connection, cursor = connection_with_cursor()
         cursor.fetchone.side_effect = [
-            None,
-            {"id": 1, "current_revision_id": None, "current_period_end": date(2026, 6, 30)},
-            {"next_version": 1},
+            {"id": 1},
             {"id": 10},
             report_row(),
         ]
@@ -411,19 +406,23 @@ class ReportHistoryServiceTests(unittest.TestCase):
         paths = app.openapi()["paths"]
         self.assertEqual(
             paths["/api/general-indicators/reports"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"],
-            "#/components/schemas/AnnualReportListResponse",
+            "#/components/schemas/SavedReportListResponse",
         )
         self.assertEqual(
             paths["/api/general-indicators/reports/{report_id}"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"],
-            "#/components/schemas/AnnualReportDetail",
+            "#/components/schemas/SavedReportDetail",
         )
         self.assertEqual(
             paths["/api/general-indicators/reports/{report_id}"]["delete"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"],
-            "#/components/schemas/AnnualReportDeleteResponse",
+            "#/components/schemas/SavedReportDeleteResponse",
         )
-        self.assertIn("/api/general-indicators/reports/{report_id}/updates", paths)
-        self.assertIn("/api/general-indicators/reports/{report_id}/updates/current", paths)
-        self.assertIn("/api/general-indicators/reports/{report_id}/revisions", paths)
+        self.assertNotIn("/api/general-indicators/reports/{report_id}/updates", paths)
+        self.assertNotIn("/api/general-indicators/reports/{report_id}/updates/current", paths)
+        finalize = paths["/api/general-indicators/consultations/{consultation_id}/finalize"]["post"]
+        self.assertEqual(
+            finalize["requestBody"]["content"]["application/json"]["schema"]["$ref"],
+            "#/components/schemas/GeneralIndicatorFinalizeRequest",
+        )
 
     def test_migration_backfills_versions_without_updating_snapshot(self) -> None:
         migration = Path(__file__).parents[1] / "migrations" / "0006_general_indicator_report_history.sql"

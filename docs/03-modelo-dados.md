@@ -1,178 +1,215 @@
-# Modelo De Dados Atual
+# Modelo de dados
 
-## Visao Geral
+Versão documental: **28/07/2026**.
 
-O banco principal e PostgreSQL.
+## Bancos
 
-A estrutura inicial esta em:
+| Banco | Uso |
+| --- | --- |
+| PostgreSQL | Estado da aplicação, configurações, importações, consultas, snapshots e histórico |
+| SQL Server/TFS | Fonte somente leitura de lançamentos, work items, hierarquia e TAGs |
 
-```text
-database/init.sql
-```
+O PostgreSQL é a fonte de verdade dos relatórios salvos. O SQL Server não é consultado ao abrir um relatório.
 
-O backend tambem executa ajustes incrementais no startup por:
+## Bootstrap e versionamento
 
-```text
-backend/app/services/schema_service.py
-```
+- `database/init.sql`: domínio original de Projetos e dados iniciais.
+- `backend/migrations/*.sql`: evolução versionada, principalmente Indicadores Gerais.
+- `schema_migrations`: versão, checksum e data de aplicação.
+- `backend/app/services/schema_service.py`: compatibilidade idempotente do domínio legado.
 
-A estrutura consolidada para consulta fica em:
+Migrations são aplicadas em ordem lexical sob lock transacional e não podem ser editadas depois de aplicadas.
 
-```text
-docs/10-estrutura-banco.sql
-```
+## Domínio Projetos
 
-## Grupos De Tabelas
+### Configuração
 
-### Configuracao e classificacao
+| Tabela | Finalidade |
+| --- | --- |
+| `categorias` | Categorias de classificação de projetos |
+| `subcategorias` | Cargos/subcategorias |
+| `palavras_chave_categoria` | Termos vinculados às categorias |
+| `classification_rules` | Regras, prioridade e versão |
+| `perfis_colaborador` | Perfil e participação nos Indicadores Gerais |
+| `colaboradores_ignorados` | Logins explicitamente ignorados |
 
-```text
-categorias
-subcategorias
-palavras_chave_categoria
-classification_rules
-perfis_colaborador
-colaboradores_ignorados
-```
+### Importação e staging
 
-Uso:
+| Tabela | Finalidade |
+| --- | --- |
+| `import_sessions` | Sessão temporária e conteúdo do arquivo |
+| `staging_rows` | Linhas normalizadas antes da confirmação |
+| `import_logs` | Eventos e métricas do pipeline |
+| `importacoes` | Cabeçalho confirmado |
+| `lancamentos_horas` | Lançamentos finais |
+| `erros_importacao` | Erros/alertas |
+| `duplicidades_importacao` | Grupos e resolução de duplicidade |
+| `classificacoes_task` | Classificação sugerida/final |
+| `pending_reviews` | Pendências operacionais |
+| `classification_reprocess_history` | Antes/depois do reprocessamento |
 
-```text
-Categorias classificam a atividade.
-Cargos/perfis operacionais ficam em subcategorias.
-Grupos de cargos apoiam filtros e leitura gerencial.
-Perfis vinculam colaborador a cargo.
-Palavras-chave e regras apoiam classificacao automatica.
-```
+### Relatórios e auditoria
 
-O assistente de cadastro rapido da Fase 4 usa as mesmas tabelas de configuracao:
+| Tabela | Finalidade |
+| --- | --- |
+| `comparativos_projetos` | Comparativo salvo |
+| `comparativos_projetos_importacoes` | Importações do comparativo |
+| `analytics_insights` | Insights operacionais |
+| `audit_log` | Auditoria genérica |
+| `auditoria_acoes` | Auditoria legada por importação |
 
-```text
-subcategorias: cargos disponiveis para selecao
-perfis_colaborador: vinculo entre login do colaborador e cargo
-```
+## Domínio Indicadores Gerais
 
-Nao existe tabela adicional para o modal de "Novos colaboradores encontrados"; ele apenas cria registros em `perfis_colaborador` quando o usuario confirma o cadastro.
+### `general_indicator_consultations`
 
-Categorias oficiais ativas:
+Uma execução de consulta/validação.
 
-```text
-Acompanhamento
-Definicao
-Desenvolvimento
-Homologacao
-Impedimento
-Retrabalho
-```
+Campos relevantes:
 
-Cargos oficiais ativos:
+- período e status;
+- `resumo` de progresso/validação;
+- `resultado` JSONB do snapshot oficial;
+- erro e timestamps;
+- versões de contrato, hierarquia, cálculo, classificação, distribuição e metas;
+- responsáveis;
+- `snapshot_hash` e `resultado_hash`;
+- vínculo opcional com o contêiner de relatório salvo.
 
-```text
-Analista
-Desenvolvedor Back-end
-Desenvolvedor Front-end
-QA
-Banco de Dados
-Infraestrutura
-DataOps
-```
+### `general_indicator_launches`
 
-### Importacao com staging
+Snapshot técnico por lançamento:
 
-```text
-import_sessions
-staging_rows
-import_logs
-```
+- `consulta_id`;
+- `id_lancamento`, Task, pai e Feature;
+- tipo real do pai;
+- categoria validada;
+- estado de validação;
+- duração;
+- `dados_tecnicos` JSONB com hierarquia, TAGs, origem e participação.
 
-Uso:
-
-```text
-Guardar a importacao temporaria antes da confirmacao.
-Preservar linhas cruas/processadas.
-Permitir reprocessamento e cancelamento sem gravar tabelas finais.
-Registrar eventos da importacao.
-```
-
-### Dados consolidados
+Restrição única parcial:
 
 ```text
-importacoes
-lancamentos_horas
-erros_importacao
-duplicidades_importacao
-classificacoes_task
+(consulta_id, id_lancamento), quando id_lancamento não é nulo
 ```
 
-Uso:
+### `general_indicator_inconsistencies`
 
-```text
-Guardar importacoes confirmadas.
-Guardar lancamentos de horas.
-Preservar erros, alertas e duplicidades.
-Guardar classificacao sugerida/final por lancamento.
+Pendências e tratamentos:
+
+- escopo Feature ou lançamento;
+- tipo, severidade, status e indicador de bloqueio;
+- IDs relacionados;
+- descrição, texto original e tratamento;
+- histórico ativo/inativo;
+- detalhes JSONB com causa raiz, impacto, hierarquia e evidências.
+
+### `general_indicator_updates`
+
+Histórico de atualização seletiva ou completa:
+
+- estado anterior/resultante;
+- pendências antes/resolvidas/abertas;
+- novas inconsistências;
+- Features reconsultadas;
+- lançamentos revalidados;
+- timestamps e erro.
+
+### `general_indicator_distribution_weights`
+
+Configuração global:
+
+- `category_name`;
+- `distribution_weight` inteiro entre 1 e 5;
+- `default_weight`;
+- `active`;
+- usuário e timestamps.
+
+As alterações são registradas em `audit_log`.
+
+## Relatórios salvos e snapshots
+
+### `general_indicator_annual_reports`
+
+Nome histórico mantido por compatibilidade. Desde a migration `0011`, cada linha representa um **relatório independente**, não necessariamente anual.
+
+Campos:
+
+- tipo e nome;
+- ano auxiliar;
+- revisão atual;
+- consulta ativa;
+- período atual;
+- criação/atualização e responsáveis.
+
+Não existe mais unicidade por ano.
+
+### `report_history`
+
+Revisões/snapshots vinculados ao relatório:
+
+- consulta fonte;
+- período;
+- nome;
+- número de revisão;
+- estado legado `CURRENT`, `SUPERSEDED` ou `ARCHIVED`;
+- vínculos entre revisões;
+- datas e responsáveis;
+- totais e KPIs indexados para listagem;
+- versão do contrato e hash;
+- vínculo com `general_indicator_annual_reports`.
+
+O snapshot funcional completo fica em `general_indicator_consultations.resultado`. `report_history` fornece identidade, revisão, filtros e resumo rápido.
+
+### `annual_report_migration_issues`
+
+Registra incompatibilidades preservadas durante a migração do modelo histórico anual. Não recalcula snapshots antigos.
+
+## Cascatas e imutabilidade
+
+```mermaid
+erDiagram
+  GENERAL_INDICATOR_ANNUAL_REPORTS ||--o{ REPORT_HISTORY : possui
+  GENERAL_INDICATOR_ANNUAL_REPORTS ||--o{ GENERAL_INDICATOR_CONSULTATIONS : agrupa
+  GENERAL_INDICATOR_CONSULTATIONS ||--o{ GENERAL_INDICATOR_LAUNCHES : contem
+  GENERAL_INDICATOR_CONSULTATIONS ||--o{ GENERAL_INDICATOR_INCONSISTENCIES : valida
+  GENERAL_INDICATOR_CONSULTATIONS ||--o{ GENERAL_INDICATOR_UPDATES : registra
+  GENERAL_INDICATOR_CONSULTATIONS ||--|| REPORT_HISTORY : origina
 ```
 
-### Relatorios e comparativos
+- exclusão do relatório é transacional e remove revisões/consultas dependentes;
+- uma consulta finalizada não pode ter lançamentos regravados;
+- leitura de relatório usa o JSONB persistido;
+- hashes detectam alteração do conteúdo;
+- números históricos de revisão não são renumerados.
 
-```text
-pending_reviews
-comparativos_projetos
-comparativos_projetos_importacoes
-classification_reprocess_history
-```
+## Migrations de Indicadores Gerais
 
-Uso:
+| Versão | Conteúdo |
+| --- | --- |
+| `0001` | consultas, lançamentos, inconsistências e atualizações |
+| `0002` | índices de desempenho |
+| `0003` | participação de colaboradores |
+| `0004` | versão do contrato de hierarquia |
+| `0005` | snapshot oficial, versões e hashes |
+| `0006` | histórico de relatórios |
+| `0007` | responsável pelo arquivamento |
+| `0008` | agrupamento/revisões e migração de históricos |
+| `0009` | pesos de distribuição |
+| `0010` | gestão, defaults, faixa 1–5 e auditoria |
+| `0011` | relatórios independentes, sem unicidade anual |
 
-```text
-Controlar revisoes internas.
-Salvar comparativos entre importacoes/projetos.
-Registrar historico de reclassificacao.
-```
+## Índices principais
 
-### Auditoria e inteligencia operacional
+- lançamentos por consulta, ordem e `IdLancamento`;
+- inconsistências ativas por consulta;
+- consultas em processamento;
+- histórico por relatório/revisão e período;
+- listagem de relatórios por atualização;
+- pesos ativos;
+- importações por hash/nome;
+- lançamentos de projeto por importação, usuário, data e categoria.
 
-```text
-audit_log
-auditoria_acoes
-analytics_insights
-```
+## Fonte SQL consolidada
 
-Uso:
-
-```text
-Registrar eventos tecnicos e alteracoes importantes.
-Persistir insights operacionais gerados pelo backend.
-```
-
-Observacao:
-
-```text
-As telas de Auditoria e Inteligencia Operacional estao ocultas no frontend atual.
-As tabelas permanecem no banco porque endpoints, historico interno e evolucoes futuras ainda dependem delas.
-```
-
-## Principais Relacionamentos
-
-```text
-importacoes -> lancamentos_horas
-importacoes -> erros_importacao
-importacoes -> duplicidades_importacao
-importacoes -> pending_reviews
-importacoes -> analytics_insights
-importacoes -> classification_reprocess_history
-import_sessions -> staging_rows
-import_sessions -> import_logs
-categorias -> lancamentos_horas
-subcategorias -> lancamentos_horas
-subcategorias -> perfis_colaborador
-lancamentos_horas -> classificacoes_task
-comparativos_projetos -> comparativos_projetos_importacoes
-```
-
-## Observacoes
-
-- O sistema ainda nao usa migrations formais.
-- `schema_service.py` garante compatibilidade incremental em bases existentes.
-- Para ambiente corporativo, o recomendado e migrar para Alembic ou ferramenta equivalente.
-- Horas extras, banco de horas e regras trabalhistas nao fazem parte do modelo.
+Consulte [10-estrutura-banco.sql](10-estrutura-banco.sql). O arquivo referencia os scripts canônicos em vez de duplicar seu conteúdo.

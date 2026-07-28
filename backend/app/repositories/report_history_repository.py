@@ -55,7 +55,7 @@ _SUMMARY_COLUMNS = """
 """
 
 
-def register_finalized_general_indicator_report(
+def _register_legacy_annual_general_indicator_report(
     connection: Connection,
     *,
     consultation: dict[str, Any],
@@ -222,6 +222,116 @@ def register_finalized_general_indicator_report(
     if report is None:
         raise RuntimeError("O relatório finalizado não pôde ser registrado no histórico.")
     return report
+
+
+def register_finalized_general_indicator_report(
+    connection: Connection,
+    *,
+    consultation: dict[str, Any],
+    result: dict[str, Any],
+    report_name: str | None = None,
+) -> dict[str, Any]:
+    """Persist one immutable saved report for one finalized consultation."""
+    start_date = consultation["data_inicial"]
+    end_date = consultation["data_final"]
+    report_year = start_date.year
+    report_name = report_name or general_indicator_display_name(start_date, end_date)
+    period_key = f"{GENERAL_INDICATORS_REPORT_TYPE}:consultation:{consultation['id']}"
+    summary = dict(result.get("summary") or {})
+    kpis = dict(result.get("kpis") or {})
+    projects_kpi = dict(kpis.get("projectsImprovements") or {})
+    errors_kpi = dict(kpis.get("errorsBugs") or {})
+    metadata = dict(result.get("metadata") or {})
+    integrity = dict(result.get("integrity") or {})
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))", (period_key,))
+        cursor.execute(
+            """
+            INSERT INTO general_indicator_annual_reports (
+                report_type, report_year, display_name,
+                current_period_start, current_period_end,
+                created_at, updated_at, created_by, last_updated_by
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+            """,
+            (
+                GENERAL_INDICATORS_REPORT_TYPE,
+                report_year,
+                report_name,
+                start_date,
+                end_date,
+                consultation["criado_em"],
+                consultation["finalizado_em"],
+                consultation.get("iniciado_por") or metadata.get("initiatedBy"),
+                consultation.get("finalizado_por") or metadata.get("finalizedBy"),
+            ),
+        )
+        saved_report_id = int(cursor.fetchone()["id"])
+        cursor.execute(
+            """
+            INSERT INTO report_history (
+                report_type, source_consultation_id, period_start, period_end, period_key,
+                display_name, version_number, report_status, is_current,
+                created_at, finalized_at, created_by, finalized_by,
+                total_hours, considered_launch_count, excluded_collaborator_count,
+                projects_improvements_percentage, projects_improvements_status,
+                errors_bugs_percentage, errors_bugs_status,
+                snapshot_contract_version, result_hash,
+                annual_report_id, previous_revision_id
+            )
+            VALUES (
+                %s, %s, %s, %s, %s,
+                %s, 1, 'CURRENT', TRUE,
+                %s, %s, %s, %s,
+                %s, %s, %s,
+                %s, %s, %s, %s,
+                %s, %s, %s, NULL
+            )
+            RETURNING id
+            """,
+            (
+                GENERAL_INDICATORS_REPORT_TYPE,
+                consultation["id"],
+                start_date,
+                end_date,
+                period_key,
+                report_name,
+                consultation["criado_em"],
+                consultation["finalizado_em"],
+                consultation.get("iniciado_por") or metadata.get("initiatedBy"),
+                consultation.get("finalizado_por") or metadata.get("finalizedBy"),
+                Decimal(str(result.get("totalHours") or 0)),
+                int(summary.get("consideredLaunchCount") or result.get("recordCount") or 0),
+                int(summary.get("excludedCollaboratorCount") or 0),
+                _decimal_or_none(projects_kpi.get("percentage")),
+                projects_kpi.get("status"),
+                _decimal_or_none(errors_kpi.get("percentage")),
+                errors_kpi.get("status"),
+                int(result.get("contractVersion") or metadata.get("resultContractVersion") or 1),
+                integrity.get("resultHash"),
+                saved_report_id,
+            ),
+        )
+        history_id = int(cursor.fetchone()["id"])
+        cursor.execute(
+            """
+            UPDATE general_indicator_annual_reports
+            SET current_revision_id = %s
+            WHERE id = %s
+            """,
+            (history_id, saved_report_id),
+        )
+        cursor.execute(
+            "UPDATE general_indicator_consultations SET annual_report_id = %s WHERE id = %s",
+            (saved_report_id, consultation["id"]),
+        )
+
+    report = get_report_history_detail(connection, history_id)
+    if report is None:
+        raise RuntimeError("O relatório finalizado não pôde ser registrado no histórico.")
+    return {**report, "annual_report_id": saved_report_id}
 
 
 def list_report_history(
@@ -569,15 +679,23 @@ def list_annual_reports(
     conditions = ["Annual.report_type = %s", "Annual.current_revision_id IS NOT NULL"]
     params: list[Any] = [report_type]
     if year is not None:
-        conditions.append("Annual.report_year = %s")
-        params.append(year)
+        conditions.append(
+            "Revision.period_start <= make_date(%s, 12, 31) "
+            "AND Revision.period_end >= make_date(%s, 1, 1)"
+        )
+        params.extend([year, year])
     if search:
         conditions.append("Annual.display_name ILIKE %s")
         params.append(f"%{search.strip()}%")
     where = " AND ".join(conditions)
     with connection.cursor() as cursor:
         cursor.execute(
-            f"SELECT COUNT(*) AS total FROM general_indicator_annual_reports AS Annual WHERE {where}",
+            f"""
+            SELECT COUNT(*) AS total
+            FROM general_indicator_annual_reports AS Annual
+            INNER JOIN report_history AS Revision ON Revision.id = Annual.current_revision_id
+            WHERE {where}
+            """,
             params,
         )
         total = int(cursor.fetchone()["total"])
@@ -588,7 +706,7 @@ def list_annual_reports(
             INNER JOIN report_history AS Revision ON Revision.id = Annual.current_revision_id
             LEFT JOIN general_indicator_consultations AS Active ON Active.id = Annual.active_consultation_id
             WHERE {where}
-            ORDER BY Annual.report_year DESC, Annual.id DESC
+            ORDER BY Revision.finalized_at DESC, Annual.id DESC
             OFFSET %s LIMIT %s
             """,
             [*params, offset, limit],
@@ -616,6 +734,32 @@ def get_annual_report_detail(connection: Connection, report_id: int) -> dict[str
             INNER JOIN general_indicator_consultations AS CurrentConsultation
                 ON CurrentConsultation.id = Revision.source_consultation_id
             LEFT JOIN general_indicator_consultations AS Active ON Active.id = Annual.active_consultation_id
+            WHERE Annual.id = %s
+            FOR SHARE OF Annual, Revision, CurrentConsultation
+            """,
+            (report_id,),
+        )
+        return cursor.fetchone()
+
+
+def get_annual_report_period_analysis_source(
+    connection: Connection,
+    report_id: int,
+) -> dict[str, Any] | None:
+    """Load the immutable current snapshot only for server-side period analysis."""
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT
+                Annual.id,
+                Revision.period_start,
+                Revision.period_end,
+                Revision.source_consultation_id,
+                CurrentConsultation.resultado AS snapshot
+            FROM general_indicator_annual_reports AS Annual
+            INNER JOIN report_history AS Revision ON Revision.id = Annual.current_revision_id
+            INNER JOIN general_indicator_consultations AS CurrentConsultation
+                ON CurrentConsultation.id = Revision.source_consultation_id
             WHERE Annual.id = %s
             FOR SHARE OF Annual, Revision, CurrentConsultation
             """,

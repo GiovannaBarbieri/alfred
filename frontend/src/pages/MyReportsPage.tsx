@@ -1,36 +1,37 @@
 import { AlertTriangle, ArrowLeft, FileBarChart, RefreshCw, SearchX } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GeneralIndicatorFinalizedPanel } from "../components/general-indicators/GeneralIndicatorFinalizedPanel";
+import { ReportPeriodAnalysisPanel } from "../components/my-reports/ReportPeriodAnalysisPanel";
 import { ReportActionModal } from "../components/my-reports/ReportActionModal";
-import { AnnualReportUpdateModal } from "../components/my-reports/AnnualReportUpdateModal";
 import { ReportCard } from "../components/my-reports/ReportCard";
 import { ReportFilters } from "../components/my-reports/ReportFilters";
 import { ReportPagination } from "../components/my-reports/ReportPagination";
 import { useReportHistory } from "../hooks/useReportHistory";
-import { startAnnualReportUpdate } from "../services/reportHistoryService";
-import type { AnnualReportFlowContext } from "../types";
+import { shouldShowReportPagination } from "../utils/reportHistoryPresentation";
 
 export function MyReportsPage({
   onGoToGeneralIndicators,
-  onStartAnnualUpdate,
   openReportId,
   onOpenReportHandled,
 }: {
   onGoToGeneralIndicators: () => void;
-  onStartAnnualUpdate: (context: AnnualReportFlowContext) => void;
   openReportId?: number | null;
   onOpenReportHandled?: () => void;
 }) {
   const history = useReportHistory();
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [updateBusy, setUpdateBusy] = useState(false);
-  const [updateError, setUpdateError] = useState<string | null>(null);
+  const automaticallyOpenedReportId = useRef<number | null>(null);
+  const [activeReportTab, setActiveReportTab] = useState<"overview" | "period-analysis">("overview");
 
   useEffect(() => {
-    if (!openReportId) return;
-    history.setNotice("Relatório anual atualizado com sucesso.");
+    if (!openReportId || automaticallyOpenedReportId.current === openReportId) return;
+    automaticallyOpenedReportId.current = openReportId;
+    history.showNotice("Relatório salvo com sucesso.");
     void history.openReport(openReportId).finally(() => onOpenReportHandled?.());
   }, [openReportId]);
+
+  useEffect(() => {
+    setActiveReportTab("overview");
+  }, [history.view?.reportId]);
 
   if (history.view) {
     if (!history.view.detail.currentRevision) {
@@ -47,33 +48,9 @@ export function MyReportsPage({
       );
     }
     const { detail } = history.view;
-    const updateInProgress = detail.report.hasUpdateInProgress && detail.update.consultationId && detail.update.requestedPeriodEnd;
-    const continueUpdate = () => {
-      if (!detail.update.consultationId || !detail.update.requestedPeriodEnd) return;
-      onStartAnnualUpdate({
-        reportId: detail.report.id,
-        consultationId: detail.update.consultationId,
-        status: detail.update.status,
-        periodStart: detail.report.periodStart,
-        periodEnd: detail.update.requestedPeriodEnd,
-        reportName: detail.report.name,
-      });
-    };
-    const startUpdate = async (newPeriodEnd: string) => {
-      setUpdateBusy(true); setUpdateError(null);
-      try {
-        const response = await startAnnualReportUpdate(detail.report.id, { newPeriodEnd });
-        setShowUpdateModal(false);
-        onStartAnnualUpdate({ ...response, reportName: detail.report.name });
-      } catch (caught) {
-        setUpdateError(caught instanceof Error ? caught.message : "Não foi possível iniciar a atualização.");
-      } finally {
-        setUpdateBusy(false);
-      }
-    };
     return (
       <section className="saved-report-view" data-source={history.view.source} data-read-only={history.view.readOnly}>
-        {history.notice && <div className="saved-report-notice" role="status"><span>{history.notice}</span><button type="button" aria-label="Fechar mensagem" onClick={() => history.setNotice(null)}>×</button></div>}
+        {history.notice && <div className="saved-report-notice" role="status" aria-live="polite"><span>{history.notice}</span><button type="button" aria-label="Fechar mensagem" onClick={history.dismissNotice}>×</button></div>}
         <header className="page-header">
           <div className="saved-report-page-title">
             <button className="page-title-back" type="button" aria-label="Voltar para Meus Relatórios" title="Voltar" onClick={history.closeView}>
@@ -81,17 +58,39 @@ export function MyReportsPage({
             </button>
             <h1>{detail.report.name}</h1>
           </div>
-          <button className="primary-button saved-report-update-button" type="button" disabled={updateBusy} onClick={updateInProgress ? continueUpdate : () => { setUpdateError(null); setShowUpdateModal(true); }}>
-            <RefreshCw className={updateBusy ? "spinning" : ""} size={16} />{updateBusy ? "Atualizando..." : updateInProgress ? "Continuar atualização" : "Atualizar dados"}
-          </button>
         </header>
-        <GeneralIndicatorFinalizedPanel
-          result={history.view.detail.snapshot}
-          excludedCollaboratorCount={history.view.detail.report.excludedCollaboratorCount}
-          contextTitle="Resumo do relatório"
-          savedReportContext
-        />
-        {showUpdateModal && <AnnualReportUpdateModal detail={detail} busy={updateBusy} error={updateError} onClose={() => { if (!updateBusy) setShowUpdateModal(false); }} onConfirm={(value) => void startUpdate(value)} />}
+        <nav className="saved-report-tabs" aria-label="Visualizações do relatório">
+          <button
+            type="button"
+            className={activeReportTab === "overview" ? "active" : undefined}
+            aria-current={activeReportTab === "overview" ? "page" : undefined}
+            onClick={() => setActiveReportTab("overview")}
+          >
+            Visão Geral
+          </button>
+          <button
+            type="button"
+            className={activeReportTab === "period-analysis" ? "active" : undefined}
+            aria-current={activeReportTab === "period-analysis" ? "page" : undefined}
+            onClick={() => setActiveReportTab("period-analysis")}
+          >
+            Análise por período
+          </button>
+        </nav>
+        {activeReportTab === "overview" ? (
+          <GeneralIndicatorFinalizedPanel
+            result={history.view.detail.snapshot}
+            excludedCollaboratorCount={history.view.detail.report.excludedCollaboratorCount}
+            contextTitle="Resumo do relatório"
+            savedReportContext
+          />
+        ) : (
+          <ReportPeriodAnalysisPanel
+            reportId={detail.report.id}
+            officialStart={detail.report.periodStart}
+            officialEnd={detail.report.periodEnd}
+          />
+        )}
       </section>
     );
   }
@@ -109,9 +108,16 @@ export function MyReportsPage({
         </button>
       </header>
 
-      {history.notice && <div className="saved-report-notice" role="status"><span>{history.notice}</span><button type="button" aria-label="Fechar mensagem" onClick={() => history.setNotice(null)}>×</button></div>}
+      {history.notice && <div className="saved-report-notice" role="status" aria-live="polite"><span>{history.notice}</span><button type="button" aria-label="Fechar mensagem" onClick={history.dismissNotice}>×</button></div>}
 
-      <ReportFilters draft={history.draft} onChange={history.updateDraft} onApply={history.applyFilters} onClear={history.clearFilters} />
+      <ReportFilters
+        draft={history.draft}
+        canApply={history.canApplyFilters}
+        canClear={history.canClearFilters}
+        onChange={history.updateDraft}
+        onApply={history.applyFilters}
+        onClear={history.clearFilters}
+      />
 
       {history.error && !history.data && (
         <StatePanel icon={<AlertTriangle size={25} />} title="Não foi possível carregar os relatórios" text={history.error}>
@@ -138,7 +144,7 @@ export function MyReportsPage({
         </section>
       )}
 
-      {history.data && history.data.totalItems > 0 && <ReportPagination page={history.data.page} totalPages={totalPages} totalItems={history.data.totalItems} pageSize={history.pageSize} onPageChange={history.setPage} onPageSizeChange={history.changePageSize} />}
+      {history.data && shouldShowReportPagination(history.data.totalItems, history.pageSize) && <ReportPagination page={history.data.page} totalPages={totalPages} totalItems={history.data.totalItems} pageSize={history.pageSize} onPageChange={history.setPage} onPageSizeChange={history.changePageSize} />}
 
       {history.action && <ReportActionModal action={history.action} busy={history.actionBusy} error={history.actionError} onClose={history.closeAction} onConfirm={() => void history.confirmAction()} />}
     </section>

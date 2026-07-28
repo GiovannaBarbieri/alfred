@@ -101,3 +101,7 @@ class GeneralIndicatorFinalizedSnapshot(GeneralIndicatorSnapshotModel):
     audit: list[dict[str, Any]]
     inconsistencyHistory: list[dict[str, Any]] = Field(default_factory=list)
     auditPagination: dict[str, int] | None = None
+
+
+class GeneralIndicatorFinalizationResponse(GeneralIndicatorFinalizedSnapshot):
+    reportId: int

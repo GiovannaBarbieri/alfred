@@ -1,568 +1,425 @@
-# Diagramas, Endpoints e Fluxos dos Modulos
+# Endpoints e fluxos
 
-## Estrutura do banco em SQL
-
-A estrutura consolidada do banco foi separada em:
-
-```text
-docs/10-estrutura-banco.sql
-```
-
-Esse arquivo consolida:
-
-- `database/init.sql`;
-- tabelas criadas em runtime por `backend/app/services/schema_service.py`;
-- colunas adicionadas em runtime;
-- indices principais.
-
-## Diagrama das tabelas
-
-```mermaid
-erDiagram
-  CATEGORIAS ||--o{ PALAVRAS_CHAVE_CATEGORIA : possui
-  CATEGORIAS ||--o{ CLASSIFICATION_RULES : define
-  CATEGORIAS ||--o{ LANCAMENTOS_HORAS : classifica
-  CATEGORIAS ||--o{ CLASSIFICACOES_TASK : sugerida_final
-
-  SUBCATEGORIAS ||--o{ PERFIS_COLABORADOR : define
-  SUBCATEGORIAS ||--o{ CLASSIFICATION_RULES : define
-  SUBCATEGORIAS ||--o{ LANCAMENTOS_HORAS : classifica
-  SUBCATEGORIAS ||--o{ CLASSIFICACOES_TASK : sugerida_final
-
-  IMPORTACOES ||--o{ LANCAMENTOS_HORAS : contem
-  IMPORTACOES ||--o{ ERROS_IMPORTACAO : registra
-  IMPORTACOES ||--o{ DUPLICIDADES_IMPORTACAO : registra
-  IMPORTACOES ||--o{ IMPORT_LOGS : registra
-  IMPORTACOES ||--o{ PENDING_REVIEWS : possui
-  IMPORTACOES ||--o{ ANALYTICS_INSIGHTS : gera
-  IMPORTACOES ||--o{ CLASSIFICATION_REPROCESS_HISTORY : historico
-  IMPORTACOES ||--o{ COMPARATIVOS_PROJETOS_IMPORTACOES : participa
-  IMPORTACOES ||--o{ AUDITORIA_ACOES : audita
-
-  IMPORT_SESSIONS ||--o{ STAGING_ROWS : possui
-  IMPORT_SESSIONS ||--o{ IMPORT_LOGS : registra
-  IMPORT_SESSIONS }o--|| IMPORTACOES : gera
-
-  LANCAMENTOS_HORAS ||--o{ CLASSIFICACOES_TASK : possui
-  LANCAMENTOS_HORAS ||--o{ CLASSIFICATION_REPROCESS_HISTORY : historico
-  LANCAMENTOS_HORAS ||--o{ DUPLICIDADES_IMPORTACAO : mantido
-
-  COMPARATIVOS_PROJETOS ||--o{ COMPARATIVOS_PROJETOS_IMPORTACOES : possui
-
-  CATEGORIAS {
-    int id PK
-    varchar nome
-    boolean ativa
-    timestamp criado_em
-  }
-
-  SUBCATEGORIAS {
-    int id PK
-    varchar nome
-    boolean ativa
-    timestamp criado_em
-  }
-
-  PALAVRAS_CHAVE_CATEGORIA {
-    int id PK
-    int categoria_id FK
-    varchar palavra
-    boolean ativa
-    timestamp criado_em
-  }
-
-  CLASSIFICATION_RULES {
-    int id PK
-    varchar nome
-    int categoria_id FK
-    int subcategoria_id FK
-    jsonb palavras_chave
-    int prioridade
-    boolean ativa
-    varchar versao
-  }
-
-  PERFIS_COLABORADOR {
-    int id PK
-    varchar login_usuario
-    int subcategoria_id FK
-    boolean ativo
-  }
-
-  COLABORADORES_IGNORADOS {
-    int id PK
-    varchar login_usuario
-    boolean ativo
-  }
-
-  IMPORTACOES {
-    int id PK
-    varchar nome_arquivo
-    varchar hash_arquivo
-    varchar status
-    timestamp data_importacao
-    int total_registros
-    int registros_validos
-    int registros_com_alerta
-    int registros_bloqueados
-    varchar versao_classificador
-  }
-
-  IMPORT_SESSIONS {
-    int id PK
-    varchar nome_arquivo
-    varchar hash_arquivo
-    bytea conteudo_arquivo
-    varchar status
-    int importacao_final_id FK
-  }
-
-  STAGING_ROWS {
-    int id PK
-    int session_id FK
-    int linha
-    varchar id_lancamento
-    varchar id_task
-    varchar login_usuario
-    text titulo_task
-    jsonb dados_originais
-    numeric confianca
-  }
-
-  LANCAMENTOS_HORAS {
-    int id PK
-    int importacao_id FK
-    varchar id_lancamento
-    timestamp data_hora_cadastro
-    varchar login_usuario
-    varchar duracao_original
-    int duracao_segundos
-    varchar id_epic
-    varchar id_feat
-    varchar id_pbi
-    varchar id_task
-    int categoria_id FK
-    int subcategoria_id FK
-  }
-
-  CLASSIFICACOES_TASK {
-    int id PK
-    int lancamento_id FK
-    text titulo_task
-    int categoria_sugerida_id FK
-    int subcategoria_sugerida_id FK
-    int categoria_final_id FK
-    int subcategoria_final_id FK
-    varchar origem_classificacao
-    numeric confianca
-    varchar nivel_confianca
-    varchar versao_classificador
-  }
-
-  ERROS_IMPORTACAO {
-    int id PK
-    int importacao_id FK
-    int linha
-    varchar campo
-    varchar tipo_erro
-    varchar severidade
-    boolean resolvido
-  }
-
-  DUPLICIDADES_IMPORTACAO {
-    int id PK
-    int importacao_id FK
-    varchar id_lancamento
-    jsonb linhas_envolvidas
-    int registro_mantido_id FK
-    boolean resolvido
-  }
-
-  IMPORT_LOGS {
-    int id PK
-    int session_id FK
-    int importacao_id FK
-    varchar etapa
-    varchar nivel
-    varchar evento
-    jsonb metricas
-  }
-
-  PENDING_REVIEWS {
-    int id PK
-    int importacao_id FK
-    varchar tipo
-    varchar chave
-    varchar status
-  }
-
-  ANALYTICS_INSIGHTS {
-    int id PK
-    int importacao_id FK
-    varchar tipo
-    varchar severidade
-    varchar titulo
-    text descricao
-    text recomendacao
-    jsonb metricas_json
-    varchar status
-    timestamp gerado_em
-    timestamp revisado_em
-    varchar usuario_revisao
-  }
-
-  COMPARATIVOS_PROJETOS {
-    int id PK
-    varchar nome
-  }
-
-  COMPARATIVOS_PROJETOS_IMPORTACOES {
-    int id PK
-    int comparativo_id FK
-    int importacao_id FK
-    int ordem
-  }
-
-  AUDIT_LOG {
-    int id PK
-    varchar entidade
-    varchar registro_id
-    varchar acao
-    varchar usuario
-    jsonb antes
-    jsonb depois
-  }
-
-  AUDITORIA_ACOES {
-    int id PK
-    int importacao_id FK
-    varchar entidade
-    varchar entidade_id
-    varchar acao
-    jsonb valor_anterior
-    jsonb valor_novo
-  }
-
-  CLASSIFICATION_REPROCESS_HISTORY {
-    int id PK
-    int importacao_id FK
-    int lancamento_id FK
-    varchar categoria_anterior
-    varchar categoria_nova
-    numeric confianca_anterior
-    numeric confianca_nova
-    varchar usuario
-  }
-```
-
-## Lista de endpoints da API
+Revisão: **28/07/2026**.
 
 Base local:
 
 ```text
-http://localhost:8000/api
+http://127.0.0.1:8000/api
 ```
 
-### Health
+Contratos executáveis:
 
-| Metodo | Endpoint | Modulo | Descricao |
-| --- | --- | --- | --- |
-| GET | `/api/health` | Sistema | Verifica se a API esta ativa. |
+- Swagger: `/docs`;
+- OpenAPI: `/openapi.json`;
+- schemas Pydantic: `backend/app/schemas`;
+- tipos frontend: `frontend/src/types.ts` e `frontend/src/types`.
 
-### Importacao
+`*` indica parâmetro obrigatório.
 
-| Metodo | Endpoint | Descricao |
+## Sistema
+
+| Método | Endpoint | Descrição |
 | --- | --- | --- |
-| POST | `/api/imports/validate` | Valida arquivo sem staging. Mantido por compatibilidade. |
-| POST | `/api/imports/complete` | Conclui importacao sem staging. Mantido por compatibilidade. |
-| POST | `/api/imports/sessions` | Cria sessao temporaria, valida, classifica e grava staging. |
-| POST | `/api/imports/sessions/{session_id}/reprocess` | Reprocessa uma sessao temporaria com regras atuais. |
-| POST | `/api/imports/sessions/{session_id}/complete` | Confirma sessao e grava tabelas finais. |
-| DELETE | `/api/imports/sessions/{session_id}` | Cancela sessao temporaria. |
-| GET | `/api/imports` | Lista importacoes confirmadas. |
-| GET | `/api/imports/{import_id}` | Retorna detalhe da importacao. |
-| GET | `/api/imports/{import_id}/reprocess-preview` | Gera previa de reclassificacao de importacao existente. |
-| POST | `/api/imports/{import_id}/reprocess-apply` | Aplica reclassificacao em importacao existente. |
-| GET | `/api/imports/{import_id}/reprocess-history` | Lista historico de reclassificacao. |
+| GET | `/api/health` | Saúde da API; retorna `{"status":"ok"}` |
 
-### Dashboard
+## Importações
 
-| Metodo | Endpoint | Descricao |
+| Método | Endpoint | Descrição |
 | --- | --- | --- |
-| GET | `/api/dashboard/overview` | Retorna central operacional, KPIs, projetos recentes e insights. |
-| GET | `/api/dashboard/summary` | Retorna indicadores resumidos. |
-| GET | `/api/dashboard/timeline` | Retorna linha do tempo agregada. |
+| POST | `/api/imports/validate` | Validação direta legada |
+| POST | `/api/imports/complete` | Conclusão direta legada |
+| POST | `/api/imports/sessions` | Cria sessão por upload |
+| POST | `/api/imports/sessions/{session_id}/reprocess` | Reprocessa staging |
+| POST | `/api/imports/sessions/{session_id}/complete` | Confirma sessão |
+| DELETE | `/api/imports/sessions/{session_id}` | Cancela sessão |
+| GET/POST | `/api/imports/sqlserver/test-connection` | Testa conexão |
+| POST | `/api/imports/sqlserver/preview` | Cria sessão a partir do SQL Server |
+| GET | `/api/imports` | Lista importações |
+| GET | `/api/imports/{import_id}` | Detalha importação |
+| GET | `/api/imports/{import_id}/reprocess-preview` | Prévia de reclassificação |
+| POST | `/api/imports/{import_id}/reprocess-apply` | Aplica reclassificação |
+| GET | `/api/imports/{import_id}/reprocess-history` | Histórico |
 
-### Inteligencia Operacional
+Uploads usam `multipart/form-data`. Overrides, linhas mantidas e opções de reprocessamento são definidos nos schemas de importação.
 
-Observacao: endpoints preservados no backend. A tela correspondente esta oculta na navegacao atual.
+## Dashboard
 
-| Metodo | Endpoint | Descricao |
+| Método | Endpoint | Descrição |
 | --- | --- | --- |
-| GET | `/api/analytics/insights` | Consulta insights operacionais salvos. |
-| POST | `/api/analytics/insights/generate` | Gera insights para uma importacao e salva em `analytics_insights`. |
-| PATCH | `/api/analytics/insights/{insight_id}/status` | Atualiza status do insight para `novo`, `revisado` ou `ignorado`. |
+| GET | `/api/dashboard/overview` | KPIs, projetos e central operacional |
+| GET | `/api/dashboard/summary` | Resumo agregado |
+| GET | `/api/dashboard/timeline` | Linha do tempo |
 
-Filtros aceitos:
+O módulo permanece no backend, mas não está no menu atual.
 
-| Parametro | Descricao |
+## Relatórios de Projetos
+
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| GET | `/api/reports/hours` | Horas agregadas |
+| GET | `/api/reports/overview` | Visão geral |
+| GET | `/api/reports/project-timelines` | Séries temporais |
+| GET | `/api/reports/project-comparison` | Comparação avulsa |
+| GET | `/api/reports/project-evolution-options` | Projetos elegíveis |
+| GET | `/api/reports/project-evolution` | Evolução entre importações |
+| GET | `/api/reports/project-comparisons` | Lista comparativos |
+| POST | `/api/reports/project-comparisons` | Salva comparativo |
+| GET | `/api/reports/project-comparisons/{comparison_id}` | Detalha comparativo |
+| DELETE | `/api/reports/project-comparisons/{comparison_id}` | Exclui comparativo |
+| GET | `/api/reports/project-summary` | Resumo executivo |
+| GET | `/api/reports/project-pending-items` | Pendências |
+| PATCH | `/api/reports/project-pending-alerts/{alert_id}` | Atualiza alerta |
+| PATCH | `/api/reports/project-pending-reviews` | Atualiza revisão |
+| GET | `/api/reports/project-insights` | Insights |
+| GET | `/api/reports/project-recommendations` | Recomendações |
+| GET | `/api/reports/project-collaborator-tasks` | Tasks por colaborador |
+| GET | `/api/reports/filters` | Opções de filtro |
+
+Filtros variam por endpoint e incluem importação/projeto, período, colaborador, categoria e subcategoria. Swagger é a referência de parâmetros.
+
+## Exportações
+
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| GET | `/api/exports/consolidated.csv` | Consolidado CSV |
+| GET | `/api/exports/report.csv` | Relatório CSV |
+| GET | `/api/exports/project-analysis.xlsx` | Análise de projeto |
+| GET | `/api/exports/project-comparison.xlsx` | Comparativo |
+| GET | `/api/exports/project-evolution.xlsx` | Evolução |
+
+## Configurações
+
+### Bootstrap
+
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| GET | `/api/settings/bootstrap` | Retorna configurações em uma única chamada |
+
+### Categorias
+
+| Método | Endpoint |
 | --- | --- |
-| `importacao_id` | Importacao especifica dos insights salvos. |
-| `type` | Tipo do insight: `anomalia`, `tendencia`, `concentracao`, `qualidade`, `risco`. |
-| `severity` | Severidade: `baixa`, `media`, `alta`. |
-| `status` | Status: `novo`, `revisado`, `ignorado`. |
+| GET/POST | `/api/settings/categories` |
+| PATCH/DELETE | `/api/settings/categories/{category_id}` |
 
-### Relatorios
+### Subcategorias
 
-| Metodo | Endpoint | Descricao |
+| Método | Endpoint |
+| --- | --- |
+| GET/POST | `/api/settings/subcategories` |
+| PATCH/DELETE | `/api/settings/subcategories/{subcategory_id}` |
+
+### Palavras-chave
+
+| Método | Endpoint |
+| --- | --- |
+| GET/POST | `/api/settings/keywords` |
+| PATCH | `/api/settings/keywords/{keyword_id}` |
+
+### Colaboradores
+
+| Método | Endpoint |
+| --- | --- |
+| GET/POST | `/api/settings/collaborator-profiles` |
+| PATCH/DELETE | `/api/settings/collaborator-profiles/{profile_id}` |
+| GET/POST | `/api/settings/ignored-collaborators` |
+| DELETE | `/api/settings/ignored-collaborators/{ignored_id}` |
+
+### Regras
+
+| Método | Endpoint |
+| --- | --- |
+| GET/POST | `/api/settings/classification-rules` |
+| PATCH | `/api/settings/classification-rules/{rule_id}` |
+
+### Pesos
+
+| Método | Endpoint | Descrição |
 | --- | --- | --- |
-| GET | `/api/reports/hours` | Relatorio agregado de horas. |
-| GET | `/api/reports/overview` | Visao geral dos relatorios. |
-| GET | `/api/reports/project-timelines` | Graficos temporais de um projeto/importacao. |
-| GET | `/api/reports/project-comparison` | Comparacao entre importacoes selecionadas. |
-| GET | `/api/reports/project-evolution-options` | Lista projetos com mais de uma versao/importacao. |
-| GET | `/api/reports/project-evolution` | Evolucao de um projeto entre importacoes. |
-| GET | `/api/reports/project-comparisons` | Lista comparativos salvos. |
-| POST | `/api/reports/project-comparisons` | Cria comparativo salvo. |
-| GET | `/api/reports/project-comparisons/{comparison_id}` | Detalha comparativo salvo. |
-| DELETE | `/api/reports/project-comparisons/{comparison_id}` | Exclui comparativo salvo. |
-| GET | `/api/reports/project-summary` | Retorna resumo executivo de projeto. |
-| GET | `/api/reports/project-pending-items` | Retorna pendencias do projeto. |
-| PATCH | `/api/reports/project-pending-alerts/{alert_id}` | Atualiza alerta de importacao. |
-| PATCH | `/api/reports/project-pending-reviews` | Atualiza status de pendencia operacional. |
-| GET | `/api/reports/project-insights` | Retorna insights operacionais do projeto. |
-| GET | `/api/reports/project-recommendations` | Retorna recomendacoes operacionais. |
-| GET | `/api/reports/project-collaborator-tasks` | Retorna tasks trabalhadas por colaborador. |
-| GET | `/api/reports/filters` | Retorna opcoes de filtros. |
+| GET | `/api/settings/distribution-weights` | Lista configuração |
+| PUT | `/api/settings/distribution-weights` | Salva todos os pesos |
+| POST | `/api/settings/distribution-weights/restore-defaults` | Restaura padrão |
 
-### Exportacoes
+Cabeçalho opcional de usuário é tratado conforme a rota atual. O serviço valida lista completa, pesos 1–5 e pelo menos uma categoria ativa.
 
-| Metodo | Endpoint | Descricao |
+## Indicadores Gerais — consulta
+
+### Iniciar
+
+```http
+POST /api/general-indicators/consultations
+  ?startDate=2026-01-01
+  &endDate=2026-03-31
+```
+
+Resposta `202 Accepted`:
+
+```json
+{
+  "consultationId": 123,
+  "status": "CONSULTANDO"
+}
+```
+
+O processamento continua em background.
+
+### Acompanhar
+
+```http
+GET /api/general-indicators/consultations/{consultation_id}
+  ?page=1
+  &pageSize=100
+```
+
+Limites:
+
+- `page >= 1`;
+- `1 <= pageSize <= 500`.
+
+Durante processamento, retorna progresso persistido. Ao concluir, retorna resumo, pendências, capacidade de finalizar e página de lançamentos.
+
+### Atualizar pendências
+
+```http
+POST /api/general-indicators/consultations/{consultation_id}/pending-refresh
+  ?page=1
+  &pageSize=100
+```
+
+Reconsulta somente entidades afetadas.
+
+### Refazer consulta
+
+```http
+POST /api/general-indicators/consultations/{consultation_id}/full-refresh
+  ?confirm=true
+  &page=1
+  &pageSize=100
+```
+
+Sem `confirm=true`, retorna `422`.
+
+### Salvar/finalizar
+
+```http
+POST /api/general-indicators/consultations/{consultation_id}/finalize
+Content-Type: application/json
+
+{
+  "reportName": "1º Trimestre 2026"
+}
+```
+
+Condições:
+
+- consulta existente;
+- estado pronto;
+- ao menos um lançamento elegível;
+- sem operação concorrente;
+- nome com 1 a 255 caracteres.
+
+A resposta inclui `reportId`, usado pelo frontend para abrir o relatório.
+
+### Resultado e auditoria
+
+| Método | Endpoint | Uso |
 | --- | --- | --- |
-| GET | `/api/exports/consolidated.csv` | Exporta consolidado geral em CSV. |
-| GET | `/api/exports/report.csv` | Exporta relatorio em CSV. |
-| GET | `/api/exports/project-analysis.xlsx` | Exporta analise de projeto em Excel. |
-| GET | `/api/exports/project-comparison.xlsx` | Exporta comparativo de projetos em Excel. |
-| GET | `/api/exports/project-evolution.xlsx` | Exporta evolucao do projeto em Excel. |
+| GET | `/api/general-indicators/consultations/{consultation_id}/result` | Snapshot oficial |
+| GET | `/api/general-indicators/consultations/{consultation_id}/audit?page=1&pageSize=100` | Auditoria paginada |
 
-### Configuracoes
+### Endpoint síncrono legado
 
-| Metodo | Endpoint | Descricao |
+```http
+GET /api/general-indicators/consultation
+  ?startDate=...
+  &endDate=...
+  &page=1
+  &pageSize=100
+```
+
+Mantido por compatibilidade técnica. Novos clientes devem usar `POST /consultations` e polling.
+
+### Erros principais
+
+| HTTP | Situação |
+| --- | --- |
+| 400 | erro de integração/dados |
+| 404 | consulta não encontrada |
+| 409 | concorrência ou consulta finalizada |
+| 422 | período/estado/confirmação/regra inválida |
+| 503 | configuração ou conexão SQL Server |
+| 504 | timeout SQL Server |
+
+## Meus Relatórios
+
+### Listagem
+
+```http
+GET /api/general-indicators/reports
+  ?type=GENERAL_INDICATORS
+  &year=2026
+  &search=trimestre
+  &page=1
+  &pageSize=20
+```
+
+Parâmetros:
+
+| Parâmetro | Regra |
+| --- | --- |
+| `type` | padrão `GENERAL_INDICATORS` |
+| `year` | 2000–2200 |
+| `search` | até 255 caracteres |
+| `page` | mínimo 1 |
+| `pageSize` | 1–100 |
+
+Resposta:
+
+```json
+{
+  "items": [],
+  "page": 1,
+  "pageSize": 20,
+  "totalItems": 0,
+  "totalPages": 0
+}
+```
+
+Itens incluem nome, período, revisão, total, lançamentos considerados, colaboradores excluídos, KPIs, responsável e estado de atualização.
+
+### Detalhe
+
+```http
+GET /api/general-indicators/reports/{report_id}
+```
+
+Retorna:
+
+```text
+report
+currentRevision
+snapshot
+update
+revisionCount
+```
+
+Fonte exclusiva: PostgreSQL.
+
+### Análise por período
+
+```http
+GET /api/general-indicators/reports/{report_id}/period-analysis
+  ?startDate=2026-02-01
+  &endDate=2026-03-31
+```
+
+Resposta:
+
+```json
+{
+  "reportId": 36,
+  "source": "SAVED_SNAPSHOT",
+  "officialPeriod": {
+    "startDate": "2026-01-01",
+    "endDate": "2026-06-30"
+  },
+  "analyzedPeriod": {
+    "startDate": "2026-02-01",
+    "endDate": "2026-03-31"
+  },
+  "recordCount": 0,
+  "totalHours": 0,
+  "kpis": {},
+  "categories": [],
+  "months": []
+}
+```
+
+O endpoint:
+
+- valida limites;
+- usa audit trail e pesos do snapshot;
+- não consulta TFS/SQL Server;
+- não grava dados;
+- não retorna a auditoria técnica.
+
+Erros:
+
+- `404`: relatório inexistente;
+- `422`: período inválido ou snapshot sem dados históricos necessários.
+
+### Exclusão
+
+```http
+DELETE /api/general-indicators/reports/{report_id}?actor=usuario
+```
+
+- permanente;
+- transacional;
+- sem consulta ao TFS;
+- `404` inexistente;
+- `409` em processamento.
+
+## Auditoria e analytics
+
+| Método | Endpoint | Observação |
 | --- | --- | --- |
-| GET | `/api/settings/categories` | Lista categorias. |
-| POST | `/api/settings/categories` | Cria categoria. |
-| PATCH | `/api/settings/categories/{category_id}` | Atualiza categoria. |
-| GET | `/api/settings/subcategories` | Lista subcategorias. |
-| POST | `/api/settings/subcategories` | Cria subcategoria. |
-| PATCH | `/api/settings/subcategories/{subcategory_id}` | Atualiza subcategoria. |
-| GET | `/api/settings/keywords` | Lista palavras-chave. |
-| POST | `/api/settings/keywords` | Cria palavra-chave. |
-| PATCH | `/api/settings/keywords/{keyword_id}` | Atualiza palavra-chave. |
-| GET | `/api/settings/collaborator-profiles` | Lista perfis de colaboradores. |
-| POST | `/api/settings/collaborator-profiles` | Cria perfil de colaborador. |
-| PATCH | `/api/settings/collaborator-profiles/{profile_id}` | Atualiza perfil de colaborador. |
-| GET | `/api/settings/ignored-collaborators` | Lista colaboradores ignorados. |
-| POST | `/api/settings/ignored-collaborators` | Ignora colaborador sem perfil. |
-| DELETE | `/api/settings/ignored-collaborators/{ignored_id}` | Restaura colaborador ignorado. |
-| GET | `/api/settings/classification-rules` | Lista regras de classificacao. |
-| POST | `/api/settings/classification-rules` | Cria regra de classificacao. |
-| PATCH | `/api/settings/classification-rules/{rule_id}` | Atualiza regra de classificacao. |
+| GET | `/api/audit` | Tela fora do menu |
+| GET | `/api/analytics/insights` | Lista insights |
+| POST | `/api/analytics/insights/generate` | Gera/persiste |
+| PATCH | `/api/analytics/insights/{insight_id}/status` | Atualiza status |
 
-### Auditoria
+## Fluxos resumidos
 
-Observacao: endpoint preservado no backend. A tela correspondente esta oculta na navegacao atual.
-
-| Metodo | Endpoint | Descricao |
-| --- | --- | --- |
-| GET | `/api/audit` | Consulta logs de auditoria com filtros. |
-
-## Fluxo de cada modulo
-
-### 1. Dashboard
+### Importação
 
 ```mermaid
-flowchart TD
-  A["Abrir Dashboard"] --> B["Frontend chama /api/dashboard/overview"]
-  B --> C["Backend consulta importacoes, lancamentos e pendencias"]
-  C --> D["Retorna KPIs e insights"]
-  D --> E["Tela exibe central operacional"]
-  E --> F["Usuario abre relatorio de um projeto"]
-  F --> G["Navega para Relatorios com importId selecionado"]
+sequenceDiagram
+  participant U as Usuário
+  participant F as Frontend
+  participant A as API
+  participant P as PostgreSQL
+  U->>F: seleciona origem
+  F->>A: POST /imports/sessions
+  A->>P: sessão + staging
+  A-->>F: validação/classificação
+  U->>F: resolve e confirma
+  F->>A: POST /sessions/{id}/complete
+  A->>P: dados finais
+  A-->>F: importId
 ```
 
-### 2. Importacao
+### Indicadores
 
 ```mermaid
-flowchart TD
-  A["Selecionar Excel/CSV"] --> B["POST /api/imports/sessions"]
-  B --> C["Selecionar aba valida se Excel tiver varias abas"]
-  C --> D["Ler e normalizar planilha"]
-  D --> E["Validar colunas e linhas"]
-  E --> F["Classificar atividades"]
-  F --> G["Criar import_sessions"]
-  G --> H["Salvar staging_rows"]
-  H --> I["Retornar pre-validacao"]
+sequenceDiagram
+  participant F as Frontend
+  participant A as API
+  participant T as TFS
+  participant P as PostgreSQL
+  F->>A: POST /consultations
+  A-->>F: consultationId
+  A->>T: leitura em lote
+  A->>P: snapshot técnico
+  F->>A: polling
+  F->>A: POST /finalize + nome
+  A->>P: snapshot oficial + relatório
+  A-->>F: reportId
+  F->>A: GET /reports/{reportId}
+  A->>P: lê snapshot
+  A-->>F: relatório salvo
 ```
 
-### 2.1 Inteligencia Operacional
+### Análise por período
 
 ```mermaid
-flowchart TD
-  A["Modulo oculto no frontend"] --> B["GET /api/analytics/insights"]
-  B --> C["Consultar historico salvo quando reativado"]
-  C --> D["Selecionar importacao"]
-  D --> E["POST /api/analytics/insights/generate"]
-  E --> F["Comparar com importacao anterior e gerar insights"]
-  F --> G["Salvar em analytics_insights sem duplicar"]
-  G --> H["Usuario revisa ou ignora"]
-  H --> I["PATCH /api/analytics/insights/{id}/status"]
-  I --> J["Registrar auditoria"]
-```
-
-### 3. Validacao e classificacao
-
-```mermaid
-flowchart TD
-  A["Abrir validacao"] --> B["Exibir saude da importacao"]
-  B --> C{"Ha bloqueios?"}
-  C -- "Sim" --> D["Usuario corrige duplicidades/bloqueios"]
-  C -- "Nao" --> E{"Ha colaboradores sem perfil?"}
-  D --> E
-  E -- "Sim" --> F["Modal Novos colaboradores encontrados"]
-  F --> G["POST /api/settings/collaborator-profiles"]
-  E -- "Nao" --> H["Usuario revisa classificacoes abaixo de 90%"]
-  G --> H
-  H --> I["Aplicar overrides manuais se necessario"]
-  I --> J["Confirmar importacao"]
-```
-
-### 4. Confirmacao da importacao
-
-```mermaid
-flowchart TD
-  A["Usuario confirma"] --> B["POST /api/imports/sessions/{id}/complete"]
-  B --> C["Backend revalida bloqueios"]
-  C --> D{"Pode concluir?"}
-  D -- "Nao" --> E["Retorna erro e mantem sessao"]
-  D -- "Sim" --> F["Monta registros finais a partir do staging"]
-  F --> G["Persiste importacoes"]
-  G --> H["Persiste lancamentos_horas"]
-  H --> I["Persiste erros, duplicidades e classificacoes"]
-  I --> J["Registra import_logs e audit_log"]
-  J --> K["Frontend abre Relatorios"]
-```
-
-### 5. Relatorios
-
-```mermaid
-flowchart TD
-  A["Abrir Relatorios"] --> B["GET /api/imports"]
-  B --> C["Listar projetos/importacoes"]
-  C --> D["Usuario seleciona projeto"]
-  D --> E["Carregar executivo, graficos e tasks"]
-  E --> F["Usuario alterna abas"]
-  F --> G["Executivo"]
-  F --> H["Graficos"]
-  F --> I["Tasks"]
-```
-
-### 6. Pendencias do relatorio
-
-```mermaid
-flowchart TD
-  A["Funcionalidade preservada no backend"] --> B["GET /api/reports/project-pending-items"]
-  B --> C["Dados podem compor alertas executivos"]
-  C --> D["Aba Pendencias esta oculta na interface atual"]
-  D --> E{"Acao"}
-  E -- "Revisar" --> F["PATCH /api/reports/project-pending-reviews"]
-  E -- "Ignorar" --> G["PATCH /api/reports/project-pending-reviews"]
-  F --> H["Atualizar lista"]
-  G --> H
-```
-
-### 7. Tasks por colaborador
-
-```mermaid
-flowchart TD
-  A["Abrir aba Tasks"] --> B["Selecionar colaborador"]
-  B --> C["GET /api/reports/project-collaborator-tasks"]
-  C --> D["Exibir lista com id, titulo, categoria e duracao"]
-  D --> E["Exibir total de duracao"]
-```
-
-### 8. Comparativos
-
-```mermaid
-flowchart TD
-  A["Abrir Comparativos"] --> B["Selecionar importacoes"]
-  B --> C["GET /api/reports/project-comparison"]
-  C --> D["Exibir horas, categorias, colaboradores e pendencias"]
-  D --> E{"Salvar comparativo?"}
-  E -- "Sim" --> F["POST /api/reports/project-comparisons"]
-  E -- "Nao" --> G["Manter comparacao temporaria"]
-```
-
-### 9. Evolucao do projeto
-
-```mermaid
-flowchart TD
-  A["Abrir aba Evolucao"] --> B["GET /api/reports/project-evolution-options"]
-  B --> C["Selecionar projeto com multiplas importacoes"]
-  C --> D["GET /api/reports/project-evolution"]
-  D --> E["Exibir variacao de horas, registros e pendencias"]
-```
-
-### 10. Historico
-
-```mermaid
-flowchart TD
-  A["Modulo oculto no frontend"] --> B["GET /api/imports"]
-  B --> C["Listar importacoes"]
-  C --> D["Selecionar importacao"]
-  D --> E["GET /api/imports/{id}"]
-  E --> F["Exibir detalhe e lancamentos"]
-  F --> G["Limpar selecao se usuario desejar"]
-```
-
-### 11. Configuracoes
-
-```mermaid
-flowchart TD
-  A["Abrir Configuracoes"] --> B["Carregar categorias, subcategorias, palavras-chave, regras e perfis"]
-  B --> C["Usuario escolhe aba"]
-  C --> D{"Tipo de manutencao"}
-  D -- "Categoria/Subcategoria" --> E["Criar, renomear, ativar ou inativar"]
-  D -- "Palavra-chave" --> F["Criar, mover, ativar, inativar ou editar"]
-  D -- "Regra" --> G["Criar ou atualizar regra configuravel"]
-  D -- "Colaborador" --> H["Cadastrar perfil, inativar ou ignorar"]
-  E --> I["Impacta proximas importacoes/reprocessamentos"]
-  F --> I
-  G --> I
-  H --> I
-```
-
-### 12. Auditoria
-
-```mermaid
-flowchart TD
-  A["Acoes importantes no sistema"] --> B["insert_audit_log"]
-  B --> C["Gravar audit_log"]
-  D["Modulo oculto no frontend"] --> E["GET /api/audit"]
-  E --> F["Aplicar filtros"]
-  F --> G["Exibir eventos"]
-```
-
-### 13. Exportacoes
-
-```mermaid
-flowchart TD
-  A["Usuario aciona download"] --> B{"Tipo de exportacao"}
-  B -- "Projeto" --> C["GET /api/exports/project-analysis.xlsx"]
-  B -- "Comparativo" --> D["GET /api/exports/project-comparison.xlsx"]
-  B -- "Evolucao" --> E["GET /api/exports/project-evolution.xlsx"]
-  B -- "CSV" --> F["GET /api/exports/report.csv ou consolidated.csv"]
-  C --> G["Arquivo gerado"]
-  D --> G
-  E --> G
-  F --> G
+sequenceDiagram
+  participant F as Frontend
+  participant A as API
+  participant P as PostgreSQL
+  F->>A: GET /reports/{id}/period-analysis
+  A->>P: snapshot completo
+  A->>A: filtra + recalcula com pesos históricos
+  A-->>F: agregados
 ```

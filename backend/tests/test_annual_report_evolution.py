@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 from datetime import date, datetime, timezone
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from app.repositories.report_history_repository import begin_annual_report_update
 from app.services.general_indicators_service import create_general_indicator_validation
@@ -102,18 +102,33 @@ class AnnualReportUpdateRepositoryTests(unittest.TestCase):
 
 
 class AnnualReportArchitectureTests(unittest.TestCase):
-    def test_initial_consultation_rejects_non_january_start(self) -> None:
-        with self.assertRaisesRegex(ValueError, "01/01"):
-            create_general_indicator_validation(
-                start_date=date(2026, 2, 1),
-                end_date=date(2026, 3, 31),
-            )
+    @patch("app.services.general_indicators_service.get_connection")
+    @patch("app.services.general_indicators_service.create_general_indicator_consultation", return_value=10)
+    @patch("app.services.general_indicators_service.update_general_indicator_consultation_progress")
+    def test_initial_consultation_accepts_non_january_start(self, _progress, _create, connection) -> None:
+        connection.return_value.__enter__.return_value = MagicMock()
+        result = create_general_indicator_validation(
+            start_date=date(2026, 2, 1),
+            end_date=date(2026, 3, 31),
+        )
+        self.assertEqual(result["consultationId"], 10)
 
-    def test_initial_consultation_rejects_cross_year_period(self) -> None:
-        with self.assertRaisesRegex(ValueError, "mesmo ano"):
+    @patch("app.services.general_indicators_service.get_connection")
+    @patch("app.services.general_indicators_service.create_general_indicator_consultation", return_value=11)
+    @patch("app.services.general_indicators_service.update_general_indicator_consultation_progress")
+    def test_initial_consultation_accepts_cross_year_period(self, _progress, _create, connection) -> None:
+        connection.return_value.__enter__.return_value = MagicMock()
+        result = create_general_indicator_validation(
+            start_date=date(2026, 12, 1),
+            end_date=date(2027, 1, 31),
+        )
+        self.assertEqual(result["consultationId"], 11)
+
+    def test_initial_consultation_rejects_inverted_period(self) -> None:
+        with self.assertRaisesRegex(ValueError, "posterior"):
             create_general_indicator_validation(
-                start_date=date(2026, 1, 1),
-                end_date=date(2027, 1, 1),
+                start_date=date(2026, 3, 31),
+                end_date=date(2026, 2, 1),
             )
 
     def test_migration_preserves_snapshots_and_builds_one_identity_per_year(self) -> None:

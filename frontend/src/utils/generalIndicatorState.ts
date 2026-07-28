@@ -13,7 +13,7 @@ export function resolveGeneralIndicatorScreenState(input: {
   uniqueLaunchCount?: number;
   canFinalize?: boolean;
   hasFinalData: boolean;
-  operation: "consultation" | "pending" | "full" | "finalization" | null;
+  operation: "consultation" | "pending" | "finalization" | null;
   hasError: boolean;
 }): GeneralIndicatorScreenState {
   if (input.operation === "finalization") return "finalizing";
@@ -23,21 +23,6 @@ export function resolveGeneralIndicatorScreenState(input: {
   if (!input.hasConsultation) return "initial";
   if ((input.uniqueLaunchCount ?? 0) === 0) return "empty";
   return input.canFinalize ? "ready" : "inconsistencies";
-}
-
-export function requiresConsultationReplacementConfirmation(input: {
-  hasConsultation: boolean;
-  isFinalized: boolean;
-  currentStartDate?: string;
-  currentEndDate?: string;
-  requestedStartDate: string;
-  requestedEndDate: string;
-}): boolean {
-  return Boolean(
-    input.hasConsultation
-      && !input.isFinalized
-      && (input.currentStartDate !== input.requestedStartDate || input.currentEndDate !== input.requestedEndDate),
-  );
 }
 
 export function isCompletedGeneralIndicatorValidation(input: {

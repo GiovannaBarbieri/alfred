@@ -1,94 +1,61 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { GeneralIndicatorConsultationPanel } from "../components/general-indicators/GeneralIndicatorConsultationPanel";
-import { GeneralIndicatorFinalizedPanel } from "../components/general-indicators/GeneralIndicatorFinalizedPanel";
 import {
   consultGeneralIndicatorLaunches,
   finalizeGeneralIndicatorConsultation,
-  refreshFullGeneralIndicatorConsultation,
   refreshGeneralIndicatorPendings,
-  waitForGeneralIndicatorConsultation,
 } from "../services/api";
-import type { AnnualReportFlowContext, GeneralIndicatorConsultationProgress, GeneralIndicatorConsultationResponse, GeneralIndicatorFinalizedResponse } from "../types";
-import { requiresConsultationReplacementConfirmation, resolveGeneralIndicatorScreenState } from "../utils/generalIndicatorState";
+import type { GeneralIndicatorConsultationProgress, GeneralIndicatorConsultationResponse } from "../types";
+import { resolveGeneralIndicatorScreenState } from "../utils/generalIndicatorState";
 
-type Operation = "consultation" | "pending" | "full" | "finalization" | null;
+type Operation = "consultation" | "pending" | "finalization" | null;
 type DateShortcut = "current-month" | "previous-month" | "current-quarter" | "current-year" | "last-30-days";
 
-export function GeneralIndicatorsFlowPage({
-  annualUpdate,
-  onAnnualUpdateCompleted,
-}: {
-  annualUpdate?: AnnualReportFlowContext | null;
-  onAnnualUpdateCompleted?: (reportId: number) => void;
-} = {}) {
+export function GeneralIndicatorsFlowPage({ onReportSaved }: { onReportSaved: (reportId: number) => void }) {
   const today = new Date();
-  const initialDates = annualUpdate
-    ? { startDate: annualUpdate.periodStart, endDate: annualUpdate.periodEnd }
-    : yearDates(today.getFullYear());
-  const [year, setYear] = useState(annualUpdate ? Number(annualUpdate.periodStart.slice(0, 4)) : today.getFullYear());
+  const initialDates = yearDates(today.getFullYear());
+  const [year, setYear] = useState(today.getFullYear());
   const [startDate, setStartDate] = useState(initialDates.startDate);
   const [endDate, setEndDate] = useState(initialDates.endDate);
   const [consultation, setConsultation] = useState<GeneralIndicatorConsultationResponse | null>(null);
-  const [finalData, setFinalData] = useState<GeneralIndicatorFinalizedResponse | null>(null);
   const [operation, setOperation] = useState<Operation>(null);
   const [error, setError] = useState<string | null>(null);
+  const [reportName, setReportName] = useState("");
   const [consultationProgress, setConsultationProgress] = useState<GeneralIndicatorConsultationProgress | null>(null);
-  const resumedUpdateRef = useRef<number | null>(null);
+  const finalizationInFlight = useRef(false);
   const busy = operation !== null;
-
-  useEffect(() => {
-    if (!annualUpdate || resumedUpdateRef.current === annualUpdate.consultationId) return;
-    resumedUpdateRef.current = annualUpdate.consultationId;
-    setOperation("consultation");
-    setConsultationProgress({ stage: "starting", percentage: 0, message: "Carregando atualização do relatório anual." });
-    void waitForGeneralIndicatorConsultation(annualUpdate.consultationId, setConsultationProgress)
-      .then((result) => setConsultation(result))
-      .catch((caught) => setError(errorMessage(caught, "Não foi possível continuar a atualização do relatório anual.")))
-      .finally(() => { setOperation(null); setConsultationProgress(null); });
-  }, [annualUpdate]);
 
   const screenState = useMemo(() => resolveGeneralIndicatorScreenState({
     hasConsultation: consultation !== null,
     uniqueLaunchCount: consultation?.summary.uniqueLaunchCount,
     canFinalize: consultation?.canFinalize,
-    hasFinalData: finalData !== null,
+    hasFinalData: false,
     operation,
     hasError: error !== null,
-  }), [consultation, error, finalData, operation]);
+  }), [consultation, error, operation]);
 
   const load = useCallback(async () => {
     if (!startDate) return setError("Informe a Data Inicial.");
     if (!endDate) return setError("Informe a Data Final.");
     if (startDate > endDate) return setError("A Data Inicial deve ser menor ou igual à Data Final.");
 
-    if (consultation && consultation.period.startDate === startDate && consultation.period.endDate === endDate && !finalData) {
-      setError("Este período já foi consultado. Use as ações da consulta atual.");
-      return;
-    }
-    if (requiresConsultationReplacementConfirmation({
-      hasConsultation: consultation !== null,
-      isFinalized: finalData !== null,
-      currentStartDate: consultation?.period.startDate,
-      currentEndDate: consultation?.period.endDate,
-      requestedStartDate: startDate,
-      requestedEndDate: endDate,
-    }) && !window.confirm("Existe uma consulta não finalizada. Deseja substituí-la pelo novo período?")) return;
-
     setOperation("consultation");
     setConsultationProgress({ stage: "starting", percentage: 0, message: "Iniciando consulta." });
     setError(null);
+    setConsultation(null);
+    setReportName("");
     try {
       const result = await consultGeneralIndicatorLaunches(startDate, endDate, setConsultationProgress);
       setConsultation(result);
-      setFinalData(null);
+      setReportName(suggestReportName(startDate, endDate));
     } catch (caught) {
       setError(errorMessage(caught, "Não foi possível consultar os indicadores."));
     } finally {
       setOperation(null);
       setConsultationProgress(null);
     }
-  }, [consultation, endDate, finalData, startDate]);
+  }, [endDate, startDate]);
 
   const refreshPendings = useCallback(async () => {
     if (!consultation) return;
@@ -98,24 +65,24 @@ export function GeneralIndicatorsFlowPage({
     finally { setOperation(null); }
   }, [consultation]);
 
-  const refreshFull = useCallback(async () => {
-    if (!consultation || !window.confirm("Refazer a consulta completa buscará novamente todos os lançamentos do período. Deseja continuar?")) return;
-    setOperation("full"); setError(null);
-    try { setConsultation(await refreshFullGeneralIndicatorConsultation(consultation.consultationId)); }
-    catch (caught) { setError(errorMessage(caught, "Não foi possível refazer a consulta completa.")); }
-    finally { setOperation(null); }
-  }, [consultation]);
-
   const finalize = useCallback(async () => {
-    if (!consultation?.canFinalize) return;
+    if (!consultation?.canFinalize || finalizationInFlight.current) return;
+    if (!reportName.trim()) {
+      setError("Informe o nome do relatório.");
+      return;
+    }
+    finalizationInFlight.current = true;
     setOperation("finalization"); setError(null);
     try {
-      setFinalData(await finalizeGeneralIndicatorConsultation(consultation.consultationId));
-      if (annualUpdate && onAnnualUpdateCompleted) onAnnualUpdateCompleted(annualUpdate.reportId);
+      const finalized = await finalizeGeneralIndicatorConsultation(consultation.consultationId, reportName);
+      if (!finalized.reportId) {
+        throw new Error("O relatório foi salvo, mas seu identificador não foi retornado.");
+      }
+      onReportSaved(finalized.reportId);
     }
     catch (caught) { setError(errorMessage(caught, "Não foi possível finalizar os indicadores.")); }
-    finally { setOperation(null); }
-  }, [annualUpdate, consultation, onAnnualUpdateCompleted]);
+    finally { finalizationInFlight.current = false; setOperation(null); }
+  }, [consultation, onReportSaved, reportName]);
 
   function selectYear(nextYear: number) {
     setYear(nextYear);
@@ -126,44 +93,37 @@ export function GeneralIndicatorsFlowPage({
 
   function applyShortcut(shortcut: DateShortcut) {
     const dates = shortcutDates(shortcut, new Date());
-    const shortcutYear = Number(dates.endDate.slice(0, 4));
+    const shortcutYear = Number(dates.startDate.slice(0, 4));
     setYear(shortcutYear);
-    setStartDate(`${shortcutYear}-01-01`);
+    setStartDate(dates.startDate);
     setEndDate(dates.endDate);
     setError(null);
   }
 
-  function focusPeriod() {
-    document.getElementById("general-indicator-start-date")?.focus();
-    document.querySelector(".general-indicators-filters")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
   return (
     <section className="general-indicators-page" data-state={screenState}>
-      {annualUpdate && <div className="panel annual-report-flow-banner" role="status"><RefreshCw size={17} /><div><strong>Atualização de {annualUpdate.reportName}</strong><span>Consulta completa de {formatIsoDate(annualUpdate.periodStart)} até {formatIsoDate(annualUpdate.periodEnd)}.</span></div></div>}
       <section className="panel general-indicators-filters" aria-label="Filtros dos indicadores gerais">
         <div className="general-indicators-filter-grid">
-          <label><span>Ano</span><input disabled={busy || Boolean(annualUpdate)} type="number" min="2020" max="2100" value={year} onChange={(event) => selectYear(Number(event.target.value))} /></label>
-          <label><span>Data inicial</span><input id="general-indicator-start-date" disabled required type="date" value={startDate} /></label>
-          <label><span>Data final</span><input disabled={busy || Boolean(annualUpdate)} required type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} /></label>
-          <button className="primary-button general-indicators-refresh" type="button" onClick={() => void load()} disabled={busy || Boolean(annualUpdate)}>
+          <label><span>Ano</span><input disabled={busy} type="number" min="2020" max="2100" value={year} onChange={(event) => selectYear(Number(event.target.value))} /></label>
+          <label><span>Data inicial</span><input id="general-indicator-start-date" disabled={busy} required type="date" value={startDate} onChange={(event) => { setStartDate(event.target.value); setYear(Number(event.target.value.slice(0, 4))); }} /></label>
+          <label><span>Data final</span><input disabled={busy} required type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} /></label>
+          <button className="primary-button general-indicators-refresh" type="button" onClick={() => void load()} disabled={busy}>
             <RefreshCw size={16} className={operation === "consultation" ? "spinning" : ""} />{operation === "consultation" ? "Consultando..." : "Consultar"}
           </button>
         </div>
-        {!annualUpdate && <div className="general-indicators-shortcuts" aria-label="Atalhos de período">
+        <div className="general-indicators-shortcuts" aria-label="Atalhos de período">
           <span>Preencher período:</span>
           <button disabled={busy} type="button" onClick={() => applyShortcut("current-month")}>Mês atual</button>
           <button disabled={busy} type="button" onClick={() => applyShortcut("previous-month")}>Mês anterior</button>
           <button disabled={busy} type="button" onClick={() => applyShortcut("current-quarter")}>Trimestre atual</button>
           <button disabled={busy} type="button" onClick={() => applyShortcut("current-year")}>Ano atual</button>
           <button disabled={busy} type="button" onClick={() => applyShortcut("last-30-days")}>Últimos 30 dias</button>
-        </div>}
+        </div>
       </section>
 
       {operation && <Processing operation={operation} affected={consultation?.summary.affectedLaunchCount} progress={consultationProgress} />}
       {error && <div className="error-banner" role="alert"><AlertTriangle size={18} />{error}</div>}
-      {!finalData && consultation && <GeneralIndicatorConsultationPanel consultation={consultation} operation={operation} onRefreshPendings={() => void refreshPendings()} onRefreshFull={() => void refreshFull()} onFinalize={() => void finalize()} onBack={focusPeriod} />}
-      {finalData && <GeneralIndicatorFinalizedPanel result={finalData} excludedCollaboratorCount={consultation?.summary.excludedCollaboratorCount ?? 0} />}
+      {consultation && <GeneralIndicatorConsultationPanel consultation={consultation} operation={operation} onRefreshPendings={() => void refreshPendings()} onFinalize={() => void finalize()} reportName={reportName} onReportNameChange={setReportName} />}
     </section>
   );
 }
@@ -172,8 +132,7 @@ function Processing({ operation, affected, progress }: { operation: Exclude<Oper
   const content = {
     consultation: ["Buscando lançamentos", "Consultando o período, resolvendo hierarquias e validando os dados."],
     pending: ["Atualizando pendências", `Reconsultando somente os itens afetados${affected !== undefined ? ` (${affected} lançamentos)` : ""}.`],
-    full: ["Refazendo consulta completa", "Buscando novamente todos os lançamentos do período."],
-    finalization: ["Finalizando indicadores", "Calculando e registrando o resultado oficial."],
+    finalization: ["Salvando relatório", "Registrando um novo snapshot independente."],
   }[operation];
   const message = operation === "consultation" && progress ? `${progress.message} (${progress.percentage}%)` : content[1];
   return <div className="general-indicator-processing" role="status" aria-live="polite"><RefreshCw className="spinning" size={18} /><div><strong>{content[0]}</strong><span>{message}</span></div></div>;
@@ -192,3 +151,31 @@ function shortcutDates(shortcut: DateShortcut, today: Date) {
 }
 function toIsoDate(value: Date) { return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`; }
 function formatIsoDate(value: string) { const [year, month, day] = value.split("-"); return `${day}/${month}/${year}`; }
+
+export function suggestReportName(startDate: string, endDate: string) {
+  const start = fromIsoDate(startDate);
+  const end = fromIsoDate(endDate);
+  const year = start.getFullYear();
+  if (year === end.getFullYear()) {
+    if (startDate === `${year}-01-01` && endDate === `${year}-12-31`) return `Ano ${year}`;
+    const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+    const monthEnd = new Date(year, start.getMonth() + 1, 0);
+    if (start.getDate() === 1 && endDate === toIsoDate(monthEnd)) return `${monthNames[start.getMonth()]} ${year}`;
+    const quarter = Math.floor(start.getMonth() / 3);
+    const quarterStart = new Date(year, quarter * 3, 1);
+    const quarterEnd = new Date(year, quarter * 3 + 3, 0);
+    if (startDate === toIsoDate(quarterStart) && endDate === toIsoDate(quarterEnd)) return `${quarter + 1}º Trimestre ${year}`;
+    if (startDate === `${year}-01-01` && endDate === `${year}-06-30`) return `1º Semestre ${year}`;
+    if (startDate === `${year}-07-01` && endDate === `${year}-12-31`) return `2º Semestre ${year}`;
+    const endMonthLastDay = new Date(year, end.getMonth() + 1, 0);
+    if (start.getDate() === 1 && endDate === toIsoDate(endMonthLastDay)) {
+      return `${monthNames[start.getMonth()]} a ${monthNames[end.getMonth()]} ${year}`;
+    }
+  }
+  return `${formatIsoDate(startDate)} a ${formatIsoDate(endDate)}`;
+}
+
+function fromIsoDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}

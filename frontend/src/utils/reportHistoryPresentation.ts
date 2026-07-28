@@ -32,3 +32,7 @@ export function formatReportPercentage(value: number | null): string {
 export function formatKpiStatus(value: string | null): string {
   return value ? (kpiStatusLabels[value] ?? "Situação não informada") : "Situação não informada";
 }
+
+export function shouldShowReportPagination(totalItems: number, pageSize: number): boolean {
+  return totalItems > pageSize;
+}

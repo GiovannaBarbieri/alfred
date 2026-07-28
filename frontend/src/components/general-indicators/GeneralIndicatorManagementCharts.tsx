@@ -24,24 +24,33 @@ import {
   STRATEGIC_CHART_SERIES,
 } from "../../utils/generalIndicatorCharts";
 
-type ResultProps = { result: GeneralIndicatorFinalizedResponse };
+type ResultProps = {
+  result: Pick<GeneralIndicatorFinalizedResponse, "categories" | "months" | "kpis">;
+};
 
-export function GeneralIndicatorCategoryCharts({ result }: ResultProps) {
+export function GeneralIndicatorCategoryCharts({
+  result,
+  hoursTitle = "Horas estratégicas",
+  compositionTitle = "Distribuição das horas da TI",
+}: ResultProps & { hoursTitle?: string; compositionTitle?: string }) {
   return (
     <section className="general-indicator-charts-grid" aria-label="Distribuição gerencial das horas">
-      <CategoryHoursChart result={result} />
-      <PeriodCompositionChart result={result} />
+      <CategoryHoursChart result={result} title={hoursTitle} />
+      <PeriodCompositionChart result={result} title={compositionTitle} />
     </section>
   );
 }
 
-export function GeneralIndicatorMonthlyCategoryChart({ result }: ResultProps) {
+export function GeneralIndicatorMonthlyCategoryChart({
+  result,
+  title = "Evolução mensal das categorias estratégicas",
+}: ResultProps & { title?: string }) {
   const data = useMemo(() => buildMonthlyStrategicChart(result.months), [result.months]);
   return (
     <article className="panel general-indicators-chart management-chart-panel">
       <ChartHeading
         icon={<Layers3 size={18} />}
-        title="Evolução mensal das categorias estratégicas"
+        title={title}
         description="Comparação mensal de Novo projeto, Melhoria, Erro TI e Bug."
       />
       {data.length === 0 ? <ChartEmptyState /> : (
@@ -110,13 +119,13 @@ export function GeneralIndicatorQuarterlyChart({ result }: ResultProps) {
   );
 }
 
-function CategoryHoursChart({ result }: ResultProps) {
+function CategoryHoursChart({ result, title }: ResultProps & { title: string }) {
   const data = useMemo(() => buildCategoryHoursChart(result.categories), [result.categories]);
   return (
     <article className="panel general-indicators-chart management-chart-panel">
       <ChartHeading
         icon={<BarChart3 size={18} />}
-        title="Horas estratégicas"
+        title={title}
         description="Distribuição do tempo entre desenvolvimento, qualidade e operação."
       />
       {data.length === 0 ? <ChartEmptyState /> : (
@@ -139,7 +148,7 @@ function CategoryHoursChart({ result }: ResultProps) {
   );
 }
 
-function PeriodCompositionChart({ result }: ResultProps) {
+function PeriodCompositionChart({ result, title }: ResultProps & { title: string }) {
   const data = useMemo(() => buildPeriodCompositionChart(result.categories), [result.categories]);
   const visibleData = data.filter((item) => item.hours > 0);
   const totalHours = data.reduce((total, item) => total + item.hours, 0);
@@ -147,7 +156,7 @@ function PeriodCompositionChart({ result }: ResultProps) {
     <article className="panel general-indicators-chart management-chart-panel">
       <ChartHeading
         icon={<PieChartIcon size={18} />}
-        title="Distribuição das horas da TI"
+        title={title}
         description="Leitura executiva das horas de desenvolvimento, qualidade e operação."
       />
       {visibleData.length === 0 ? <ChartEmptyState /> : (

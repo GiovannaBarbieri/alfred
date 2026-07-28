@@ -1,4 +1,4 @@
-import { Eye, RefreshCw, Trash2 } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 import type { ReportActionState, SavedReportListItem } from "../../types";
 import {
   formatKpiStatus,
@@ -27,11 +27,9 @@ export function ReportCard({
           <div>
             <div className="saved-report-badges">
               <span className="saved-report-type">Indicadores Gerais</span>
-              <span>Revisão {report.currentRevisionNumber}</span>
-              {report.hasUpdateInProgress && <span className="saved-report-update-badge"><RefreshCw className="spinning" size={13} />Atualização em andamento</span>}
             </div>
             <h2>{report.name}</h2>
-            <p>Período atual: {formatReportDate(report.periodStart)} a {formatReportDate(report.periodEnd)} · Última atualização em {formatReportDateTime(report.finalizedAt)}</p>
+            <p>Período consultado: {formatReportDate(report.periodStart)} a {formatReportDate(report.periodEnd)} · Salvo em {formatReportDateTime(report.finalizedAt)}</p>
           </div>
         </div>
 

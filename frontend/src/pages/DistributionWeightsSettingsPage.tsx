@@ -140,6 +140,22 @@ export function DistributionWeightsSettingsPage() {
             As alterações não modificam relatórios já finalizados. Somente novas análises e futuras
             atualizações utilizarão essa configuração.
           </p>
+          <div className="distribution-weights-example">
+            <strong>Exemplo simples</strong>
+            <p>
+              Considere <strong>100 h</strong> em Novo Projeto (peso 4), <strong>100 h</strong> em
+              Manutenção (peso 1) e <strong>60 h</strong> de Atualização do sistema para distribuir.
+            </p>
+            <div className="distribution-weights-example-calculation">
+              <span>Novo Projeto: 100 × 4 = 400 pontos</span>
+              <span>Manutenção: 100 × 1 = 100 pontos</span>
+              <span>Total: 500 pontos</span>
+            </div>
+            <p>
+              Das 60 h, Novo Projeto recebe <strong>48 h</strong> e Manutenção recebe
+              {" "}<strong>12 h</strong>. Assim, as 60 h são totalmente distribuídas conforme horas e peso.
+            </p>
+          </div>
         </div>
       </aside>
     </section>

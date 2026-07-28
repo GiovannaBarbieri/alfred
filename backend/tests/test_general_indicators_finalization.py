@@ -341,7 +341,7 @@ class GeneralIndicatorFinalizationServiceTests(unittest.TestCase):
             finalize_general_indicator_consultation(77)
         fail.assert_called_once()
 
-    @patch("app.services.general_indicators_service.complete_general_indicator_finalization", return_value=True)
+    @patch("app.services.general_indicators_service.complete_general_indicator_finalization", return_value=901)
     @patch("app.services.general_indicators_service.build_finalized_general_indicators", return_value={"status": "FINALIZADA"})
     @patch("app.services.general_indicators_service.list_general_indicator_launches", return_value=[valid_launch(1)])
     @patch(
@@ -359,6 +359,7 @@ class GeneralIndicatorFinalizationServiceTests(unittest.TestCase):
         result = finalize_general_indicator_consultation(77)
 
         self.assertEqual(result["status"], "FINALIZADA")
+        self.assertEqual(result["reportId"], 901)
         build.assert_called_once()
         complete.assert_called_once()
 
@@ -391,10 +392,12 @@ class GeneralIndicatorFinalizationServiceTests(unittest.TestCase):
             finalize_general_indicator_consultation(77)
         fail.assert_called_once()
 
-    @patch("app.services.general_indicators_service.begin_general_indicator_finalization", return_value={"acquired": False, "reason": "finalized", "result": {"status": "FINALIZADA", "consultationId": 77}})
+    @patch("app.services.general_indicators_service.begin_general_indicator_finalization", return_value={"acquired": False, "reason": "finalized", "result": {"status": "FINALIZADA", "consultationId": 77}, "reportId": 901})
     @patch("app.services.general_indicators_service.get_connection", return_value=MagicMock())
     def test_finalization_is_idempotent_for_already_finalized_consultation(self, _connection, _begin) -> None:
-        self.assertEqual(finalize_general_indicator_consultation(77)["status"], "FINALIZADA")
+        result = finalize_general_indicator_consultation(77)
+        self.assertEqual(result["status"], "FINALIZADA")
+        self.assertEqual(result["reportId"], 901)
 
 
 if __name__ == "__main__":

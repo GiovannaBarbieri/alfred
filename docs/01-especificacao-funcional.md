@@ -1,226 +1,228 @@
-# Especificacao Funcional v1.1
+# Especificação funcional
 
-## 1. Objetivo
+Versão documental: **28/07/2026**.
 
-Criar um sistema para automatizar a analise de horas lancadas em projetos, a partir de arquivos Excel/CSV ou, futuramente, de uma conexao com o banco de dados do TFS.
+## Objetivo
 
-O sistema deve validar lancamentos, bloquear erros criticos, consolidar horas pela hierarquia do TFS, classificar categorias de trabalho e gerar relatorios gerenciais.
+O Alfred consolida horas registradas no TFS em informações operacionais e gerenciais confiáveis. O produto separa dois domínios:
 
-O foco nao e controle de ponto, jornada diaria, hora extra ou banco de horas. O foco e entender onde as horas foram consumidas dentro dos projetos.
+- **Projetos**: importação, saneamento, classificação e análise de bases de projeto.
+- **Indicadores Gerais**: consulta direta por período, validação da hierarquia/TAGs e geração de relatórios oficiais independentes.
 
-## 2. Hierarquia Principal
-
-A hierarquia correta do TFS sera:
-
-```text
-Epic > Feature > PBI > Task
-```
-
-Todos os relatorios devem respeitar essa estrutura.
-
-## 3. Campos Obrigatorios
-
-A importacao deve exigir:
+## Navegação
 
 ```text
-IdLancamento
-DataHoraCadastro
-Task
-LoginUsuario
-Duracao
-IdTask
-TituloTask
-IdPBI
-TituloPBI
-IdFeat
-TituloFeat
-IdEpic
-TituloEpic
+Relatórios
+├── Projetos
+├── Indicadores Gerais
+└── Meus Relatórios
+
+Configurações
+├── Configurações gerais
+└── Pesos de distribuição
 ```
 
-Observacao: o campo pode vir com acento como `Duração`; o sistema deve aceitar alias configuravel para normalizar para `Duracao`.
+O menu funciona como accordion: apenas um grupo principal permanece expandido e somente a página ativa recebe destaque.
 
-## 4. Regras De Bloqueio
+## Projetos
 
-A importacao deve ser bloqueada quando houver:
+### Entradas
+
+- planilha `.xlsx`, `.xls`, `.csv`;
+- prévia consultada no SQL Server.
+
+### Etapas
+
+1. seleção da origem;
+2. leitura e normalização;
+3. criação de sessão temporária;
+4. validação;
+5. classificação automática;
+6. resolução de duplicidades e pendências;
+7. cadastro opcional de colaboradores sem perfil;
+8. confirmação;
+9. persistência final;
+10. abertura do relatório do projeto.
+
+### Saídas
+
+- resumo executivo;
+- gráficos;
+- evolução;
+- comparações;
+- Tasks por colaborador;
+- exportações CSV/XLSX.
+
+## Indicadores Gerais
+
+### Responsabilidade da tela
+
+A tela **Indicadores Gerais** existe somente para gerar um relatório:
+
+1. escolher período;
+2. consultar;
+3. validar;
+4. corrigir/atualizar pendências;
+5. definir nome;
+6. salvar.
+
+Após salvar, o usuário é redirecionado para **Meus Relatórios**, e o relatório recém-criado é aberto automaticamente. KPIs e gráficos finais não são exibidos na tela de geração.
+
+### Consulta
+
+- Data inicial e final são obrigatórias.
+- Data inicial deve ser menor ou igual à final.
+- Alterar filtros ou atalhos não executa consulta.
+- A consulta começa apenas pelo botão **Consultar**.
+- O processamento é assíncrono e o frontend acompanha progresso por polling.
+- Cada consulta persiste sua própria execução, lançamentos, inconsistências e histórico de atualizações.
+
+### Unidade de contabilização
+
+Cada `IdLancamento` é uma unidade independente. Lançamentos distintos na mesma Task, PBI, Bug ou Feature permanecem separados.
+
+Linhas idênticas retornadas por joins de hierarquia são consolidadas tecnicamente sem multiplicar horas. Duplicidades reais de `IdLancamento` mantêm evidência de origem e são validadas.
+
+### Hierarquia
+
+Fluxo esperado:
 
 ```text
-Campo obrigatorio ausente
-Campo obrigatorio vazio
-IdLancamento duplicado sem resolucao
-Duracao vazia
-Duracao invalida
-Duracao negativa
-DataHoraCadastro invalida
-LoginUsuario vazio
-Hierarquia Epic > Feature > PBI > Task incompleta
+Task → PBI ou Bug → Feature → Epic
 ```
 
-O sistema deve mostrar linha do arquivo, campo com erro, valor encontrado, tipo do erro e acao sugerida.
+- O tipo real do pai da Task define PBI ou Bug.
+- Um candidato superior só é aceito como Feature se seu tipo real for `Feature`.
+- TAGs nunca são lidas de um item que não foi confirmado como Feature.
+- Falta de Task, pai, Feature ou tipo suportado gera pendência impeditiva.
 
-## 5. Duplicidade
+### TAGs e classificação
 
-A duplicidade sera identificada somente por `IdLancamento`.
-
-Se houver mais de um registro com o mesmo `IdLancamento`, a importacao deve ser bloqueada inicialmente. O usuario podera:
+A Feature deve possuir exatamente uma TAG de cada nível:
 
 ```text
-Manter apenas um dos registros duplicados
-Remover os demais da importacao
-Cancelar a importacao para corrigir a base original
-Exportar relatorio de duplicidades
+1-Módulo
+2-Categoria
+3-Demanda
 ```
 
-O sistema nao deve excluir registros automaticamente.
+- Para pai real `Bug`, a categoria final é `Bug`.
+- Para pai real `PBI`, a categoria final vem da TAG `2-`.
+- Mesmo lançamentos abaixo de Bug exigem a presença das três TAGs na Feature.
+- Categoria desconhecida na TAG `2-` bloqueia a finalização.
+- Normalização técnica de espaços/acentos pode ser registrada como tratamento automático.
 
-## 6. Duracao
+### Participação de colaboradores
 
-A coluna `Duracao` sera considerada a fonte oficial das horas.
+`perfis_colaborador.participa_indicadores_gerais` controla a participação.
 
-Formato esperado:
+- `true`: lançamento participa das validações e cálculos.
+- `false`: lançamento e horas permanecem no snapshot/auditoria, mas são desconsiderados dos indicadores.
 
-```text
-HH:MM:SS
-```
+### Atualização de pendências
 
-Exemplo:
+**Atualizar pendências** reconsulta somente entidades relacionadas às inconsistências abertas.
 
-```text
-01:30:00
-```
+- TAG: Feature é consultada uma vez e todos os lançamentos relacionados são reclassificados individualmente.
+- Duração, data, duplicidade, Task, pai e tipo: apenas lançamentos e itens relacionados são revalidados.
+- Lançamentos válidos não afetados são preservados.
+- A ação não finaliza e não calcula o resultado oficial.
 
-Duracao igual a `00:00:00` nao bloqueia importacao, mas gera alerta.
+**Refazer consulta completa** existe como operação técnica secundária e exige confirmação explícita.
 
-## 7. Categorias
+### Salvamento
 
-Categorias oficiais atuais:
+Quando não há pendência impeditiva:
 
-```text
-Acompanhamento
-Definicao
-Desenvolvimento
-Homologacao
-Impedimento
-Retrabalho
-```
+- o usuário informa o nome;
+- **Salvar relatório** finaliza a consulta;
+- um snapshot oficial completo é persistido;
+- um relatório independente é criado;
+- o frontend abre esse relatório em **Meus Relatórios**.
 
-Cargos/perfis operacionais oficiais:
+Em caso de erro, a consulta e o nome permanecem na tela para nova tentativa.
 
-```text
-Analista
-Desenvolvedor Back-end
-Desenvolvedor Front-end
-QA
-Banco de Dados
-Infraestrutura
-DataOps
-```
+## Meus Relatórios
 
-O campo usado para classificacao sera sempre `TituloTask`.
+### Listagem
 
-## 8. Classificacao Por Titulo
+Filtros:
 
-Formato ideal:
+- nome;
+- ano;
+- paginação.
 
-```text
-[Categoria] Titulo da atividade
-```
+Ações:
 
-Exemplo:
+- abrir;
+- excluir permanentemente;
+- atualizar listagem.
 
-```text
-[Desenvolvimento] - Nota rota abacaxi dois
-```
+Os filtros diferenciam valores digitados dos últimos valores aplicados. **Aplicar filtros** só habilita com alteração pendente; **Limpar filtros** só habilita quando existe algo a limpar.
 
-Resultado:
+### Visualização
 
-```text
-Categoria: Desenvolvimento
-Subcategoria: definida por perfil operacional, regra configurada ou revisao manual
-Descricao: Nota rota abacaxi dois
-Status: Automatica por padrao do titulo
-```
+Um relatório aberto possui:
 
-Colchetes adicionais apos o primeiro podem existir no titulo original, mas nao devem ser usados pela classificacao automatica do titulo.
+- **Visão Geral**: snapshot oficial, KPIs, gráficos, composição e distribuição;
+- **Análise por período**: recorte do período oficial calculado somente com lançamentos do snapshot.
 
-Se o titulo nao estiver no padrao ou a categoria nao estiver cadastrada/ativa, o sistema deve manter o registro como nao classificado para revisao.
+Abrir um relatório não consulta o TFS nem o SQL Server.
 
-O usuario podera aceitar, alterar, marcar como nao classificado ou solicitar criacao de nova categoria. Criacao de nova categoria sera permitida somente para administrador.
+### Análise por período
 
-## 8.1 Colaboradores Sem Perfil
+- intervalo deve estar contido no período oficial;
+- atalhos apenas preenchem datas;
+- cálculo inicia no botão **Analisar**;
+- usa pesos históricos salvos no snapshot;
+- não persiste alterações, revisões ou nova auditoria;
+- retorna KPIs, categorias e evolução mensal agregada;
+- o payload público não expõe a coleção técnica completa de auditoria.
 
-Quando o arquivo importado possuir um colaborador que ainda nao exista como perfil ativo, a importacao nao deve ser bloqueada.
+### Exclusão
 
-O sistema deve:
+A exclusão é permanente e transacional:
 
-```text
-identificar o colaborador sem perfil
-reduzir a confianca da classificacao quando aplicavel
-exibir o registro na fila de revisao
-oferecer cadastro rapido do colaborador na Fase 4
-```
+- remove o relatório, revisões, consultas, lançamentos, inconsistências e atualizações relacionadas;
+- não consulta o TFS;
+- não renumera versões históricas;
+- não promove automaticamente outra versão;
+- impede exclusão enquanto existir processamento relacionado.
 
-No cadastro rapido, o usuario associa o colaborador a um cargo existente. O sistema grava o vinculo em `perfis_colaborador` e usa o cargo selecionado como subcategoria sugerida nas atividades pendentes da sessao atual.
+## Configurações gerais
 
-O usuario tambem pode ignorar o cadastro temporariamente e seguir com a revisao manual.
+Permite manter:
 
-## 9. Calculos
+- categorias;
+- subcategorias/cargos;
+- palavras-chave;
+- regras de classificação;
+- perfis de colaboradores;
+- colaboradores ignorados;
+- participação nos Indicadores Gerais.
 
-O sistema deve calcular:
+## Pesos de distribuição
 
-```text
-Total de horas por colaborador
-Total de horas por periodo
-Total de horas por Epic
-Total de horas por Feature
-Total de horas por PBI
-Total de horas por Task
-Total de horas por categoria
-Total de horas por subcategoria
-Total de horas por categoria dentro de Epic
-Total de horas por categoria dentro de Feature
-Total de horas por categoria dentro de PBI
-Total de horas por colaborador dentro de categoria
-Percentual de participacao por Epic/Feature/PBI/Task
-Percentual de participacao por categoria
-Ranking de maior consumo de horas
-Media de horas por colaborador
-Media de horas por categoria
-```
+Permite alterar peso (1 a 5) e participação ativa das categorias:
 
-## 10. Relatorios
+- Novo projeto;
+- Melhoria;
+- Erro TI;
+- Bug;
+- Manutenção.
 
-Relatorios obrigatorios para o MVP:
+Pelo menos uma categoria deve permanecer ativa. Alterações são auditadas e afetam somente cálculos futuros; snapshots salvos preservam os pesos utilizados.
 
-```text
-Relatorio de erros de importacao
-Relatorio de duplicidades
-Resumo de horas por colaborador
-Resumo de horas por Epic
-Resumo de horas por Feature
-Resumo de horas por PBI
-Resumo de horas por Task
-Resumo de horas por categoria
-Resumo de horas por subcategoria
-Ranking de maior consumo de horas
-Relatorio de titulos fora do padrao
-Relatorio de classificacoes sugeridas
-Relatorio de classificacoes alteradas pelo usuario
-```
+## Funcionalidades preservadas fora do menu
 
-## 11. IA
+Os componentes/endpoints de Dashboard, Histórico, Auditoria e Inteligência Operacional continuam disponíveis no código. Eles não devem ser considerados páginas ativas do menu até uma decisão explícita de produto.
 
-A IA sera usada principalmente para analises complexas dos numeros e relatorios:
+## Fora do escopo
 
-```text
-Gerar resumo executivo
-Explicar variacoes de horas
-Identificar concentracao de esforco
-Apontar aumento de retrabalho
-Comparar categorias
-Detectar padroes fora do esperado
-Responder perguntas sobre os dados
-Sugerir classificacao de titulos fora do padrao
-```
-
-A IA nao deve alterar dados automaticamente.
+- controle de ponto;
+- folha de pagamento;
+- banco de horas;
+- regras trabalhistas;
+- alteração automática de itens no TFS;
+- autenticação/autorização corporativa completa;
+- edição de snapshots oficiais.

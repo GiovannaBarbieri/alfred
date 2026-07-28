@@ -260,7 +260,7 @@ def begin_general_indicator_finalization(connection: Connection, consultation_id
     with connection.cursor() as cursor:
         cursor.execute(
             """
-            SELECT id, status, resultado, hierarchy_contract_version,
+            SELECT id, status, resultado, hierarchy_contract_version, annual_report_id,
                    atualizado_em < NOW() - (%s * INTERVAL '1 second') AS processing_expired
             FROM general_indicator_consultations
             WHERE id = %s
@@ -275,7 +275,12 @@ def begin_general_indicator_finalization(connection: Connection, consultation_id
         if status in _PROCESSING_STATUSES and bool(consultation.get("processing_expired")):
             status = _recover_expired_general_indicator_processing(cursor, consultation_id, status)
         if status == "FINALIZADA":
-            return {"acquired": False, "reason": "finalized", "result": consultation["resultado"]}
+            return {
+                "acquired": False,
+                "reason": "finalized",
+                "result": consultation["resultado"],
+                "reportId": consultation.get("annual_report_id"),
+            }
         if status in _PROCESSING_STATUSES:
             return {"acquired": False, "reason": "concurrent"}
         if int(consultation.get("hierarchy_contract_version") or 1) < HIERARCHY_CONTRACT_VERSION:
@@ -308,7 +313,8 @@ def complete_general_indicator_finalization(
     consultation_id: int,
     *,
     result: dict[str, Any],
-) -> bool:
+    report_name: str = "Indicadores Gerais",
+) -> int | None:
     metadata = dict(result.get("metadata") or {})
     integrity = dict(result.get("integrity") or {})
     with connection.cursor() as cursor:
@@ -347,14 +353,15 @@ def complete_general_indicator_finalization(
             ),
         )
         if cursor.rowcount != 1:
-            return False
+            return None
         consultation = cursor.fetchone()
-    register_finalized_general_indicator_report(
+    registered_report = register_finalized_general_indicator_report(
         connection,
         consultation=consultation,
         result=result,
+        report_name=report_name,
     )
-    return True
+    return int(registered_report["annual_report_id"])
 
 
 def fail_general_indicator_finalization(

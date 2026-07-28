@@ -195,10 +195,6 @@ def run_general_indicator_validation(*, start_date: date, end_date: date) -> dic
 
 
 def create_general_indicator_validation(*, start_date: date, end_date: date) -> dict[str, Any]:
-    if start_date != date(start_date.year, 1, 1):
-        raise ValueError("A Data Inicial dos Indicadores Gerais deve ser 01/01 do ano selecionado.")
-    if end_date.year != start_date.year:
-        raise ValueError("A Data Final deve pertencer ao mesmo ano da Data Inicial.")
     if end_date < start_date:
         raise ValueError("A Data Final deve ser igual ou posterior à Data Inicial.")
     with get_connection() as connection:
@@ -582,13 +578,24 @@ def refresh_full_general_indicator_consultation(consultation_id: int, *, confirm
         raise
 
 
-def finalize_general_indicator_consultation(consultation_id: int) -> dict[str, Any]:
+def finalize_general_indicator_consultation(
+    consultation_id: int,
+    *,
+    report_name: str = "Indicadores Gerais",
+) -> dict[str, Any]:
+    if not report_name.strip():
+        raise ValueError("Informe o nome do relatório.")
+    if len(report_name) > 255:
+        raise ValueError("O nome do relatório deve possuir no máximo 255 caracteres.")
     with get_connection() as connection:
         lock = begin_general_indicator_finalization(connection, consultation_id)
     if not lock.get("acquired"):
         reason = lock.get("reason")
         if reason == "finalized" and lock.get("result"):
-            return dict(lock["result"])
+            finalized_result = dict(lock["result"])
+            if lock.get("reportId") is not None:
+                finalized_result["reportId"] = int(lock["reportId"])
+            return finalized_result
         if reason == "not_found":
             raise GeneralIndicatorConsultationNotFoundError("Consulta de indicadores não encontrada.")
         if reason == "hierarchy_outdated":
@@ -625,12 +632,17 @@ def finalize_general_indicator_consultation(consultation_id: int) -> dict[str, A
             distribution_configuration=_consultation_distribution_configuration(consultation),
         )
         with get_connection() as connection:
-            completed = complete_general_indicator_finalization(connection, consultation_id, result=result)
-        if not completed:
+            report_id = complete_general_indicator_finalization(
+                connection,
+                consultation_id,
+                result=result,
+                report_name=report_name,
+            )
+        if not report_id:
             raise GeneralIndicatorConcurrentUpdateError(
                 "A consulta mudou de estado durante a finalização e o resultado não foi gravado."
             )
-        return result
+        return {**result, "reportId": report_id}
     except Exception as exc:
         try:
             with get_connection() as connection:

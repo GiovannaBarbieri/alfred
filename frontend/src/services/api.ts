@@ -40,10 +40,11 @@ import type {
   GeneralIndicatorConsultationResponse,
   GeneralIndicatorConsultationJobResponse,
   GeneralIndicatorConsultationProgress,
+  GeneralIndicatorFinalizationResponse,
   GeneralIndicatorFinalizedResponse,
 } from "../types";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api";
 
 function buildQuery(filters?: Partial<ReportFilters>): string {
   const params = new URLSearchParams();
@@ -815,26 +816,17 @@ export async function refreshGeneralIndicatorPendings(
   return response.json();
 }
 
-export async function refreshFullGeneralIndicatorConsultation(
-  consultationId: number,
-): Promise<GeneralIndicatorConsultationResponse> {
-  const response = await fetch(
-    `${API_BASE_URL}/general-indicators/consultations/${consultationId}/full-refresh?confirm=true`,
-    { method: "POST" },
-  );
-  if (!response.ok) {
-    const payload = await response.json().catch(() => null);
-    throw new Error(payload?.detail ?? "Não foi possível refazer a consulta completa.");
-  }
-  return response.json();
-}
-
 export async function finalizeGeneralIndicatorConsultation(
   consultationId: number,
-): Promise<GeneralIndicatorFinalizedResponse> {
+  reportName: string,
+): Promise<GeneralIndicatorFinalizationResponse> {
   const response = await fetch(
     `${API_BASE_URL}/general-indicators/consultations/${consultationId}/finalize`,
-    { method: "POST" },
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportName }),
+    },
   );
   if (!response.ok) {
     const payload = await response.json().catch(() => null);

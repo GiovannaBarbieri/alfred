@@ -1,67 +1,253 @@
-# Tabela De Regras v1
+# Regras de negócio
 
-| ID | Regra | Tipo | Campo/Origem | Condicao | Acao |
-|---|---|---|---|---|---|
-| R001 | Verificar coluna IdLancamento | Bloqueio | Cabecalho | Coluna ausente | Bloquear importacao |
-| R002 | Verificar coluna DataHoraCadastro | Bloqueio | Cabecalho | Coluna ausente | Bloquear importacao |
-| R003 | Verificar coluna Task | Bloqueio | Cabecalho | Coluna ausente | Bloquear importacao |
-| R004 | Verificar coluna LoginUsuario | Bloqueio | Cabecalho | Coluna ausente | Bloquear importacao |
-| R005 | Verificar coluna Duracao | Bloqueio | Cabecalho | Coluna ausente | Bloquear importacao |
-| R006 | Verificar coluna IdTask | Bloqueio | Cabecalho | Coluna ausente | Bloquear importacao |
-| R007 | Verificar coluna TituloTask | Bloqueio | Cabecalho | Coluna ausente | Bloquear importacao |
-| R008 | Verificar coluna IdPBI | Bloqueio | Cabecalho | Coluna ausente | Bloquear importacao |
-| R009 | Verificar coluna TituloPBI | Bloqueio | Cabecalho | Coluna ausente | Bloquear importacao |
-| R010 | Verificar coluna IdFeat | Bloqueio | Cabecalho | Coluna ausente | Bloquear importacao |
-| R011 | Verificar coluna TituloFeat | Bloqueio | Cabecalho | Coluna ausente | Bloquear importacao |
-| R012 | Verificar coluna IdEpic | Bloqueio | Cabecalho | Coluna ausente | Bloquear importacao |
-| R013 | Verificar coluna TituloEpic | Bloqueio | Cabecalho | Coluna ausente | Bloquear importacao |
-| R014 | Validar IdLancamento preenchido | Bloqueio | IdLancamento | Valor vazio | Bloquear importacao |
-| R015 | Validar DataHoraCadastro preenchido | Bloqueio | DataHoraCadastro | Valor vazio | Bloquear importacao |
-| R016 | Validar Task preenchida | Bloqueio | Task | Valor vazio | Bloquear importacao |
-| R017 | Validar LoginUsuario preenchido | Bloqueio | LoginUsuario | Valor vazio | Bloquear importacao |
-| R018 | Validar Duracao preenchida | Bloqueio | Duracao | Valor vazio | Bloquear importacao |
-| R019 | Validar IdTask preenchido | Bloqueio | IdTask | Valor vazio | Bloquear importacao |
-| R020 | Validar TituloTask preenchido | Bloqueio | TituloTask | Valor vazio | Bloquear importacao |
-| R021 | Validar IdPBI preenchido | Bloqueio | IdPBI | Valor vazio | Bloquear importacao |
-| R022 | Validar TituloPBI preenchido | Bloqueio | TituloPBI | Valor vazio | Bloquear importacao |
-| R023 | Validar IdFeat preenchido | Bloqueio | IdFeat | Valor vazio | Bloquear importacao |
-| R024 | Validar TituloFeat preenchido | Bloqueio | TituloFeat | Valor vazio | Bloquear importacao |
-| R025 | Validar IdEpic preenchido | Bloqueio | IdEpic | Valor vazio | Bloquear importacao |
-| R026 | Validar TituloEpic preenchido | Bloqueio | TituloEpic | Valor vazio | Bloquear importacao |
-| R027 | Validar duplicidade de lancamento | Bloqueio com resolucao | IdLancamento | Mesmo ID repetido | Abrir resolucao de duplicidade |
-| R028 | Validar formato da data | Bloqueio | DataHoraCadastro | Data invalida | Bloquear importacao |
-| R029 | Validar formato da duracao | Bloqueio | Duracao | Diferente de HH:MM:SS | Bloquear importacao |
-| R030 | Validar duracao negativa | Bloqueio | Duracao | Valor menor que zero | Bloquear importacao |
-| R031 | Validar duracao zerada | Alerta | Duracao | Valor igual a 00:00:00 | Importar e marcar para revisao |
-| R032 | Validar hierarquia completa | Bloqueio | Epic/Feature/PBI/Task | Algum nivel ausente | Bloquear importacao |
-| R033 | Extrair categoria por padrao | Classificacao automatica | TituloTask | Categoria no primeiro colchete do titulo | Classificar automaticamente |
-| R034 | Identificar titulo fora do padrao | Alerta | TituloTask | Fora do padrao | Enviar para sugestao |
-| R035 | Sugerir categoria por palavra-chave | Sugestao | TituloTask | Contem termos conhecidos | Sugerir categoria/subcategoria |
-| R036 | Sugerir categoria por IA | Sugestao IA | TituloTask + contexto | Regras inconclusivas | Sugerir para revisao |
-| R037 | Aprovar classificacao sugerida | Acao do usuario | Categoria sugerida | Usuario aceita | Gravar classificacao |
-| R038 | Alterar classificacao sugerida | Acao do usuario | Categoria/subcategoria | Usuario altera | Gravar alteracao |
-| R039 | Marcar como nao classificado | Acao do usuario | Categoria/subcategoria | Usuario rejeita | Gravar como Nao classificado |
-| R040 | Criar nova categoria | Restrito admin | Categoria | Categoria inexistente | Permitir somente admin |
-| R041 | Calcular horas por colaborador | Calculo | LoginUsuario, Duracao | Importacao valida | Somar duracao |
-| R042 | Calcular horas por periodo | Calculo | DataHoraCadastro, Duracao | Importacao valida | Somar por periodo |
-| R043 | Calcular horas por Epic | Calculo | IdEpic, TituloEpic, Duracao | Importacao valida | Somar por Epic |
-| R044 | Calcular horas por Feature | Calculo | IdFeat, TituloFeat, Duracao | Importacao valida | Somar por Feature |
-| R045 | Calcular horas por PBI | Calculo | IdPBI, TituloPBI, Duracao | Importacao valida | Somar por PBI |
-| R046 | Calcular horas por Task | Calculo | IdTask, TituloTask, Duracao | Importacao valida | Somar por Task |
-| R047 | Calcular horas por categoria | Calculo | Categoria, Duracao | Categoria definida | Somar por categoria |
-| R048 | Calcular horas por subcategoria | Calculo | Subcategoria, Duracao | Subcategoria definida | Somar por subcategoria |
-| R049 | Calcular percentual por hierarquia | Calculo | Epic/Feature/PBI/Task | Importacao valida | Calcular percentual |
-| R050 | Calcular percentual por categoria | Calculo | Categoria, Duracao | Categoria definida | Calcular percentual |
-| R051 | Gerar relatorio de erros | Relatorio | Validacoes | Erros encontrados | Exibir/exportar |
-| R052 | Gerar relatorio de duplicidades | Relatorio | IdLancamento | Duplicidades encontradas | Exibir/exportar |
-| R053 | Gerar relatorio de titulos fora do padrao | Relatorio | TituloTask | Fora do padrao | Exibir/exportar |
-| R054 | Gerar relatorio de classificacoes sugeridas | Relatorio | Categoria sugerida | Sugestoes existentes | Exibir/exportar |
-| R055 | Gerar relatorio de alteracoes manuais | Auditoria | Classificacoes alteradas | Usuario alterou | Registrar alteracao |
-| R056 | Registrar importacao | Auditoria | Arquivo importado | Tentativa de importacao | Gravar historico |
-| R057 | Registrar importacao bloqueada | Auditoria | Validacoes | Erro bloqueante | Gravar status bloqueado |
-| R058 | Registrar importacao concluida | Auditoria | Validacoes | Sem bloqueios pendentes | Gravar status concluido |
-| R059 | Gerar resumo executivo por IA | IA | Dados consolidados | Usuario solicita | Gerar analise textual |
-| R060 | Analisar variacoes por IA | IA | Dados consolidados | Usuario solicita | Explicar variacoes |
-| R061 | Salvar base importada | Persistencia | Importacao valida ou bloqueada | Arquivo processado | Salvar original/metadados |
-| R062 | Salvar base corrigida | Persistencia | Usuario corrige/resolucao | Alteracao confirmada | Salvar versao corrigida |
-| R063 | Salvar base consolidada | Persistencia | Dados validados | Importacao concluida | Salvar dados para relatorios |
+Versão documental: **28/07/2026**.
+
+## Projetos — importação
+
+| Regra | Comportamento |
+| --- | --- |
+| Arquivos | Aceita Excel e CSV suportados pelo importer. |
+| Aba Excel | Usa a primeira aba que contenha todas as colunas obrigatórias. |
+| Colunas | `IdLancamento`, `DataHoraCadastro`, `Task`, `LoginUsuario`, `Duracao`, `IdTask`, `TituloTask`, `IdPBI`, `TituloPBI`, `IdFeat`, `TituloFeat`, `IdEpic`, `TituloEpic`. |
+| Staging | Nenhum lançamento final é gravado antes da confirmação. |
+| Sessão | Conteúdo, validação e classificações ficam em `import_sessions` e `staging_rows`. |
+| Retenção | Sessões temporárias antigas são removidas conforme `IMPORT_SESSION_RETENTION_DAYS` (padrão 7). |
+| Duplicidade | Chave exclusiva funcional: `IdLancamento` dentro da importação. |
+| Resolução | Duplicidade bloqueia até o usuário selecionar a linha mantida. |
+| Duração | Formato `HH:MM:SS`; minutos e segundos entre 00 e 59. |
+| Duração zero | Gera alerta, não bloqueio. |
+| Duração excessiva | Acima de 12 horas gera alerta operacional. |
+| Data | Deve ser interpretável como data/hora. |
+| Confirmação | Revalida bloqueios antes de persistir. |
+
+## Projetos — classificação
+
+| Prioridade | Regra |
+| --- | --- |
+| 1 | Primeiro colchete do título no padrão `[Categoria] descrição`. |
+| 2 | Alias/nome de categoria ativa. |
+| 3 | Palavras-chave/regras configuradas geram sugestão. |
+| 4 | Override explícito do usuário define o resultado final. |
+
+Regras complementares:
+
+- colchetes posteriores ao primeiro não mudam a categoria;
+- prefixo desconhecido gera pendência;
+- título fora do padrão permanece para revisão mesmo com sugestão;
+- classificações guardam origem, confiança, nível e versão;
+- perfil do colaborador pode sugerir subcategoria;
+- reprocessamento registra valores anteriores e novos.
+
+## Indicadores Gerais — identidade e preservação
+
+| Regra | Comportamento |
+| --- | --- |
+| Unidade | Um `IdLancamento` corresponde a uma unidade de contabilização. |
+| Independência | Lançamentos da mesma Task/Feature nunca substituem uns aos outros. |
+| Joins repetidos | Linhas técnicas idênticas são consolidadas sem duplicar horas. |
+| Duplicidade idêntica | Tratada automaticamente, com evidência preservada. |
+| Duplicidade conflitante | Impeditiva; nenhuma ocorrência é escolhida silenciosamente. |
+| Ausência de ID | Impeditiva e excluída dos totais válidos. |
+
+## Indicadores Gerais — hierarquia
+
+| Regra | Validação |
+| --- | --- |
+| Task | Deve existir e ser rastreável. |
+| Pai da Task | Tipo real deve ser `Product Backlog Item`/PBI ou `Bug`. |
+| Feature | Pai superior deve existir e ter tipo real `Feature`. |
+| Epic | É preservado para rastreabilidade quando disponível. |
+| Candidato inválido | Nunca é usado como Feature nem como fonte de TAG. |
+| PBI e Bug na mesma Feature | São permitidos e preservados separadamente. |
+
+## Indicadores Gerais — TAGs
+
+Formato:
+
+```text
+1-<módulo>; 2-<categoria>; 3-<demanda>
+```
+
+Regras:
+
+- exatamente uma TAG válida de cada nível `1`, `2` e `3`;
+- TAG ausente, vazia, múltipla ou fora do padrão é impeditiva;
+- espaços excedentes podem ser normalizados e auditados;
+- TAG `2-` deve representar uma categoria oficial;
+- TAGs são obrigatórias inclusive para lançamentos classificados como Bug;
+- problemas de TAG são agrupados por Feature, mas preservam todos os `IdLancamento` afetados.
+
+## Indicadores Gerais — classificação
+
+```text
+se tipo real do pai da Task = Bug
+    categoria final = Bug
+senão
+    categoria final = categoria da TAG 2- da Feature
+```
+
+`Atualização do sistema` é identificada pela TAG `1-`. Um Bug nunca é convertido em Atualização do sistema.
+
+Categorias canônicas usadas no cálculo:
+
+- Novo projeto;
+- Melhoria;
+- Erro TI;
+- Bug;
+- Manutenção;
+- demais categorias operacionais;
+- Atualização do sistema como categoria transitória.
+
+## Participação
+
+- perfil participante: lançamento pode ser validado e calculado;
+- perfil não participante: lançamento permanece persistido e auditado, sem gerar bloqueios funcionais de hierarquia e sem integrar os cálculos;
+- totais brutos, considerados e desconsiderados devem reconciliar.
+
+## Pendências
+
+Pendências impeditivas incluem:
+
+- ID ausente;
+- duração vazia, inválida ou negativa;
+- data inválida ou fora do período;
+- Task sem pai;
+- tipo de pai ausente/não suportado;
+- Feature ausente ou candidato superior que não é Feature;
+- TAG obrigatória ausente/vazia/múltipla/inválida;
+- categoria desconhecida;
+- duplicidade conflitante;
+- Atualização do sistema sem base mensal ativa para distribuição.
+
+Uma consequência derivada, como “classificação impossível”, é relacionada à causa raiz para evitar duplicidade visual.
+
+## Estados da consulta
+
+Principais estados persistidos:
+
+```text
+CONSULTANDO
+COM_INCONSISTENCIAS
+PRONTA_PARA_FINALIZAR
+ATUALIZANDO_PENDENCIAS
+REFAZENDO_CONSULTA
+FINALIZANDO
+FINALIZADA
+FALHA
+```
+
+Regras:
+
+- somente `PRONTA_PARA_FINALIZAR` pode ser salva;
+- atualização não finaliza automaticamente;
+- consulta finalizada é imutável;
+- operações concorrentes para a mesma consulta são rejeitadas;
+- operação expirada pode ser recuperada de forma controlada.
+
+## Distribuição ponderada
+
+Categoria transitória: **Atualização do sistema**.
+
+Participantes e pesos padrão atuais:
+
+| Categoria | Peso | Ativa |
+| --- | ---: | --- |
+| Novo projeto | 5 | Sim |
+| Melhoria | 5 | Sim |
+| Erro TI | 3 | Sim |
+| Bug | 4 | Sim |
+| Manutenção | 1 | Sim |
+
+O banco aceita pesos inteiros de 1 a 5.
+
+Para cada mês:
+
+```text
+valor_ponderado(c) = horas_originais(c) × peso(c)
+
+participação(c) =
+    valor_ponderado(c)
+    ÷ soma dos valores ponderados das categorias ativas
+
+horas_redistribuídas(c) =
+    horas_de_atualização_do_mês × participação(c)
+
+horas_ajustadas(c) =
+    horas_originais(c) + horas_redistribuídas(c)
+```
+
+Categorias inativas não recebem distribuição. Se houver horas de Atualização do sistema e a base ponderada mensal for zero, a finalização é bloqueada.
+
+Resíduos de arredondamento são balanceados para que:
+
+```text
+soma das horas redistribuídas = horas de Atualização do sistema
+soma das horas ajustadas = total de horas consideradas
+```
+
+## KPIs
+
+### Novos projetos + melhorias
+
+```text
+percentual =
+    (Novo projeto ajustado + Melhoria ajustada)
+    ÷ total considerado × 100
+```
+
+| Faixa | Situação |
+| --- | --- |
+| >= 40% | Meta atendida |
+| >= 30% e < 40% | Atenção |
+| < 30% | Abaixo da meta |
+
+### Erro TI + Bug
+
+```text
+percentual =
+    (Erro TI ajustado + Bug ajustado)
+    ÷ total considerado × 100
+```
+
+| Faixa | Situação |
+| --- | --- |
+| <= 10% | Dentro do limite |
+| > 10% e <= 15% | Atenção |
+| > 15% | Crítico |
+
+Versões executáveis atuais:
+
+```text
+Contrato do resultado: 2
+Cálculo: general-indicators-v1
+Classificação: hierarchy-tags-v2
+Distribuição: update-system-weighted-proportional-v2
+Metas: general-indicators-targets-v1
+```
+
+## Snapshot oficial
+
+O snapshot guarda:
+
+- período, consulta, validação e finalização;
+- responsáveis e identificadores de versão;
+- resumos brutos, considerados e desconsiderados;
+- categorias originais, redistribuídas e ajustadas;
+- distribuição mensal;
+- evolução mensal;
+- KPIs e limites;
+- configuração histórica de pesos;
+- auditoria por `IdLancamento`;
+- inconsistências e evidências;
+- hashes do snapshot e do resultado.
+
+Alterar TAGs, participação ou pesos depois da finalização não muda relatórios anteriores.
+
+## Análise por período
+
+- somente dentro do intervalo oficial;
+- filtra lançamentos do audit trail persistido;
+- recalcula usando o mesmo motor oficial;
+- usa obrigatoriamente a configuração histórica do snapshot;
+- é somente leitura e não cria versão;
+- não chama SQL Server/TFS.

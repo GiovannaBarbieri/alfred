@@ -77,6 +77,10 @@ class ReportActionRequest(BaseModel):
     actor: str | None = Field(default=None, max_length=255)
 
 
+class GeneralIndicatorFinalizeRequest(BaseModel):
+    reportName: str = Field(min_length=1, max_length=255)
+
+
 class ReportDeletionCandidate(BaseModel):
     id: int
     versionNumber: int
@@ -202,3 +206,39 @@ class AnnualReportDeleteResponse(BaseModel):
     deletedRevisionCount: int
     deletedConsultationCount: int
     deletedAt: datetime
+
+
+# Neutral public contracts for the independent saved-report architecture.
+# The inherited fields keep backward-compatible JSON for existing clients.
+class SavedReportListResponse(AnnualReportListResponse):
+    pass
+
+
+class SavedReportDetail(AnnualReportDetail):
+    pass
+
+
+class ReportPeriodAnalysisMonth(BaseModel):
+    month: str
+    label: str
+    competence: dict[str, date]
+    totalHours: float
+    projectsImprovements: dict
+    errorsBugs: dict
+    categories: dict[str, float]
+
+
+class ReportPeriodAnalysisResponse(BaseModel):
+    reportId: int
+    source: str = "SAVED_SNAPSHOT"
+    officialPeriod: dict[str, date]
+    analyzedPeriod: dict[str, date]
+    recordCount: int
+    totalHours: float
+    kpis: dict
+    categories: list[dict]
+    months: list[ReportPeriodAnalysisMonth]
+
+
+class SavedReportDeleteResponse(AnnualReportDeleteResponse):
+    pass

@@ -10,6 +10,7 @@ from app.services.sqlserver_service import (
     SQLServerQueryError,
     _connection_string,
     _map_pyodbc_error,
+    _resolve_sqlserver_driver,
     dataframe_to_import_content,
     normalize_sqlserver_rows,
     query_general_indicator_raw_launches,
@@ -140,6 +141,25 @@ class SQLServerServiceTests(unittest.TestCase):
 
         with self.assertRaises(SQLServerConfigurationError):
             _connection_string()
+
+    @patch("app.services.sqlserver_service._load_pyodbc")
+    @patch("app.services.sqlserver_service.settings")
+    def test_driver_resolution_preserves_configured_driver_when_installed(self, settings, load_pyodbc) -> None:
+        settings.sqlserver_driver = "ODBC Driver 18 for SQL Server"
+        load_pyodbc.return_value.drivers.return_value = [
+            "ODBC Driver 17 for SQL Server",
+            "ODBC Driver 18 for SQL Server",
+        ]
+
+        self.assertEqual(_resolve_sqlserver_driver(), "ODBC Driver 18 for SQL Server")
+
+    @patch("app.services.sqlserver_service._load_pyodbc")
+    @patch("app.services.sqlserver_service.settings")
+    def test_driver_resolution_falls_back_to_installed_driver(self, settings, load_pyodbc) -> None:
+        settings.sqlserver_driver = "ODBC Driver 18 for SQL Server"
+        load_pyodbc.return_value.drivers.return_value = ["SQL Server", "ODBC Driver 17 for SQL Server"]
+
+        self.assertEqual(_resolve_sqlserver_driver(), "ODBC Driver 17 for SQL Server")
 
     @patch("app.services.sqlserver_service._execute_query")
     def test_raw_launch_query_preserves_source_unit_without_hierarchy_joins(self, execute_query) -> None:

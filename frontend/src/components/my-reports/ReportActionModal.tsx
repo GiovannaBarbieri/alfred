@@ -52,10 +52,9 @@ export function ReportActionModal({
         <div className="saved-report-modal-report">
           <strong>{action.report.name}</strong>
           <span>{formatReportDate(action.report.periodStart)} a {formatReportDate(action.report.periodEnd)}</span>
-          <span>Revisão atual {action.report.currentRevisionNumber}</span>
         </div>
         {destructive && <>
-          <div className="saved-report-permanent-warning"><AlertTriangle size={18} /><p>Esta ação excluirá permanentemente o relatório anual e todo o seu histórico de atualizações.<strong>Não será possível desfazer.</strong></p></div>
+          <div className="saved-report-permanent-warning"><AlertTriangle size={18} /><p>Esta ação excluirá permanentemente o relatório e seu snapshot salvo.<strong>Não será possível desfazer.</strong></p></div>
           <label className="saved-report-confirm-check"><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} />Entendo que esta ação não poderá ser desfeita.</label>
         </>}
         {error && <div className="error-banner" role="alert"><AlertTriangle size={17} />{error}</div>}
@@ -66,5 +65,5 @@ export function ReportActionModal({
 }
 
 function modalCopy() {
-  return { title: "Excluir relatório anual?", description: "Confirme os dados antes de realizar a exclusão permanente.", confirm: "Excluir permanentemente", icon: <Trash2 size={20} /> };
+  return { title: "Excluir relatório?", description: "Confirme os dados antes de realizar a exclusão permanente.", confirm: "Excluir permanentemente", icon: <Trash2 size={20} /> };
 }

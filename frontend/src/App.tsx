@@ -9,7 +9,6 @@ import type { ImportCompletionSnapshot } from "./hooks/useImportFlow";
 import { useSettings } from "./hooks/useSettings";
 import { getImportDetail } from "./services/api";
 import type {
-  AnnualReportFlowContext,
   ImportCompleteResponse,
   ImportDetail,
 } from "./types";
@@ -54,8 +53,7 @@ function getInitialActiveSection(): SectionId {
 
 function App() {
   const [activeSection, setActiveSection] = useState<SectionId>(getInitialActiveSection);
-  const [annualReportUpdate, setAnnualReportUpdate] = useState<AnnualReportFlowContext | null>(null);
-  const [annualReportToOpen, setAnnualReportToOpen] = useState<number | null>(null);
+  const [generalIndicatorReportToOpen, setGeneralIndicatorReportToOpen] = useState<number | null>(null);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("categories");
   const dashboard = useDashboardData();
   const [selectedImport, setSelectedImport] = useState<ImportDetail | null>(null);
@@ -212,6 +210,11 @@ function App() {
     setActiveSection("import");
   }
 
+  function handleGeneralIndicatorReportSaved(reportId: number) {
+    setGeneralIndicatorReportToOpen(reportId);
+    setActiveSection("my-reports");
+  }
+
   const headerOverride =
     activeSection === "validation" && importFlow.importWizardStep === "confirm" && !completedImport
       ? {
@@ -352,22 +355,14 @@ function App() {
         )}
 
         {activeSection === "general-indicators" && (
-          <GeneralIndicatorsPage
-            annualUpdate={annualReportUpdate}
-            onAnnualUpdateCompleted={(reportId) => {
-              setAnnualReportUpdate(null);
-              setAnnualReportToOpen(reportId);
-              setActiveSection("my-reports");
-            }}
-          />
+          <GeneralIndicatorsPage onReportSaved={handleGeneralIndicatorReportSaved} />
         )}
 
         {activeSection === "my-reports" && (
           <MyReportsPage
-            onGoToGeneralIndicators={() => { setAnnualReportUpdate(null); setActiveSection("general-indicators"); }}
-            onStartAnnualUpdate={(context) => { setAnnualReportUpdate(context); setActiveSection("general-indicators"); }}
-            openReportId={annualReportToOpen}
-            onOpenReportHandled={() => setAnnualReportToOpen(null)}
+            onGoToGeneralIndicators={() => setActiveSection("general-indicators")}
+            openReportId={generalIndicatorReportToOpen}
+            onOpenReportHandled={() => setGeneralIndicatorReportToOpen(null)}
           />
         )}
 

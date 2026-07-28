@@ -24,7 +24,9 @@ services:
     container_name: analise-horas-api
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://analise_horas:analise_horas@db:5432/analise_horas}
+      # DATABASE_URL pode apontar para localhost quando o backend roda
+      # diretamente no Windows. Dentro do Docker, o PostgreSQL é o serviço "db".
+      DATABASE_URL: ${DOCKER_DATABASE_URL:-postgresql+psycopg://analise_horas:analise_horas@db:5432/analise_horas}
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
       SQLSERVER_DRIVER: ${SQLSERVER_DRIVER:-ODBC Driver 18 for SQL Server}
       SQLSERVER_HOST: ${SQLSERVER_HOST:-}

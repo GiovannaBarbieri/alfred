@@ -1,49 +1,129 @@
-# Fase 2 - Importacao com staging
+# Importação e staging
+
+Revisão: **28/07/2026**.
 
 ## Objetivo
 
-Evoluir o fluxo de importacao para um modelo temporario antes da persistencia final, mantendo o foco em analise operacional das horas apontadas no TFS.
+Evitar gravação definitiva de dados antes de o usuário revisar estrutura, duplicidades e classificações.
 
-## Fluxo implementado
+## Origens
 
-1. Upload do arquivo Excel/CSV.
-2. Se o arquivo Excel possuir varias abas, selecao automatica da primeira aba com todas as colunas obrigatorias.
-3. Criacao de uma sessao temporaria em `import_sessions`.
-4. Gravacao das linhas cruas em `staging_rows`.
-5. Validacao e classificacao automatica.
-6. Identificacao de colaboradores sem perfil ativo.
-7. Cadastro rapido opcional dos colaboradores encontrados.
-8. Revisao de bloqueios, alertas, duplicidades e classificacoes.
-9. Confirmacao do usuario.
-10. Persistencia final em `importacoes`, `lancamentos_horas`, `erros_importacao`, `duplicidades_importacao` e `classificacoes_task`.
+### Arquivo
 
-## Recursos adicionados
+- Excel ou CSV;
+- normalização de cabeçalhos;
+- em Excel com várias abas, primeira aba com todas as colunas obrigatórias.
 
-- Staging de importacao por sessao.
-- Deteccao automatica da aba valida em arquivos Excel com varias abas.
-- Cancelamento de sessao temporaria.
-- Reprocessamento de sessao ainda nao concluida, usando o arquivo armazenado.
-- Logs estruturados em `import_logs`.
-- Score numerico e nivel de confianca da classificacao.
-- Versao do classificador gravada com cada classificacao.
-- Alertas operacionais simples sem bloqueio da importacao.
-- Assistente de cadastro rapido para colaboradores sem perfil ativo.
-- Aplicacao do cargo cadastrado como subcategoria sugerida na revisao atual quando a atividade estava sem cargo.
+### SQL Server
+
+- teste de conexão;
+- busca por IDs de Epic/Feature;
+- prévia convertida para o mesmo DataFrame do fluxo de arquivo;
+- nenhum bypass das validações.
+
+## Pipeline
+
+```mermaid
+flowchart TD
+  A["Entrada"] --> B["read_normalized_dataframe"]
+  B --> C["Validar colunas"]
+  C --> D["Validar linhas"]
+  D --> E["Classificar títulos"]
+  E --> F["Criar import_sessions"]
+  F --> G["Gravar staging_rows"]
+  G --> H["Retornar ImportSessionResponse"]
+  H --> I["Revisão"]
+  I --> J["Complete"]
+  J --> K["Revalidar"]
+  K --> L["Persistir tabelas finais"]
+```
+
+## Colunas obrigatórias
+
+```text
+IdLancamento
+DataHoraCadastro
+Task
+LoginUsuario
+Duracao
+IdTask
+TituloTask
+IdPBI
+TituloPBI
+IdFeat
+TituloFeat
+IdEpic
+TituloEpic
+```
+
+## Sessão temporária
+
+`import_sessions` guarda:
+
+- nome e hash;
+- conteúdo original;
+- estado;
+- contagens;
+- vínculo com importação final.
+
+`staging_rows` guarda:
+
+- linha;
+- IDs e título;
+- dados originais JSONB;
+- categoria/subcategoria sugeridas;
+- origem e confiança.
+
+## Reprocessamento
+
+`POST /api/imports/sessions/{session_id}/reprocess`:
+
+- relê o conteúdo;
+- reaplica validação;
+- usa configurações atuais;
+- substitui a visão temporária;
+- não altera importações já confirmadas.
+
+Para importações existentes:
+
+- `GET /api/imports/{id}/reprocess-preview`;
+- `POST /api/imports/{id}/reprocess-apply`;
+- `GET /api/imports/{id}/reprocess-history`.
+
+## Confirmação
+
+`POST /api/imports/sessions/{session_id}/complete`:
+
+1. verifica sessão;
+2. valida escolhas de duplicidade e overrides;
+3. revalida bloqueios;
+4. cria `importacoes`;
+5. cria `lancamentos_horas`;
+6. grava erros, duplicidades e classificações;
+7. registra logs/auditoria;
+8. vincula a sessão à importação final.
+
+A operação é transacional.
+
+## Cancelamento e limpeza
+
+- `DELETE /api/imports/sessions/{id}` cancela sessão;
+- startup remove sessões antigas não confirmadas;
+- retenção padrão: 7 dias;
+- configurar por `IMPORT_SESSION_RETENTION_DAYS`.
 
 ## Compatibilidade
 
-Os endpoints antigos de validacao e conclusao por arquivo continuam disponiveis para compatibilidade:
+Endpoints antigos permanecem:
 
-- `POST /api/imports/validate`
-- `POST /api/imports/complete`
+- `POST /api/imports/validate`;
+- `POST /api/imports/complete`.
 
-O fluxo novo usa:
+Novos clientes devem preferir o fluxo por sessão.
 
-- `POST /api/imports/sessions`
-- `POST /api/imports/sessions/{session_id}/reprocess`
-- `POST /api/imports/sessions/{session_id}/complete`
-- `DELETE /api/imports/sessions/{session_id}`
+## Observações
 
-## Limites mantidos
-
-Esta fase nao implementa IA generativa, chatbot, login corporativo, controle de ponto, banco de horas ou regras trabalhistas.
+- o domínio de importação é independente dos Indicadores Gerais;
+- um relatório de projeto nasce de uma importação confirmada;
+- a consulta SQL Server de Projetos não é a mesma consulta especializada dos Indicadores Gerais;
+- alterações em regras devem ser testadas nos dois fluxos quando houver código compartilhado.

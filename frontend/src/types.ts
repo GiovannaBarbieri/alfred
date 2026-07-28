@@ -1061,6 +1061,10 @@ export type GeneralIndicatorFinalizedResponse = {
   };
 };
 
+export type GeneralIndicatorFinalizationResponse = GeneralIndicatorFinalizedResponse & {
+  reportId: number;
+};
+
 export type SavedReportType = "GENERAL_INDICATORS";
 export type AnnualReportUpdateStatus = "IDLE" | "PROCESSING" | "PENDING_CORRECTIONS" | "READY_TO_FINALIZE" | "FAILED";
 
@@ -1189,3 +1193,15 @@ export type SavedReportListItem = AnnualReportListItem;
 export type SavedReportListResponse = AnnualReportListResponse;
 export type SavedReportDetail = AnnualReportDetail;
 export type ReportDeleteResponse = AnnualReportDeleteResponse;
+
+export type ReportPeriodAnalysisResponse = {
+  reportId: number;
+  source: "SAVED_SNAPSHOT";
+  officialPeriod: { startDate: string; endDate: string };
+  analyzedPeriod: { startDate: string; endDate: string };
+  recordCount: number;
+  totalHours: number;
+  kpis: GeneralIndicatorFinalizedResponse["kpis"];
+  categories: GeneralIndicatorCategory[];
+  months: GeneralIndicatorFinalizedResponse["months"];
+};

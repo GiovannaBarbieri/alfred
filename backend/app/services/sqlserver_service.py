@@ -404,8 +404,9 @@ def _connection_string() -> str:
         if auth_mode == "sql"
         else "Trusted_Connection=yes;"
     )
+    driver = _resolve_sqlserver_driver()
     return (
-        f"DRIVER={{{settings.sqlserver_driver}}};"
+        f"DRIVER={{{driver}}};"
         f"SERVER={settings.sqlserver_host},{settings.sqlserver_port};"
         f"DATABASE={settings.sqlserver_database};"
         f"{authentication}"
@@ -413,6 +414,34 @@ def _connection_string() -> str:
         f"TrustServerCertificate={trust_certificate};"
         f"Connection Timeout={settings.sqlserver_connection_timeout_seconds};"
     )
+
+
+def _resolve_sqlserver_driver() -> str:
+    configured_driver = settings.sqlserver_driver.strip()
+    try:
+        installed_drivers = [str(driver).strip() for driver in _load_pyodbc().drivers()]
+    except Exception:
+        # A enumeracao pode nao estar disponivel em todos os ambientes. Nesse caso,
+        # preservamos o driver configurado e deixamos o pyodbc validar a conexao.
+        return configured_driver
+
+    installed_by_name = {driver.casefold(): driver for driver in installed_drivers}
+    configured_installed = installed_by_name.get(configured_driver.casefold())
+    if configured_installed:
+        return configured_installed
+
+    for fallback in ("ODBC Driver 18 for SQL Server", "ODBC Driver 17 for SQL Server"):
+        installed_fallback = installed_by_name.get(fallback.casefold())
+        if installed_fallback:
+            logger.warning(
+                "Driver SQL Server configurado nao esta instalado; usando alternativa disponivel. "
+                "configurado=%s selecionado=%s",
+                configured_driver,
+                installed_fallback,
+            )
+            return installed_fallback
+
+    return configured_driver
 
 
 def _placeholders(values: Sequence[int]) -> str:

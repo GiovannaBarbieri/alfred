@@ -1,229 +1,181 @@
-# Arquitetura Tecnica
+# Arquitetura técnica
 
-## Objetivo
+Revisão: **28/07/2026**.
 
-Organizar o MVP como um sistema interno, local e evolutivo para analise operacional de horas apontadas no TFS 2015.
-
-O desenho atual evita reescrita ampla e separa responsabilidades em camadas pequenas, testaveis e compativeis com o fluxo de importacao ja existente.
-
-## Stack
-
-```text
-Frontend: React + TypeScript + Vite
-Backend: Python + FastAPI
-Banco: PostgreSQL
-Processamento: pandas + openpyxl
-Ambiente: Docker Compose
-```
-
-## Visao Geral
+## Visão geral
 
 ```mermaid
 flowchart LR
-  A["Excel/CSV do TFS"] --> B["Frontend React"]
-  B --> C["FastAPI"]
-  C --> D["Importer"]
-  D --> E["Staging"]
-  E --> F["Validacao"]
-  F --> G["Classificacao"]
-  G --> H["Cadastro rapido de colaboradores"]
-  H --> I["Revisao do usuario"]
-  I --> J["Persistencia final"]
-  J --> K["Dashboards e relatorios"]
+  U["Usuário"] --> F["React + Vite"]
+  F --> A["FastAPI"]
+  A --> P["PostgreSQL"]
+  A --> S["SQL Server / TFS 2015"]
+  A --> X["pandas / openpyxl"]
 ```
 
-## Fluxo De Importacao
+## Camadas do backend
 
-```text
-Upload
--> processamento temporario
--> validacao
--> classificacao
--> cadastro rapido opcional de colaboradores sem perfil
--> revisao
--> confirmacao do usuario
--> persistencia final
+| Camada | Responsabilidade |
+| --- | --- |
+| `api/routes` | HTTP, validação de parâmetros e tradução de exceções |
+| `schemas` | contratos Pydantic |
+| `services` | casos de uso, regras, transações e orquestração |
+| `repositories` | SQL PostgreSQL |
+| `sqlserver_service` | leitura em lote do TFS/SQL Server |
+| `importers` | leitura/normalização de arquivos |
+| `db.py` | conexão e transação PostgreSQL |
+
+Uma rota não deve conter regra de cálculo. Serviços não devem montar SQL PostgreSQL quando já existe repository do domínio.
+
+## Inicialização da API
+
+```mermaid
+flowchart TD
+  A["Startup FastAPI"] --> B["run_database_migrations"]
+  B --> C["Validar checksums e aplicar pendentes"]
+  C --> D["ensure_runtime_schema"]
+  D --> E["cleanup_old_import_sessions"]
+  E --> F["API pronta"]
 ```
 
-O arquivo importado primeiro cria uma sessao temporaria em `import_sessions` e linhas cruas em `staging_rows`. Em arquivos Excel com varias abas, o importador seleciona automaticamente a primeira aba que possui todas as colunas obrigatorias. A persistencia final so acontece depois da confirmacao do usuario. Quando a planilha contem colaboradores sem perfil ativo, o frontend pode criar o vinculo em `perfis_colaborador` antes da revisao final.
+Middlewares:
 
-## Backend
-
-### Rotas
-
-```text
-backend/app/api/routes/imports.py    Importacao, staging e conclusao
-backend/app/api/routes/dashboard.py  Indicadores e linha do tempo
-backend/app/api/routes/reports.py    Relatorios agregados
-backend/app/api/routes/exports.py    Exportacoes CSV e Excel
-backend/app/api/routes/settings.py   Configuracoes de classificacao
-backend/app/api/routes/analytics.py  Insights operacionais preservados no backend
-backend/app/api/routes/audit.py      Auditoria tecnica preservada no backend
-```
-
-### Services
-
-```text
-classification_service.py
-```
-
-Responsavel por capturar a categoria no primeiro colchete do titulo da Task, aplicar perfil operacional do colaborador como subcategoria analitica e sinalizar registros fora do padrao para revisao.
-
-```text
-validation_service.py
-```
-
-Responsavel por colunas obrigatorias, campos vazios, duracao, data, duplicidades e alertas operacionais.
-
-```text
-import_record_builder.py
-```
-
-Responsavel por montar os registros finais que serao persistidos em `lancamentos_horas`.
-
-```text
-staging_row_builder.py
-```
-
-Responsavel por montar as linhas temporarias para `staging_rows`, preservando dados crus e classificacao inicial.
-
-```text
-import_persistence_service.py
-```
-
-Responsavel por gravar importacao final, issues, lancamentos, classificacoes e resolucoes de duplicidade.
-
-```text
-import_service.py
-```
-
-Responsavel por orquestrar validacao da planilha e montagem dos registros finais via builders.
-
-```text
-import_pipeline.py
-```
-
-Responsavel pelo ciclo de staging: criar sessao, reprocessar, cancelar e concluir importacao.
-
-```text
-schema_service.py
-```
-
-Responsavel por garantir ajustes incrementais no schema durante a subida do backend.
-
-### Repositories
-
-```text
-import_repository.py
-staging_repository.py
-```
-
-Concentram o acesso direto ao PostgreSQL. As regras ficam nos services.
+- CORS configurável;
+- GZip para respostas a partir de 1.000 bytes.
 
 ## Frontend
 
-### Estrutura
+A aplicação é uma SPA React sem React Router. `App.tsx` controla a seção ativa e o `AppShell` controla menu, accordion e cabeçalhos.
+
+Padrão:
 
 ```text
-frontend/src/components
-frontend/src/components/settings
-frontend/src/components/validation
-frontend/src/hooks
-frontend/src/pages
-frontend/src/services
-frontend/src/types
-frontend/src/utils
+Page
+→ Hook
+→ Service HTTP
+→ API
 ```
 
-### Telas
+Responsabilidades:
 
-```text
-Dashboard
-Importacao
-Validacao
-Relatorios
-Configuracoes
+- `pages`: composição de tela e fluxo;
+- `components`: apresentação reutilizável;
+- `hooks`: estado assíncrono;
+- `services`: fetch e contratos HTTP;
+- `utils`: regras puras de apresentação/validação;
+- `types`: contratos TypeScript.
+
+Páginas grandes são carregadas com `lazy` e `Suspense`.
+
+## Arquitetura de Projetos
+
+```mermaid
+flowchart TD
+  A["Arquivo/SQL Server"] --> B["Importer"]
+  B --> C["Validação e classificação"]
+  C --> D["Sessão + staging"]
+  D --> E["Revisão do usuário"]
+  E --> F["Persistência transacional"]
+  F --> G["Relatórios"]
 ```
 
-Historico, Auditoria e Inteligencia Operacional existem no codigo/backend, mas estao ocultos na navegacao principal neste momento.
+O staging separa pré-validação de persistência final.
 
-O `App.tsx` atua como composicao principal. Sidebar, filtros, timeline, validacao, relatorios e configuracoes foram separados em componentes menores.
+## Arquitetura de Indicadores Gerais
 
-O frontend usa lazy loading para carregar telas sob demanda e reduzir o bundle inicial.
+### Consulta assíncrona
 
-## Banco De Dados
-
-Tabelas principais:
-
-```text
-import_sessions
-staging_rows
-import_logs
-importacoes
-lancamentos_horas
-erros_importacao
-duplicidades_importacao
-classificacoes_task
-categorias
-subcategorias
-palavras_chave_categoria
-perfis_colaborador
-colaboradores_ignorados
-classification_rules
-pending_reviews
-comparativos_projetos
-comparativos_projetos_importacoes
-audit_log
-auditoria_acoes
-classification_reprocess_history
-analytics_insights
+```mermaid
+sequenceDiagram
+  participant UI as Frontend
+  participant API as FastAPI
+  participant PG as PostgreSQL
+  participant TFS as SQL Server/TFS
+  UI->>API: POST /consultations
+  API->>PG: cria consulta
+  API-->>UI: 202 + consultationId
+  API->>TFS: lançamentos/hierarquia/TAGs em lote
+  API->>PG: lançamentos + inconsistências + progresso
+  loop polling
+    UI->>API: GET /consultations/{id}
+    API->>PG: estado/página
+    API-->>UI: progresso ou resultado
+  end
 ```
 
-Observacao: o cadastro rapido de colaboradores na importacao usa `perfis_colaborador` e `subcategorias`; nao ha tabela adicional para esse fluxo. `analytics_insights`, `audit_log` e tabelas de historico permanecem no banco mesmo com suas telas ocultas, pois preservam compatibilidade de API, trilha tecnica e evolucoes futuras.
+Consultas oficiais não usam `NOLOCK`. Leitura suja poderia gerar hierarquia e horas inconsistentes no snapshot.
 
-## Regras Preservadas
+### Finalização
 
-- Nao assumir regra trabalhista.
-- Nao calcular jornada esperada.
-- Nao analisar banco de horas ou hora extra como regra formal.
-- Usar `IdLancamento` como unica chave de duplicidade.
-- Bloquear conclusao com duplicidade sem resolucao.
-- Permitir que o usuario escolha qual linha duplicada manter.
-- Manter classificacao por `IdTask` como fluxo de revisao agrupada.
-- Salvar classificacao final escolhida pelo usuario.
-- Manter dados em staging antes da persistencia final.
+O serviço:
 
-## Testes
+1. adquire o direito de finalizar;
+2. valida estado, ausência de pendências e conteúdo;
+3. lê lançamentos já persistidos;
+4. lê a configuração atual de pesos;
+5. calcula o snapshot com `build_finalized_general_indicators`;
+6. gera hashes;
+7. persiste `resultado`;
+8. cria identidade/histórico do relatório;
+9. conclui de forma atômica.
 
-Os testes ficam em:
+Não há consulta ao TFS nessa etapa.
 
-```text
-backend/tests
+### Relatórios
+
+```mermaid
+flowchart LR
+  A["report_history"] --> B["consulta finalizada"]
+  B --> C["resultado JSONB"]
+  C --> D["Visão Geral"]
+  C --> E["Análise por período"]
 ```
 
-Rodar pelo container:
+A listagem lê campos indexados. O detalhe lê o snapshot persistido e remove a coleção técnica de auditoria quando ela não é necessária para a tela. A análise por período lê o snapshot completo internamente, filtra lançamentos e devolve apenas agregados.
 
-```powershell
-docker compose run --rm -T -v "C:\Projetos\analise-horas-tfs\backend\tests:/app/tests" backend python -m unittest discover -s tests
-```
+## Concorrência
 
-Coberturas atuais:
+- estados de processamento impedem duas operações;
+- advisory locks protegem criação/atualização de relatórios;
+- timestamps permitem recuperar trabalhadores expirados;
+- persistência final verifica se o trabalhador ainda é o proprietário da operação;
+- consulta finalizada não é sobrescrita.
 
-```text
-classification_service
-validation_service
-import_record_builder
-staging_row_builder
-import_persistence_service
-import_service
-import_pipeline
-```
+## Integridade
 
-## Proximas Evolucoes Tecnicas
+- transações PostgreSQL com commit/rollback;
+- FKs e `ON DELETE` definidos por domínio;
+- checks de período, duração, status, hash e contagens;
+- índices parciais para estados ativos;
+- hashes SHA-256 do snapshot/resultado;
+- versões de cálculo no snapshot.
 
-- Criar script unico de validacao local.
-- Adicionar testes de API com FastAPI TestClient.
-- Padronizar logs de suporte em tela.
-- Criar tela detalhada de logs da importacao.
-- Adicionar migrations formais quando o sistema sair do MVP local.
-- Avaliar IA apenas para insights e analises complexas, sem enviar dados externos por padrao.
+## Decisões importantes
+
+- PostgreSQL é a fonte do histórico oficial.
+- SQL Server/TFS é somente leitura.
+- snapshot é imutável.
+- atualização de configuração não altera histórico.
+- análise por período reutiliza o motor oficial e pesos históricos.
+- `IdLancamento` não pode ser agregado ou substituído por outro lançamento.
+- nomes `annual_*` permanecem temporariamente por compatibilidade.
+
+## Segurança
+
+Implementado:
+
+- credenciais por ambiente;
+- conta SQL Server somente leitura recomendada;
+- CORS configurável;
+- validação Pydantic;
+- SQL parametrizado;
+- logs de auditoria para configurações;
+- exclusão transacional.
+
+Pendente:
+
+- identidade corporativa;
+- autorização por perfil;
+- secrets manager;
+- rate limiting;
+- trilha de usuário confiável no servidor.

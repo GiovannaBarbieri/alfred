@@ -1,150 +1,87 @@
-# Backlog Tecnico v1
+# Backlog técnico
 
-Observacao: este backlog representa a base inicial do projeto. Parte dos itens ja foi implementada e refinada; a navegacao atual mantem ativas as telas Dashboard, Importacao, Validacao, Relatorios e Configuracoes.
+Revisão: **28/07/2026**.
 
-## Epico 1: Estrutura Do Projeto
+Itens concluídos foram removidos deste backlog e estão descritos nos demais documentos.
 
-### Feature 1.1: Criar base do sistema
+## Prioridade alta
 
-```text
-Criar repositorio do projeto
-Configurar backend FastAPI
-Configurar frontend React + TypeScript
-Configurar PostgreSQL
-Configurar Docker Compose
-Criar estrutura inicial de pastas
-Criar arquivo de variaveis de ambiente
-Configurar conexao backend com banco
-```
+### Autenticação e autorização
 
-### Feature 1.2: Configurar banco
+- integrar identidade corporativa;
+- obter usuário autenticado no backend;
+- controlar permissões de configuração, exclusão e auditoria;
+- deixar de aceitar `actor` apenas como dado informado pelo cliente.
 
-```text
-Criar migrations iniciais
-Criar tabelas do MVP
-Inserir categorias oficiais atuais
-Inserir cargos/perfis operacionais oficiais
-```
+### Observabilidade
 
-## Epico 2: Importacao De Arquivos
+- padronizar logs estruturados;
+- incluir correlation ID;
+- métricas de latência por endpoint e etapa;
+- alerta para consulta SQL Server lenta/falha;
+- painel de saúde PostgreSQL, SQL Server e filas em processamento.
 
-```text
-Criar endpoint de upload
-Validar extensao .xlsx e .csv
-Salvar metadados da importacao
-Calcular hash do arquivo
-Ler .xlsx com pandas/openpyxl
-Ler .csv com pandas
-Validar cabecalhos
-Normalizar nomes de colunas
-```
+### Banco
 
-## Epico 3: Validacao Dos Dados
+- mover o restante das evoluções de `schema_service.py` para migrations;
+- criar processo formal de backup/restore por ambiente;
+- testar restore periodicamente;
+- definir política de retenção de consultas não finalizadas;
+- revisar crescimento do JSONB `resultado` e de `dados_tecnicos`.
 
-```text
-Validar campos obrigatorios
-Validar DataHoraCadastro
-Validar Duracao HH:MM:SS
-Converter Duracao para segundos
-Gerar alerta para 00:00:00
-Identificar IdLancamento duplicado
-Gerar erros por linha e campo
-Bloquear importacao em erro critico
-```
+## Prioridade média
 
-## Epico 4: Resolucao De Duplicidades
+### API
 
-```text
-Listar grupos duplicados
-Mostrar registros lado a lado
-Permitir escolher registro mantido
-Marcar registros removidos
-Salvar decisao
-Registrar auditoria
-Liberar importacao apos resolver todas
-```
+- autenticação no Swagger;
+- tratamento uniforme de erros;
+- contratos mais específicos no lugar de `dict` em estruturas agregadas;
+- endpoints administrativos para consultar migrations e saúde das integrações;
+- política explícita de compatibilidade/depreciação do endpoint síncrono `/consultation`.
 
-## Epico 5: Classificacao De Categorias
+### Frontend
 
-```text
-Criar parser para categoria no primeiro colchete do titulo
-Validar categoria oficial
-Validar subcategoria oficial
-Criar dicionario de palavras-chave
-Sugerir categoria por titulo
-Criar tela de revisao
-Registrar alteracoes manuais
-```
+- roteamento por URL para deep links;
+- error boundary global;
+- testes de componentes com ambiente DOM;
+- testes E2E dos fluxos principais;
+- divisão de `styles.css` por domínio;
+- padronização global de alertas/toasts;
+- virtualização para listas muito grandes.
 
-## Epico 6: Persistencia
+### Desempenho
 
-```text
-Salvar importacao
-Salvar lancamentos validos
-Salvar alertas
-Salvar erros
-Salvar classificacoes
-Salvar duplicidades resolvidas
-Atualizar status da importacao
-```
+- medir planos SQL reais em produção;
+- avaliar índices do SQL Server com a equipe de infraestrutura;
+- monitorar polling;
+- cache curto para configurações somente leitura;
+- paginação/streaming em exportações grandes.
 
-## Epico 7: Relatorios
+## Prioridade baixa
 
-```text
-Horas por colaborador
-Horas por Epic
-Horas por Feature
-Horas por PBI
-Horas por Task
-Horas por categoria
-Horas por subcategoria
-Relatorio de alertas
-Relatorio de erros
-Relatorio de duplicidades
-Exportar Excel/CSV
-```
+- reavaliar reativação de Dashboard, Histórico, Auditoria e Inteligência Operacional;
+- exportação dos Indicadores Gerais;
+- comparação explícita entre relatórios salvos;
+- agendamento de relatórios;
+- notificações de conclusão;
+- documentação OpenAPI enriquecida com exemplos.
 
-## Epico 8: Dashboard
+## Dívidas conhecidas
 
-```text
-Cards de indicadores principais
-Top 10 Epics por horas
-Top 10 PBIs por horas
-Top 10 colaboradores por horas
-Top 10 categorias por horas
-Linha do tempo por dia
-Linha do tempo por semana
-Linha do tempo por mes
-Filtro por categoria
-Filtro por Epic
-Comparacao de categorias na linha do tempo
-```
+- nomes históricos `annual_report` permanecem no código/banco por compatibilidade, apesar do modelo atual ser de relatórios independentes;
+- coexistem `audit_log` e `auditoria_acoes`;
+- o bootstrap inicial e as migrations não formam ainda um único mecanismo;
+- alguns contratos legados permanecem expostos internamente;
+- mensagens e comentários antigos podem usar a terminologia “anual”.
 
-## Epico 9: Historico
+## Critérios para novas evoluções
 
-```text
-Listar importacoes
-Abrir detalhes
-Mostrar resumo
-Mostrar erros e alertas
-Exportar base consolidada
-Status atual: modulo oculto no frontend
-```
+Toda mudança em Indicadores Gerais deve:
 
-## Epico 10: Configuracoes
-
-```text
-Listar categorias
-Criar categoria como admin
-Editar categoria
-Inativar categoria
-Listar subcategorias
-Criar cargo como admin
-Editar cargo
-Inativar cargo
-Listar palavras-chave
-Criar palavras-chave
-Editar palavras-chave
-Inativar palavras-chave
-Vincular colaboradores a cargos
-```
+1. preservar `IdLancamento`;
+2. provar reconciliação de horas;
+3. preservar snapshots anteriores;
+4. impedir nova consulta ao TFS na leitura histórica;
+5. incluir migration quando alterar persistência;
+6. adicionar teste de regressão;
+7. atualizar esta documentação.

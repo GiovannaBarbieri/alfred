@@ -6,14 +6,18 @@ export function ReportFilters({
   onChange,
   onApply,
   onClear,
+  canApply,
+  canClear,
 }: {
   draft: ReportFilterDraft;
   onChange: <K extends keyof ReportFilterDraft>(key: K, value: ReportFilterDraft[K]) => void;
   onApply: () => void;
   onClear: () => void;
+  canApply: boolean;
+  canClear: boolean;
 }) {
   return (
-    <form className="panel saved-report-filters" onSubmit={(event) => { event.preventDefault(); onApply(); }}>
+    <form className="panel saved-report-filters" onSubmit={(event) => { event.preventDefault(); if (canApply) onApply(); }}>
       <div className="saved-report-filter-grid">
         <label className="saved-report-search">
           <span>Buscar por nome</span>
@@ -21,8 +25,8 @@ export function ReportFilters({
         </label>
         <label><span>Ano</span><select value={draft.year} onChange={(event) => onChange("year", event.target.value)}><option value="">Todos os anos</option>{yearOptions().map((year) => <option value={year} key={year}>{year}</option>)}</select></label>
         <div className="saved-report-filter-actions">
-          <button className="secondary-button" type="button" onClick={onClear}><X size={16} />Limpar filtros</button>
-          <button className="primary-button" type="submit"><SlidersHorizontal size={16} />Aplicar filtros</button>
+          <button className="secondary-button" type="button" disabled={!canClear} aria-disabled={!canClear} onClick={onClear}><X size={16} />Limpar filtros</button>
+          <button className="primary-button" type="submit" disabled={!canApply} aria-disabled={!canApply}><SlidersHorizontal size={16} />Aplicar filtros</button>
         </div>
       </div>
     </form>

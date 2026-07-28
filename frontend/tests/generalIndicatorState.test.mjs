@@ -3,7 +3,6 @@ import { test } from "node:test";
 
 import {
   isCompletedGeneralIndicatorValidation,
-  requiresConsultationReplacementConfirmation,
   resolveGeneralIndicatorScreenState,
 } from "../src/utils/generalIndicatorState.ts";
 import {
@@ -41,11 +40,6 @@ test("6. consulta pronta para finalizar", () => assert.equal(resolveGeneralIndic
 test("7. finalização em processamento", () => assert.equal(resolveGeneralIndicatorScreenState({ ...base, hasConsultation: true, uniqueLaunchCount: 10, operation: "finalization" }), "finalizing"));
 test("8. indicadores finalizados", () => assert.equal(resolveGeneralIndicatorScreenState({ ...base, hasConsultation: true, uniqueLaunchCount: 10, hasFinalData: true }), "finalized"));
 test("9. erro de comunicação", () => assert.equal(resolveGeneralIndicatorScreenState({ ...base, hasError: true }), "error"));
-test("10. alteração de período com consulta não finalizada exige confirmação", () => {
-  assert.equal(requiresConsultationReplacementConfirmation({ hasConsultation: true, isFinalized: false, currentStartDate: "2026-01-01", currentEndDate: "2026-03-31", requestedStartDate: "2026-04-01", requestedEndDate: "2026-06-30" }), true);
-  assert.equal(requiresConsultationReplacementConfirmation({ hasConsultation: true, isFinalized: true, currentStartDate: "2026-01-01", currentEndDate: "2026-03-31", requestedStartDate: "2026-04-01", requestedEndDate: "2026-06-30" }), false);
-});
-
 const rootIssue = {
   type: "feature_type_invalid", blocking: true, scope: "launch", idLancamento: "269895",
   idFeature: null, affectedLaunchIds: ["269895"],

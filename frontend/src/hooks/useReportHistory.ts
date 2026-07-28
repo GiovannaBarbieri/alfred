@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   deleteReport,
   getReportDetail,
@@ -11,6 +11,8 @@ import type {
   SavedReportListResponse,
   SavedReportViewState,
 } from "../types";
+import { areReportFiltersEqual } from "../utils/reportHistoryFilters";
+import { scheduleReportNoticeDismiss } from "../utils/reportHistoryNotice";
 
 export type ReportFilterDraft = {
   search: string;
@@ -36,7 +38,8 @@ export function useReportHistory(actor?: string | null) {
   const [actionBusy, setActionBusy] = useState(false);
   const [openingId, setOpeningId] = useState<number | null>(null);
   const [view, setView] = useState<SavedReportViewState | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const noticeSequence = useRef(0);
+  const [notice, setNotice] = useState<{ id: number; message: string } | null>(null);
 
   const params = useMemo<ReportListParams>(() => ({
     type: "GENERAL_INDICATORS",
@@ -63,15 +66,17 @@ export function useReportHistory(actor?: string | null) {
     void load(false);
   }, [load]);
 
+  const dismissNotice = useCallback(() => setNotice(null), []);
+
+  const showNotice = useCallback((message: string) => {
+    noticeSequence.current += 1;
+    setNotice({ id: noticeSequence.current, message });
+  }, []);
+
   useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      if (draft.search !== applied.search) {
-        setPage(1);
-        setApplied((current) => ({ ...current, search: draft.search }));
-      }
-    }, 450);
-    return () => window.clearTimeout(timeout);
-  }, [applied.search, draft.search]);
+    if (!notice) return;
+    return scheduleReportNoticeDismiss(dismissNotice);
+  }, [dismissNotice, notice]);
 
   function updateDraft<K extends keyof ReportFilterDraft>(key: K, value: ReportFilterDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -124,7 +129,7 @@ export function useReportHistory(actor?: string | null) {
     try {
       if (action.type === "delete") {
         await deleteReport(action.report.id, actor);
-        setNotice("Análise excluída permanentemente.");
+        showNotice("Análise excluída permanentemente.");
       }
       setAction(null);
       if (action.type === "delete" && data?.items.length === 1 && page > 1) {
@@ -135,7 +140,7 @@ export function useReportHistory(actor?: string | null) {
     } catch (caught) {
       if (caught instanceof ReportHistoryApiError && caught.status === 404) {
         setAction(null);
-        setNotice("O relatório não existe mais. A listagem foi atualizada.");
+        showNotice("O relatório não existe mais. A listagem foi atualizada.");
         await load(true);
       } else if (caught instanceof ReportHistoryApiError && caught.status === 409) {
         setActionError("A análise está em processamento e não pode ser alterada agora.");
@@ -148,29 +153,37 @@ export function useReportHistory(actor?: string | null) {
   }
 
   const hasActiveFilters = Boolean(applied.search || applied.year);
+  const canApplyFilters = !areReportFiltersEqual(draft, applied);
+  const canClearFilters = (
+    !areReportFiltersEqual(draft, defaultFilters)
+    || !areReportFiltersEqual(applied, defaultFilters)
+  );
 
   return {
     action,
     actionBusy,
     actionError,
     applied,
+    canApplyFilters,
+    canClearFilters,
     clearFilters,
     closeAction,
     confirmAction,
     data,
+    dismissNotice,
     draft,
     error,
     hasActiveFilters,
     isLoading,
     isRefreshing,
-    notice,
+    notice: notice?.message ?? null,
     openReport,
     openingId,
     page,
     pageSize,
     refresh: () => load(true),
     requestAction,
-    setNotice,
+    showNotice,
     setPage,
     updateDraft,
     applyFilters,

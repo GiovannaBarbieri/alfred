@@ -24,38 +24,24 @@ from app.services.general_indicators_service import (
     refresh_general_indicator_pendings,
     run_general_indicator_validation,
 )
-from app.schemas.general_indicators import GeneralIndicatorFinalizedSnapshot
+from app.schemas.general_indicators import GeneralIndicatorFinalizationResponse, GeneralIndicatorFinalizedSnapshot
 from app.schemas.report_history import (
-    AnnualReportDeleteResponse,
-    AnnualReportDetail,
-    AnnualReportListResponse,
-    AnnualReportRevisionSummary,
-    AnnualReportUpdateRequest,
-    AnnualReportUpdateResponse,
-    AnnualReportUpdateState,
-    ReportActionRequest,
-    ReportDeleteResponse,
-    ReportDetail,
-    ReportListResponse,
-    ReportStatusFilter,
+    GeneralIndicatorFinalizeRequest,
     ReportType,
+    SavedReportDeleteResponse,
+    SavedReportDetail,
+    SavedReportListResponse,
+    ReportPeriodAnalysisResponse,
 )
 from app.services.report_history_service import (
     ReportHistoryConflictError,
     ReportHistoryNotFoundError,
-    archive_saved_report,
+    ReportHistoryPeriodAnalysisError,
+    analyze_annual_saved_report_period,
     delete_annual_saved_report,
-    delete_saved_report,
     get_annual_saved_report,
-    get_annual_saved_report_revisions,
-    get_annual_saved_report_update,
-    get_saved_report,
     list_annual_saved_reports,
-    list_saved_reports,
-    make_saved_report_current,
-    start_annual_saved_report_update,
 )
-from app.services.general_indicators_classification import HIERARCHY_CONTRACT_VERSION
 from app.services.sqlserver_service import (
     SQLServerConfigurationError,
     SQLServerConnectionError,
@@ -66,14 +52,14 @@ from app.services.sqlserver_service import (
 router = APIRouter()
 
 
-@router.get("/reports", response_model=AnnualReportListResponse)
+@router.get("/reports", response_model=SavedReportListResponse)
 def list_general_indicator_reports(
     report_type: ReportType = Query(default=ReportType.GENERAL_INDICATORS, alias="type"),
     year: int | None = Query(default=None, ge=2000, le=2200),
     search: str | None = Query(default=None, max_length=255),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, alias="pageSize", ge=1, le=100),
-) -> AnnualReportListResponse:
+) -> SavedReportListResponse:
     return list_annual_saved_reports(
         report_type=report_type,
         year=year,
@@ -83,85 +69,39 @@ def list_general_indicator_reports(
     )
 
 
-@router.get("/reports/{report_id}", response_model=AnnualReportDetail)
-def get_general_indicator_report(report_id: int) -> AnnualReportDetail:
+@router.get("/reports/{report_id}", response_model=SavedReportDetail)
+def get_general_indicator_report(report_id: int) -> SavedReportDetail:
     try:
         return get_annual_saved_report(report_id)
     except ReportHistoryNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
-@router.post("/reports/{report_id}/make-current", response_model=ReportDetail)
-def make_general_indicator_report_current(
+@router.get("/reports/{report_id}/period-analysis", response_model=ReportPeriodAnalysisResponse)
+def get_general_indicator_report_period_analysis(
     report_id: int,
-    payload: ReportActionRequest | None = None,
-) -> ReportDetail:
+    start_date: date = Query(alias="startDate"),
+    end_date: date = Query(alias="endDate"),
+) -> ReportPeriodAnalysisResponse:
     try:
-        return make_saved_report_current(report_id, actor=payload.actor if payload else None)
-    except ReportHistoryNotFoundError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-    except ReportHistoryConflictError as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
-
-
-@router.post("/reports/{report_id}/archive", response_model=ReportDetail)
-def archive_general_indicator_report(
-    report_id: int,
-    payload: ReportActionRequest | None = None,
-) -> ReportDetail:
-    try:
-        return archive_saved_report(report_id, actor=payload.actor if payload else None)
-    except ReportHistoryNotFoundError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-
-@router.post("/reports/{report_id}/updates", response_model=AnnualReportUpdateResponse, status_code=status.HTTP_202_ACCEPTED)
-def start_general_indicator_report_update(
-    report_id: int,
-    payload: AnnualReportUpdateRequest,
-    background_tasks: BackgroundTasks,
-) -> AnnualReportUpdateResponse:
-    try:
-        update = start_annual_saved_report_update(
-            report_id,
-            new_period_end=payload.newPeriodEnd,
-            actor=payload.actor,
-            hierarchy_contract_version=HIERARCHY_CONTRACT_VERSION,
+        return ReportPeriodAnalysisResponse.model_validate(
+            analyze_annual_saved_report_period(
+                report_id,
+                start_date=start_date,
+                end_date=end_date,
+            )
         )
-        background_tasks.add_task(
-            process_general_indicator_validation,
-            update.consultationId,
-            start_date=update.periodStart,
-            end_date=update.periodEnd,
-        )
-        return update
     except ReportHistoryNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
-    except ReportHistoryConflictError as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ReportHistoryPeriodAnalysisError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
-@router.get("/reports/{report_id}/updates/current", response_model=AnnualReportUpdateState)
-def get_general_indicator_report_update(report_id: int) -> AnnualReportUpdateState:
-    try:
-        return get_annual_saved_report_update(report_id)
-    except ReportHistoryNotFoundError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-
-@router.get("/reports/{report_id}/revisions", response_model=list[AnnualReportRevisionSummary])
-def list_general_indicator_report_revisions(report_id: int) -> list[AnnualReportRevisionSummary]:
-    try:
-        return get_annual_saved_report_revisions(report_id)
-    except ReportHistoryNotFoundError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-
-@router.delete("/reports/{report_id}", response_model=AnnualReportDeleteResponse)
+@router.delete("/reports/{report_id}", response_model=SavedReportDeleteResponse)
 def delete_general_indicator_report(
     report_id: int,
     actor: str | None = Query(default=None, max_length=255),
-) -> AnnualReportDeleteResponse:
+) -> SavedReportDeleteResponse:
     try:
         return delete_annual_saved_report(report_id, actor=actor)
     except ReportHistoryNotFoundError as exc:
@@ -207,16 +147,20 @@ def get_general_indicator_consultation(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
-@router.post("/consultations/{consultation_id}/finalize", response_model=GeneralIndicatorFinalizedSnapshot)
+@router.post("/consultations/{consultation_id}/finalize", response_model=GeneralIndicatorFinalizationResponse)
 def finalize_general_indicators(
     consultation_id: int,
+    payload: GeneralIndicatorFinalizeRequest,
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=100, alias="pageSize", ge=1, le=500),
-) -> GeneralIndicatorFinalizedSnapshot:
+) -> GeneralIndicatorFinalizationResponse:
     try:
-        return GeneralIndicatorFinalizedSnapshot.model_validate(
+        return GeneralIndicatorFinalizationResponse.model_validate(
             paginate_finalized_general_indicator_response(
-                finalize_general_indicator_consultation(consultation_id),
+                finalize_general_indicator_consultation(
+                    consultation_id,
+                    report_name=payload.reportName,
+                ),
                 page=page,
                 page_size=page_size,
             )

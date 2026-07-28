@@ -1,175 +1,181 @@
-# Fluxo De Telas Atual
+# Fluxo de telas
 
-## 1. Dashboard
+Versão documental: **28/07/2026**.
 
-Tela inicial do sistema.
-
-Mostra uma visao executiva dos projetos analisados, com:
+## Navegação lateral
 
 ```text
-KPIs superiores do ambiente
-Situacao Geral
-Distribuicao Geral por categoria
-Ranking de colaboradores
-Indicadores do Ambiente
+Relatórios
+├── Projetos
+├── Indicadores Gerais
+└── Meus Relatórios
+
+Configurações
+├── Configurações gerais
+└── Pesos de distribuição
 ```
 
-A Dashboard funciona como centro de comando do ambiente. Detalhes de projeto permanecem na tela de Relatorios.
+- apenas um grupo fica expandido;
+- a rota atual reabre automaticamente seu grupo;
+- o grupo pai não recebe o mesmo destaque do item ativo;
+- estado é preservado localmente quando aplicável.
 
-## 2. Importacao
+## Projetos
 
-Tela para carregar Excel/CSV exportado do TFS.
+```mermaid
+flowchart TD
+  A["Relatórios > Projetos"] --> B["Importar dados"]
+  B --> C["Upload ou SQL Server"]
+  C --> D["Validação"]
+  D --> E["Classificação"]
+  E --> F["Confirmação"]
+  F --> G["Projeto salvo"]
+  G --> H["Relatório do projeto"]
+  H --> I["Executivo"]
+  H --> J["Gráficos"]
+  H --> K["Tasks"]
+  H --> L["Evolução e comparativos"]
+```
 
-Fluxo:
+### Estados
+
+- vazio;
+- enviando/processando;
+- bloqueios;
+- alertas;
+- revisão de duplicidade;
+- colaboradores sem perfil;
+- pronto para confirmar;
+- confirmação em andamento;
+- sucesso/abertura do relatório;
+- erro recuperável.
+
+## Indicadores Gerais
+
+```mermaid
+flowchart TD
+  A["Selecionar período"] --> B["Consultar"]
+  B --> C["Acompanhar progresso"]
+  C --> D{"Pendências impeditivas?"}
+  D -- "Sim" --> E["Corrigir no TFS"]
+  E --> F["Atualizar pendências"]
+  F --> D
+  D -- "Não" --> G["Informar nome"]
+  G --> H["Salvar relatório"]
+  H --> I["Meus Relatórios"]
+  I --> J["Abrir relatório recém-salvo"]
+```
+
+### Consulta
+
+- filtros em linha: ano, data inicial, data final e botão;
+- atalhos apenas preenchem;
+- durante processamento, botão é bloqueado e mostra carregamento;
+- progresso indica etapa, percentual e mensagem;
+- a consulta só ocorre após clique.
+
+### Validação
+
+Com pendências:
+
+- resumo de impacto;
+- inconsistências agrupadas por causa;
+- Task, PBI/Bug, Feature esperada, tipo encontrado, lançamentos e horas afetadas;
+- instrução de correção;
+- ação principal **Atualizar pendências**.
+
+Sem pendências:
+
+- título **Validação concluída**;
+- resumo de lançamentos e horas;
+- campo de nome;
+- botão **Salvar relatório**.
+
+Não há dashboard final nessa tela.
+
+## Meus Relatórios
+
+### Listagem
+
+```mermaid
+flowchart TD
+  A["Abrir Meus Relatórios"] --> B["Carregar página"]
+  B --> C["Filtrar por nome/ano"]
+  C --> D["Aplicar"]
+  D --> E["Abrir relatório"]
+  D --> F["Excluir"]
+```
+
+Comportamentos:
+
+- atualização manual no topo;
+- alerta de sucesso fecha em 4 segundos e mantém fechamento manual;
+- erro permanece visível;
+- paginação aparece apenas quando o total ultrapassa o tamanho da página;
+- estado vazio distingue “nenhum relatório” de “nenhum resultado para filtros”.
+
+### Relatório salvo
 
 ```text
-Selecionar arquivo
-Validar arquivo
-Criar sessao temporaria
-Revisar dados antes da conclusao
-Confirmar importacao
+← Nome do relatório
+
+Visão Geral | Análise por período
 ```
 
-## 3. Validacao
+**Visão Geral**:
 
-Etapa exibida apos o upload.
+- resumo;
+- KPIs;
+- evolução;
+- gráficos de categoria/composição;
+- composição das horas;
+- distribuição de Atualização do sistema;
+- comparativo trimestral quando aplicável.
 
-Mostra:
+Auditoria de lançamentos permanece persistida, mas não é exibida como bloco principal.
 
-```text
-Saude da importacao
-Registros validos
-Bloqueios impeditivos
-Alertas relevantes
-Duplicidades por IdLancamento
-Classificacoes sugeridas
-Revisao por Task
-Cadastro rapido de colaboradores sem perfil ativo
-```
+**Análise por período**:
 
-O usuario pode revisar classificacoes e resolver duplicidades antes de consolidar a importacao.
+- período oficial;
+- data inicial/final limitadas;
+- atalhos;
+- botão Analisar;
+- KPIs e gráficos do recorte;
+- estados inicial, carregando, vazio e erro.
 
-Na Fase 4 - Classificacao, quando existem colaboradores sem perfil cadastrado, o sistema abre o modal "Novos colaboradores encontrados". O usuario pode vincular cada login a um cargo, cadastrar e continuar, ou ignorar temporariamente.
+## Configurações gerais
 
-## 4. Relatorios
+Áreas funcionais:
 
-Tela principal de analise de projetos importados.
+- categorias;
+- subcategorias;
+- palavras-chave;
+- regras;
+- colaboradores;
+- participação nos Indicadores Gerais.
 
-### 4.1 Listagem de projetos
+O bootstrap agrega leituras para reduzir carregamento inicial.
 
-Mostra os projetos importados em formato de listagem executiva:
+## Pesos de distribuição
 
-```text
-Nome do projeto
-Arquivo importado
-Status da analise
-Ultima atualizacao
-Horas
-Registros
-Colaboradores
-Botao Visualizar Analise
-```
+- tabela com categoria, peso, influência e participação;
+- salvar;
+- restaurar padrão;
+- explicação e exemplo simples do cálculo;
+- alterações afetam somente novos cálculos.
 
-### 4.2 Aba Executivo
+## Responsividade
 
-Mostra a leitura gerencial do projeto:
+- filtros e ações quebram para múltiplas linhas;
+- gráficos passam para uma coluna;
+- botões principais ocupam 100% apenas quando necessário no mobile;
+- menus e controles preservam navegação por teclado e atributos ARIA.
 
-```text
-KPIs principais
-Resumo Inteligente em texto
-Destaques do Projeto
-Resumo Executivo
-Top colaboradores
-Top categorias
-Top tasks
-Alertas executivos quando existirem
-```
+## Telas preservadas fora da navegação
 
-Os blocos analiticos ficam recolhidos por padrao.
+- Dashboard;
+- Histórico;
+- Auditoria;
+- Inteligência Operacional.
 
-### 4.3 Aba Graficos
-
-Focada em tendencias visuais.
-
-Mostra:
-
-```text
-Evolucao diaria do projeto
-Distribuicao das horas por categoria
-Analises especificas por colaborador
-Analises especificas por categoria
-```
-
-O grafico de Evolucao Acumulada de Horas foi removido para reduzir redundancia.
-
-### 4.4 Aba Tasks
-
-Mostra tarefas por colaborador.
-
-Recursos:
-
-```text
-Selecao de colaborador
-Resumo do colaborador
-Tabela paginada de 20 em 20 registros
-Barra visual de duracao
-Categoria principal da task
-```
-
-## 5. Configuracoes
-
-Tela para manter cadastros usados na classificacao.
-
-Abas ativas:
-
-```text
-Categorias
-Cargos
-Colaboradores
-```
-
-### Categorias
-
-Permite criar, editar, ativar/inativar e excluir categorias.
-
-Tambem exibe descricao da categoria por tooltip quando cadastrada.
-
-### Cargos
-
-Permite manter cargos/perfis operacionais e seus grupos.
-
-Cargos oficiais:
-
-```text
-Analista
-Desenvolvedor Back-end
-Desenvolvedor Front-end
-QA
-Banco de Dados
-Infraestrutura
-DataOps
-```
-
-### Colaboradores
-
-Permite vincular colaborador a cargo.
-
-O grupo e derivado automaticamente do cargo.
-
-## 6. Telas Ocultas No Frontend
-
-As telas abaixo continuam existindo no codigo/backend, mas nao aparecem na navegacao principal neste momento:
-
-```text
-Historico
-Auditoria
-Inteligencia Operacional
-```
-
-Motivo:
-
-```text
-Historico: informacoes principais ja aparecem no contexto do projeto/importacao.
-Auditoria: uso mais tecnico, sem valor imediato para analise gerencial.
-Inteligencia Operacional: insights salvos ainda existem no backend, mas a tela foi ocultada ate voltar a ser util ao fluxo principal.
-```
+Essas páginas não devem ser removidas sem auditoria, mas também não devem ser tratadas como rotas ativas do menu atual.

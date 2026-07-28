@@ -50,6 +50,12 @@ test("tela usa select, participação e confirmação de restauração", () => {
   assert.match(pageSource, /Pesos padrão restaurados|Restaurar padrão/);
 });
 
+test("card Como funciona apresenta exemplo simples do cálculo ponderado", () => {
+  assert.match(pageSource, /Exemplo simples/);
+  assert.match(pageSource, /100 × 4 = 400 pontos/);
+  assert.match(pageSource, /Novo Projeto recebe <strong>48 h<\/strong>/);
+});
+
 test("service implementa carregamento, salvamento e restauração", () => {
   assert.match(serviceSource, /getDistributionWeights/);
   assert.match(serviceSource, /method: "PUT"/);
