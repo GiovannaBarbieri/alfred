@@ -1,4 +1,6 @@
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,10 +16,28 @@ from app.services.session_cleanup_service import cleanup_old_import_sessions
 logger = logging.getLogger(__name__)
 
 
+def startup() -> None:
+    run_database_migrations()
+    ensure_runtime_schema()
+    try:
+        deleted_sessions = cleanup_old_import_sessions()
+        if deleted_sessions:
+            logger.info("Sessoes temporarias antigas removidas: %s", deleted_sessions)
+    except Exception:
+        logger.exception("Falha ao limpar sessoes temporarias antigas.")
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    startup()
+    yield
+
+
 app = FastAPI(
     title="ADVISE Gerenciador de horas",
     version="0.1.0",
     description="API para importacao, validacao e analise de horas lancadas no TFS.",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -37,18 +57,6 @@ app.include_router(settings_routes.router, prefix="/api/settings", tags=["settin
 app.include_router(audit.router, prefix="/api/audit", tags=["audit"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
 app.include_router(general_indicators.router, prefix="/api/general-indicators", tags=["general-indicators"])
-
-
-@app.on_event("startup")
-def startup() -> None:
-    run_database_migrations()
-    ensure_runtime_schema()
-    try:
-        deleted_sessions = cleanup_old_import_sessions()
-        if deleted_sessions:
-            logger.info("Sessoes temporarias antigas removidas: %s", deleted_sessions)
-    except Exception:
-        logger.exception("Falha ao limpar sessoes temporarias antigas.")
 
 
 @app.get("/api/health")
