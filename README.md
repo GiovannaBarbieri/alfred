@@ -287,8 +287,13 @@ Backend:
 
 ```powershell
 cd C:\Projetos\alfred\backend
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 .\.venv\Scripts\python.exe -m pytest -q
 ```
+
+O `requirements.txt` contém somente as dependências de execução usadas pela
+imagem Docker. Ferramentas de desenvolvimento e testes ficam em
+`requirements-dev.txt`.
 
 Frontend:
 
