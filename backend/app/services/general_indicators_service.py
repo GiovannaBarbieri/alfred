@@ -30,12 +30,14 @@ from app.repositories.general_indicators_repository import (
     save_general_indicator_validation,
     update_general_indicator_consultation_progress,
 )
+from app.repositories.general_indicator_modules_repository import list_general_indicator_modules
 from app.services.general_indicators_classification import classify_general_indicator_launches
 from app.services.general_indicators_rules import (
     build_finalized_general_indicators,
     distribution_configuration_snapshot,
 )
 from app.services.general_indicators_validation import validate_general_indicator_consultation
+from app.services.general_indicator_modules_service import apply_general_indicator_module_configuration
 from app.services.sqlserver_service import (
     GENERAL_INDICATOR_FEATURE_BATCH_SIZE,
     GENERAL_INDICATOR_HIERARCHY_BATCH_SIZE,
@@ -91,6 +93,7 @@ def consult_general_indicator_launches(
     launches = query_general_indicator_raw_launches(start_date=start_date, end_date=end_date)
     with get_connection() as connection:
         nonparticipating_logins = list_nonparticipating_general_indicator_logins(connection)
+        modules = list_general_indicator_modules(connection)
     elapsed = perf_counter() - started_at
     logger.info("Indicadores gerais: lancamentos consultados. quantidade=%s segundos=%.2f", len(launches), elapsed)
     task_ids = sorted(
@@ -152,6 +155,7 @@ def consult_general_indicator_launches(
         end_date=end_date,
         nonparticipating_logins=nonparticipating_logins,
     )
+    apply_general_indicator_module_configuration(classified, modules)
     total_elapsed = perf_counter() - started_at
     hierarchy_query_count = int(
         getattr(
@@ -486,9 +490,11 @@ def refresh_general_indicator_pendings(consultation_id: int) -> dict[str, Any]:
             nonparticipating_logins={
                 str(item.get("user") or "").strip().casefold()
                 for item in persisted_launches
-                if item.get("disregardedFromGeneralIndicators")
+                if not item.get("participatesInGeneralIndicators", True)
             },
         )
+        with get_connection() as connection:
+            modules = list_general_indicator_modules(connection)
         refreshed_by_id = {
             str(item.get("idLancamento")): item
             for item in refreshed["launches"]
@@ -507,8 +513,14 @@ def refresh_general_indicator_pendings(consultation_id: int) -> dict[str, Any]:
             for item in persisted_launches
         ]
         distribution_configuration = _consultation_distribution_configuration(consultation)
+        refreshed_consultation = _rebuild_consultation_payload(
+            consultation,
+            merged_launches,
+            refreshed.get("diagnostics", {}),
+        )
+        apply_general_indicator_module_configuration(refreshed_consultation, modules)
         validation = validate_general_indicator_consultation(
-            _rebuild_consultation_payload(consultation, merged_launches, refreshed.get("diagnostics", {})),
+            refreshed_consultation,
             distribution_configuration=distribution_configuration,
         )
         validation["summary"]["distributionConfiguration"] = distribution_configuration_snapshot(

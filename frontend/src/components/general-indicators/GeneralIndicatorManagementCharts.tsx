@@ -18,11 +18,18 @@ import type { GeneralIndicatorFinalizedResponse } from "../../types";
 import {
   buildCategoryHoursChart,
   buildMonthlyStrategicChart,
+  buildPeriodEvolutionChart,
   buildPeriodCompositionChart,
   buildQuarterlyKpiChart,
+  EXECUTIVE_CHART_SERIES,
   GENERAL_INDICATOR_CHART_COLORS,
   STRATEGIC_CHART_SERIES,
 } from "../../utils/generalIndicatorCharts";
+import {
+  formatCompactHoursPtBr,
+  formatHoursPtBr,
+  formatPercentagePtBr,
+} from "../../utils/numberFormatting";
 
 type ResultProps = {
   result: Pick<GeneralIndicatorFinalizedResponse, "categories" | "months" | "kpis">;
@@ -41,17 +48,32 @@ export function GeneralIndicatorCategoryCharts({
   );
 }
 
+export function GeneralIndicatorCompositionChart({
+  result,
+  title = "Composição das horas por categoria",
+  analysisView = false,
+}: ResultProps & { title?: string; analysisView?: boolean }) {
+  return <PeriodCompositionChart result={result} title={title} analysisView={analysisView} />;
+}
+
 export function GeneralIndicatorMonthlyCategoryChart({
   result,
   title = "Evolução mensal das categorias estratégicas",
-}: ResultProps & { title?: string }) {
-  const data = useMemo(() => buildMonthlyStrategicChart(result.months), [result.months]);
+  executive = false,
+  analysisView = false,
+  description,
+}: ResultProps & { title?: string; executive?: boolean; analysisView?: boolean; description?: string }) {
+  const data = useMemo(
+    () => executive ? buildPeriodEvolutionChart(result.months) : buildMonthlyStrategicChart(result.months),
+    [executive, result.months],
+  );
+  const series = executive ? EXECUTIVE_CHART_SERIES : STRATEGIC_CHART_SERIES;
   return (
-    <article className="panel general-indicators-chart management-chart-panel">
+    <article className={`panel general-indicators-chart management-chart-panel${analysisView ? " period-analysis-chart" : ""}`}>
       <ChartHeading
         icon={<Layers3 size={18} />}
         title={title}
-        description="Comparação mensal de Novo projeto, Melhoria, Erro TI e Bug."
+        description={description ?? "Comparação mensal de Novo projeto, Melhoria, Erro TI e Bug."}
       />
       {data.length === 0 ? <ChartEmptyState /> : (
         <div className="management-chart-area monthly-category-chart">
@@ -59,15 +81,15 @@ export function GeneralIndicatorMonthlyCategoryChart({
             <BarChart data={data} margin={{ top: 8, right: 12, left: 6, bottom: 0 }}>
               <CartesianGrid stroke={GENERAL_INDICATOR_CHART_COLORS.grid} strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="label" axisLine={false} tickLine={false} />
-              <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => formatCompactHours(Number(value))} />
-              <Tooltip content={<MonthlyCategoryTooltip />} />
-              <Legend verticalAlign="bottom" height={34} />
-              {STRATEGIC_CHART_SERIES.map((series) => (
+              <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => formatCompactHoursPtBr(Number(value))} />
+              <Tooltip content={<MonthlyCategoryTooltip executive={executive} />} />
+              <Legend verticalAlign="bottom" height={analysisView ? 28 : 34} />
+              {series.map((item) => (
                 <Bar
-                  key={series.key}
-                  dataKey={series.key}
-                  name={series.label}
-                  fill={series.color}
+                  key={item.key}
+                  dataKey={item.key}
+                  name={item.label}
+                  fill={item.color}
                   stackId="strategic"
                   maxBarSize={58}
                   isAnimationActive={false}
@@ -105,11 +127,11 @@ export function GeneralIndicatorQuarterlyChart({ result }: ResultProps) {
             const errorsWithinLimit = item.errorsPercentage <= item.errorsLimit;
             return <tr key={item.key}>
               <td><strong>{item.label}</strong></td>
-              <td>{formatPercentage(item.projectsPercentage)}</td>
-              <td>{formatPercentage(item.projectsTarget)}</td>
+              <td>{formatPercentagePtBr(item.projectsPercentage)}</td>
+              <td>{formatPercentagePtBr(item.projectsTarget)}</td>
               <td><QuarterlyStatus success={projectsWithinTarget} successLabel="Dentro da meta" warningLabel="Atenção" /></td>
-              <td>{formatPercentage(item.errorsPercentage)}</td>
-              <td>{formatPercentage(item.errorsLimit)}</td>
+              <td>{formatPercentagePtBr(item.errorsPercentage)}</td>
+              <td>{formatPercentagePtBr(item.errorsLimit)}</td>
               <td><QuarterlyStatus success={errorsWithinLimit} successLabel="Dentro do limite" warningLabel="Acima do limite" /></td>
             </tr>;
           })}</tbody>
@@ -133,7 +155,7 @@ function CategoryHoursChart({ result, title }: ResultProps & { title: string }) 
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} layout="vertical" margin={{ top: 4, right: 22, left: 10, bottom: 0 }}>
               <CartesianGrid stroke={GENERAL_INDICATOR_CHART_COLORS.grid} strokeDasharray="3 3" horizontal={false} />
-              <XAxis type="number" axisLine={false} tickLine={false} tickFormatter={(value) => formatCompactHours(Number(value))} />
+              <XAxis type="number" axisLine={false} tickLine={false} tickFormatter={(value) => formatCompactHoursPtBr(Number(value))} />
               <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} width={112} />
               <Tooltip content={<CategoryHoursTooltip />} cursor={{ fill: "#f8fafc" }} />
               <Bar dataKey="hours" name="Horas" radius={[0, 6, 6, 0]} maxBarSize={24} isAnimationActive={false}>
@@ -148,12 +170,16 @@ function CategoryHoursChart({ result, title }: ResultProps & { title: string }) 
   );
 }
 
-function PeriodCompositionChart({ result, title }: ResultProps & { title: string }) {
+function PeriodCompositionChart({
+  result,
+  title,
+  analysisView = false,
+}: ResultProps & { title: string; analysisView?: boolean }) {
   const data = useMemo(() => buildPeriodCompositionChart(result.categories), [result.categories]);
   const visibleData = data.filter((item) => item.hours > 0);
   const totalHours = data.reduce((total, item) => total + item.hours, 0);
   return (
-    <article className="panel general-indicators-chart management-chart-panel">
+    <article className={`panel general-indicators-chart management-chart-panel${analysisView ? " period-analysis-chart period-analysis-composition" : ""}`}>
       <ChartHeading
         icon={<PieChartIcon size={18} />}
         title={title}
@@ -167,14 +193,14 @@ function PeriodCompositionChart({ result, title }: ResultProps & { title: string
                 <Pie data={visibleData} dataKey="hours" nameKey="name" innerRadius="61%" outerRadius="88%" paddingAngle={2} isAnimationActive={false}>
                   {visibleData.map((item) => <Cell key={item.key} fill={item.color} stroke="#ffffff" strokeWidth={2} />)}
                 </Pie>
-                <Tooltip content={<CompositionTooltip />} />
+                <Tooltip content={<CompositionTooltip spaceBeforeUnit={analysisView} />} />
               </PieChart>
             </ResponsiveContainer>
-            <div className="period-composition-total"><span>Total geral</span><strong>{formatHours(totalHours)}</strong></div>
+            <div className="period-composition-total"><span>Total geral</span><strong>{formatHoursPtBr(totalHours, analysisView)}</strong></div>
           </div>
           <div className="period-composition-legend" role="list" aria-label="Composição percentual do período">
             <div className="period-composition-legend-header" aria-hidden="true"><span>Categoria</span><span>Horas</span><span>Participação</span></div>
-            {data.map((item) => <div className={item.key === "operational" || item.key === "maintenance" ? "operational" : undefined} key={item.key} role="listitem"><i style={{ background: item.color }} /><span>{item.name}</span><small>{formatHours(item.hours)}</small><strong>{formatPercentage(item.percentage)}</strong></div>)}
+            {data.map((item) => <div className={item.key === "operational" || item.key === "maintenance" ? "operational" : undefined} key={item.key} role="listitem"><i style={{ background: item.color }} /><span>{item.name}</span><small>{formatHoursPtBr(item.hours, analysisView)}</small><strong>{formatPercentagePtBr(item.percentage)}</strong></div>)}
           </div>
         </div>
       )}
@@ -194,26 +220,54 @@ function CategoryHoursTooltip({ active, payload }: TooltipProps) {
   if (!active || !payload?.length) return null;
   const item = payload[0].payload;
   const rows: Array<[string, string]> = [
-    ["Horas", formatHours(item.hours)],
-    ["Participação", formatPercentage(item.percentage)],
+    ["Horas", formatHoursPtBr(item.hours, false)],
+    ["Participação", formatPercentagePtBr(item.percentage)],
   ];
   if (item.key === "operational") rows.push(["Categorias agrupadas", item.groupedCategories.join(", ") || "Nenhuma"]);
   return <ChartTooltip title={String(item.name)} rows={rows} />;
 }
 
-function CompositionTooltip({ active, payload }: TooltipProps) {
+function CompositionTooltip({ active, payload, spaceBeforeUnit = false }: TooltipProps & { spaceBeforeUnit?: boolean }) {
   if (!active || !payload?.length) return null;
   const item = payload[0].payload;
-  const rows: Array<[string, string]> = [["Horas", formatHours(item.hours)], ["Participação", formatPercentage(item.percentage)]];
+  const rows: Array<[string, string]> = [["Horas", formatHoursPtBr(item.hours, spaceBeforeUnit)], ["Participação", formatPercentagePtBr(item.percentage)]];
   return <ChartTooltip title={String(item.name)} rows={rows} />;
 }
 
-function MonthlyCategoryTooltip({ active, payload, label }: TooltipProps) {
+function MonthlyCategoryTooltip({ active, payload, label, executive = false }: TooltipProps & { executive?: boolean }) {
   if (!active || !payload?.length) return null;
-  const rows = payload.map((item) => [String(item.name), formatHours(Number(item.value || 0))] as [string, string]);
+  if (executive) {
+    const totalHours = Number(payload[0]?.payload?.totalHours || 0);
+    const rows: Array<[string, string]> = [["Total", formatHoursPtBr(totalHours)]];
+    payload
+      .filter((item) => Number(item.value || 0) > 0)
+      .forEach((item) => {
+        const hours = Number(item.value || 0);
+        const participation = totalHours > 0 ? (hours / totalHours) * 100 : 0;
+        rows.push([
+          String(item.name),
+          `${formatHoursPtBr(hours)} — ${formatPercentagePtBr(participation)}`,
+        ]);
+      });
+    return <ChartTooltip title={periodTooltipTitle(payload[0]?.payload, label)} rows={rows} />;
+  }
+  const rows = payload.map((item) => [String(item.name), formatHoursPtBr(Number(item.value || 0), false)] as [string, string]);
   const strategicTotal = payload.reduce((total, item) => total + Number(item.value || 0), 0);
-  rows.push(["Total estratégico do mês", formatHours(strategicTotal)]);
+  rows.push(["Total estratégico do mês", formatHoursPtBr(strategicTotal, false)]);
   return <ChartTooltip title={String(label ?? "")} rows={rows} />;
+}
+
+function periodTooltipTitle(point: any, fallbackLabel?: string) {
+  const startDate = point?.competence?.startDate;
+  const endDate = point?.competence?.endDate;
+  if (!startDate || !endDate) return String(fallbackLabel ?? "");
+  if (startDate === endDate) return formatDatePtBr(startDate);
+  return `${formatDatePtBr(startDate)} a ${formatDatePtBr(endDate)}`;
+}
+
+function formatDatePtBr(value: string) {
+  const [year, month, day] = String(value).slice(0, 10).split("-");
+  return `${day}/${month}/${year}`;
 }
 
 type TooltipProps = { active?: boolean; payload?: Array<any>; label?: string };
@@ -224,16 +278,4 @@ function ChartTooltip({ title, rows }: { title: string; rows: Array<[string, str
 
 function QuarterlyStatus({ success, successLabel, warningLabel }: { success: boolean; successLabel: string; warningLabel: string }) {
   return <span className={`quarterly-status ${success ? "success" : "warning"}`}><i aria-hidden="true" />{success ? successLabel : warningLabel}</span>;
-}
-
-function formatCompactHours(value: number) {
-  return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}h`;
-}
-
-function formatHours(value: number) {
-  return `${Number(value || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}h`;
-}
-
-function formatPercentage(value: number) {
-  return `${Number(value || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
 }

@@ -22,8 +22,9 @@ Relatórios
 └── Meus Relatórios
 
 Configurações
-├── Configurações gerais
-└── Pesos de distribuição
+├── Colaboradores Excluídos
+├── Pesos da Distribuição
+└── Módulos
 ```
 
 Telas de Dashboard, Histórico, Auditoria e Inteligência Operacional continuam no código, mas não fazem parte da navegação principal atual.
@@ -121,6 +122,15 @@ npm.cmd install
 npm.cmd run dev
 ```
 
+Também é possível executar somente o frontend em contêiner:
+
+```powershell
+docker compose up -d --build frontend
+```
+
+Nesse modo, o Nginx entrega os arquivos estáticos e encaminha `/api` para o
+serviço `backend` da rede do Docker.
+
 ### URLs
 
 | Serviço | URL |
@@ -136,9 +146,14 @@ npm.cmd run dev
 ```powershell
 cd C:\Projetos\alfred
 docker compose up --build -d
+docker compose ps
 ```
 
-Essa opção é indicada quando o SQL Server aceitar autenticação SQL. A autenticação integrada do Windows não é transportada automaticamente para o contêiner Linux.
+O Compose inicia PostgreSQL, backend e frontend. O Alfred fica disponível em
+`http://127.0.0.1:5173`, e a API também pode ser validada pelo frontend em
+`http://127.0.0.1:5173/api/health`.
+
+Essa opção é indicada quando o SQL Server aceitar autenticação SQL. A autenticação integrada do Windows não é transportada automaticamente para o contêiner Linux; no servidor, utilize uma conta técnica somente leitura ou uma configuração formal de Kerberos.
 
 ## Configuração
 

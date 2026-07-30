@@ -24,6 +24,9 @@ const SettingsPage = lazy(() => import("./pages/SettingsPage").then((module) => 
 const DistributionWeightsSettingsPage = lazy(() =>
   import("./pages/DistributionWeightsSettingsPage").then((module) => ({ default: module.DistributionWeightsSettingsPage })),
 );
+const GeneralIndicatorModulesSettingsPage = lazy(() =>
+  import("./pages/GeneralIndicatorModulesSettingsPage").then((module) => ({ default: module.GeneralIndicatorModulesSettingsPage })),
+);
 const AuditPage = lazy(() => import("./pages/AuditPage").then((module) => ({ default: module.AuditPage })));
 const ValidationPage = lazy(() =>
   import("./pages/ValidationPage").then((module) => ({ default: module.ValidationPage })),
@@ -44,7 +47,7 @@ const defaultCategoryOptions = [
 
 const defaultSubcategoryOptions = ["Back", "Front", "QA", "Nao aplicavel", "Nao classificado"];
 const activeSectionStorageKey = "analise-horas:active-section";
-const restorableSections: SectionId[] = ["import", "reports", "general-indicators", "my-reports", "settings", "distribution-weights"];
+const restorableSections: SectionId[] = ["import", "reports", "general-indicators", "my-reports", "settings", "distribution-weights", "indicator-modules"];
 
 function getInitialActiveSection(): SectionId {
   const storedSection = window.localStorage.getItem(activeSectionStorageKey) as SectionId | null;
@@ -242,7 +245,7 @@ function App() {
     <AppShell
       activeSection={activeSection}
       onSectionChange={setActiveSection}
-      hideHeader={activeSection === "my-reports"}
+      hideHeader={activeSection === "my-reports" || activeSection === "indicator-modules"}
       headerOverride={headerOverride}
       headerBackAction={
         activeSection === "reports" && dashboard.selectedReportImportId
@@ -369,6 +372,7 @@ function App() {
         {activeSection === "audit" && <AuditPage />}
 
         {activeSection === "distribution-weights" && <DistributionWeightsSettingsPage />}
+        {activeSection === "indicator-modules" && <GeneralIndicatorModulesSettingsPage />}
 
         {activeSection === "settings" && (
           <SettingsPage

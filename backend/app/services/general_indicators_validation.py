@@ -169,7 +169,8 @@ def validate_general_indicator_consultation(
         launch["auditIssues"] = [_audit_issue_summary(issue) for issue in related_issues]
         launch["eligibleForOfficialCalculation"] = launch["validationState"] not in {"blocking", "disregarded"}
         launch["exclusionReason"] = (
-            NONPARTICIPATION_REASON
+            launch.get("moduleExclusionReason")
+            or NONPARTICIPATION_REASON
             if launch["validationState"] == "disregarded"
             else " | ".join(dict.fromkeys(blocking_messages)) or None
         )
@@ -230,7 +231,11 @@ def validate_general_indicator_consultation(
             "consideredLaunchCount": len(considered_launches),
             "disregardedLaunchCount": len(disregarded_launches),
             "excludedCollaboratorCount": len(
-                {str(item.get("user") or "").strip().casefold() for item in disregarded_launches}
+                {
+                    str(item.get("user") or "").strip().casefold()
+                    for item in disregarded_launches
+                    if not item.get("participatesInGeneralIndicators", True)
+                }
             ),
             "affectedLaunchCount": len(affected_launches),
             "inconsistencyCount": len(issues),

@@ -51,6 +51,11 @@ class ReportPeriodAnalysisTests(TestCase):
         self.assertEqual(result["totalHours"], 30.0)
         self.assertEqual(result["recordCount"], 3)
         self.assertEqual(result["source"], "SAVED_SNAPSHOT")
+        self.assertEqual(result["reportName"], "Relatório de teste")
+        self.assertEqual(result["granularity"], "DAY")
+        self.assertEqual(len(result["evolution"]), 31)
+        self.assertEqual(result["summary"]["consideredLaunchCount"], 3)
+        self.assertEqual(result["appliedWeights"][0]["category"], "Novo projeto")
         self.assertNotIn("audit", result)
         self.assertEqual(self.snapshot, original)
 
@@ -88,6 +93,41 @@ class ReportPeriodAnalysisTests(TestCase):
         self.assertEqual(result["totalHours"], 5.0)
         self.assertEqual(result["kpis"]["errorsBugs"]["percentage"], 100.0)
         self.assertEqual([month["month"] for month in result["months"]], ["2026-02"])
+        self.assertEqual(result["granularity"], "DAY")
+        self.assertEqual(result["evolution"][4]["totalHours"], 5.0)
+
+    @patch("app.services.report_history_service.get_connection", return_value=MagicMock())
+    @patch("app.services.report_history_service.get_annual_report_period_analysis_source")
+    def test_uses_monthly_evolution_for_intervals_above_31_days(self, get_source, _connection) -> None:
+        get_source.return_value = source_row(self.snapshot)
+
+        result = analyze_annual_saved_report_period(
+            91,
+            start_date=date(2026, 1, 1),
+            end_date=date(2026, 2, 28),
+        )
+
+        self.assertEqual(result["granularity"], "MONTH")
+        self.assertEqual([point["month"] for point in result["evolution"]], ["2026-01", "2026-02"])
+
+    @patch("app.services.report_history_service.get_connection", return_value=MagicMock())
+    @patch("app.services.report_history_service.get_annual_report_period_analysis_source")
+    def test_daily_evolution_includes_zero_days_and_reconciles_distributed_hours(
+        self,
+        get_source,
+        _connection,
+    ) -> None:
+        get_source.return_value = source_row(self.snapshot)
+
+        result = analyze_annual_saved_report_period(
+            91,
+            start_date=date(2026, 1, 10),
+            end_date=date(2026, 1, 12),
+        )
+
+        self.assertEqual([point["label"] for point in result["evolution"]], ["10/01", "11/01", "12/01"])
+        self.assertEqual(sum(point["totalHours"] for point in result["evolution"]), result["totalHours"])
+        self.assertEqual(result["evolution"][2]["totalHours"], 0.0)
 
     @patch("app.services.report_history_service.get_connection", return_value=MagicMock())
     @patch("app.services.report_history_service.get_annual_report_period_analysis_source")
@@ -133,6 +173,7 @@ class ReportPeriodAnalysisTests(TestCase):
 def source_row(snapshot: dict) -> dict:
     return {
         "id": 91,
+        "display_name": "Relatório de teste",
         "period_start": date(2026, 1, 1),
         "period_end": date(2026, 2, 28),
         "source_consultation_id": 77,

@@ -2,6 +2,7 @@ import { BarChart3, Bug, CheckCircle2, Clock3, TrendingUp } from "lucide-react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { GeneralIndicatorFinalizedResponse, GeneralIndicatorKpi } from "../../types";
 import { GENERAL_INDICATOR_CHART_COLORS } from "../../utils/generalIndicatorCharts";
+import { buildDisregardedModulesPresentation } from "../../utils/disregardedModulesPresentation";
 import {
   GeneralIndicatorCategoryCharts,
   GeneralIndicatorMonthlyCategoryChart,
@@ -34,6 +35,7 @@ export function GeneralIndicatorFinalizedPanel({
     projetos: item.projectsImprovements.percentage,
     erros: item.errorsBugs.percentage,
   }));
+  const disregardedModules = buildDisregardedModulesPresentation(result.disregardedModules);
 
   return (
     <section className="general-indicator-finalized" aria-label="Indicadores gerais finalizados">
@@ -90,6 +92,34 @@ export function GeneralIndicatorFinalizedPanel({
 
       <GeneralIndicatorMonthlyCategoryChart result={result} />
       <GeneralIndicatorQuarterlyChart result={result} />
+      {disregardedModules.moduleCount > 0 && (
+        <article className="panel disregarded-modules-summary">
+          <header>
+            <h2>Módulos desconsiderados nesta consulta</h2>
+            <p>
+              Os módulos abaixo não participam dos Indicadores Gerais. Os lançamentos permanecem disponíveis na Auditoria.
+            </p>
+          </header>
+          <div className="general-indicator-summary-grid disregarded-modules-cards" aria-label="Resumo dos módulos desconsiderados">
+            <div>
+              <span>Total desconsiderado</span>
+              <strong>{formatHours(disregardedModules.totalHours)}</strong>
+            </div>
+            <div>
+              <span>Módulos desconsiderados</span>
+              <strong>{disregardedModules.moduleCount.toLocaleString("pt-BR")}</strong>
+            </div>
+          </div>
+          <div className="disregarded-modules-list" role="list" aria-label="Módulos desconsiderados">
+            {disregardedModules.modules.map((item) => (
+              <div role="listitem" key={item.tagName}>
+                <span>{item.tagName}</span>
+                <strong>{formatHours(item.hours)}</strong>
+              </div>
+            ))}
+          </div>
+        </article>
+      )}
     </section>
   );
 }

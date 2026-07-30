@@ -1,11 +1,10 @@
-export type PeriodAnalysisShortcut = "complete" | "first-month" | "last-month" | "clear";
+export type PeriodAnalysisShortcut = "complete" | "first-month" | "last-month";
 
 export function periodForShortcut(
   shortcut: PeriodAnalysisShortcut,
   officialStart: string,
   officialEnd: string,
 ) {
-  if (shortcut === "clear") return { startDate: "", endDate: "" };
   if (shortcut === "complete") return { startDate: officialStart, endDate: officialEnd };
   if (shortcut === "first-month") {
     return {

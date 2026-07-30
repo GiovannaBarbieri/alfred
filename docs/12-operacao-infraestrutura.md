@@ -1,6 +1,6 @@
 # Operação e infraestrutura
 
-Revisão: **28/07/2026**.
+Revisão: **30/07/2026**.
 
 ## Topologia recomendada
 
@@ -19,9 +19,9 @@ Motivo: o processo Windows reutiliza autenticação integrada do usuário para o
 
 ```text
 Reverse proxy/TLS
-Frontend estático
-Backend FastAPI
-PostgreSQL
+Frontend React estático em Nginx (contêiner)
+Backend FastAPI/Uvicorn (contêiner)
+PostgreSQL 16 (contêiner com volume persistente)
 SQL Server/TFS via conta técnica somente leitura
 ```
 
@@ -40,9 +40,10 @@ Para contêiner Linux, prefira autenticação SQL ou configure formalmente Kerbe
 
 ### Frontend
 
-- Node.js compatível com Vite 6;
-- acesso HTTP ao backend;
-- origem incluída em `BACKEND_CORS_ORIGINS`.
+- Node.js 20 é usado somente na etapa de build da imagem;
+- Nginx entrega o build estático em runtime;
+- `/api` é encaminhado pelo Nginx ao serviço `backend`;
+- a imagem final não precisa de Node.js instalado no servidor.
 
 ### PostgreSQL
 
@@ -88,6 +89,34 @@ Conta exclusivamente de leitura:
 Não solicitar `INSERT`, `UPDATE`, `DELETE`, `ALTER` ou `CONTROL`.
 
 ## Inicialização
+
+### Stack completa em Docker
+
+```powershell
+docker compose up -d --build
+docker compose ps
+```
+
+Serviços criados:
+
+| Serviço | Contêiner | Porta padrão | Função |
+| --- | --- | ---: | --- |
+| `frontend` | `analise-horas-web` | 5173 | React estático + proxy `/api` |
+| `backend` | `analise-horas-api` | 8000 | FastAPI |
+| `db` | `analise-horas-db` | 5432 | PostgreSQL 16 |
+
+Validação:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing http://127.0.0.1:5173
+Invoke-RestMethod http://127.0.0.1:5173/api/health
+docker compose ps
+```
+
+Para o backend Linux consultar o SQL Server, configure `SQLSERVER_AUTH=sql`
+com uma conta técnica somente leitura. `SQLSERVER_AUTH=windows` continua sendo
+adequado para o backend executado diretamente no Windows, mas não transfere
+automaticamente a identidade da usuária para o contêiner.
 
 ### PostgreSQL
 

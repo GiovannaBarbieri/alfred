@@ -280,6 +280,12 @@ def query_tfs_indicator_items(ids: Sequence[int | str]) -> list[dict[str, Any]]:
     return rows
 
 
+def query_tfs_general_indicator_module_tags() -> list[str]:
+    """Lista TAGs 1- atualmente vinculadas a itens no TFS."""
+    rows = _execute_query(_TFS_GENERAL_INDICATOR_MODULE_TAGS_QUERY, [])
+    return [str(row.get("TagName") or "").strip() for row in rows if row.get("TagName")]
+
+
 def validate_sqlserver_ids(ids: Sequence[int | str]) -> list[int]:
     numeric_ids: list[int] = []
     for raw_id in ids:
@@ -788,4 +794,33 @@ SELECT Item.ID, Item.WorkItemType, Tags.Tags
 FROM LatestItems AS Item
 LEFT JOIN GroupedTags AS Tags ON Tags.ID = Item.ID
 WHERE Item.RowNumber = 1
+""".strip()
+
+
+_TFS_GENERAL_INDICATOR_MODULE_TAGS_QUERY = """
+WITH TagHistory AS (
+  SELECT
+    Tag.Name AS TagName,
+    Valor.IntValue,
+    ROW_NUMBER() OVER (
+      PARTITION BY Valor.ArtifactId, Valor.PropertyId
+      ORDER BY Valor.Version DESC, Valor.ChangedDate DESC
+    ) AS RowNumber
+  FROM dbo.tbl_PropertyValue AS Valor WITH (NOLOCK)
+  INNER JOIN dbo.tbl_PropertyDefinition AS Propriedade WITH (NOLOCK)
+    ON Propriedade.PartitionId = Valor.PartitionId
+    AND Propriedade.DataspaceId = Valor.DataspaceId
+    AND Propriedade.PropertyId = Valor.PropertyId
+  INNER JOIN dbo.tbl_TagDefinition AS Tag WITH (NOLOCK)
+    ON Tag.PartitionId = Valor.PartitionId
+    AND CONVERT(nvarchar(36), Tag.TagId) = RIGHT(Propriedade.Name, 36)
+  WHERE Valor.InternalKindId = 18
+    AND Valor.PartitionId = 1
+    AND LTRIM(RTRIM(Tag.Name)) LIKE '1-%'
+)
+SELECT DISTINCT LTRIM(RTRIM(TagName)) AS TagName
+FROM TagHistory
+WHERE RowNumber = 1
+  AND COALESCE(IntValue, 0) = 0
+ORDER BY TagName
 """.strip()

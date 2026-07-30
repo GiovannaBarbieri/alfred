@@ -21,6 +21,12 @@ export const STRATEGIC_CHART_SERIES = [
   { key: "bug", label: "Bug", color: GENERAL_INDICATOR_CHART_COLORS.bug },
 ] as const;
 
+export const EXECUTIVE_CHART_SERIES = [
+  ...STRATEGIC_CHART_SERIES,
+  { key: "maintenance", label: "Manutenção", color: GENERAL_INDICATOR_CHART_COLORS.maintenance },
+  { key: "operational", label: "Operacional", color: GENERAL_INDICATOR_CHART_COLORS.operational },
+] as const;
+
 export type StrategicChartKey = typeof STRATEGIC_CHART_SERIES[number]["key"];
 
 export function buildCategoryHoursChart(categories: GeneralIndicatorCategory[]) {
@@ -38,6 +44,27 @@ export function buildMonthlyStrategicChart(months: ResultMonth[]) {
     totalHours: month.totalHours,
     ...strategicHoursFromCategories(month.categories),
   }));
+}
+
+export function buildPeriodEvolutionChart(periods: ResultMonth[] = []) {
+  return periods.map((period) => {
+    const executive = buildExecutiveCategoryGroups(
+      Object.entries(period.categories).map(([category, adjustedHours]) => ({
+        category,
+        originalHours: adjustedHours,
+        allocatedHours: 0,
+        adjustedHours,
+        percentage: 0,
+      })),
+    );
+    return {
+      month: period.month,
+      label: period.label,
+      competence: period.competence,
+      totalHours: period.totalHours,
+      ...Object.fromEntries(executive.map((item) => [item.key, item.hours])),
+    };
+  });
 }
 
 export function buildQuarterlyKpiChart(

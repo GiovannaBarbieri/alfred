@@ -1,7 +1,7 @@
 import { AlertTriangle, ArrowLeft, FileBarChart, RefreshCw, SearchX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { GeneralIndicatorFinalizedPanel } from "../components/general-indicators/GeneralIndicatorFinalizedPanel";
-import { ReportPeriodAnalysisPanel } from "../components/my-reports/ReportPeriodAnalysisPanel";
+import { ReportAnalysesPanel } from "../components/my-reports/ReportAnalysesPanel";
 import { ReportActionModal } from "../components/my-reports/ReportActionModal";
 import { ReportCard } from "../components/my-reports/ReportCard";
 import { ReportFilters } from "../components/my-reports/ReportFilters";
@@ -20,7 +20,7 @@ export function MyReportsPage({
 }) {
   const history = useReportHistory();
   const automaticallyOpenedReportId = useRef<number | null>(null);
-  const [activeReportTab, setActiveReportTab] = useState<"overview" | "period-analysis">("overview");
+  const [activeReportTab, setActiveReportTab] = useState<"overview" | "analyses">("overview");
 
   useEffect(() => {
     if (!openReportId || automaticallyOpenedReportId.current === openReportId) return;
@@ -70,11 +70,11 @@ export function MyReportsPage({
           </button>
           <button
             type="button"
-            className={activeReportTab === "period-analysis" ? "active" : undefined}
-            aria-current={activeReportTab === "period-analysis" ? "page" : undefined}
-            onClick={() => setActiveReportTab("period-analysis")}
+            className={activeReportTab === "analyses" ? "active" : undefined}
+            aria-current={activeReportTab === "analyses" ? "page" : undefined}
+            onClick={() => setActiveReportTab("analyses")}
           >
-            Análise por período
+            Análises
           </button>
         </nav>
         {activeReportTab === "overview" ? (
@@ -85,7 +85,7 @@ export function MyReportsPage({
             savedReportContext
           />
         ) : (
-          <ReportPeriodAnalysisPanel
+          <ReportAnalysesPanel
             reportId={detail.report.id}
             officialStart={detail.report.periodStart}
             officialEnd={detail.report.periodEnd}

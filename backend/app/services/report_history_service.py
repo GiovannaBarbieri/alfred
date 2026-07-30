@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from datetime import date, datetime
+from collections import defaultdict
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 import logging
 from math import ceil
@@ -21,7 +22,11 @@ from app.repositories.report_history_repository import (
     list_report_history,
     make_report_history_current,
 )
-from app.services.general_indicators_rules import build_finalized_general_indicators
+from app.services.general_indicators_rules import (
+    build_finalized_general_indicators,
+    calculate_kpis,
+    canonical_category,
+)
 from app.repositories.audit_repository import insert_audit_log
 from app.schemas.report_history import (
     AnnualReportCurrentRevision,
@@ -149,8 +154,16 @@ def analyze_annual_saved_report_period(
         },
         distribution_configuration=distribution_configuration,
     )
+    granularity, evolution = _period_analysis_evolution(
+        analyzed,
+        start_date=start_date,
+        end_date=end_date,
+    )
+    projects_improvements = analyzed["kpis"]["projectsImprovements"]
+    errors_bugs = analyzed["kpis"]["errorsBugs"]
     return {
         "reportId": report_id,
+        "reportName": source["display_name"],
         "source": "SAVED_SNAPSHOT",
         "officialPeriod": {
             "startDate": official_start,
@@ -162,10 +175,244 @@ def analyze_annual_saved_report_period(
         },
         "recordCount": analyzed["recordCount"],
         "totalHours": analyzed["totalHours"],
+        "summary": {
+            "totalHours": analyzed["totalHours"],
+            "consideredLaunchCount": analyzed["recordCount"],
+            "projectsImprovementsHours": projects_improvements["hours"],
+            "projectsImprovementsPercentage": projects_improvements["percentage"],
+            "errorsBugsHours": errors_bugs["hours"],
+            "errorsBugsPercentage": errors_bugs["percentage"],
+        },
         "kpis": analyzed["kpis"],
         "categories": analyzed["categories"],
         "months": analyzed["months"],
+        "granularity": granularity,
+        "evolution": evolution,
+        "appliedWeights": [
+            {
+                "category": category,
+                "weight": float(settings.get("weight", 0)),
+                "active": bool(settings.get("active", True)),
+            }
+            for category, settings in distribution_configuration.items()
+        ],
     }
+
+
+def compare_annual_saved_report_periods(
+    report_id: int,
+    *,
+    start_date_a: date,
+    end_date_a: date,
+    start_date_b: date,
+    end_date_b: date,
+) -> dict[str, Any]:
+    period_a = analyze_annual_saved_report_period(
+        report_id,
+        start_date=start_date_a,
+        end_date=end_date_a,
+    )
+    period_b = analyze_annual_saved_report_period(
+        report_id,
+        start_date=start_date_b,
+        end_date=end_date_b,
+    )
+    days_a = (end_date_a - start_date_a).days + 1
+    days_b = (end_date_b - start_date_b).days + 1
+    summary_a = _comparison_period_summary(period_a)
+    summary_b = _comparison_period_summary(period_b)
+    categories_a = _executive_category_hours(period_a)
+    categories_b = _executive_category_hours(period_b)
+    categories_comparison = []
+    for category in ("Novo Projeto", "Melhoria", "Erro TI", "Bug", "Manutenção", "Operacional"):
+        hours_a = categories_a[category]
+        hours_b = categories_b[category]
+        difference = _comparison_difference(hours_a, hours_b, unit="HOURS")
+        categories_comparison.append(
+            {
+                "category": category,
+                "hoursA": hours_a,
+                "hoursB": hours_b,
+                "participationA": _percentage(hours_a, period_a["totalHours"]),
+                "participationB": _percentage(hours_b, period_b["totalHours"]),
+                "absoluteDifference": difference["absoluteDifference"],
+                "percentageDifference": difference["percentageDifference"],
+                "direction": difference["direction"],
+            }
+        )
+
+    return {
+        "reportId": report_id,
+        "reportName": period_a["reportName"],
+        "source": "SAVED_SNAPSHOT",
+        "officialPeriod": period_a["officialPeriod"],
+        "periodA": {
+            "startDate": start_date_a,
+            "endDate": end_date_a,
+            "dayCount": days_a,
+            "dailyAverageHours": _round(period_a["totalHours"] / days_a),
+        },
+        "periodB": {
+            "startDate": start_date_b,
+            "endDate": end_date_b,
+            "dayCount": days_b,
+            "dailyAverageHours": _round(period_b["totalHours"] / days_b),
+        },
+        "summaryA": summary_a,
+        "summaryB": summary_b,
+        "differences": {
+            "totalHours": _comparison_difference(
+                period_a["totalHours"],
+                period_b["totalHours"],
+                unit="HOURS",
+            ),
+            "consideredLaunches": _comparison_difference(
+                period_a["recordCount"],
+                period_b["recordCount"],
+                unit="COUNT",
+            ),
+            "projectsImprovements": _comparison_difference(
+                summary_a["projectsImprovementsPercentage"],
+                summary_b["projectsImprovementsPercentage"],
+                unit="PERCENTAGE",
+            ),
+            "errorsBugs": _comparison_difference(
+                summary_a["errorsBugsPercentage"],
+                summary_b["errorsBugsPercentage"],
+                unit="PERCENTAGE",
+            ),
+        },
+        "categoriesComparison": categories_comparison,
+        "chartData": categories_comparison,
+        "comparisonSummary": _comparison_highlights(categories_comparison),
+        "differentDurations": days_a != days_b,
+    }
+
+
+def _comparison_period_summary(period: dict[str, Any]) -> dict[str, Any]:
+    projects = period["kpis"]["projectsImprovements"]
+    errors = period["kpis"]["errorsBugs"]
+    return {
+        "totalHours": period["totalHours"],
+        "consideredLaunchCount": period["recordCount"],
+        "projectsImprovementsHours": projects["hours"],
+        "projectsImprovementsPercentage": projects["percentage"],
+        "errorsBugsHours": errors["hours"],
+        "errorsBugsPercentage": errors["percentage"],
+    }
+
+
+def _executive_category_hours(period: dict[str, Any]) -> dict[str, float]:
+    result = {
+        "Novo Projeto": 0.0,
+        "Melhoria": 0.0,
+        "Erro TI": 0.0,
+        "Bug": 0.0,
+        "Manutenção": 0.0,
+        "Operacional": 0.0,
+    }
+    category_names = {
+        "Novo projeto": "Novo Projeto",
+        "Melhoria": "Melhoria",
+        "Erro TI": "Erro TI",
+        "Bug": "Bug",
+        "Manutenção": "Manutenção",
+    }
+    for item in period["categories"]:
+        category = canonical_category(item.get("category"))
+        target = category_names.get(category, "Operacional")
+        result[target] = _round(result[target] + float(item.get("adjustedHours") or 0))
+    return result
+
+
+def _comparison_difference(value_a: float, value_b: float, *, unit: str) -> dict[str, Any]:
+    absolute = _round(float(value_b) - float(value_a))
+    percentage = None if float(value_a) == 0 else _round((absolute / float(value_a)) * 100)
+    return {
+        "valueA": _round(float(value_a)),
+        "valueB": _round(float(value_b)),
+        "absoluteDifference": absolute,
+        "percentageDifference": percentage,
+        "direction": "INCREASE" if absolute > 0 else "REDUCTION" if absolute < 0 else "UNCHANGED",
+        "unit": unit,
+    }
+
+
+def _comparison_highlights(categories: list[dict[str, Any]]) -> dict[str, Any]:
+    percentage_items = [item for item in categories if item["percentageDifference"] is not None]
+    positive_percentages = [item for item in percentage_items if item["percentageDifference"] > 0]
+    negative_percentages = [item for item in percentage_items if item["percentageDifference"] < 0]
+    positive_hours = [item for item in categories if item["absoluteDifference"] > 0]
+    negative_hours = [item for item in categories if item["absoluteDifference"] < 0]
+
+    def highlight(items: list[dict[str, Any]], field: str, *, largest: bool) -> dict[str, Any] | None:
+        if not items:
+            return None
+        item = max(items, key=lambda entry: entry[field]) if largest else min(items, key=lambda entry: entry[field])
+        return {"category": item["category"], "value": item[field]}
+
+    return {
+        "largestPercentageIncrease": highlight(positive_percentages, "percentageDifference", largest=True),
+        "largestPercentageReduction": highlight(negative_percentages, "percentageDifference", largest=False),
+        "largestHoursIncrease": highlight(positive_hours, "absoluteDifference", largest=True),
+        "largestHoursReduction": highlight(negative_hours, "absoluteDifference", largest=False),
+    }
+
+
+def _percentage(value: float, total: float) -> float:
+    return _round((float(value) / float(total)) * 100) if total else 0.0
+
+
+def _round(value: float) -> float:
+    return round(float(value), 4)
+
+
+def _period_analysis_evolution(
+    analyzed: dict[str, Any],
+    *,
+    start_date: date,
+    end_date: date,
+) -> tuple[str, list[dict[str, Any]]]:
+    if (end_date - start_date).days + 1 > 31:
+        return "MONTH", list(analyzed["months"])
+
+    categories_by_date: dict[date, dict[str, Decimal]] = defaultdict(lambda: defaultdict(Decimal))
+    for item in analyzed.get("audit", []):
+        item_date = _audit_date(item)
+        if (
+            item_date is None
+            or not item.get("includedInOfficialCalculation")
+            or item.get("isUpdateSystem")
+        ):
+            continue
+        category = canonical_category(item.get("finalCategory"))
+        adjusted_hours = Decimal(str(item.get("durationHours") or 0)) + Decimal(
+            str(item.get("allocatedHours") or 0)
+        )
+        categories_by_date[item_date][category] += adjusted_hours * Decimal(3600)
+
+    points: list[dict[str, Any]] = []
+    current = start_date
+    while current <= end_date:
+        categories = categories_by_date.get(current, {})
+        total_seconds = sum(categories.values(), Decimal(0))
+        kpis = calculate_kpis(categories, total_seconds)
+        points.append(
+            {
+                "month": current.isoformat(),
+                "label": current.strftime("%d/%m"),
+                "competence": {"startDate": current, "endDate": current},
+                "totalHours": float((total_seconds / Decimal(3600)).quantize(Decimal("0.0001"))),
+                "projectsImprovements": kpis["projectsImprovements"],
+                "errorsBugs": kpis["errorsBugs"],
+                "categories": {
+                    category: float((seconds / Decimal(3600)).quantize(Decimal("0.0001")))
+                    for category, seconds in sorted(categories.items())
+                },
+            }
+        )
+        current += timedelta(days=1)
+    return "DAY", points
 
 
 def _audit_date(item: dict[str, Any]) -> date | None:

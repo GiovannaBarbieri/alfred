@@ -13,7 +13,7 @@ const REPORT_GROUP_SECTIONS = new Set<SectionId>([
 
 export function navigationGroupForSection(section: SectionId): NavigationGroupId | null {
   if (REPORT_GROUP_SECTIONS.has(section)) return "reports";
-  if (section === "settings" || section === "distribution-weights") return "settings";
+  if (section === "settings" || section === "distribution-weights" || section === "indicator-modules") return "settings";
   return null;
 }
 

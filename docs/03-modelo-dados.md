@@ -127,6 +127,18 @@ Configuração global:
 
 As alterações são registradas em `audit_log`.
 
+### `general_indicator_modules`
+
+Configuração dos módulos identificados pela TAG completa de nível `1-` do TFS:
+
+- `id`: chave interna imutável;
+- `tag_name`: texto completo da TAG, único e usado como identidade;
+- `active`: define a participação em novas consultas;
+- `created_at` e `updated_at`: rastreabilidade técnica.
+
+Uma alteração de nome no TFS cria uma nova identidade na próxima sincronização. Registros
+anteriores não são removidos, renomeados nem reutilizados.
+
 ## Relatórios salvos e snapshots
 
 ### `general_indicator_annual_reports`

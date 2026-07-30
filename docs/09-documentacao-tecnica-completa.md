@@ -254,9 +254,11 @@ Ao alterar contrato:
 - lista;
 - visão de relatório;
 - aba Visão Geral;
-- aba Análise por período.
+- aba Análises, com seletor interno extensível para Por período e Comparação.
 
-`useReportPeriodAnalysis` não executa automaticamente ao mudar datas.
+`useReportPeriodAnalysis` não executa automaticamente ao mudar datas, bloqueia requisições simultâneas e restaura o período completo ao limpar.
+
+O endpoint da análise por período relê somente o snapshot PostgreSQL, reaplica os pesos históricos persistidos e devolve evolução diária para intervalos de até 31 dias ou mensal para intervalos maiores. Nenhuma consulta ao TFS/SQL Server e nenhuma gravação são realizadas.
 
 ### Estado de navegação
 
@@ -320,6 +322,7 @@ test:distribution-weights
 test:navigation
 test:report-history
 test:period-analysis
+test:period-comparison
 ```
 
 Também é obrigatório executar `npm run build`.

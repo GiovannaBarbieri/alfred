@@ -1,4 +1,4 @@
-export type SectionId = "dashboard" | "analytics" | "import" | "validation" | "reports" | "general-indicators" | "my-reports" | "history" | "settings" | "distribution-weights" | "audit";
+export type SectionId = "dashboard" | "analytics" | "import" | "validation" | "reports" | "general-indicators" | "my-reports" | "history" | "settings" | "distribution-weights" | "indicator-modules" | "audit";
 
 export const projectSectionIds: SectionId[] = ["import", "validation", "reports", "history"];
 export const analysisReportSectionIds: SectionId[] = [
@@ -63,6 +63,10 @@ export const sectionMeta: Record<SectionId, { title: string; description: string
   "distribution-weights": {
     title: "Pesos de distribuição",
     description: "Administre a influência das categorias na redistribuição de Atualização do sistema.",
+  },
+  "indicator-modules": {
+    title: "Configuração de Módulos",
+    description: "Defina quais módulos serão considerados nos cálculos dos Indicadores Gerais.",
   },
   audit: {
     title: "Auditoria",

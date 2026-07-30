@@ -752,6 +752,7 @@ def get_annual_report_period_analysis_source(
             """
             SELECT
                 Annual.id,
+                Annual.display_name,
                 Revision.period_start,
                 Revision.period_end,
                 Revision.source_consultation_id,

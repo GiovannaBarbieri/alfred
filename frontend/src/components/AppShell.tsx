@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronDown, FileBarChart, Files, FolderKanban, FolderOpen, Gauge, ListChecks, Network, Settings, SlidersHorizontal, Upload } from "lucide-react";
+import { ArrowLeft, Boxes, ChevronDown, FileBarChart, Files, FolderKanban, FolderOpen, Gauge, ListChecks, Network, Settings, SlidersHorizontal, Upload } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   analysisReportActiveItem,
@@ -127,7 +127,7 @@ export function AppShell({ activeSection, onSectionChange, headerOverride, heade
                   onClick={() => onSectionChange("settings")}
                 >
                   <ListChecks size={17} />
-                  <span>Configurações gerais</span>
+                  <span>Colaboradores Excluídos</span>
                 </button>
                 <button
                   className={`nav-subitem ${activeSection === "distribution-weights" ? "active" : ""}`}
@@ -137,7 +137,17 @@ export function AppShell({ activeSection, onSectionChange, headerOverride, heade
                   onClick={() => onSectionChange("distribution-weights")}
                 >
                   <SlidersHorizontal size={17} />
-                  <span>Pesos de distribuição</span>
+                  <span>Pesos da Distribuição</span>
+                </button>
+                <button
+                  className={`nav-subitem ${activeSection === "indicator-modules" ? "active" : ""}`}
+                  type="button"
+                  tabIndex={settingsExpanded ? 0 : -1}
+                  aria-current={activeSection === "indicator-modules" ? "page" : undefined}
+                  onClick={() => onSectionChange("indicator-modules")}
+                >
+                  <Boxes size={17} />
+                  <span>Módulos</span>
                 </button>
               </div>
             </div>

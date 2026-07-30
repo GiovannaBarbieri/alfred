@@ -143,6 +143,17 @@ Filtros variam por endpoint e incluem importação/projeto, período, colaborado
 
 Cabeçalho opcional de usuário é tratado conforme a rota atual. O serviço valida lista completa, pesos 1–5 e pelo menos uma categoria ativa.
 
+### Módulos dos Indicadores Gerais
+
+| Método | Endpoint | Finalidade |
+| --- | --- | --- |
+| GET | `/api/settings/modules` | Lista módulos e totais por status |
+| POST | `/api/settings/modules/sync` | Descobre TAGs `1-` no TFS e inclui somente as novas |
+| PATCH | `/api/settings/modules/{id}` | Ativa ou inativa um módulo |
+
+Módulos inativos não participam de cálculos novos. Seus lançamentos continuam no snapshot
+técnico e na auditoria, e relatórios finalizados não são recalculados.
+
 ## Indicadores Gerais — consulta
 
 ### Iniciar
@@ -310,6 +321,18 @@ Fonte exclusiva: PostgreSQL.
 
 ```http
 GET /api/general-indicators/reports/{report_id}/period-analysis
+
+### Comparação entre períodos
+
+```text
+GET /api/general-indicators/reports/{report_id}/compare-periods
+  ?startDateA=AAAA-MM-DD
+  &endDateA=AAAA-MM-DD
+  &startDateB=AAAA-MM-DD
+  &endDateB=AAAA-MM-DD
+```
+
+O endpoint lê somente o snapshot oficial do relatório salvo e retorna agregados comparativos, sem lançamentos técnicos.
   ?startDate=2026-02-01
   &endDate=2026-03-31
 ```
@@ -319,6 +342,7 @@ Resposta:
 ```json
 {
   "reportId": 36,
+  "reportName": "1º semestre 2026",
   "source": "SAVED_SNAPSHOT",
   "officialPeriod": {
     "startDate": "2026-01-01",
@@ -330,9 +354,20 @@ Resposta:
   },
   "recordCount": 0,
   "totalHours": 0,
+  "summary": {
+    "totalHours": 0,
+    "consideredLaunchCount": 0,
+    "projectsImprovementsHours": 0,
+    "projectsImprovementsPercentage": 0,
+    "errorsBugsHours": 0,
+    "errorsBugsPercentage": 0
+  },
   "kpis": {},
   "categories": [],
-  "months": []
+  "months": [],
+  "granularity": "MONTH",
+  "evolution": [],
+  "appliedWeights": []
 }
 ```
 
@@ -340,6 +375,8 @@ O endpoint:
 
 - valida limites;
 - usa audit trail e pesos do snapshot;
+- usa granularidade `DAY` em intervalos de até 31 dias e `MONTH` nos demais;
+- preenche pontos sem horas para manter a continuidade do gráfico;
 - não consulta TFS/SQL Server;
 - não grava dados;
 - não retorna a auditoria técnica.

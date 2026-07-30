@@ -2,19 +2,27 @@ import type {
   ReportDeleteResponse,
   ReportListParams,
   ReportPeriodAnalysisResponse,
+  ReportPeriodsComparisonResponse,
   SavedReportDetail,
   SavedReportListResponse,
 } from "../types";
+import {
+  normalizePeriodAnalysisResponse,
+  type ReportPeriodAnalysisWireResponse,
+} from "../utils/reportPeriodAnalysisResponse";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api";
 
 export class ReportHistoryApiError extends Error {
+  public readonly status: number;
+
   constructor(
     message: string,
-    public readonly status: number,
+    status: number,
   ) {
     super(message);
     this.name = "ReportHistoryApiError";
+    this.status = status;
   }
 }
 
@@ -32,8 +40,22 @@ export async function getReportPeriodAnalysis(
   endDate: string,
 ): Promise<ReportPeriodAnalysisResponse> {
   const query = new URLSearchParams({ startDate, endDate });
-  return request<ReportPeriodAnalysisResponse>(
+  const payload = await request<ReportPeriodAnalysisWireResponse>(
     `/general-indicators/reports/${id}/period-analysis?${query.toString()}`,
+  );
+  return normalizePeriodAnalysisResponse(payload);
+}
+
+export async function getReportPeriodsComparison(
+  id: number,
+  startDateA: string,
+  endDateA: string,
+  startDateB: string,
+  endDateB: string,
+): Promise<ReportPeriodsComparisonResponse> {
+  const query = new URLSearchParams({ startDateA, endDateA, startDateB, endDateB });
+  return request<ReportPeriodsComparisonResponse>(
+    `/general-indicators/reports/${id}/compare-periods?${query.toString()}`,
   );
 }
 

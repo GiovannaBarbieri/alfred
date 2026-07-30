@@ -10,13 +10,45 @@ from app.schemas.distribution_weights import (
     DistributionWeightConfigurationResponse,
     DistributionWeightUpdateRequest,
 )
+from app.schemas.general_indicator_modules import (
+    GeneralIndicatorModuleListResponse,
+    GeneralIndicatorModuleResponse,
+    GeneralIndicatorModuleStatusRequest,
+    GeneralIndicatorModuleSyncResponse,
+)
 from app.services.distribution_weights_service import (
     get_distribution_weight_configuration,
     reset_distribution_weight_configuration,
     save_distribution_weight_configuration,
 )
+from app.services.general_indicator_modules_service import (
+    get_general_indicator_modules,
+    set_general_indicator_module_status,
+    sync_general_indicator_modules,
+)
 
 router = APIRouter()
+
+
+@router.get("/modules", response_model=GeneralIndicatorModuleListResponse)
+def list_modules() -> GeneralIndicatorModuleListResponse:
+    return get_general_indicator_modules()
+
+
+@router.post("/modules/sync", response_model=GeneralIndicatorModuleSyncResponse)
+def synchronize_modules(
+    user: str | None = Header(default=None, alias="X-User"),
+) -> GeneralIndicatorModuleSyncResponse:
+    return sync_general_indicator_modules(user=user)
+
+
+@router.patch("/modules/{module_id}", response_model=GeneralIndicatorModuleResponse)
+def update_module_status(
+    module_id: int,
+    payload: GeneralIndicatorModuleStatusRequest,
+    user: str | None = Header(default=None, alias="X-User"),
+) -> GeneralIndicatorModuleResponse:
+    return set_general_indicator_module_status(module_id, active=payload.active, user=user)
 
 
 @router.get("/distribution-weights", response_model=DistributionWeightConfigurationResponse)

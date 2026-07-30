@@ -15,6 +15,7 @@ getcontext().prec = 28
 
 RESULT_CONTRACT_VERSION = 2
 CALCULATION_VERSION = "general-indicators-v1"
+MODULE_FILTER_VERSION = "general-indicator-modules-v1"
 CLASSIFICATION_VERSION = "hierarchy-tags-v2"
 DISTRIBUTION_RULES_VERSION = "update-system-weighted-proportional-v2"
 TARGET_RULES_VERSION = "general-indicators-targets-v1"
@@ -467,6 +468,9 @@ def build_finalized_general_indicators(
                 "participatesInGeneralIndicators": item.get("participatesInGeneralIndicators", True),
                 "disregardedFromGeneralIndicators": item.get("disregardedFromGeneralIndicators", False),
                 "exclusionReason": item.get("exclusionReason"),
+                "moduleTag": item.get("moduleTag"),
+                "moduleActive": item.get("moduleActive", True),
+                "excludedByModule": item.get("excludedByModule", False),
                 "sourceOccurrenceCount": int(item.get("trace", {}).get("sourceOccurrenceCount", 1)),
                 "sourceRows": list(item.get("trace", {}).get("duplicateSourceRows", [])),
                 "validationHistory": history_by_launch.get(launch_id, []),
@@ -474,9 +478,18 @@ def build_finalized_general_indicators(
         )
 
     summary = _build_finalized_summary(launch_items, consultation_summary or {})
+    disregarded_modules = _build_disregarded_modules(launch_items)
     quarters = _build_quarterly_results(months, start_date=start_date, end_date=end_date)
     launch_snapshot_hash = _hash_payload(_launch_hash_projection(launch_items))
     rules = _official_rules_snapshot(normalized_distribution_configuration)
+    rules["modules"] = {
+        "version": MODULE_FILTER_VERSION,
+        "identity": "Texto completo da TAG 1-",
+        "configuration": list((consultation_summary or {}).get("moduleConfiguration", [])),
+        "behavior": (
+            "Módulos inativos permanecem na auditoria, mas não participam do cálculo oficial."
+        ),
+    }
     result = {
         "contractVersion": RESULT_CONTRACT_VERSION,
         "consultationId": consultation_id,
@@ -497,8 +510,10 @@ def build_finalized_general_indicators(
             "distributionRulesVersion": DISTRIBUTION_RULES_VERSION,
             "targetsVersion": TARGET_RULES_VERSION,
             "backendBuild": backend_build,
+            "moduleFilterVersion": MODULE_FILTER_VERSION,
         },
         "summary": summary,
+        "disregardedModules": disregarded_modules,
         "recordCount": len(entries),
         "totalHours": _hours(total_seconds),
         "kpis": kpis,
@@ -538,6 +553,7 @@ def _build_finalized_summary(
             str(item.get("user") or "").strip()
             for item in disregarded
             if str(item.get("user") or "").strip()
+            and not item.get("participatesInGeneralIndicators", True)
         },
         key=str.casefold,
     )
@@ -558,6 +574,25 @@ def _build_finalized_summary(
         "affectedLaunchCount": int(persisted_summary.get("affectedLaunchCount", 0)),
         "affectedHours": float(persisted_summary.get("affectedHours", 0) or 0),
     }
+
+
+def _build_disregarded_modules(launches: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped_seconds: dict[str, Decimal] = defaultdict(Decimal)
+    grouped_launches: dict[str, int] = defaultdict(int)
+    for launch in launches:
+        if not launch.get("excludedByModule") or not launch.get("moduleTag"):
+            continue
+        tag_name = str(launch["moduleTag"])
+        grouped_seconds[tag_name] += Decimal(str(launch.get("durationSeconds") or 0))
+        grouped_launches[tag_name] += 1
+    return [
+        {
+            "tagName": tag_name,
+            "hours": _hours(grouped_seconds[tag_name]),
+            "launchCount": grouped_launches[tag_name],
+        }
+        for tag_name in sorted(grouped_seconds)
+    ]
 
 
 def _summary_hours(summary: dict[str, Any], key: str, launches: list[dict[str, Any]]) -> float:
@@ -726,6 +761,9 @@ def _launch_hash_projection(launches: list[dict[str, Any]]) -> list[dict[str, An
             "participatesInGeneralIndicators": item.get("participatesInGeneralIndicators", True),
             "disregardedFromGeneralIndicators": item.get("disregardedFromGeneralIndicators", False),
             "exclusionReason": item.get("exclusionReason"),
+            "moduleTag": item.get("moduleTag"),
+            "moduleActive": item.get("moduleActive", True),
+            "excludedByModule": item.get("excludedByModule", False),
         }
         for item in launches
     ]

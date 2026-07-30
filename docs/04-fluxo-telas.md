@@ -11,8 +11,9 @@ Relatórios
 └── Meus Relatórios
 
 Configurações
-├── Configurações gerais
-└── Pesos de distribuição
+├── Colaboradores Excluídos
+├── Pesos da Distribuição
+└── Módulos
 ```
 
 - apenas um grupo fica expandido;
@@ -119,7 +120,7 @@ Comportamentos:
 ```text
 ← Nome do relatório
 
-Visão Geral | Análise por período
+Visão Geral | Análises
 ```
 
 **Visão Geral**:
@@ -134,14 +135,16 @@ Visão Geral | Análise por período
 
 Auditoria de lançamentos permanece persistida, mas não é exibida como bloco principal.
 
-**Análise por período**:
+**Análises**:
 
-- período oficial;
-- data inicial/final limitadas;
-- atalhos;
-- botão Analisar;
-- KPIs e gráficos do recorte;
-- estados inicial, carregando, vazio e erro.
+- seletor interno compacto com **Por período** e **Comparação**;
+- período oficial disponível;
+- data inicial/final limitadas ao snapshot;
+- atalhos Período completo, Primeiro mês e Último mês;
+- botões Analisar e Limpar;
+- quatro KPIs, composição e evolução do recorte;
+- granularidade diária até 31 dias e mensal acima de 31 dias;
+- estados inicial, carregando, resultado, vazio e erro.
 
 ## Configurações gerais
 
@@ -163,6 +166,15 @@ O bootstrap agrega leituras para reduzir carregamento inicial.
 - restaurar padrão;
 - explicação e exemplo simples do cálculo;
 - alterações afetam somente novos cálculos.
+
+## Módulos
+
+- cards de total, ativos e inativos;
+- busca e filtro por status;
+- tabela com TAG completa, status e última atualização;
+- confirmação antes de ativar ou inativar;
+- `Atualizar módulos` consulta o TFS e inclui somente novas TAGs `1-`;
+- módulos inativos continuam visíveis e seus lançamentos permanecem auditáveis.
 
 ## Responsividade
 

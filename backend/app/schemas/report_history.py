@@ -5,7 +5,11 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 
-from app.schemas.general_indicators import GeneralIndicatorFinalizedSnapshot
+from app.schemas.general_indicators import (
+    GeneralIndicatorCategory,
+    GeneralIndicatorFinalizedSnapshot,
+    GeneralIndicatorKpi,
+)
 
 
 class ReportType(str, Enum):
@@ -223,21 +227,110 @@ class ReportPeriodAnalysisMonth(BaseModel):
     label: str
     competence: dict[str, date]
     totalHours: float
-    projectsImprovements: dict
-    errorsBugs: dict
+    projectsImprovements: GeneralIndicatorKpi
+    errorsBugs: GeneralIndicatorKpi
     categories: dict[str, float]
+
+
+class ReportPeriodAnalysisSummary(BaseModel):
+    totalHours: float
+    consideredLaunchCount: int
+    projectsImprovementsHours: float
+    projectsImprovementsPercentage: float
+    errorsBugsHours: float
+    errorsBugsPercentage: float
+
+
+class ReportPeriodAnalysisWeight(BaseModel):
+    category: str
+    weight: float
+    active: bool
+
+
+class ReportPeriodAnalysisGranularity(str, Enum):
+    DAY = "DAY"
+    MONTH = "MONTH"
 
 
 class ReportPeriodAnalysisResponse(BaseModel):
     reportId: int
+    reportName: str
     source: str = "SAVED_SNAPSHOT"
     officialPeriod: dict[str, date]
     analyzedPeriod: dict[str, date]
     recordCount: int
     totalHours: float
-    kpis: dict
-    categories: list[dict]
+    summary: ReportPeriodAnalysisSummary
+    kpis: dict[str, GeneralIndicatorKpi]
+    categories: list[GeneralIndicatorCategory]
     months: list[ReportPeriodAnalysisMonth]
+    granularity: ReportPeriodAnalysisGranularity
+    evolution: list[ReportPeriodAnalysisMonth]
+    appliedWeights: list[ReportPeriodAnalysisWeight]
+
+
+class ReportComparisonPeriod(BaseModel):
+    startDate: date
+    endDate: date
+    dayCount: int
+    dailyAverageHours: float
+
+
+class ReportComparisonSummary(BaseModel):
+    totalHours: float
+    consideredLaunchCount: int
+    projectsImprovementsHours: float
+    projectsImprovementsPercentage: float
+    errorsBugsHours: float
+    errorsBugsPercentage: float
+
+
+class ReportComparisonDifference(BaseModel):
+    valueA: float
+    valueB: float
+    absoluteDifference: float
+    percentageDifference: float | None
+    direction: str
+    unit: str
+
+
+class ReportCategoryComparison(BaseModel):
+    category: str
+    hoursA: float
+    hoursB: float
+    participationA: float
+    participationB: float
+    absoluteDifference: float
+    percentageDifference: float | None
+    direction: str
+
+
+class ReportComparisonHighlight(BaseModel):
+    category: str
+    value: float
+
+
+class ReportComparisonHighlights(BaseModel):
+    largestPercentageIncrease: ReportComparisonHighlight | None = None
+    largestPercentageReduction: ReportComparisonHighlight | None = None
+    largestHoursIncrease: ReportComparisonHighlight | None = None
+    largestHoursReduction: ReportComparisonHighlight | None = None
+
+
+class ReportPeriodsComparisonResponse(BaseModel):
+    reportId: int
+    reportName: str
+    source: str = "SAVED_SNAPSHOT"
+    officialPeriod: dict[str, date]
+    periodA: ReportComparisonPeriod
+    periodB: ReportComparisonPeriod
+    summaryA: ReportComparisonSummary
+    summaryB: ReportComparisonSummary
+    differences: dict[str, ReportComparisonDifference]
+    categoriesComparison: list[ReportCategoryComparison]
+    chartData: list[ReportCategoryComparison]
+    comparisonSummary: ReportComparisonHighlights
+    differentDurations: bool
 
 
 class SavedReportDeleteResponse(AnnualReportDeleteResponse):

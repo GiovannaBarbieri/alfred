@@ -44,6 +44,7 @@ class GeneralIndicatorsServiceTests(unittest.TestCase):
         )
         save_validation.assert_called_once_with(third_connection, 77, result)
 
+    @patch("app.services.general_indicators_service.list_general_indicator_modules", return_value=[])
     @patch("app.services.general_indicators_service.list_nonparticipating_general_indicator_logins", return_value={"fora"})
     @patch("app.services.general_indicators_service.classify_general_indicator_launches")
     @patch("app.services.general_indicators_service.query_tfs_indicator_items")
@@ -56,6 +57,7 @@ class GeneralIndicatorsServiceTests(unittest.TestCase):
         query_features,
         classify_launches,
         _list_nonparticipants,
+        _list_modules,
     ) -> None:
         launches = [
             {"IdLancamento": 1, "IdTask": 401},

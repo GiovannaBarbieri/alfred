@@ -1,11 +1,16 @@
 import { AlertTriangle, Bug, Clock3, ListChecks, RefreshCw, SearchX, TrendingUp } from "lucide-react";
 
 import {
-  GeneralIndicatorCategoryCharts,
+  GeneralIndicatorCompositionChart,
   GeneralIndicatorMonthlyCategoryChart,
 } from "../general-indicators/GeneralIndicatorManagementCharts";
 import { useReportPeriodAnalysis } from "../../hooks/useReportPeriodAnalysis";
 import type { GeneralIndicatorKpi } from "../../types";
+import {
+  formatCountPtBr,
+  formatHoursPtBr,
+  formatPercentagePtBr,
+} from "../../utils/numberFormatting";
 
 export function ReportPeriodAnalysisPanel({
   reportId,
@@ -22,8 +27,8 @@ export function ReportPeriodAnalysisPanel({
     <section className="report-period-analysis" aria-label="Análise por período">
       <section className="panel report-period-analysis-filters">
         <div className="report-period-official-range">
-          <span>Período do relatório</span>
-          <strong>{formatDate(officialStart)} até {formatDate(officialEnd)}</strong>
+          <span>Período disponível para análise</span>
+          <strong>{formatDate(officialStart)} a {formatDate(officialEnd)}</strong>
         </div>
 
         <div className="report-period-analysis-filter-row">
@@ -58,6 +63,14 @@ export function ReportPeriodAnalysisPanel({
             <RefreshCw size={16} className={analysis.isLoading ? "spinning" : ""} />
             {analysis.isLoading ? "Analisando..." : "Analisar"}
           </button>
+          <button
+            className="secondary-button report-period-clear-button"
+            type="button"
+            disabled={analysis.isLoading}
+            onClick={analysis.clear}
+          >
+            Limpar
+          </button>
         </div>
 
         <div className="report-period-shortcuts" aria-label="Atalhos de período">
@@ -65,7 +78,6 @@ export function ReportPeriodAnalysisPanel({
           <button type="button" disabled={analysis.isLoading} onClick={() => analysis.applyShortcut("complete")}>Período completo</button>
           <button type="button" disabled={analysis.isLoading} onClick={() => analysis.applyShortcut("first-month")}>Primeiro mês</button>
           <button type="button" disabled={analysis.isLoading} onClick={() => analysis.applyShortcut("last-month")}>Último mês</button>
-          <button type="button" disabled={analysis.isLoading} onClick={() => analysis.applyShortcut("clear")}>Limpar</button>
         </div>
       </section>
 
@@ -80,42 +92,55 @@ export function ReportPeriodAnalysisPanel({
       {!analysis.isLoading && !analysis.result && (
         <section className="panel report-period-analysis-empty">
           <span><SearchX size={24} /></span>
-          <div><h2>Selecione um período</h2><p>Defina as datas e clique em Analisar para gerar um recorte temporário.</p></div>
+          <div><h2>Por período</h2><p>Selecione um intervalo dentro do período do relatório para gerar a análise.</p></div>
         </section>
       )}
 
       {!analysis.isLoading && analysis.result?.recordCount === 0 && (
         <section className="panel report-period-analysis-empty">
           <span><SearchX size={24} /></span>
-          <div><h2>Sem dados no período</h2><p>Nenhum lançamento considerado foi encontrado no intervalo selecionado.</p></div>
+          <div><h2>Sem dados no período</h2><p>Não foram encontrados lançamentos no período selecionado.</p></div>
         </section>
       )}
 
       {!analysis.isLoading && analysis.result && analysis.result.recordCount > 0 && (
         <section className="report-period-analysis-result">
           <div className="report-period-analysis-caption">
-            Período analisado: <strong>{formatDate(analysis.result.analyzedPeriod.startDate)} até {formatDate(analysis.result.analyzedPeriod.endDate)}</strong>
+            <span>Resultado da análise</span>
+            <strong>{formatDate(analysis.result.analyzedPeriod.startDate)} a {formatDate(analysis.result.analyzedPeriod.endDate)}</strong>
           </div>
           <section className="general-indicators-kpis" aria-label="Indicadores do período analisado">
-            <article className="general-indicator-card total">
+            <article className="general-indicator-card period-analysis-kpi">
               <span><Clock3 size={20} /></span>
-              <div><small>Total de horas</small><strong>{formatHours(analysis.result.totalHours)}</strong></div>
+              <div><small>Total de horas</small><strong>{formatHoursPtBr(analysis.result.totalHours)}</strong></div>
             </article>
-            <article className="general-indicator-card total">
+            <article className="general-indicator-card period-analysis-kpi">
               <span><ListChecks size={20} /></span>
-              <div><small>Lançamentos considerados</small><strong>{analysis.result.recordCount.toLocaleString("pt-BR")}</strong></div>
+              <div><small>Lançamentos considerados</small><strong>{formatCountPtBr(analysis.result.recordCount)}</strong></div>
             </article>
             <PeriodKpiCard icon={<TrendingUp size={20} />} title="Novos projetos + melhorias" kpi={analysis.result.kpis.projectsImprovements} />
-            <PeriodKpiCard icon={<Bug size={20} />} title="Erros TI + Bugs" kpi={analysis.result.kpis.errorsBugs} />
+            <PeriodKpiCard icon={<Bug size={20} />} title="Erro TI + Bug" kpi={analysis.result.kpis.errorsBugs} />
           </section>
-          <GeneralIndicatorCategoryCharts
+          <GeneralIndicatorCompositionChart
             result={analysis.result}
-            hoursTitle="Horas por categoria"
-            compositionTitle="Composição das horas"
+            title="Composição das horas por categoria"
+            analysisView
           />
           <GeneralIndicatorMonthlyCategoryChart
-            result={analysis.result}
-            title="Evolução dentro do período"
+            result={{
+              ...analysis.result,
+              months: analysis.result.evolution?.length
+                ? analysis.result.evolution
+                : analysis.result.months,
+            }}
+            title="Evolução das horas no intervalo selecionado"
+            executive
+            analysisView
+            description={
+              analysis.result.granularity === "DAY"
+                ? "Evolução diária das categorias no intervalo selecionado."
+                : "Evolução mensal das categorias no intervalo selecionado."
+            }
           />
         </section>
       )}
@@ -125,12 +150,12 @@ export function ReportPeriodAnalysisPanel({
 
 function PeriodKpiCard({ icon, title, kpi }: { icon: JSX.Element; title: string; kpi: GeneralIndicatorKpi }) {
   return (
-    <article className={`general-indicator-card ${kpi.status}`}>
+    <article className="general-indicator-card period-analysis-kpi">
       <span>{icon}</span>
       <div>
         <small>{title}</small>
-        <strong>{formatPercentage(kpi.percentage)}</strong>
-        <em>{formatHours(kpi.hours)}</em>
+        <strong>{formatPercentagePtBr(kpi.percentage)}</strong>
+        <em>{formatHoursPtBr(kpi.hours)}</em>
       </div>
     </article>
   );
@@ -139,12 +164,4 @@ function PeriodKpiCard({ icon, title, kpi }: { icon: JSX.Element; title: string;
 function formatDate(value: string) {
   const [year, month, day] = value.slice(0, 10).split("-");
   return `${day}/${month}/${year}`;
-}
-
-function formatHours(value: number) {
-  return `${Number(value || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} h`;
-}
-
-function formatPercentage(value: number) {
-  return `${Number(value || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
 }

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { getReportPeriodAnalysis } from "../services/reportHistoryService";
 import type { ReportPeriodAnalysisResponse } from "../types";
@@ -18,13 +18,16 @@ export function useReportPeriodAnalysis(
   const [result, setResult] = useState<ReportPeriodAnalysisResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const requestInFlight = useRef(false);
 
   const analyze = useCallback(async () => {
+    if (requestInFlight.current) return;
     const validation = validatePeriod(startDate, endDate, officialStart, officialEnd);
     if (validation) {
       setError(validation);
       return;
     }
+    requestInFlight.current = true;
     setIsLoading(true);
     setError(null);
     try {
@@ -32,6 +35,7 @@ export function useReportPeriodAnalysis(
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Não foi possível analisar o período.");
     } finally {
+      requestInFlight.current = false;
       setIsLoading(false);
     }
   }, [endDate, officialEnd, officialStart, reportId, startDate]);
@@ -43,9 +47,17 @@ export function useReportPeriodAnalysis(
     setError(null);
   }
 
+  function clear() {
+    setStartDate(officialStart);
+    setEndDate(officialEnd);
+    setResult(null);
+    setError(null);
+  }
+
   return {
     analyze,
     applyShortcut,
+    clear,
     endDate,
     error,
     isLoading,

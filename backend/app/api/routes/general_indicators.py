@@ -32,12 +32,14 @@ from app.schemas.report_history import (
     SavedReportDetail,
     SavedReportListResponse,
     ReportPeriodAnalysisResponse,
+    ReportPeriodsComparisonResponse,
 )
 from app.services.report_history_service import (
     ReportHistoryConflictError,
     ReportHistoryNotFoundError,
     ReportHistoryPeriodAnalysisError,
     analyze_annual_saved_report_period,
+    compare_annual_saved_report_periods,
     delete_annual_saved_report,
     get_annual_saved_report,
     list_annual_saved_reports,
@@ -89,6 +91,30 @@ def get_general_indicator_report_period_analysis(
                 report_id,
                 start_date=start_date,
                 end_date=end_date,
+            )
+        )
+    except ReportHistoryNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ReportHistoryPeriodAnalysisError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/reports/{report_id}/compare-periods", response_model=ReportPeriodsComparisonResponse)
+def compare_general_indicator_report_periods(
+    report_id: int,
+    start_date_a: date = Query(alias="startDateA"),
+    end_date_a: date = Query(alias="endDateA"),
+    start_date_b: date = Query(alias="startDateB"),
+    end_date_b: date = Query(alias="endDateB"),
+) -> ReportPeriodsComparisonResponse:
+    try:
+        return ReportPeriodsComparisonResponse.model_validate(
+            compare_annual_saved_report_periods(
+                report_id,
+                start_date_a=start_date_a,
+                end_date_a=end_date_a,
+                start_date_b=start_date_b,
+                end_date_b=end_date_b,
             )
         )
     except ReportHistoryNotFoundError as exc:

@@ -1018,6 +1018,11 @@ export type GeneralIndicatorFinalizedResponse = {
     projectsImprovements: GeneralIndicatorKpi;
     errorsBugs: GeneralIndicatorKpi;
   }>;
+  disregardedModules?: Array<{
+    tagName: string;
+    hours: number;
+    launchCount: number;
+  }>;
   audit: Array<{
     idLancamento: string | null;
     date: string | null;
@@ -1047,6 +1052,9 @@ export type GeneralIndicatorFinalizedResponse = {
     includedInOfficialCalculation: boolean;
     participatesInGeneralIndicators?: boolean;
     disregardedFromGeneralIndicators?: boolean;
+    moduleTag?: string | null;
+    moduleActive?: boolean;
+    excludedByModule?: boolean;
     exclusionReason: string | null;
     sourceOccurrenceCount: number;
     sourceRows: Array<Record<string, unknown>>;
@@ -1196,12 +1204,70 @@ export type ReportDeleteResponse = AnnualReportDeleteResponse;
 
 export type ReportPeriodAnalysisResponse = {
   reportId: number;
+  reportName: string;
   source: "SAVED_SNAPSHOT";
   officialPeriod: { startDate: string; endDate: string };
   analyzedPeriod: { startDate: string; endDate: string };
   recordCount: number;
   totalHours: number;
+  summary: {
+    totalHours: number;
+    consideredLaunchCount: number;
+    projectsImprovementsHours: number;
+    projectsImprovementsPercentage: number;
+    errorsBugsHours: number;
+    errorsBugsPercentage: number;
+  };
   kpis: GeneralIndicatorFinalizedResponse["kpis"];
   categories: GeneralIndicatorCategory[];
   months: GeneralIndicatorFinalizedResponse["months"];
+  granularity: "DAY" | "MONTH";
+  evolution: GeneralIndicatorFinalizedResponse["months"];
+  appliedWeights: Array<{ category: string; weight: number; active: boolean }>;
+};
+
+export type ReportComparisonDifference = {
+  valueA: number;
+  valueB: number;
+  absoluteDifference: number;
+  percentageDifference: number | null;
+  direction: "INCREASE" | "REDUCTION" | "UNCHANGED";
+  unit: "HOURS" | "COUNT" | "PERCENTAGE";
+};
+
+export type ReportCategoryComparison = {
+  category: string;
+  hoursA: number;
+  hoursB: number;
+  participationA: number;
+  participationB: number;
+  absoluteDifference: number;
+  percentageDifference: number | null;
+  direction: "INCREASE" | "REDUCTION" | "UNCHANGED";
+};
+
+export type ReportPeriodsComparisonResponse = {
+  reportId: number;
+  reportName: string;
+  source: "SAVED_SNAPSHOT";
+  officialPeriod: { startDate: string; endDate: string };
+  periodA: { startDate: string; endDate: string; dayCount: number; dailyAverageHours: number };
+  periodB: { startDate: string; endDate: string; dayCount: number; dailyAverageHours: number };
+  summaryA: ReportPeriodAnalysisResponse["summary"];
+  summaryB: ReportPeriodAnalysisResponse["summary"];
+  differences: {
+    totalHours: ReportComparisonDifference;
+    consideredLaunches: ReportComparisonDifference;
+    projectsImprovements: ReportComparisonDifference;
+    errorsBugs: ReportComparisonDifference;
+  };
+  categoriesComparison: ReportCategoryComparison[];
+  chartData: ReportCategoryComparison[];
+  comparisonSummary: {
+    largestPercentageIncrease: { category: string; value: number } | null;
+    largestPercentageReduction: { category: string; value: number } | null;
+    largestHoursIncrease: { category: string; value: number } | null;
+    largestHoursReduction: { category: string; value: number } | null;
+  };
+  differentDurations: boolean;
 };

@@ -12,7 +12,9 @@
     "test:distribution-weights": "node --experimental-strip-types --test tests/distributionWeights.test.mjs",
     "test:navigation": "node --experimental-strip-types --test tests/navigationState.test.mjs",
     "test:report-history": "node --experimental-strip-types --test tests/reportHistory.test.mjs",
-    "test:period-analysis": "node --experimental-strip-types --test tests/reportPeriodAnalysis.test.mjs"
+    "test:period-analysis": "node --experimental-strip-types --test tests/reportPeriodAnalysis.test.mjs",
+    "test:period-comparison": "node --experimental-strip-types --test tests/reportPeriodComparison.test.mjs",
+    "test:indicator-modules": "node --experimental-strip-types --test tests/generalIndicatorModules.test.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.3.4",

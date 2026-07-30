@@ -18,8 +18,9 @@ Relatórios
 └── Meus Relatórios
 
 Configurações
-├── Configurações gerais
-└── Pesos de distribuição
+├── Colaboradores Excluídos
+├── Pesos da Distribuição
+└── Módulos
 ```
 
 O menu funciona como accordion: apenas um grupo principal permanece expandido e somente a página ativa recebe destaque.
@@ -165,18 +166,27 @@ Os filtros diferenciam valores digitados dos últimos valores aplicados. **Aplic
 Um relatório aberto possui:
 
 - **Visão Geral**: snapshot oficial, KPIs, gráficos, composição e distribuição;
-- **Análise por período**: recorte do período oficial calculado somente com lançamentos do snapshot.
+- **Análises**: área extensível com seletor interno para **Por período** e **Comparação**.
 
 Abrir um relatório não consulta o TFS nem o SQL Server.
 
 ### Análise por período
+
+### Comparação entre períodos
+
+- compara dois intervalos independentes dentro do período oficial do relatório;
+- utiliza exclusivamente o snapshot salvo, sem nova consulta ao SQL Server/TFS;
+- apresenta totais, KPIs, categorias, participações, variações e resumo determinístico;
+- quando as durações diferem, informa dias e médias diárias para apoiar a interpretação.
 
 - intervalo deve estar contido no período oficial;
 - atalhos apenas preenchem datas;
 - cálculo inicia no botão **Analisar**;
 - usa pesos históricos salvos no snapshot;
 - não persiste alterações, revisões ou nova auditoria;
-- retorna KPIs, categorias e evolução mensal agregada;
+- retorna quatro KPIs, composição das seis categorias executivas e evolução diária para intervalos de até 31 dias ou mensal para intervalos maiores;
+- inclui pontos sem horas para preservar a continuidade temporal;
+- snapshots antigos sem pesos históricos retornam uma mensagem clara de incompatibilidade;
 - o payload público não expõe a coleção técnica completa de auditoria.
 
 ### Exclusão
@@ -212,6 +222,16 @@ Permite alterar peso (1 a 5) e participação ativa das categorias:
 - Manutenção.
 
 Pelo menos uma categoria deve permanecer ativa. Alterações são auditadas e afetam somente cálculos futuros; snapshots salvos preservam os pesos utilizados.
+
+## Módulos
+
+Lista TAGs completas de nível `1-` encontradas no TFS e permite ativar ou inativar sua
+participação nos Indicadores Gerais. A sincronização inclui somente TAGs novas, inicialmente
+ativas; não remove nem renomeia registros existentes.
+
+Lançamentos de módulos inativos permanecem na auditoria, mas não entram nos cálculos,
+percentuais ou gráficos novos. O relatório salva a configuração utilizada no snapshot e
+nenhum relatório já finalizado é recalculado.
 
 ## Funcionalidades preservadas fora do menu
 
