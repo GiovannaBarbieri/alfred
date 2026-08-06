@@ -42,6 +42,7 @@ import {
   type ComparisonSortKey,
   type SortDirection,
 } from "../../utils/reportPeriodComparison";
+import { ComparedPeriodsContextLine } from "../general-indicators/PeriodContextLine";
 
 type SuggestedPeriod = { startDate: string; endDate: string };
 
@@ -292,7 +293,7 @@ function ComparisonResult({
         <ComparisonCard title="Novos Projetos + Melhorias" difference={result.differences.projectsImprovements} />
         <ComparisonCard title="Erro TI + Bug" difference={result.differences.errorsBugs} />
       </section>
-      <ComparisonChart data={result.chartData} />
+      <ComparisonChart data={result.chartData} reportA={result.reportA} reportB={result.reportB} />
       <ComparisonTable
         categories={categories}
         sortKey={sortKey}
@@ -441,12 +442,20 @@ function SortableHeader({
   );
 }
 
-function ComparisonChart({ data }: { data: ReportCategoryComparison[] }) {
+function ComparisonChart({
+  data,
+  reportA,
+  reportB,
+}: {
+  data: ReportCategoryComparison[];
+  reportA: SavedReportComparisonContext;
+  reportB: SavedReportComparisonContext;
+}) {
   return (
     <article className="panel report-comparison-chart">
       <div>
         <BarChart3 size={18} />
-        <span><h2>Horas por categoria</h2><p>Relatório A e Relatório B lado a lado.</p></span>
+        <span><h2>Horas por categoria</h2><p>Relatório A e Relatório B lado a lado.</p><ComparedPeriodsContextLine periodA={reportA.period} periodB={reportB.period} /></span>
       </div>
       <div className="report-comparison-chart-area">
         <ResponsiveContainer width="100%" height="100%">

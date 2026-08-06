@@ -10,6 +10,7 @@ import {
   GeneralIndicatorQuarterlyChart,
 } from "./GeneralIndicatorManagementCharts";
 import { GeneralIndicatorHoursComposition, GeneralIndicatorUpdateDistribution } from "./GeneralIndicatorResultTables";
+import { PeriodContextLine } from "./PeriodContextLine";
 
 const statusLabels = {
   within_target: "Dentro da meta",
@@ -79,7 +80,7 @@ export function GeneralIndicatorFinalizedPanel({
       </section>
 
       <article className="panel general-indicators-chart">
-        <Heading title="Evolução mensal" subtitle="Comparação dos indicadores ao longo dos meses do período." />
+        <Heading title="Evolução mensal" subtitle="Comparação dos indicadores ao longo dos meses do período." period={result.period} />
         <div className="general-indicators-chart-area"><ResponsiveContainer width="100%" height="100%"><LineChart data={chartData}><CartesianGrid strokeDasharray="3 3" stroke={GENERAL_INDICATOR_CHART_COLORS.grid} vertical={false} /><XAxis dataKey="label" /><YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} /><Tooltip formatter={(value: number) => `${value.toFixed(2)}%`} /><Legend /><Line type="monotone" dataKey="projetos" name="Novos projetos e melhorias" stroke={GENERAL_INDICATOR_CHART_COLORS.development} strokeWidth={3} /><Line type="monotone" dataKey="erros" name="Erros TI e Bugs" stroke={GENERAL_INDICATOR_CHART_COLORS.bug} strokeWidth={3} /></LineChart></ResponsiveContainer></div>
         <details className="general-indicator-chart-details"><summary>Ver detalhamento mensal</summary><div className="general-indicators-table-wrap"><table><thead><tr><th>Mês</th><th>Total</th><th>Projetos + melhorias</th><th>Meta</th><th>Situação</th><th>Erros TI + Bugs</th><th>Limite</th><th>Situação</th></tr></thead><tbody>
           {result.months.map((item) => <tr key={item.month}><td>{item.label}</td><td>{formatHours(item.totalHours)}</td><td>{item.projectsImprovements.percentage.toFixed(2)}%</td><td>{item.projectsImprovements.target}%</td><td>{statusLabels[item.projectsImprovements.status]}</td><td>{item.errorsBugs.percentage.toFixed(2)}%</td><td>{item.errorsBugs.limit}%</td><td>{statusLabels[item.errorsBugs.status]}</td></tr>)}
@@ -152,8 +153,8 @@ function TechnicalAccordion({ title, children }: { title: string; children: Reac
   );
 }
 
-function Heading({ title, subtitle }: { title: string; subtitle: string }) {
-  return <div className="general-indicators-heading"><span><BarChart3 size={18} /></span><div><h2>{title}</h2><p>{subtitle}</p></div></div>;
+function Heading({ title, subtitle, period }: { title: string; subtitle: string; period?: GeneralIndicatorFinalizedResponse["period"] }) {
+  return <div className="general-indicators-heading"><span><BarChart3 size={18} /></span><div><h2>{title}</h2><p>{subtitle}</p><PeriodContextLine period={period} /></div></div>;
 }
 
 function Summary({ label, value, detail }: { label: string; value: string | number; detail?: string }) {

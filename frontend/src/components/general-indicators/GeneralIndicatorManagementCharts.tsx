@@ -32,9 +32,11 @@ import {
   formatHoursPtBr,
   formatPercentagePtBr,
 } from "../../utils/numberFormatting";
+import type { PeriodRange } from "../../utils/periodPresentation";
+import { PeriodContextLine } from "./PeriodContextLine";
 
 type ResultProps = {
-  result: Pick<GeneralIndicatorFinalizedResponse, "categories" | "months" | "kpis">;
+  result: Pick<GeneralIndicatorFinalizedResponse, "categories" | "months" | "kpis"> & { period?: PeriodRange };
 };
 
 export function GeneralIndicatorCategoryCharts({
@@ -76,6 +78,7 @@ export function GeneralIndicatorMonthlyCategoryChart({
         icon={<Layers3 size={18} />}
         title={title}
         description={description ?? "Comparação mensal de Novo projeto, Melhoria, Erro TI e Bug."}
+        period={result.period}
       />
       {data.length === 0 ? <ChartEmptyState /> : (
         <div className="management-chart-area monthly-category-chart">
@@ -120,6 +123,7 @@ export function GeneralIndicatorQuarterlyChart({ result }: ResultProps) {
         icon={<CalendarRange size={18} />}
         title="Comparativo trimestral dos indicadores"
         description="Visão consolidada das metas de desenvolvimento e qualidade por trimestre."
+        period={result.period}
       />
       <div className="general-indicators-table-wrap executive-table-wrap">
         <table className="quarterly-indicators-table">
@@ -151,6 +155,7 @@ function CategoryHoursChart({ result, title }: ResultProps & { title: string }) 
         icon={<BarChart3 size={18} />}
         title={title}
         description="Distribuição do tempo entre desenvolvimento, qualidade e operação."
+        period={result.period}
       />
       {data.length === 0 ? <ChartEmptyState /> : (
         <div className="management-chart-area category-hours-chart">
@@ -211,6 +216,7 @@ function PeriodCompositionChart({
         icon={<PieChartIcon size={18} />}
         title={title}
         description="Leitura executiva das horas de desenvolvimento, qualidade e operação."
+        period={result.period}
       />
       {visibleData.length === 0 ? <ChartEmptyState /> : (
         <div className="period-composition-layout">
@@ -235,8 +241,18 @@ function PeriodCompositionChart({
   );
 }
 
-function ChartHeading({ icon, title, description }: { icon: JSX.Element; title: string; description: string }) {
-  return <div className="general-indicators-heading"><span>{icon}</span><div><h2>{title}</h2><p>{description}</p></div></div>;
+function ChartHeading({
+  icon,
+  title,
+  description,
+  period,
+}: {
+  icon: JSX.Element;
+  title: string;
+  description: string;
+  period?: PeriodRange;
+}) {
+  return <div className="general-indicators-heading"><span>{icon}</span><div><h2>{title}</h2><p>{description}</p><PeriodContextLine period={period} /></div></div>;
 }
 
 function ChartEmptyState() {

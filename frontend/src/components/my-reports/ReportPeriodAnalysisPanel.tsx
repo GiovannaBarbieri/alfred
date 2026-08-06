@@ -122,13 +122,14 @@ export function ReportPeriodAnalysisPanel({
             <PeriodKpiCard icon={<Bug size={20} />} title="Erro TI + Bug" kpi={analysis.result.kpis.errorsBugs} />
           </section>
           <GeneralIndicatorCompositionChart
-            result={analysis.result}
+            result={{ ...analysis.result, period: analysis.result.analyzedPeriod }}
             title="Composição das horas por categoria"
             analysisView
           />
           <GeneralIndicatorMonthlyCategoryChart
             result={{
               ...analysis.result,
+              period: analysis.result.analyzedPeriod,
               months: analysis.result.evolution?.length
                 ? analysis.result.evolution
                 : analysis.result.months,

@@ -29,6 +29,10 @@ import {
   shouldShowQuarterlyChart,
   sortCategoryHoursDescending,
 } from "../src/utils/generalIndicatorCharts.ts";
+import {
+  formatAnalyzedPeriodLabel,
+  formatComparedPeriodsLabel,
+} from "../src/utils/periodPresentation.ts";
 
 const base = { hasConsultation: false, uniqueLaunchCount: 0, canFinalize: false, hasFinalData: false, operation: null, hasError: false };
 
@@ -41,6 +45,24 @@ test("6. consulta pronta para finalizar", () => assert.equal(resolveGeneralIndic
 test("7. finalização em processamento", () => assert.equal(resolveGeneralIndicatorScreenState({ ...base, hasConsultation: true, uniqueLaunchCount: 10, operation: "finalization" }), "finalizing"));
 test("8. indicadores finalizados", () => assert.equal(resolveGeneralIndicatorScreenState({ ...base, hasConsultation: true, uniqueLaunchCount: 10, hasFinalData: true }), "finalized"));
 test("9. erro de comunicação", () => assert.equal(resolveGeneralIndicatorScreenState({ ...base, hasError: true }), "error"));
+
+test("10. rótulo do período reconhece intervalos conhecidos e personalizados", () => {
+  assert.equal(formatAnalyzedPeriodLabel({ startDate: "2026-01-01", endDate: "2026-01-31" }), "Janeiro de 2026");
+  assert.equal(formatAnalyzedPeriodLabel({ startDate: "2026-01-01", endDate: "2026-03-31" }), "1º Trimestre de 2026");
+  assert.equal(formatAnalyzedPeriodLabel({ startDate: "2026-01-01", endDate: "2026-06-30" }), "1º Semestre de 2026");
+  assert.equal(formatAnalyzedPeriodLabel({ startDate: "2026-01-01", endDate: "2026-12-31" }), "Ano de 2026");
+  assert.equal(formatAnalyzedPeriodLabel({ startDate: "2026-02-15", endDate: "2026-05-20" }), "15/02/2026 a 20/05/2026");
+});
+
+test("10a. rótulo comparativo exibe os dois períodos reais", () => {
+  assert.equal(
+    formatComparedPeriodsLabel(
+      { startDate: "2025-01-01", endDate: "2025-06-30" },
+      { startDate: "2026-01-01", endDate: "2026-06-30" },
+    ),
+    "1º Semestre de 2025 × 1º Semestre de 2026",
+  );
+});
 const rootIssue = {
   type: "feature_type_invalid", blocking: true, scope: "launch", idLancamento: "269895",
   idFeature: null, affectedLaunchIds: ["269895"],
