@@ -3553,6 +3553,13 @@ input {
   margin: 6px 0 0;
 }
 
+.category-hours-bar-label {
+  fill: #334155;
+  font-size: 11px;
+  font-weight: 800;
+  pointer-events: none;
+}
+
 .operational-chart-key {
   background: #64748b;
   border-radius: 999px;

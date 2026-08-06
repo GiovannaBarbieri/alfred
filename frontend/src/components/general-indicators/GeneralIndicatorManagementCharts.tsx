@@ -6,6 +6,7 @@ import {
   CartesianGrid,
   Cell,
   Legend,
+  LabelList,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -154,13 +155,20 @@ function CategoryHoursChart({ result, title }: ResultProps & { title: string }) 
       {data.length === 0 ? <ChartEmptyState /> : (
         <div className="management-chart-area category-hours-chart">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} layout="vertical" margin={{ top: 4, right: 22, left: 10, bottom: 0 }}>
-              <CartesianGrid stroke={GENERAL_INDICATOR_CHART_COLORS.grid} strokeDasharray="3 3" horizontal={false} />
-              <XAxis type="number" axisLine={false} tickLine={false} tickFormatter={(value) => formatCompactHoursPtBr(Number(value))} />
+            <BarChart data={data} layout="vertical" margin={{ top: 4, right: 138, left: 10, bottom: 0 }}>
+              <CartesianGrid stroke={GENERAL_INDICATOR_CHART_COLORS.grid} strokeDasharray="3 3" strokeOpacity={0.45} horizontal={false} />
+              <XAxis
+                type="number"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "#94a3b8", fontSize: 11 }}
+                tickFormatter={(value) => formatCompactHoursPtBr(Number(value))}
+              />
               <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} width={112} />
               <Tooltip content={<CategoryHoursTooltip />} cursor={{ fill: "#f8fafc" }} />
               <Bar dataKey="hours" name="Horas" radius={[0, 6, 6, 0]} maxBarSize={24} isAnimationActive={false}>
                 {data.map((item) => <Cell key={item.key} fill={item.color} />)}
+                <LabelList dataKey="hours" content={<CategoryHoursBarLabel />} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -168,6 +176,23 @@ function CategoryHoursChart({ result, title }: ResultProps & { title: string }) 
       )}
       <p className="management-chart-note"><i className="operational-chart-key" /> Operacional representa atividades administrativas, suporte, reuniões, treinamentos e demais atividades não estratégicas.</p>
     </article>
+  );
+}
+
+function CategoryHoursBarLabel(props: any) {
+  const { x = 0, y = 0, width = 0, height = 0, payload } = props;
+  if (!payload) return null;
+  const label = `${formatHoursPtBr(Number(payload.hours || 0), false)} (${formatPercentagePtBr(Number(payload.percentage || 0))})`;
+  return (
+    <text
+      className="category-hours-bar-label"
+      dominantBaseline="middle"
+      textAnchor="start"
+      x={Number(x) + Number(width) + 8}
+      y={Number(y) + Number(height) / 2}
+    >
+      {label}
+    </text>
   );
 }
 
