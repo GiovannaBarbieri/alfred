@@ -5,8 +5,8 @@ type ResultMonth = GeneralIndicatorFinalizedResponse["months"][number];
 export const GENERAL_INDICATOR_CHART_COLORS = {
   development: "#2563eb",
   newProject: "#16a34a",
-  improvement: "#f97316",
-  itError: "#7c3aed",
+  improvement: "#7c3aed",
+  itError: "#f97316",
   bug: "#dc2626",
   maintenance: "#cbd5e1",
   operational: "#94a3b8",
