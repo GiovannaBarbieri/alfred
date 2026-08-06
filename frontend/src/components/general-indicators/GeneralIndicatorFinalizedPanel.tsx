@@ -1,4 +1,5 @@
 import { BarChart3, Bug, CheckCircle2, Clock3, TrendingUp } from "lucide-react";
+import type { ReactNode } from "react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { GeneralIndicatorFinalizedResponse, GeneralIndicatorKpi } from "../../types";
 import { GENERAL_INDICATOR_CHART_COLORS } from "../../utils/generalIndicatorCharts";
@@ -36,6 +37,13 @@ export function GeneralIndicatorFinalizedPanel({
     erros: item.errorsBugs.percentage,
   }));
   const disregardedModules = buildDisregardedModulesPresentation(result.disregardedModules);
+  const hasHoursComposition = result.categories.some(
+    (item) => Math.abs(item.originalHours) > 0.005 || Math.abs(item.allocatedHours) > 0.005 || Math.abs(item.adjustedHours) > 0.005,
+  );
+  const hasUpdateDistribution = result.distribution.some(
+    (item) => Math.abs(item.updateSystemHours) > 0.005 || Math.abs(item.distributedHours) > 0.005,
+  );
+  const hasTechnicalAppendix = disregardedModules.moduleCount > 0 || hasUpdateDistribution || hasHoursComposition;
 
   return (
     <section className="general-indicator-finalized" aria-label="Indicadores gerais finalizados">
@@ -80,47 +88,67 @@ export function GeneralIndicatorFinalizedPanel({
 
       <GeneralIndicatorCategoryCharts result={result} />
 
-      <article className="panel general-indicators-summary">
-        <Heading title="Composição das horas" subtitle="Valores originais e resultado após a distribuição de Atualização do sistema." />
-        <GeneralIndicatorHoursComposition categories={result.categories} totalHours={result.totalHours} />
-      </article>
-
-      <article className="panel general-indicators-summary">
-        <Heading title="Distribuição da Atualização do sistema" subtitle="Conferência mensal da base e das parcelas distribuídas." />
-        <GeneralIndicatorUpdateDistribution distribution={result.distribution} />
-      </article>
-
       <GeneralIndicatorMonthlyCategoryChart result={result} />
       <GeneralIndicatorQuarterlyChart result={result} />
-      {disregardedModules.moduleCount > 0 && (
-        <article className="panel disregarded-modules-summary">
-          <header>
-            <h2>Módulos desconsiderados nesta consulta</h2>
-            <p>
-              Os módulos abaixo não participam dos Indicadores Gerais. Os lançamentos permanecem disponíveis na Auditoria.
-            </p>
-          </header>
-          <div className="general-indicator-summary-grid disregarded-modules-cards" aria-label="Resumo dos módulos desconsiderados">
-            <div>
-              <span>Total desconsiderado</span>
-              <strong>{formatHours(disregardedModules.totalHours)}</strong>
-            </div>
-            <div>
-              <span>Módulos desconsiderados</span>
-              <strong>{disregardedModules.moduleCount.toLocaleString("pt-BR")}</strong>
-            </div>
-          </div>
-          <div className="disregarded-modules-list" role="list" aria-label="Módulos desconsiderados">
-            {disregardedModules.modules.map((item) => (
-              <div role="listitem" key={item.tagName}>
-                <span>{item.tagName}</span>
-                <strong>{formatHours(item.hours)}</strong>
-              </div>
-            ))}
-          </div>
-        </article>
+
+      {hasTechnicalAppendix && (
+        <section className="general-indicator-technical-appendix" aria-label="Informações técnicas do relatório">
+          {disregardedModules.moduleCount > 0 && (
+            <TechnicalAccordion title="Módulos desconsiderados nesta consulta">
+              <article className="disregarded-modules-summary">
+                <header>
+                  <p>
+                    Os módulos abaixo não participam dos Indicadores Gerais. Os lançamentos permanecem disponíveis na Auditoria.
+                  </p>
+                </header>
+                <div className="general-indicator-summary-grid disregarded-modules-cards" aria-label="Resumo dos módulos desconsiderados">
+                  <div>
+                    <span>Total desconsiderado</span>
+                    <strong>{formatHours(disregardedModules.totalHours)}</strong>
+                  </div>
+                  <div>
+                    <span>Módulos desconsiderados</span>
+                    <strong>{disregardedModules.moduleCount.toLocaleString("pt-BR")}</strong>
+                  </div>
+                </div>
+                <div className="disregarded-modules-list" role="list" aria-label="Módulos desconsiderados">
+                  {disregardedModules.modules.map((item) => (
+                    <div role="listitem" key={item.tagName}>
+                      <span>{item.tagName}</span>
+                      <strong>{formatHours(item.hours)}</strong>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            </TechnicalAccordion>
+          )}
+
+          {hasUpdateDistribution && (
+            <TechnicalAccordion title="Distribuição da Atualização do sistema">
+              <GeneralIndicatorUpdateDistribution distribution={result.distribution} totalHours={result.totalHours} />
+            </TechnicalAccordion>
+          )}
+
+          {hasHoursComposition && (
+            <TechnicalAccordion title="Composição das horas">
+              <GeneralIndicatorHoursComposition categories={result.categories} totalHours={result.totalHours} />
+            </TechnicalAccordion>
+          )}
+        </section>
       )}
     </section>
+  );
+}
+
+function TechnicalAccordion({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <details className="panel general-indicator-technical-accordion">
+      <summary>
+        <span>{title}</span>
+        <i aria-hidden="true" />
+      </summary>
+      <div className="general-indicator-technical-content">{children}</div>
+    </details>
   );
 }
 

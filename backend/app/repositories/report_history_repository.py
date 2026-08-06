@@ -769,6 +769,87 @@ def get_annual_report_period_analysis_source(
         return cursor.fetchone()
 
 
+def list_saved_report_comparison_options(
+    connection: Connection,
+    *,
+    report_type: str,
+) -> list[dict[str, Any]]:
+    """List every finalized snapshot revision available for comparison."""
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT
+                Annual.id AS report_id,
+                Annual.display_name AS report_name,
+                History.id AS revision_id,
+                History.report_type,
+                History.version_number,
+                History.report_status,
+                History.is_current,
+                History.period_start,
+                History.period_end,
+                History.finalized_at,
+                History.total_hours,
+                History.considered_launch_count
+            FROM report_history AS History
+            INNER JOIN general_indicator_annual_reports AS Annual
+                ON Annual.id = History.annual_report_id
+            INNER JOIN general_indicator_consultations AS Consultation
+                ON Consultation.id = History.source_consultation_id
+            WHERE History.report_type = %s
+              AND Consultation.status = 'FINALIZADA'
+              AND Consultation.resultado IS NOT NULL
+            ORDER BY
+                History.is_current DESC,
+                History.period_start DESC,
+                History.period_end DESC,
+                History.version_number DESC,
+                History.finalized_at DESC
+            """,
+            (report_type,),
+        )
+        return list(cursor.fetchall())
+
+
+def get_saved_report_comparison_source(
+    connection: Connection,
+    *,
+    revision_id: int,
+    report_type: str,
+) -> dict[str, Any] | None:
+    """Load one immutable revision and its persisted snapshot for comparison."""
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT
+                Annual.id AS report_id,
+                Annual.display_name AS report_name,
+                History.id AS revision_id,
+                History.report_type,
+                History.version_number,
+                History.report_status,
+                History.is_current,
+                History.period_start,
+                History.period_end,
+                History.finalized_at,
+                History.total_hours,
+                History.considered_launch_count,
+                Consultation.resultado AS snapshot
+            FROM report_history AS History
+            INNER JOIN general_indicator_annual_reports AS Annual
+                ON Annual.id = History.annual_report_id
+            INNER JOIN general_indicator_consultations AS Consultation
+                ON Consultation.id = History.source_consultation_id
+            WHERE History.id = %s
+              AND History.report_type = %s
+              AND Consultation.status = 'FINALIZADA'
+            FOR SHARE OF Annual, History, Consultation
+            """,
+            (revision_id, report_type),
+        )
+        return cursor.fetchone()
+
+
 def begin_annual_report_update(
     connection: Connection,
     report_id: int,

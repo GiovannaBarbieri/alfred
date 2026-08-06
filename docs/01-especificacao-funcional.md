@@ -18,8 +18,8 @@ Relatórios
 └── Meus Relatórios
 
 Configurações
-├── Colaboradores Excluídos
-├── Pesos da Distribuição
+├── Configurações gerais
+├── Distribuição das categorias
 └── Módulos
 ```
 
@@ -211,9 +211,9 @@ Permite manter:
 - colaboradores ignorados;
 - participação nos Indicadores Gerais.
 
-## Pesos de distribuição
+## Distribuição das categorias
 
-Permite alterar peso (1 a 5) e participação ativa das categorias:
+Permite definir a participação e o peso (1 a 5) das categorias:
 
 - Novo projeto;
 - Melhoria;
@@ -221,7 +221,7 @@ Permite alterar peso (1 a 5) e participação ativa das categorias:
 - Bug;
 - Manutenção.
 
-Pelo menos uma categoria deve permanecer ativa. Alterações são auditadas e afetam somente cálculos futuros; snapshots salvos preservam os pesos utilizados.
+O padrão utiliza peso 1 em todas as categorias ativas, resultando em distribuição mensal proporcional às horas originais. Pesos maiores aumentam a prioridade da categoria. Pelo menos uma categoria deve permanecer ativa. Alterações são auditadas e afetam somente novas consultas; snapshots finalizados preservam a configuração utilizada.
 
 ## Módulos
 

@@ -65,10 +65,16 @@ class GeneralIndicatorsRulesTests(unittest.TestCase):
         )
 
         self.assertEqual(issues, [])
-        self.assertEqual(result["allocated"]["Manutenção"], Decimal(5))
-        self.assertEqual(result["allocated"]["Novo projeto"], Decimal(75))
+        self.assertEqual(result["allocated"]["Manutenção"], Decimal(20))
+        self.assertEqual(result["allocated"]["Novo projeto"], Decimal(60))
         self.assertEqual(sum(result["allocated"].values()), Decimal(80))
         self.assertEqual(sum(result["adjusted"].values()), Decimal(480))
+        self.assertEqual(result["adjusted"]["Atualização do sistema"], Decimal(0))
+        self.assertNotIn("Operacional", result["adjusted"])
+        self.assertEqual(
+            sum(result["adjusted"].values()),
+            sum(result["original"].values()),
+        )
 
     def test_distribution_preserves_total_for_repeating_shares(self) -> None:
         result, issues = distribute_update_system(
@@ -81,18 +87,24 @@ class GeneralIndicatorsRulesTests(unittest.TestCase):
         )
 
         self.assertEqual(issues, [])
-        expected_without_residual = Decimal(100) * Decimal(11) / Decimal(26)
+        expected_without_residual = Decimal(100) * Decimal(11) / Decimal(14)
         self.assertEqual(result["allocated"]["Manutenção"], expected_without_residual)
         self.assertEqual(sum(result["allocated"].values()), Decimal(100))
+        self.assertEqual(result["adjusted"]["Atualização do sistema"], Decimal(0))
+        self.assertNotIn("Operacional", result["adjusted"])
+        self.assertEqual(
+            sum(result["adjusted"].values()),
+            sum(result["original"].values()),
+        )
 
     def test_bug_participates_in_update_distribution(self) -> None:
         result, _ = distribute_update_system(
             [entry("Erro TI", 100), entry("Bug", 100), entry("Atualização do sistema", 50, update=True)]
         )
 
-        self.assertAlmostEqual(float(result["allocated"]["Erro TI"]), 50 * 3 / 7)
-        self.assertAlmostEqual(float(result["allocated"]["Bug"]), 50 * 4 / 7)
-        self.assertAlmostEqual(float(result["adjusted"]["Bug"]), 100 + 50 * 4 / 7)
+        self.assertEqual(result["allocated"]["Erro TI"], Decimal(25))
+        self.assertEqual(result["allocated"]["Bug"], Decimal(25))
+        self.assertEqual(result["adjusted"]["Bug"], Decimal(125))
 
     def test_configured_weights_are_used_for_all_five_categories(self) -> None:
         result, issues = distribute_update_system(
@@ -103,7 +115,14 @@ class GeneralIndicatorsRulesTests(unittest.TestCase):
                 entry("Bug", 70),
                 entry("Manutenção", 500),
                 entry("Atualização do sistema", 235, update=True),
-            ]
+            ],
+            distribution_configuration={
+                "Novo projeto": {"weight": 5, "active": True},
+                "Melhoria": {"weight": 5, "active": True},
+                "Erro TI": {"weight": 3, "active": True},
+                "Bug": {"weight": 4, "active": True},
+                "Manutenção": {"weight": 1, "active": True},
+            },
         )
 
         self.assertEqual(issues, [])
@@ -140,6 +159,8 @@ class GeneralIndicatorsRulesTests(unittest.TestCase):
 
         self.assertEqual(len(issues), 1)
         self.assertEqual(issues[0]["type"], "distribution_impossible")
+        self.assertEqual(sum(result["allocated"].values()), Decimal(0))
+        self.assertNotIn("Operacional", result["adjusted"])
         self.assertEqual(sum(result["adjusted"].values()), Decimal(120))
 
     def test_kpi_thresholds(self) -> None:

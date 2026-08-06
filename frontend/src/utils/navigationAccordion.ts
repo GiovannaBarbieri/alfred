@@ -9,6 +9,7 @@ const REPORT_GROUP_SECTIONS = new Set<SectionId>([
   "history",
   "general-indicators",
   "my-reports",
+  "report-comparison",
 ]);
 
 export function navigationGroupForSection(section: SectionId): NavigationGroupId | null {

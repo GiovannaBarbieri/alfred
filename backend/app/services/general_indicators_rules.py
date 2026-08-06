@@ -21,10 +21,10 @@ DISTRIBUTION_RULES_VERSION = "update-system-weighted-proportional-v2"
 TARGET_RULES_VERSION = "general-indicators-targets-v1"
 
 DEFAULT_DISTRIBUTION_CONFIGURATION = {
-    "Novo projeto": {"weight": Decimal("5"), "active": True},
-    "Melhoria": {"weight": Decimal("5"), "active": True},
-    "Erro TI": {"weight": Decimal("3"), "active": True},
-    "Bug": {"weight": Decimal("4"), "active": True},
+    "Novo projeto": {"weight": Decimal("1"), "active": True},
+    "Melhoria": {"weight": Decimal("1"), "active": True},
+    "Erro TI": {"weight": Decimal("1"), "active": True},
+    "Bug": {"weight": Decimal("1"), "active": True},
     "Manutenção": {"weight": Decimal("1"), "active": True},
 }
 

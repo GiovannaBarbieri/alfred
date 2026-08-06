@@ -1,10 +1,14 @@
 import type {
   ReportDeleteResponse,
+  ReportComparisonType,
   ReportListParams,
   ReportPeriodAnalysisResponse,
   ReportPeriodsComparisonResponse,
   SavedReportDetail,
+  SavedReportComparisonOptionsResponse,
   SavedReportListResponse,
+  SavedReportsComparisonResponse,
+  SavedReportType,
 } from "../types";
 import {
   normalizePeriodAnalysisResponse,
@@ -57,6 +61,35 @@ export async function getReportPeriodsComparison(
   return request<ReportPeriodsComparisonResponse>(
     `/general-indicators/reports/${id}/compare-periods?${query.toString()}`,
   );
+}
+
+export async function listReportComparisonOptions(
+  reportType: SavedReportType,
+  comparisonType: ReportComparisonType,
+): Promise<SavedReportComparisonOptionsResponse> {
+  const query = new URLSearchParams({
+    type: reportType,
+    comparisonType,
+  });
+  return request<SavedReportComparisonOptionsResponse>(
+    `/general-indicators/reports/comparison-options?${query.toString()}`,
+  );
+}
+
+export async function compareSavedReports(
+  reportType: SavedReportType,
+  reportARevisionId: number,
+  reportBRevisionId: number,
+): Promise<SavedReportsComparisonResponse> {
+  return request<SavedReportsComparisonResponse>("/general-indicators/reports/compare", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      reportType,
+      reportARevisionId,
+      reportBRevisionId,
+    }),
+  });
 }
 
 export async function deleteReport(id: number, actor?: string | null): Promise<ReportDeleteResponse> {

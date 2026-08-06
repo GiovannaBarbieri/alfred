@@ -20,6 +20,7 @@ const ImportPage = lazy(() => import("./pages/ImportPage").then((module) => ({ d
 const ReportsPage = lazy(() => import("./pages/ReportsPage").then((module) => ({ default: module.ReportsPage })));
 const GeneralIndicatorsPage = lazy(() => import("./pages/GeneralIndicatorsFlowPage").then((module) => ({ default: module.GeneralIndicatorsFlowPage })));
 const MyReportsPage = lazy(() => import("./pages/MyReportsPage").then((module) => ({ default: module.MyReportsPage })));
+const ReportComparisonPage = lazy(() => import("./pages/ReportComparisonPage").then((module) => ({ default: module.ReportComparisonPage })));
 const SettingsPage = lazy(() => import("./pages/SettingsPage").then((module) => ({ default: module.SettingsPage })));
 const DistributionWeightsSettingsPage = lazy(() =>
   import("./pages/DistributionWeightsSettingsPage").then((module) => ({ default: module.DistributionWeightsSettingsPage })),
@@ -47,7 +48,7 @@ const defaultCategoryOptions = [
 
 const defaultSubcategoryOptions = ["Back", "Front", "QA", "Nao aplicavel", "Nao classificado"];
 const activeSectionStorageKey = "analise-horas:active-section";
-const restorableSections: SectionId[] = ["import", "reports", "general-indicators", "my-reports", "settings", "distribution-weights", "indicator-modules"];
+const restorableSections: SectionId[] = ["import", "reports", "general-indicators", "my-reports", "report-comparison", "settings", "distribution-weights", "indicator-modules"];
 
 function getInitialActiveSection(): SectionId {
   const storedSection = window.localStorage.getItem(activeSectionStorageKey) as SectionId | null;
@@ -57,6 +58,10 @@ function getInitialActiveSection(): SectionId {
 function App() {
   const [activeSection, setActiveSection] = useState<SectionId>(getInitialActiveSection);
   const [generalIndicatorReportToOpen, setGeneralIndicatorReportToOpen] = useState<number | null>(null);
+  const [generalIndicatorSuggestedPeriod, setGeneralIndicatorSuggestedPeriod] = useState<{
+    startDate: string;
+    endDate: string;
+  } | null>(null);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("categories");
   const dashboard = useDashboardData();
   const [selectedImport, setSelectedImport] = useState<ImportDetail | null>(null);
@@ -218,6 +223,11 @@ function App() {
     setActiveSection("my-reports");
   }
 
+  function handleGoToGeneralIndicators(period?: { startDate: string; endDate: string }) {
+    setGeneralIndicatorSuggestedPeriod(period ?? null);
+    setActiveSection("general-indicators");
+  }
+
   const headerOverride =
     activeSection === "validation" && importFlow.importWizardStep === "confirm" && !completedImport
       ? {
@@ -358,15 +368,23 @@ function App() {
         )}
 
         {activeSection === "general-indicators" && (
-          <GeneralIndicatorsPage onReportSaved={handleGeneralIndicatorReportSaved} />
+          <GeneralIndicatorsPage
+            onReportSaved={handleGeneralIndicatorReportSaved}
+            initialPeriod={generalIndicatorSuggestedPeriod}
+            onInitialPeriodConsumed={() => setGeneralIndicatorSuggestedPeriod(null)}
+          />
         )}
 
         {activeSection === "my-reports" && (
           <MyReportsPage
-            onGoToGeneralIndicators={() => setActiveSection("general-indicators")}
+            onGoToGeneralIndicators={handleGoToGeneralIndicators}
             openReportId={generalIndicatorReportToOpen}
             onOpenReportHandled={() => setGeneralIndicatorReportToOpen(null)}
           />
+        )}
+
+        {activeSection === "report-comparison" && (
+          <ReportComparisonPage onCreateReport={handleGoToGeneralIndicators} />
         )}
 
         {activeSection === "audit" && <AuditPage />}

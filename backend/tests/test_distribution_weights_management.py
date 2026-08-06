@@ -24,10 +24,10 @@ NOW = datetime(2026, 7, 24, 12, 0, tzinfo=timezone.utc)
 
 def _rows() -> list[dict]:
     defaults = [
-        ("Novo projeto", 5),
-        ("Melhoria", 5),
-        ("Erro TI", 3),
-        ("Bug", 4),
+        ("Novo projeto", 1),
+        ("Melhoria", 1),
+        ("Erro TI", 1),
+        ("Bug", 1),
         ("Manutenção", 1),
     ]
     return [
@@ -57,7 +57,7 @@ def test_loads_persisted_distribution_weights(get_connection, list_weights) -> N
 
     result = get_distribution_weight_configuration()
 
-    assert [item.weight for item in result.items] == [5, 5, 3, 4, 1]
+    assert [item.weight for item in result.items] == [1, 1, 1, 1, 1]
     assert all(item.active for item in result.items)
 
 
@@ -107,7 +107,7 @@ def test_save_persists_all_items_and_audits_before_and_after(
     insert_audit.assert_called_once()
     audit_kwargs = insert_audit.call_args.kwargs
     assert audit_kwargs["user"] == "giovanna"
-    assert audit_kwargs["before"]["items"][0]["weight"] == 5
+    assert audit_kwargs["before"]["items"][0]["weight"] == 1
     assert audit_kwargs["after"]["items"][0]["weight"] == 2
     assert audit_kwargs["entity"] == "general_indicator_distribution_weights"
     assert insert_audit.call_args.args == (connection,)
@@ -132,7 +132,7 @@ def test_restore_defaults_activates_categories_and_audits(
 
     result = reset_distribution_weight_configuration(user="admin")
 
-    assert [item.weight for item in result.items] == [5, 5, 3, 4, 1]
+    assert [item.weight for item in result.items] == [1, 1, 1, 1, 1]
     assert all(item.active for item in result.items)
     assert insert_audit.call_args.kwargs["action"] == "restored_defaults"
     assert insert_audit.call_args.kwargs["user"] == "admin"
@@ -152,3 +152,16 @@ def test_management_migration_contains_defaults_constraints_and_audit_user() -> 
     assert "WHEN 'Bug' THEN 4" in migration
     assert "active = TRUE" in migration
 
+
+def test_neutral_defaults_migration_sets_all_participants_to_one() -> None:
+    migration = (
+        Path(__file__).parents[1]
+        / "migrations"
+        / "0013_neutral_distribution_defaults.sql"
+    ).read_text(encoding="utf-8")
+
+    assert "distribution_weight = 1" in migration
+    assert "default_weight = 1" in migration
+    assert "active = TRUE" in migration
+    for category in ("Novo projeto", "Melhoria", "Erro TI", "Bug", "Manutenção"):
+        assert f"'{category}'" in migration

@@ -22,8 +22,8 @@ Relatórios
 └── Meus Relatórios
 
 Configurações
-├── Colaboradores Excluídos
-├── Pesos da Distribuição
+├── Configurações gerais
+├── Distribuição das categorias
 └── Módulos
 ```
 
@@ -251,8 +251,9 @@ Regras centrais:
 - Bug é identificado pelo tipo real do pai da Task e sempre classificado como `Bug`;
 - PBI é classificado pela TAG `2-` da Feature;
 - colaboradores com `participa_indicadores_gerais=false` permanecem auditáveis, mas não entram nos cálculos;
-- `Atualização do sistema` é redistribuída mensalmente por proporção ponderada;
-- pesos atuais padrão: Novo projeto 5, Melhoria 5, Erro TI 3, Bug 4 e Manutenção 1;
+- `Atualização do sistema` é redistribuída mensalmente pela fórmula proporcional ponderada;
+- o padrão neutro usa peso 1 em Novo projeto, Melhoria, Erro TI, Bug e Manutenção, produzindo distribuição proporcional às horas originais;
+- pesos configuráveis entre 2 e 5 continuam disponíveis para aumentar a prioridade de uma categoria;
 - meta de Novos projetos + melhorias: 40%;
 - limite de Erro TI + Bug: 10%;
 - relatório salvo é um snapshot imutável e não consulta novamente o TFS ao ser aberto;

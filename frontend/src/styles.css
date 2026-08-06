@@ -2827,6 +2827,40 @@ input {
   padding: 14px;
 }
 
+.report-comparison-selector-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(180px, 0.7fr) minmax(180px, 0.7fr) minmax(280px, 1.3fr) minmax(280px, 1.3fr);
+}
+
+.report-comparison-selector-grid label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.report-comparison-selector-grid label > span {
+  color: #34445a;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.report-comparison-selector-grid select {
+  background: #fff;
+  border: 1px solid #cbd7e5;
+  border-radius: 8px;
+  color: #0f2340;
+  height: 40px;
+  min-width: 0;
+  padding: 7px 10px;
+  width: 100%;
+}
+
+.report-comparison-selector-grid select:disabled {
+  background: #f3f6fa;
+  color: #637083;
+}
+
 .report-comparison-periods {
   align-items: center;
   display: grid;
@@ -2942,6 +2976,66 @@ input {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(4, minmax(190px, 1fr));
+}
+
+.report-comparison-context {
+  display: grid;
+  gap: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 0;
+}
+
+.report-comparison-context > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 14px;
+}
+
+.report-comparison-context > div + div {
+  border-left: 1px solid #e2e8f0;
+}
+
+.report-comparison-context > div > span {
+  color: #2563eb;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.report-comparison-context > div > strong {
+  color: #0f2340;
+  font-size: 15px;
+}
+
+.report-comparison-context > div > small {
+  color: #637083;
+  font-size: 11px;
+}
+
+.report-comparison-context dl {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(100px, 1fr));
+  margin: 8px 0 0;
+}
+
+.report-comparison-context dl > div {
+  display: grid;
+  gap: 2px;
+}
+
+.report-comparison-context dt {
+  color: #637083;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.report-comparison-context dd {
+  color: #0f2340;
+  font-size: 11px;
+  font-weight: 700;
+  margin: 0;
 }
 
 .report-comparison-card {
@@ -3652,6 +3746,60 @@ input {
   margin-bottom: 8px;
 }
 
+.general-indicator-technical-appendix {
+  display: grid;
+  gap: 10px;
+}
+
+.general-indicator-technical-accordion {
+  padding: 0;
+}
+
+.general-indicator-technical-accordion > summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  list-style: none;
+  min-height: 54px;
+  padding: 0 18px;
+}
+
+.general-indicator-technical-accordion > summary::-webkit-details-marker {
+  display: none;
+}
+
+.general-indicator-technical-accordion > summary span {
+  color: #0b1f36;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.general-indicator-technical-accordion > summary i {
+  border: solid #49637f;
+  border-width: 0 2px 2px 0;
+  display: inline-block;
+  height: 8px;
+  transform: rotate(45deg);
+  transition: transform 160ms ease;
+  width: 8px;
+}
+
+.general-indicator-technical-accordion[open] > summary {
+  border-bottom: 1px solid #edf1f6;
+}
+
+.general-indicator-technical-accordion[open] > summary i {
+  transform: rotate(-135deg);
+}
+
+.general-indicator-technical-content {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
 .general-indicators-table-wrap {
   max-height: 330px;
   overflow: auto;
@@ -3849,7 +3997,7 @@ input {
 .update-distribution-summary {
   display: grid;
   gap: 8px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-bottom: 12px;
 }
 
@@ -3877,51 +4025,27 @@ input {
   overflow-wrap: anywhere;
 }
 
-.update-distribution-summary .distribution-summary-success {
-  background: #ecfdf5;
-  border-color: #bbf7d0;
-}
-
-.update-distribution-summary .distribution-summary-success strong {
-  color: #047857;
-}
-
-.update-distribution-summary .distribution-summary-warning {
+.update-distribution-warning {
+  align-items: center;
   background: #fff7ed;
-  border-color: #fed7aa;
-}
-
-.update-distribution-summary .distribution-summary-warning strong {
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
   color: #c2410c;
+  display: flex;
+  font-size: 12px;
+  font-weight: 700;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
 }
 
 .update-distribution-table {
-  min-width: 860px !important;
+  min-width: 760px !important;
 }
 
 .update-distribution-table td {
   font-variant-numeric: tabular-nums;
   vertical-align: top;
-}
-
-.distribution-validation {
-  align-items: center;
-  border-radius: 999px;
-  display: inline-flex;
-  font-size: 11px;
-  font-weight: 800;
-  gap: 5px;
-  padding: 5px 8px;
-}
-
-.distribution-validation.success {
-  background: #dcfce7;
-  color: #15803d;
-}
-
-.distribution-validation.warning {
-  background: #ffedd5;
-  color: #c2410c;
 }
 
 .distribution-technical-detail {
@@ -4103,6 +4227,7 @@ input {
   .report-period-analysis .general-indicators-kpis { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
   .report-comparison-cards,
   .report-comparison-highlights > div { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+  .report-comparison-selector-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
 }
 
 @media (max-width: 920px) {
@@ -4129,6 +4254,10 @@ input {
   .report-comparison-period > div:first-of-type,
   .report-comparison-cards,
   .report-comparison-highlights > div { grid-template-columns: 1fr; }
+  .report-comparison-selector-grid,
+  .report-comparison-context,
+  .report-comparison-context dl { grid-template-columns: 1fr; }
+  .report-comparison-context > div + div { border-left: 0; border-top: 1px solid #e2e8f0; }
   .report-comparison-actions { display: grid; grid-template-columns: 1fr; }
   .report-comparison-actions button { width: 100%; }
   .report-comparison-result,
@@ -16221,7 +16350,7 @@ input {
   border-bottom: 1px solid #e8edf3;
   display: grid;
   gap: 20px;
-  grid-template-columns: minmax(180px, 1.2fr) 110px minmax(150px, 0.8fr) minmax(220px, 1fr);
+  grid-template-columns: minmax(220px, 1.4fr) minmax(220px, 1fr) 110px;
   min-height: 60px;
   padding: 10px 18px;
 }
@@ -16314,6 +16443,17 @@ input {
   font-size: 13px;
   line-height: 1.55;
   margin: 5px 0 0;
+}
+
+.distribution-weights-note {
+  color: #526174;
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.distribution-weights-note strong {
+  color: #172033;
 }
 
 .distribution-weights-example {

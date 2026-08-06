@@ -252,6 +252,53 @@ class ReportPeriodAnalysisGranularity(str, Enum):
     MONTH = "MONTH"
 
 
+class ReportComparisonType(str, Enum):
+    FREE = "FREE"
+    QUARTER = "QUARTER"
+    SEMESTER = "SEMESTER"
+    YEAR = "YEAR"
+
+
+class ReportPeriodKind(str, Enum):
+    FIRST_QUARTER = "FIRST_QUARTER"
+    SECOND_QUARTER = "SECOND_QUARTER"
+    THIRD_QUARTER = "THIRD_QUARTER"
+    FOURTH_QUARTER = "FOURTH_QUARTER"
+    FIRST_SEMESTER = "FIRST_SEMESTER"
+    SECOND_SEMESTER = "SECOND_SEMESTER"
+    YEAR = "YEAR"
+    CUSTOM = "CUSTOM"
+
+
+class SavedReportComparisonOption(BaseModel):
+    revisionId: int
+    reportId: int
+    reportName: str
+    reportType: ReportType
+    periodStart: date
+    periodEnd: date
+    periodKind: ReportPeriodKind
+    periodLabel: str
+    versionNumber: int
+    status: ReportStatus
+    isCurrent: bool
+    generatedAt: datetime
+    totalHours: float
+    consideredLaunchCount: int
+
+
+class SavedReportComparisonOptionsResponse(BaseModel):
+    reportType: ReportType
+    comparisonType: ReportComparisonType
+    items: list[SavedReportComparisonOption]
+
+
+class SavedReportsComparisonRequest(BaseModel):
+    reportType: ReportType = ReportType.GENERAL_INDICATORS
+    reportARevisionId: int = Field(gt=0)
+    reportBRevisionId: int = Field(gt=0)
+
+
 class ReportPeriodAnalysisResponse(BaseModel):
     reportId: int
     reportName: str
@@ -274,11 +321,15 @@ class ReportComparisonPeriod(BaseModel):
     endDate: date
     dayCount: int
     dailyAverageHours: float
+    dailyAverageLaunches: float = 0
+    periodKind: ReportPeriodKind = ReportPeriodKind.CUSTOM
+    periodLabel: str = "Período personalizado"
 
 
 class ReportComparisonSummary(BaseModel):
     totalHours: float
     consideredLaunchCount: int
+    consideredCollaboratorCount: int = 0
     projectsImprovementsHours: float
     projectsImprovementsPercentage: float
     errorsBugsHours: float
@@ -331,6 +382,43 @@ class ReportPeriodsComparisonResponse(BaseModel):
     chartData: list[ReportCategoryComparison]
     comparisonSummary: ReportComparisonHighlights
     differentDurations: bool
+
+
+class SavedReportComparisonContext(BaseModel):
+    revisionId: int
+    reportId: int
+    reportName: str
+    reportType: ReportType
+    versionNumber: int
+    status: ReportStatus
+    isCurrent: bool
+    generatedAt: datetime
+    period: ReportComparisonPeriod
+    totalHours: float
+    consideredLaunchCount: int
+    consideredCollaboratorCount: int
+
+
+class SavedReportComparisonWarning(BaseModel):
+    code: str
+    message: str
+
+
+class SavedReportsComparisonResponse(BaseModel):
+    source: str = "SAVED_SNAPSHOTS"
+    reportType: ReportType
+    reportA: SavedReportComparisonContext
+    reportB: SavedReportComparisonContext
+    summaryA: ReportComparisonSummary
+    summaryB: ReportComparisonSummary
+    differences: dict[str, ReportComparisonDifference]
+    categoriesComparison: list[ReportCategoryComparison]
+    chartData: list[ReportCategoryComparison]
+    comparisonSummary: ReportComparisonHighlights
+    differentDurations: bool
+    differentPeriodTypes: bool
+    overlappingPeriods: bool
+    warnings: list[SavedReportComparisonWarning] = Field(default_factory=list)
 
 
 class SavedReportDeleteResponse(AnnualReportDeleteResponse):

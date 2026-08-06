@@ -27,6 +27,7 @@ import {
   buildPeriodCompositionChart,
   buildQuarterlyKpiChart,
   shouldShowQuarterlyChart,
+  sortCategoryHoursDescending,
 } from "../src/utils/generalIndicatorCharts.ts";
 
 const base = { hasConsultation: false, uniqueLaunchCount: 0, canFinalize: false, hasFinalData: false, operation: null, hasError: false };
@@ -153,6 +154,7 @@ test("24. resumo identifica total, maior mês e maior destino", () => {
   assert.equal(summary.totalUpdateHours, 300);
   assert.equal(summary.peakMonth?.month, "2026-03");
   assert.deepEqual(summary.leadingDestination, { category: "Manutenção", hours: 150 });
+  assert.equal(reconciledParticipationPercentage(summary.totalUpdateHours, 1_200), 25);
 });
 
 test("24a. resumo inclui Bug como destino da distribuição", () => {
@@ -231,7 +233,58 @@ test("29. composição separa Manutenção de Operacional e reconcilia o total",
   assert.equal(data.reduce((total, item) => total + item.percentage, 0), 100);
 });
 
-test("29a. snapshot antigo sem Manutenção continua reconciliado", () => {
+test("29.1. listagem da distribuição ordena as categorias da maior para a menor quantidade de horas", () => {
+  const data = sortCategoryHoursDescending(buildPeriodCompositionChart(chartCategories));
+  assert.deepEqual(
+    data.map((item) => [item.name, item.hours]),
+    [
+      ["Manutenção", 40],
+      ["Novo Projeto", 25],
+      ["Melhoria", 15],
+      ["Erro TI", 10],
+      ["Bug", 5],
+      ["Operacional", 5],
+    ],
+  );
+});
+
+test("29a. Atualização do sistema zerada não integra Operacional nem o tooltip", () => {
+  const data = buildPeriodCompositionChart([
+    ...chartCategories,
+    {
+      category: "1-Atualização do sistema",
+      originalHours: 100,
+      allocatedHours: 0,
+      adjustedHours: 0,
+      percentage: 0,
+    },
+  ]);
+  const operational = data.find((item) => item.name === "Operacional");
+
+  assert.equal(operational.hours, 5);
+  assert.deepEqual(operational.groupedCategories, ["Reunião", "Treinamento"]);
+  assert.equal(data.reduce((total, item) => total + item.hours, 0), 100);
+  assert.equal(data.reduce((total, item) => total + item.percentage, 0), 100);
+});
+
+test("29b. fonte intermediária isolada deixa Operacional zerado na apresentação final", () => {
+  const data = buildCategoryHoursChart([
+    {
+      category: "Atualização do sistema",
+      originalHours: 100,
+      allocatedHours: 0,
+      adjustedHours: 0,
+      percentage: 0,
+    },
+  ]);
+  const operational = data.find((item) => item.name === "Operacional");
+
+  assert.equal(operational.hours, 0);
+  assert.deepEqual(operational.groupedCategories, []);
+  assert.equal(data.reduce((total, item) => total + item.hours, 0), 0);
+});
+
+test("29c. snapshot antigo sem Manutenção continua reconciliado", () => {
   const legacyCategories = chartCategories.filter((item) => item.category !== "Manutenção");
   const data = buildPeriodCompositionChart(legacyCategories);
   assert.equal(data.length, 6);

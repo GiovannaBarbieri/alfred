@@ -54,9 +54,9 @@ test("relatório possui somente as abas principais Visão Geral e Análises", ()
 });
 
 test("Análises possui seletor interno compacto apenas com Por período", () => {
-  assert.match(analyses, /Tipos de análise/);
+  assert.match(analyses, /Tipo de análise/);
   assert.match(analyses, /Por período/);
-  assert.match(analyses, /Comparação/);
+  assert.doesNotMatch(analyses, /Comparação|ReportPeriodsComparisonPanel/);
   assert.match(analyses, /ReportPeriodAnalysisPanel/);
   assert.doesNotMatch(analyses, /Categoria|Linha do tempo|Exportação|inteligência artificial/i);
   assert.match(styles, /\.saved-report-analysis-selector/);

@@ -11,8 +11,8 @@ Relatórios
 └── Meus Relatórios
 
 Configurações
-├── Colaboradores Excluídos
-├── Pesos da Distribuição
+├── Configurações gerais
+├── Distribuição das categorias
 └── Módulos
 ```
 
@@ -159,13 +159,14 @@ Auditoria de lançamentos permanece persistida, mas não é exibida como bloco p
 
 O bootstrap agrega leituras para reduzir carregamento inicial.
 
-## Pesos de distribuição
+## Distribuição das categorias
 
-- tabela com categoria, peso, influência e participação;
+- tabela com categoria, participação na distribuição e peso;
 - salvar;
-- restaurar padrão;
-- explicação e exemplo simples do cálculo;
-- alterações afetam somente novos cálculos.
+- restaurar distribuição proporcional padrão, com peso 1;
+- explicação e exemplo simples da distribuição mensal;
+- pesos entre 2 e 5 aumentam a prioridade da categoria;
+- alterações afetam somente novas consultas e não modificam snapshots finalizados.
 
 ## Módulos
 

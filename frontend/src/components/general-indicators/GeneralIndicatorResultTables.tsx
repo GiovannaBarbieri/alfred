@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowUp, ChevronDown, ChevronUp } from "lucide-react";
 import type { GeneralIndicatorCategory, GeneralIndicatorFinalizedResponse } from "../../types";
 import {
   buildExecutiveHoursComposition,
@@ -100,25 +100,32 @@ export function GeneralIndicatorHoursComposition({ categories, totalHours }: Com
 
 export function GeneralIndicatorUpdateDistribution({
   distribution,
+  totalHours,
 }: {
   distribution: GeneralIndicatorFinalizedResponse["distribution"];
+  totalHours: number;
 }) {
   const summary = useMemo(() => summarizeUpdateDistribution(distribution), [distribution]);
+  const updateParticipation = reconciledParticipationPercentage(summary.totalUpdateHours, totalHours);
   return (
     <>
       <div className="update-distribution-summary" aria-label="Resumo da distribuição">
-        <DistributionSummary label="Atualização distribuída" value={formatHours(summary.totalUpdateHours)} />
+        <DistributionSummary
+          label="Atualização distribuída"
+          value={`${formatHours(summary.totalUpdateHours)} (${formatPercentage(updateParticipation)})`}
+        />
         <DistributionSummary label="Maior mês" value={summary.peakMonth ? `${summary.peakMonth.label} — ${formatHours(summary.peakMonth.updateSystemHours)}` : "Sem dados"} />
         <DistributionSummary label="Maior destino" value={`${summary.leadingDestination.category} — ${formatHours(summary.leadingDestination.hours)}`} />
-        <DistributionSummary
-          label="Validação"
-          value={summary.isBalanced ? "100% distribuído" : `${formatPercentage(summary.distributedPercentage)} distribuído`}
-          status={summary.isBalanced ? "success" : "warning"}
-        />
       </div>
+      {!summary.isBalanced && (
+        <div className="update-distribution-warning" role="alert">
+          <AlertTriangle size={16} />
+          Foi encontrada uma divergência entre as horas de Atualização do sistema e o total redistribuído.
+        </div>
+      )}
       <div className="general-indicators-table-wrap executive-table-wrap">
         <table className="update-distribution-table">
-          <thead><tr><th>Mês</th><th>Atualização</th><th>Manutenção</th><th>Novo projeto</th><th>Melhoria</th><th>Erro TI</th><th>Bug</th><th>Validação</th></tr></thead>
+          <thead><tr><th>Mês</th><th>Atualização</th><th>Manutenção</th><th>Novo projeto</th><th>Melhoria</th><th>Erro TI</th><th>Bug</th></tr></thead>
           <tbody>{distribution.map((item) => <tr key={item.month}>
             <td>
               <strong>{item.label}</strong>
@@ -133,10 +140,6 @@ export function GeneralIndicatorUpdateDistribution({
             <td>{formatHours(item.improvementHours)}</td>
             <td>{formatHours(item.itErrorHours)}</td>
             <td>{formatHours(item.bugHours ?? 0)}</td>
-            <td><span className={`distribution-validation ${item.isBalanced ? "success" : "warning"}`}>
-              {item.isBalanced ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
-              {item.isBalanced ? "Conferido" : "Divergência"}
-            </span></td>
           </tr>)}</tbody>
         </table>
       </div>
@@ -165,8 +168,8 @@ function SortableHeader({
   </th>;
 }
 
-function DistributionSummary({ label, value, status }: { label: string; value: string; status?: "success" | "warning" }) {
-  return <div className={status ? `distribution-summary-${status}` : undefined}><span>{label}</span><strong>{value}</strong></div>;
+function DistributionSummary({ label, value }: { label: string; value: string }) {
+  return <div><span>{label}</span><strong>{value}</strong></div>;
 }
 
 function formatHours(value: number) {

@@ -1,4 +1,4 @@
-import { ArrowLeft, Boxes, ChevronDown, FileBarChart, Files, FolderKanban, FolderOpen, Gauge, ListChecks, Network, Settings, SlidersHorizontal, Upload } from "lucide-react";
+import { ArrowLeft, Boxes, ChevronDown, FileBarChart, Files, FolderKanban, FolderOpen, Gauge, ListChecks, Network, Scale, Settings, SlidersHorizontal, Upload } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   analysisReportActiveItem,
@@ -27,10 +27,11 @@ type AppShellProps = {
   children: ReactNode;
 };
 
-const analysisReportItems: Array<{ id: "import" | "general-indicators" | "my-reports"; label: string; icon: ReactNode }> = [
+const analysisReportItems: Array<{ id: "import" | "general-indicators" | "my-reports" | "report-comparison"; label: string; icon: ReactNode }> = [
   { id: "import", label: "Projetos", icon: <FolderKanban size={17} /> },
   { id: "general-indicators", label: "Indicadores Gerais", icon: <Gauge size={17} /> },
   { id: "my-reports", label: "Meus Relatórios", icon: <Files size={17} /> },
+  { id: "report-comparison", label: "Comparação de Relatórios", icon: <Scale size={17} /> },
 ];
 
 export function AppShell({ activeSection, onSectionChange, headerOverride, headerBackAction, hideHeader = false, children }: AppShellProps) {
@@ -127,7 +128,7 @@ export function AppShell({ activeSection, onSectionChange, headerOverride, heade
                   onClick={() => onSectionChange("settings")}
                 >
                   <ListChecks size={17} />
-                  <span>Colaboradores Excluídos</span>
+                  <span>Configurações gerais</span>
                 </button>
                 <button
                   className={`nav-subitem ${activeSection === "distribution-weights" ? "active" : ""}`}
@@ -137,7 +138,7 @@ export function AppShell({ activeSection, onSectionChange, headerOverride, heade
                   onClick={() => onSectionChange("distribution-weights")}
                 >
                   <SlidersHorizontal size={17} />
-                  <span>Pesos da Distribuição</span>
+                  <span>Distribuição das categorias</span>
                 </button>
                 <button
                   className={`nav-subitem ${activeSection === "indicator-modules" ? "active" : ""}`}

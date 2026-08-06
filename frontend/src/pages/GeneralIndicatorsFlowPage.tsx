@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { GeneralIndicatorConsultationPanel } from "../components/general-indicators/GeneralIndicatorConsultationPanel";
 import {
@@ -12,10 +12,18 @@ import { resolveGeneralIndicatorScreenState } from "../utils/generalIndicatorSta
 type Operation = "consultation" | "pending" | "finalization" | null;
 type DateShortcut = "current-month" | "previous-month" | "current-quarter" | "current-year" | "last-30-days";
 
-export function GeneralIndicatorsFlowPage({ onReportSaved }: { onReportSaved: (reportId: number) => void }) {
+export function GeneralIndicatorsFlowPage({
+  onReportSaved,
+  initialPeriod,
+  onInitialPeriodConsumed,
+}: {
+  onReportSaved: (reportId: number) => void;
+  initialPeriod?: { startDate: string; endDate: string } | null;
+  onInitialPeriodConsumed?: () => void;
+}) {
   const today = new Date();
-  const initialDates = yearDates(today.getFullYear());
-  const [year, setYear] = useState(today.getFullYear());
+  const initialDates = initialPeriod ?? yearDates(today.getFullYear());
+  const [year, setYear] = useState(Number(initialDates.startDate.slice(0, 4)));
   const [startDate, setStartDate] = useState(initialDates.startDate);
   const [endDate, setEndDate] = useState(initialDates.endDate);
   const [consultation, setConsultation] = useState<GeneralIndicatorConsultationResponse | null>(null);
@@ -25,6 +33,15 @@ export function GeneralIndicatorsFlowPage({ onReportSaved }: { onReportSaved: (r
   const [consultationProgress, setConsultationProgress] = useState<GeneralIndicatorConsultationProgress | null>(null);
   const finalizationInFlight = useRef(false);
   const busy = operation !== null;
+
+  useEffect(() => {
+    if (!initialPeriod) return;
+    setYear(Number(initialPeriod.startDate.slice(0, 4)));
+    setStartDate(initialPeriod.startDate);
+    setEndDate(initialPeriod.endDate);
+    setError(null);
+    onInitialPeriodConsumed?.();
+  }, [initialPeriod, onInitialPeriodConsumed]);
 
   const screenState = useMemo(() => resolveGeneralIndicatorScreenState({
     hasConsultation: consultation !== null,

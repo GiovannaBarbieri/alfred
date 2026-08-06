@@ -17,8 +17,10 @@ from app.repositories.report_history_repository import (
     get_annual_report_period_analysis_source,
     get_annual_report_update,
     get_report_history_detail,
+    get_saved_report_comparison_source,
     list_annual_report_revisions,
     list_annual_reports,
+    list_saved_report_comparison_options,
     list_report_history,
     make_report_history_current,
 )
@@ -46,6 +48,11 @@ from app.schemas.report_history import (
     ReportStatusFilter,
     ReportType,
     ReportVersionInfo,
+    ReportComparisonType,
+    ReportPeriodKind,
+    SavedReportComparisonOption,
+    SavedReportComparisonOptionsResponse,
+    SavedReportsComparisonResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -95,6 +102,195 @@ def get_annual_saved_report(report_id: int) -> AnnualReportDetail:
     if row is None:
         raise ReportHistoryNotFoundError("Relatório não encontrado.")
     return _annual_detail(row)
+
+
+def list_saved_reports_for_comparison(
+    *,
+    report_type: ReportType,
+    comparison_type: ReportComparisonType,
+) -> SavedReportComparisonOptionsResponse:
+    with get_connection() as connection:
+        rows = list_saved_report_comparison_options(
+            connection,
+            report_type=report_type.value,
+        )
+    items = [_saved_report_comparison_option(row) for row in rows]
+    if comparison_type != ReportComparisonType.FREE:
+        accepted_kinds = {
+            ReportComparisonType.QUARTER: {
+                ReportPeriodKind.FIRST_QUARTER,
+                ReportPeriodKind.SECOND_QUARTER,
+                ReportPeriodKind.THIRD_QUARTER,
+                ReportPeriodKind.FOURTH_QUARTER,
+            },
+            ReportComparisonType.SEMESTER: {
+                ReportPeriodKind.FIRST_SEMESTER,
+                ReportPeriodKind.SECOND_SEMESTER,
+            },
+            ReportComparisonType.YEAR: {ReportPeriodKind.YEAR},
+        }[comparison_type]
+        items = [item for item in items if item.periodKind in accepted_kinds]
+    return SavedReportComparisonOptionsResponse(
+        reportType=report_type,
+        comparisonType=comparison_type,
+        items=items,
+    )
+
+
+def compare_saved_report_snapshots(
+    *,
+    report_type: ReportType,
+    report_a_revision_id: int,
+    report_b_revision_id: int,
+) -> SavedReportsComparisonResponse:
+    if report_a_revision_id == report_b_revision_id:
+        raise ReportHistoryPeriodAnalysisError(
+            "Selecione dois relatórios diferentes para realizar a comparação."
+        )
+    with get_connection() as connection:
+        source_a = get_saved_report_comparison_source(
+            connection,
+            revision_id=report_a_revision_id,
+            report_type=report_type.value,
+        )
+        source_b = get_saved_report_comparison_source(
+            connection,
+            revision_id=report_b_revision_id,
+            report_type=report_type.value,
+        )
+    if source_a is None or source_b is None:
+        raise ReportHistoryNotFoundError(
+            "Um dos relatórios selecionados não existe mais ou não possui snapshot finalizado."
+        )
+
+    period_a = _saved_snapshot_comparison_payload(source_a)
+    period_b = _saved_snapshot_comparison_payload(source_b)
+    summary_a = _comparison_period_summary(period_a)
+    summary_b = _comparison_period_summary(period_b)
+    categories_a = _executive_category_hours(period_a)
+    categories_b = _executive_category_hours(period_b)
+    categories_comparison = _compare_executive_categories(
+        categories_a,
+        categories_b,
+        total_a=period_a["totalHours"],
+        total_b=period_b["totalHours"],
+    )
+
+    start_a = source_a["period_start"]
+    end_a = source_a["period_end"]
+    start_b = source_b["period_start"]
+    end_b = source_b["period_end"]
+    days_a = (end_a - start_a).days + 1
+    days_b = (end_b - start_b).days + 1
+    kind_a, label_a = _classify_report_period(start_a, end_a)
+    kind_b, label_b = _classify_report_period(start_b, end_b)
+    different_durations = days_a != days_b
+    different_period_types = kind_a != kind_b
+    overlapping_periods = start_a <= end_b and start_b <= end_a
+    warnings: list[dict[str, str]] = []
+    if different_durations:
+        warnings.append(
+            {
+                "code": "DIFFERENT_DURATIONS",
+                "message": (
+                    "Os relatórios possuem durações diferentes. "
+                    "Use as médias diárias para uma comparação proporcional."
+                ),
+            }
+        )
+    if different_period_types:
+        warnings.append(
+            {
+                "code": "DIFFERENT_PERIOD_TYPES",
+                "message": f"Os tipos de período são diferentes: {label_a} e {label_b}.",
+            }
+        )
+    if overlapping_periods:
+        warnings.append(
+            {
+                "code": "OVERLAPPING_PERIODS",
+                "message": "Os relatórios selecionados possuem datas sobrepostas.",
+            }
+        )
+
+    report_period_a = _comparison_report_period(
+        start_a,
+        end_a,
+        total_hours=period_a["totalHours"],
+        launch_count=period_a["recordCount"],
+        kind=kind_a,
+        label=label_a,
+    )
+    report_period_b = _comparison_report_period(
+        start_b,
+        end_b,
+        total_hours=period_b["totalHours"],
+        launch_count=period_b["recordCount"],
+        kind=kind_b,
+        label=label_b,
+    )
+    return SavedReportsComparisonResponse.model_validate(
+        {
+            "source": "SAVED_SNAPSHOTS",
+            "reportType": report_type,
+            "reportA": _saved_report_comparison_context(
+                source_a,
+                report_period_a,
+                summary_a,
+            ),
+            "reportB": _saved_report_comparison_context(
+                source_b,
+                report_period_b,
+                summary_b,
+            ),
+            "summaryA": summary_a,
+            "summaryB": summary_b,
+            "differences": {
+                "totalHours": _comparison_difference(
+                    period_a["totalHours"],
+                    period_b["totalHours"],
+                    unit="HOURS",
+                ),
+                "consideredLaunches": _comparison_difference(
+                    period_a["recordCount"],
+                    period_b["recordCount"],
+                    unit="COUNT",
+                ),
+                "consideredCollaborators": _comparison_difference(
+                    summary_a["consideredCollaboratorCount"],
+                    summary_b["consideredCollaboratorCount"],
+                    unit="COUNT",
+                ),
+                "dailyAverageHours": _comparison_difference(
+                    report_period_a["dailyAverageHours"],
+                    report_period_b["dailyAverageHours"],
+                    unit="HOURS",
+                ),
+                "dailyAverageLaunches": _comparison_difference(
+                    report_period_a["dailyAverageLaunches"],
+                    report_period_b["dailyAverageLaunches"],
+                    unit="COUNT",
+                ),
+                "projectsImprovements": _comparison_difference(
+                    summary_a["projectsImprovementsPercentage"],
+                    summary_b["projectsImprovementsPercentage"],
+                    unit="PERCENTAGE",
+                ),
+                "errorsBugs": _comparison_difference(
+                    summary_a["errorsBugsPercentage"],
+                    summary_b["errorsBugsPercentage"],
+                    unit="PERCENTAGE",
+                ),
+            },
+            "categoriesComparison": categories_comparison,
+            "chartData": categories_comparison,
+            "comparisonSummary": _comparison_highlights(categories_comparison),
+            "differentDurations": different_durations,
+            "differentPeriodTypes": different_period_types,
+            "overlappingPeriods": overlapping_periods,
+            "warnings": warnings,
+        }
+    )
 
 
 def analyze_annual_saved_report_period(
@@ -289,12 +485,180 @@ def compare_annual_saved_report_periods(
     }
 
 
+def _saved_report_comparison_option(row: dict[str, Any]) -> SavedReportComparisonOption:
+    period_kind, period_label = _classify_report_period(
+        row["period_start"],
+        row["period_end"],
+    )
+    return SavedReportComparisonOption(
+        revisionId=int(row["revision_id"]),
+        reportId=int(row["report_id"]),
+        reportName=str(row["report_name"]),
+        reportType=row["report_type"],
+        periodStart=row["period_start"],
+        periodEnd=row["period_end"],
+        periodKind=period_kind,
+        periodLabel=period_label,
+        versionNumber=int(row["version_number"]),
+        status=row["report_status"],
+        isCurrent=bool(row["is_current"]),
+        generatedAt=row["finalized_at"],
+        totalHours=float(row["total_hours"]),
+        consideredLaunchCount=int(row["considered_launch_count"]),
+    )
+
+
+def _classify_report_period(
+    start_date: date,
+    end_date: date,
+) -> tuple[ReportPeriodKind, str]:
+    if start_date.year != end_date.year:
+        return ReportPeriodKind.CUSTOM, "Período personalizado"
+    year = start_date.year
+    exact_periods = {
+        (date(year, 1, 1), date(year, 3, 31)): (
+            ReportPeriodKind.FIRST_QUARTER,
+            f"1º trimestre de {year}",
+        ),
+        (date(year, 4, 1), date(year, 6, 30)): (
+            ReportPeriodKind.SECOND_QUARTER,
+            f"2º trimestre de {year}",
+        ),
+        (date(year, 7, 1), date(year, 9, 30)): (
+            ReportPeriodKind.THIRD_QUARTER,
+            f"3º trimestre de {year}",
+        ),
+        (date(year, 10, 1), date(year, 12, 31)): (
+            ReportPeriodKind.FOURTH_QUARTER,
+            f"4º trimestre de {year}",
+        ),
+        (date(year, 1, 1), date(year, 6, 30)): (
+            ReportPeriodKind.FIRST_SEMESTER,
+            f"1º semestre de {year}",
+        ),
+        (date(year, 7, 1), date(year, 12, 31)): (
+            ReportPeriodKind.SECOND_SEMESTER,
+            f"2º semestre de {year}",
+        ),
+        (date(year, 1, 1), date(year, 12, 31)): (
+            ReportPeriodKind.YEAR,
+            f"Ano de {year}",
+        ),
+    }
+    return exact_periods.get(
+        (start_date, end_date),
+        (ReportPeriodKind.CUSTOM, "Período personalizado"),
+    )
+
+
+def _saved_snapshot_comparison_payload(source: dict[str, Any]) -> dict[str, Any]:
+    snapshot = dict(source.get("snapshot") or {})
+    record_count = int(
+        snapshot.get("recordCount")
+        or dict(snapshot.get("summary") or {}).get("consideredLaunchCount")
+        or source.get("considered_launch_count")
+        or 0
+    )
+    categories = list(snapshot.get("categories") or [])
+    kpis = dict(snapshot.get("kpis") or {})
+    if record_count <= 0 or not categories or not kpis:
+        raise ReportHistoryPeriodAnalysisError(
+            f'O relatório "{source["report_name"]}" não possui dados válidos para comparação.'
+        )
+    total_hours = float(snapshot.get("totalHours") or source.get("total_hours") or 0)
+    audit = list(snapshot.get("audit") or [])
+    collaborators = {
+        str(item.get("collaborator") or "").strip().casefold()
+        for item in audit
+        if bool(item.get("includedInOfficialCalculation"))
+        and str(item.get("collaborator") or "").strip()
+    }
+    return {
+        "reportName": source["report_name"],
+        "totalHours": total_hours,
+        "recordCount": record_count,
+        "consideredCollaboratorCount": len(collaborators),
+        "kpis": kpis,
+        "categories": categories,
+    }
+
+
+def _comparison_report_period(
+    start_date: date,
+    end_date: date,
+    *,
+    total_hours: float,
+    launch_count: int,
+    kind: ReportPeriodKind,
+    label: str,
+) -> dict[str, Any]:
+    day_count = (end_date - start_date).days + 1
+    return {
+        "startDate": start_date,
+        "endDate": end_date,
+        "dayCount": day_count,
+        "dailyAverageHours": _round(total_hours / day_count),
+        "dailyAverageLaunches": _round(launch_count / day_count),
+        "periodKind": kind,
+        "periodLabel": label,
+    }
+
+
+def _saved_report_comparison_context(
+    source: dict[str, Any],
+    period: dict[str, Any],
+    summary: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "revisionId": int(source["revision_id"]),
+        "reportId": int(source["report_id"]),
+        "reportName": str(source["report_name"]),
+        "reportType": source["report_type"],
+        "versionNumber": int(source["version_number"]),
+        "status": source["report_status"],
+        "isCurrent": bool(source["is_current"]),
+        "generatedAt": source["finalized_at"],
+        "period": period,
+        "totalHours": summary["totalHours"],
+        "consideredLaunchCount": summary["consideredLaunchCount"],
+        "consideredCollaboratorCount": summary["consideredCollaboratorCount"],
+    }
+
+
+def _compare_executive_categories(
+    categories_a: dict[str, float],
+    categories_b: dict[str, float],
+    *,
+    total_a: float,
+    total_b: float,
+) -> list[dict[str, Any]]:
+    result = []
+    for category in ("Novo Projeto", "Melhoria", "Erro TI", "Bug", "Manutenção", "Operacional"):
+        hours_a = categories_a[category]
+        hours_b = categories_b[category]
+        difference = _comparison_difference(hours_a, hours_b, unit="HOURS")
+        result.append(
+            {
+                "category": category,
+                "hoursA": hours_a,
+                "hoursB": hours_b,
+                "participationA": _percentage(hours_a, total_a),
+                "participationB": _percentage(hours_b, total_b),
+                "absoluteDifference": difference["absoluteDifference"],
+                "percentageDifference": difference["percentageDifference"],
+                "direction": difference["direction"],
+            }
+        )
+    return result
+
+
 def _comparison_period_summary(period: dict[str, Any]) -> dict[str, Any]:
     projects = period["kpis"]["projectsImprovements"]
     errors = period["kpis"]["errorsBugs"]
     return {
         "totalHours": period["totalHours"],
         "consideredLaunchCount": period["recordCount"],
+        "consideredCollaboratorCount": int(period.get("consideredCollaboratorCount") or 0),
         "projectsImprovementsHours": projects["hours"],
         "projectsImprovementsPercentage": projects["percentage"],
         "errorsBugsHours": errors["hours"],

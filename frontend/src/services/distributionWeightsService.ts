@@ -60,7 +60,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, options);
   if (!response.ok) {
     const payload = await response.json().catch(() => null) as { detail?: string } | null;
-    throw new Error(payload?.detail ?? "Não foi possível salvar os pesos de distribuição.");
+    throw new Error(payload?.detail ?? "Não foi possível salvar a distribuição das categorias.");
   }
   return response.json() as Promise<T>;
 }

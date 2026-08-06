@@ -37,6 +37,13 @@ export function buildPeriodCompositionChart(categories: GeneralIndicatorCategory
   return buildExecutiveCategoryGroups(categories);
 }
 
+export function sortCategoryHoursDescending<T extends { hours: number }>(categories: T[]) {
+  return categories
+    .map((item, index) => ({ item, index }))
+    .sort((left, right) => right.item.hours - left.item.hours || left.index - right.index)
+    .map(({ item }) => item);
+}
+
 export function buildMonthlyStrategicChart(months: ResultMonth[]) {
   return months.map((month) => ({
     month: month.month,
@@ -174,6 +181,7 @@ function buildExecutiveCategoryGroups(categories: GeneralIndicatorCategory[]) {
   });
 
   categories.forEach((item) => {
+    if (isZeroedUpdateSystemSource(item)) return;
     const strategicKey = strategicCategoryKey(item.category);
     const maintenance = normalize(item.category) === "manutencao";
     const key: ExecutiveChartKey = strategicKey ?? (maintenance ? "maintenance" : "operational");
@@ -190,6 +198,11 @@ function buildExecutiveCategoryGroups(categories: GeneralIndicatorCategory[]) {
     groupedCategories: [...item.groupedCategories].sort((left, right) => left.localeCompare(right, "pt-BR")),
     percentage: percentage(item.hours, totalHours),
   }));
+}
+
+function isZeroedUpdateSystemSource(item: GeneralIndicatorCategory) {
+  const category = normalize(item.category).replace(/^1\s*-\s*/, "");
+  return category === "atualizacao do sistema" && Number(item.adjustedHours || 0) === 0;
 }
 
 function percentage(hours: number, totalHours: number) {

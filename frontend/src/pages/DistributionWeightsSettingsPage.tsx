@@ -1,7 +1,6 @@
 import { CircleHelp, RefreshCw, Save } from "lucide-react";
 import { useDistributionWeights } from "../hooks/useDistributionWeights";
 import {
-  distributionWeightInfluence,
   displayDistributionCategory,
   hasActiveDistributionCategory,
 } from "../utils/distributionWeights";
@@ -14,7 +13,7 @@ export function DistributionWeightsSettingsPage() {
 
   async function handleRestoreDefaults() {
     const confirmed = window.confirm(
-      "Restaurar os pesos padrão e ativar todas as categorias participantes?",
+      "Restaurar a distribuição proporcional padrão, com peso 1, e ativar todas as categorias participantes?",
     );
     if (confirmed) await weights.restoreDefaults();
   }
@@ -23,7 +22,7 @@ export function DistributionWeightsSettingsPage() {
     return (
       <section className="distribution-weights-state" aria-live="polite">
         <RefreshCw className="spin" size={20} />
-        Carregando pesos de distribuição...
+        Carregando distribuição das categorias...
       </section>
     );
   }
@@ -31,7 +30,7 @@ export function DistributionWeightsSettingsPage() {
   if (weights.error && weights.items.length === 0) {
     return (
       <section className="distribution-weights-state error" role="alert">
-        <strong>Não foi possível carregar os pesos de distribuição.</strong>
+        <strong>Não foi possível carregar a distribuição das categorias.</strong>
         <span>{weights.error}</span>
         <button className="secondary-button compact" type="button" onClick={() => void weights.load()}>
           Tentar novamente
@@ -42,12 +41,8 @@ export function DistributionWeightsSettingsPage() {
 
   return (
     <section className="distribution-weights-page">
-      <p className="distribution-weights-description">
-        Configure os pesos utilizados para redistribuir as horas classificadas como
-        {" "}<strong>Atualização do sistema</strong> entre as categorias participantes.
-      </p>
       <p className="distribution-weights-scope">
-        As alterações afetam apenas novas análises e futuras atualizações de relatórios.
+        As alterações afetam somente novas consultas. Relatórios já finalizados preservam a configuração original.
       </p>
 
       {weights.items.length === 0 ? (
@@ -60,16 +55,24 @@ export function DistributionWeightsSettingsPage() {
         </div>
       ) : (
         <div className="distribution-weights-panel">
-          <div className="distribution-weights-table" role="table" aria-label="Pesos de distribuição">
+          <div className="distribution-weights-table" role="table" aria-label="Distribuição das categorias">
             <div className="distribution-weights-row header" role="row">
               <span role="columnheader">Categoria</span>
-              <span role="columnheader">Peso</span>
-              <span role="columnheader">Influência</span>
               <span role="columnheader">Participa da distribuição</span>
+              <span role="columnheader">Peso</span>
             </div>
             {weights.items.map((item) => (
               <div className={`distribution-weights-row ${item.active ? "" : "inactive"}`} role="row" key={item.category}>
                 <strong role="cell">{displayDistributionCategory(item.category)}</strong>
+                <label className="distribution-participation" role="cell">
+                  <input
+                    type="checkbox"
+                    checked={item.active}
+                    disabled={weights.isSaving}
+                    onChange={(event) => weights.changeParticipation(item.category, event.target.checked)}
+                  />
+                  <span>{item.active ? "Participa" : "Não participa"}</span>
+                </label>
                 <label role="cell">
                   <span className="sr-only">Peso de {item.category}</span>
                   <select
@@ -80,18 +83,6 @@ export function DistributionWeightsSettingsPage() {
                   >
                     {WEIGHT_OPTIONS.map((option) => <option value={option} key={option}>{option}</option>)}
                   </select>
-                </label>
-                <span className="distribution-weight-influence" role="cell">
-                  {distributionWeightInfluence(item.weight)}
-                </span>
-                <label className="distribution-participation" role="cell">
-                  <input
-                    type="checkbox"
-                    checked={item.active}
-                    disabled={weights.isSaving}
-                    onChange={(event) => weights.changeParticipation(item.category, event.target.checked)}
-                  />
-                  <span>{item.active ? "Participa" : "Não participa"}</span>
                 </label>
               </div>
             ))}
@@ -113,7 +104,7 @@ export function DistributionWeightsSettingsPage() {
               onClick={() => void handleRestoreDefaults()}
             >
               <RefreshCw size={16} />
-              Restaurar padrão
+              Restaurar distribuição padrão
             </button>
             <button
               className="primary-button compact"
@@ -122,7 +113,7 @@ export function DistributionWeightsSettingsPage() {
               onClick={() => void weights.save()}
             >
               {weights.isSaving ? <RefreshCw className="spin" size={16} /> : <Save size={16} />}
-              {weights.isSaving ? "Salvando..." : "Salvar alterações"}
+              {weights.isSaving ? "Salvando..." : "Salvar configuração"}
             </button>
           </footer>
         </div>
@@ -133,8 +124,8 @@ export function DistributionWeightsSettingsPage() {
         <div>
           <strong>Como funciona?</strong>
           <p>
-            Os pesos determinam a influência de cada categoria na redistribuição das horas classificadas
-            como “Atualização do sistema”. Quanto maior o peso, maior será a participação da categoria.
+            Com peso 1, cada categoria recebe uma parcela proporcional às suas horas originais no mês.
+            Pesos maiores aumentam a influência da categoria, sem alterar a base mensal do cálculo.
           </p>
           <p>
             As alterações não modificam relatórios já finalizados. Somente novas análises e futuras
@@ -143,21 +134,25 @@ export function DistributionWeightsSettingsPage() {
           <div className="distribution-weights-example">
             <strong>Exemplo simples</strong>
             <p>
-              Considere <strong>100 h</strong> em Novo Projeto (peso 4), <strong>100 h</strong> em
-              Manutenção (peso 1) e <strong>60 h</strong> de Atualização do sistema para distribuir.
+              Considere <strong>100 h</strong> em Novo Projeto, <strong>300 h</strong> em
+              Manutenção e <strong>80 h</strong> de Atualização do sistema, todos com peso 1.
             </p>
             <div className="distribution-weights-example-calculation">
-              <span>Novo Projeto: 100 × 4 = 400 pontos</span>
-              <span>Manutenção: 100 × 1 = 100 pontos</span>
-              <span>Total: 500 pontos</span>
+              <span>Novo Projeto: 100 ÷ 400 = 25%</span>
+              <span>Manutenção: 300 ÷ 400 = 75%</span>
             </div>
             <p>
-              Das 60 h, Novo Projeto recebe <strong>48 h</strong> e Manutenção recebe
-              {" "}<strong>12 h</strong>. Assim, as 60 h são totalmente distribuídas conforme horas e peso.
+              Das 80 h, Novo Projeto recebe <strong>20 h</strong> e Manutenção recebe
+              {" "}<strong>60 h</strong>. As horas são totalmente distribuídas de forma proporcional.
             </p>
           </div>
         </div>
       </aside>
+
+      <p className="distribution-weights-note">
+        <strong>Observação:</strong> pesos iguais a 1 resultam em uma distribuição proporcional às horas originais.
+        Pesos maiores aumentam a prioridade da categoria durante a redistribuição das horas de Atualização do sistema.
+      </p>
     </section>
   );
 }

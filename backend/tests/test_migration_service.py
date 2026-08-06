@@ -80,7 +80,7 @@ class DatabaseMigrationServiceTests(unittest.TestCase):
         self.assertIn("idx_general_indicator_launches_unique", migration.sql)
         self.assertIn("REFERENCES general_indicator_consultations", migration.sql)
         self.assertIn("chk_general_indicator_consultation_period", migration.sql)
-        self.assertEqual([item.version for item in migrations], ["0001", "0002", "0003", "0004", "0005", "0006", "0007", "0008", "0009", "0010", "0011", "0012"])
+        self.assertEqual([item.version for item in migrations], ["0001", "0002", "0003", "0004", "0005", "0006", "0007", "0008", "0009", "0010", "0011", "0012", "0013"])
         self.assertIn("DROP CONSTRAINT IF EXISTS uq_annual_report_type_year", migrations[10].sql)
         self.assertIn("idx_general_indicator_launches_consulta_ordem", migrations[1].sql)
         self.assertIn("participa_indicadores_gerais", migrations[2].sql)
@@ -98,6 +98,7 @@ class DatabaseMigrationServiceTests(unittest.TestCase):
         self.assertIn("uq_annual_report_type_year", migrations[7].sql)
         self.assertIn("ROW_NUMBER() OVER", migrations[7].sql)
         self.assertIn("CREATE TABLE IF NOT EXISTS general_indicator_modules", migrations[11].sql)
+        self.assertIn("distribution_weight = 1", migrations[12].sql)
 
     def test_startup_runs_migrations_before_runtime_schema(self) -> None:
         from app import main

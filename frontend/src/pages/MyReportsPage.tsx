@@ -14,7 +14,7 @@ export function MyReportsPage({
   openReportId,
   onOpenReportHandled,
 }: {
-  onGoToGeneralIndicators: () => void;
+  onGoToGeneralIndicators: (period?: { startDate: string; endDate: string }) => void;
   openReportId?: number | null;
   onOpenReportHandled?: () => void;
 }) {
@@ -135,7 +135,7 @@ export function MyReportsPage({
       {!history.isLoading && history.data && items.length === 0 && (
         history.hasActiveFilters
           ? <StatePanel icon={<SearchX size={26} />} title="Nenhum relatório encontrado" text="Tente ajustar ou limpar os filtros aplicados."><button className="secondary-button" type="button" onClick={history.clearFilters}>Limpar filtros</button></StatePanel>
-          : <StatePanel icon={<FileBarChart size={26} />} title="Nenhuma análise salva" text="As análises finalizadas em Indicadores Gerais aparecerão aqui."><button className="primary-button" type="button" onClick={onGoToGeneralIndicators}>Ir para Indicadores Gerais</button></StatePanel>
+          : <StatePanel icon={<FileBarChart size={26} />} title="Nenhuma análise salva" text="As análises finalizadas em Indicadores Gerais aparecerão aqui."><button className="primary-button" type="button" onClick={() => onGoToGeneralIndicators()}>Ir para Indicadores Gerais</button></StatePanel>
       )}
 
       {items.length > 0 && (

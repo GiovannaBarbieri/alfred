@@ -33,6 +33,10 @@ from app.schemas.report_history import (
     SavedReportListResponse,
     ReportPeriodAnalysisResponse,
     ReportPeriodsComparisonResponse,
+    ReportComparisonType,
+    SavedReportComparisonOptionsResponse,
+    SavedReportsComparisonRequest,
+    SavedReportsComparisonResponse,
 )
 from app.services.report_history_service import (
     ReportHistoryConflictError,
@@ -40,9 +44,11 @@ from app.services.report_history_service import (
     ReportHistoryPeriodAnalysisError,
     analyze_annual_saved_report_period,
     compare_annual_saved_report_periods,
+    compare_saved_report_snapshots,
     delete_annual_saved_report,
     get_annual_saved_report,
     list_annual_saved_reports,
+    list_saved_reports_for_comparison,
 )
 from app.services.sqlserver_service import (
     SQLServerConfigurationError,
@@ -69,6 +75,36 @@ def list_general_indicator_reports(
         page=page,
         page_size=page_size,
     )
+
+
+@router.get("/reports/comparison-options", response_model=SavedReportComparisonOptionsResponse)
+def list_general_indicator_report_comparison_options(
+    report_type: ReportType = Query(default=ReportType.GENERAL_INDICATORS, alias="type"),
+    comparison_type: ReportComparisonType = Query(
+        default=ReportComparisonType.FREE,
+        alias="comparisonType",
+    ),
+) -> SavedReportComparisonOptionsResponse:
+    return list_saved_reports_for_comparison(
+        report_type=report_type,
+        comparison_type=comparison_type,
+    )
+
+
+@router.post("/reports/compare", response_model=SavedReportsComparisonResponse)
+def compare_general_indicator_saved_reports(
+    payload: SavedReportsComparisonRequest,
+) -> SavedReportsComparisonResponse:
+    try:
+        return compare_saved_report_snapshots(
+            report_type=payload.reportType,
+            report_a_revision_id=payload.reportARevisionId,
+            report_b_revision_id=payload.reportBRevisionId,
+        )
+    except ReportHistoryNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ReportHistoryPeriodAnalysisError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.get("/reports/{report_id}", response_model=SavedReportDetail)

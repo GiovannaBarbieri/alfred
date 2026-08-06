@@ -98,6 +98,18 @@ class GeneralIndicatorsClassificationTests(unittest.TestCase):
         self.assertEqual(result["launches"][1]["finalCategory"], "Bug")
         self.assertNotIn("kpis", result)
 
+    def test_database_and_spider_modules_do_not_enter_update_system_distribution(self) -> None:
+        for module_tag in ("1-Banco de dados", "1-Spider Processos"):
+            with self.subTest(module_tag=module_tag):
+                item = classify(
+                    [launch(1, 401)],
+                    [hierarchy(401, 301, "PBI", 200)],
+                    tags=f"{module_tag}; 2-Melhoria; 3-Produtos",
+                )["launches"][0]
+
+                self.assertFalse(item["isUpdateSystem"])
+                self.assertEqual(item["finalCategory"], "Melhoria")
+
     def test_duplicate_launch_id_is_kept_once_with_source_evidence(self) -> None:
         result = classify(
             [launch(1, 401, "0d 01:00:00"), launch(1, 401, "0d 02:00:00")],

@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from app.services.general_indicators_rules import (
+    DEFAULT_DISTRIBUTION_CONFIGURATION,
     DISTRIBUTION_RULES_VERSION,
     distribution_configuration_snapshot,
 )
@@ -27,6 +28,19 @@ class WeightedDistributionConfigurationTests(unittest.TestCase):
 
     def test_rules_version_identifies_weighted_distribution(self) -> None:
         self.assertEqual(DISTRIBUTION_RULES_VERSION, "update-system-weighted-proportional-v2")
+
+    def test_current_default_is_neutral_and_proportional(self) -> None:
+        self.assertEqual(
+            {category: settings["weight"] for category, settings in DEFAULT_DISTRIBUTION_CONFIGURATION.items()},
+            {
+                "Novo projeto": 1,
+                "Melhoria": 1,
+                "Erro TI": 1,
+                "Bug": 1,
+                "Manutenção": 1,
+            },
+        )
+        self.assertTrue(all(settings["active"] for settings in DEFAULT_DISTRIBUTION_CONFIGURATION.values()))
 
     def test_snapshot_preserves_weights_and_active_flags(self) -> None:
         snapshot = distribution_configuration_snapshot(

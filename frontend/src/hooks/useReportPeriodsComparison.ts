@@ -1,75 +1,142 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { getReportPeriodsComparison } from "../services/reportHistoryService";
-import type { ReportPeriodsComparisonResponse } from "../types";
-import { periodForShortcut, type PeriodAnalysisShortcut } from "../utils/reportPeriodAnalysis";
-import { validateComparisonPeriod } from "../utils/reportPeriodComparison";
+import {
+  compareSavedReports,
+  listReportComparisonOptions,
+} from "../services/reportHistoryService";
+import type {
+  ReportComparisonType,
+  SavedReportComparisonOption,
+  SavedReportsComparisonResponse,
+  SavedReportType,
+} from "../types";
 
-export function useReportPeriodsComparison(
-  reportId: number,
-  officialStart: string,
-  officialEnd: string,
-) {
-  const initialA = periodForShortcut("first-month", officialStart, officialEnd);
-  const initialB = periodForShortcut("last-month", officialStart, officialEnd);
-  const [periodA, setPeriodA] = useState(initialA);
-  const [periodB, setPeriodB] = useState(initialB);
-  const [result, setResult] = useState<ReportPeriodsComparisonResponse | null>(null);
+const DEFAULT_REPORT_TYPE: SavedReportType = "GENERAL_INDICATORS";
+
+export function useReportPeriodsComparison() {
+  const [reportType] = useState<SavedReportType>(DEFAULT_REPORT_TYPE);
+  const [comparisonType, setComparisonType] = useState<ReportComparisonType>("FREE");
+  const [options, setOptions] = useState<SavedReportComparisonOption[]>([]);
+  const [reportARevisionId, setReportARevisionId] = useState<number | null>(null);
+  const [reportBRevisionId, setReportBRevisionId] = useState<number | null>(null);
+  const [result, setResult] = useState<SavedReportsComparisonResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [optionsError, setOptionsError] = useState<string | null>(null);
+  const [isLoadingOptions, setIsLoadingOptions] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const requestInFlight = useRef(false);
 
+  const loadOptions = useCallback(async () => {
+    setIsLoadingOptions(true);
+    setOptionsError(null);
+    try {
+      const response = await listReportComparisonOptions(reportType, comparisonType);
+      setOptions(response.items);
+      setReportARevisionId((current) =>
+        current !== null && response.items.some((item) => item.revisionId === current)
+          ? current
+          : null,
+      );
+      setReportBRevisionId((current) =>
+        current !== null && response.items.some((item) => item.revisionId === current)
+          ? current
+          : null,
+      );
+    } catch (caught) {
+      setOptions([]);
+      setOptionsError(
+        caught instanceof Error
+          ? caught.message
+          : "Não foi possível carregar os relatórios disponíveis.",
+      );
+    } finally {
+      setIsLoadingOptions(false);
+    }
+  }, [comparisonType, reportType]);
+
+  useEffect(() => {
+    void loadOptions();
+  }, [loadOptions]);
+
   const compare = useCallback(async () => {
     if (requestInFlight.current) return;
-    const validationA = validateComparisonPeriod("Período A", periodA.startDate, periodA.endDate, officialStart, officialEnd);
-    const validationB = validateComparisonPeriod("Período B", periodB.startDate, periodB.endDate, officialStart, officialEnd);
-    if (validationA || validationB) {
-      setError(validationA ?? validationB);
+    if (reportARevisionId === null || reportBRevisionId === null) {
+      setError("Selecione o Relatório A e o Relatório B.");
+      return;
+    }
+    if (reportARevisionId === reportBRevisionId) {
+      setError("Selecione dois relatórios diferentes para realizar a comparação.");
       return;
     }
     requestInFlight.current = true;
     setIsLoading(true);
     setError(null);
     try {
-      setResult(await getReportPeriodsComparison(
-        reportId,
-        periodA.startDate,
-        periodA.endDate,
-        periodB.startDate,
-        periodB.endDate,
-      ));
+      setResult(
+        await compareSavedReports(
+          reportType,
+          reportARevisionId,
+          reportBRevisionId,
+        ),
+      );
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Não foi possível comparar os períodos.");
+      setResult(null);
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Não foi possível comparar os relatórios.",
+      );
     } finally {
       requestInFlight.current = false;
       setIsLoading(false);
     }
-  }, [officialEnd, officialStart, periodA, periodB, reportId]);
+  }, [reportARevisionId, reportBRevisionId, reportType]);
 
-  function applyShortcut(target: "A" | "B", shortcut: PeriodAnalysisShortcut) {
-    const period = periodForShortcut(shortcut, officialStart, officialEnd);
-    if (target === "A") setPeriodA(period);
-    else setPeriodB(period);
+  function changeComparisonType(value: ReportComparisonType) {
+    setComparisonType(value);
+    setResult(null);
+    setError(null);
+  }
+
+  function selectReportA(value: number | null) {
+    setReportARevisionId(value);
+    setResult(null);
+    setError(null);
+  }
+
+  function selectReportB(value: number | null) {
+    setReportBRevisionId(value);
+    setResult(null);
     setError(null);
   }
 
   function clear() {
-    setPeriodA(initialA);
-    setPeriodB(initialB);
+    setReportARevisionId(null);
+    setReportBRevisionId(null);
     setResult(null);
     setError(null);
   }
 
   return {
-    applyShortcut,
+    canCompare:
+      reportARevisionId !== null
+      && reportBRevisionId !== null
+      && reportARevisionId !== reportBRevisionId,
+    changeComparisonType,
     clear,
     compare,
+    comparisonType,
     error,
     isLoading,
-    periodA,
-    periodB,
+    isLoadingOptions,
+    loadOptions,
+    options,
+    optionsError,
+    reportARevisionId,
+    reportBRevisionId,
+    reportType,
     result,
-    setPeriodA,
-    setPeriodB,
+    selectReportA,
+    selectReportB,
   };
 }

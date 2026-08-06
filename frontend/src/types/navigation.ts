@@ -1,19 +1,20 @@
-export type SectionId = "dashboard" | "analytics" | "import" | "validation" | "reports" | "general-indicators" | "my-reports" | "history" | "settings" | "distribution-weights" | "indicator-modules" | "audit";
+export type SectionId = "dashboard" | "analytics" | "import" | "validation" | "reports" | "general-indicators" | "my-reports" | "report-comparison" | "history" | "settings" | "distribution-weights" | "indicator-modules" | "audit";
 
 export const projectSectionIds: SectionId[] = ["import", "validation", "reports", "history"];
 export const analysisReportSectionIds: SectionId[] = [
   ...projectSectionIds,
   "general-indicators",
   "my-reports",
+  "report-comparison",
 ];
 
 export function isAnalysisReportSection(section: SectionId) {
   return analysisReportSectionIds.includes(section);
 }
 
-export function analysisReportActiveItem(section: SectionId): "import" | "general-indicators" | "my-reports" | null {
+export function analysisReportActiveItem(section: SectionId): "import" | "general-indicators" | "my-reports" | "report-comparison" | null {
   if (projectSectionIds.includes(section)) return "import";
-  if (section === "general-indicators" || section === "my-reports") return section;
+  if (section === "general-indicators" || section === "my-reports" || section === "report-comparison") return section;
   return null;
 }
 
@@ -52,17 +53,21 @@ export const sectionMeta: Record<SectionId, { title: string; description: string
     title: "Meus Relatórios",
     description: "Consulte e acesse as análises finalizadas no Alfred.",
   },
+  "report-comparison": {
+    title: "Comparação de Relatórios",
+    description: "Compare snapshots salvos de forma independente, sem realizar novas consultas ao TFS.",
+  },
   history: {
     title: "Histórico",
     description: "Consulte importações salvas, ocorrências e registros consolidados.",
   },
   settings: {
-    title: "Configurações",
+    title: "Configurações gerais",
     description: "Gerencie categorias, cargos e colaboradores utilizados na classificação das atividades.",
   },
   "distribution-weights": {
-    title: "Pesos de distribuição",
-    description: "Administre a influência das categorias na redistribuição de Atualização do sistema.",
+    title: "Distribuição das categorias",
+    description: "Configure como as horas de Atualização do sistema serão redistribuídas entre as categorias dos Indicadores Gerais. Quando todas as categorias possuem peso igual a 1, a distribuição ocorre proporcionalmente às horas originais do período, sem priorização adicional.",
   },
   "indicator-modules": {
     title: "Configuração de Módulos",

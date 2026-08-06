@@ -25,7 +25,7 @@ export function useDistributionWeights() {
       setConfiguration(result);
       setItems(result.items);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Não foi possível carregar os pesos.");
+      setError(cause instanceof Error ? cause.message : "Não foi possível carregar a distribuição das categorias.");
     } finally {
       setIsLoading(false);
     }
@@ -59,10 +59,10 @@ export function useDistributionWeights() {
       );
       setConfiguration(result);
       setItems(result.items);
-      setSuccess("Pesos de distribuição salvos com sucesso.");
+      setSuccess("Distribuição das categorias salva com sucesso.");
       return true;
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Não foi possível salvar os pesos.");
+      setError(cause instanceof Error ? cause.message : "Não foi possível salvar a distribuição das categorias.");
       return false;
     } finally {
       setIsSaving(false);
@@ -77,10 +77,10 @@ export function useDistributionWeights() {
       const result = await restoreDefaultDistributionWeights();
       setConfiguration(result);
       setItems(result.items);
-      setSuccess("Pesos padrão restaurados com sucesso.");
+      setSuccess("Distribuição proporcional padrão restaurada com sucesso.");
       return true;
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Não foi possível restaurar os pesos.");
+      setError(cause instanceof Error ? cause.message : "Não foi possível restaurar a distribuição padrão.");
       return false;
     } finally {
       setIsSaving(false);
@@ -101,4 +101,3 @@ export function useDistributionWeights() {
     restoreDefaults,
   };
 }
-

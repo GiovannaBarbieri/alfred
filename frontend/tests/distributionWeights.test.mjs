@@ -47,13 +47,20 @@ test("tela usa select, participação e confirmação de restauração", () => {
   assert.match(pageSource, /<select/);
   assert.match(pageSource, /type="checkbox"/);
   assert.match(pageSource, /window\.confirm/);
-  assert.match(pageSource, /Pesos padrão restaurados|Restaurar padrão/);
+  assert.match(pageSource, /Restaurar distribuição padrão/);
 });
 
-test("card Como funciona apresenta exemplo simples do cálculo ponderado", () => {
+test("card Como funciona apresenta exemplo simples da distribuição proporcional", () => {
   assert.match(pageSource, /Exemplo simples/);
-  assert.match(pageSource, /100 × 4 = 400 pontos/);
-  assert.match(pageSource, /Novo Projeto recebe <strong>48 h<\/strong>/);
+  assert.match(pageSource, /Novo Projeto: 100 ÷ 400 = 25%/);
+  assert.match(pageSource, /Novo Projeto recebe <strong>20 h<\/strong>/);
+});
+
+test("tela apresenta nomenclatura e colunas da distribuição das categorias", () => {
+  assert.match(pageSource, /aria-label="Distribuição das categorias"/);
+  assert.match(pageSource, /Participa da distribuição/);
+  assert.match(pageSource, /<span role="columnheader">Peso<\/span>/);
+  assert.match(pageSource, /pesos iguais a 1 resultam em uma distribuição proporcional/);
 });
 
 test("service implementa carregamento, salvamento e restauração", () => {

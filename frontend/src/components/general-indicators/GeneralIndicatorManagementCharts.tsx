@@ -21,6 +21,7 @@ import {
   buildPeriodEvolutionChart,
   buildPeriodCompositionChart,
   buildQuarterlyKpiChart,
+  sortCategoryHoursDescending,
   EXECUTIVE_CHART_SERIES,
   GENERAL_INDICATOR_CHART_COLORS,
   STRATEGIC_CHART_SERIES,
@@ -177,6 +178,7 @@ function PeriodCompositionChart({
 }: ResultProps & { title: string; analysisView?: boolean }) {
   const data = useMemo(() => buildPeriodCompositionChart(result.categories), [result.categories]);
   const visibleData = data.filter((item) => item.hours > 0);
+  const legendData = sortCategoryHoursDescending(data);
   const totalHours = data.reduce((total, item) => total + item.hours, 0);
   return (
     <article className={`panel general-indicators-chart management-chart-panel${analysisView ? " period-analysis-chart period-analysis-composition" : ""}`}>
@@ -200,7 +202,7 @@ function PeriodCompositionChart({
           </div>
           <div className="period-composition-legend" role="list" aria-label="Composição percentual do período">
             <div className="period-composition-legend-header" aria-hidden="true"><span>Categoria</span><span>Horas</span><span>Participação</span></div>
-            {data.map((item) => <div className={item.key === "operational" || item.key === "maintenance" ? "operational" : undefined} key={item.key} role="listitem"><i style={{ background: item.color }} /><span>{item.name}</span><small>{formatHoursPtBr(item.hours, analysisView)}</small><strong>{formatPercentagePtBr(item.percentage)}</strong></div>)}
+            {legendData.map((item) => <div className={item.key === "operational" || item.key === "maintenance" ? "operational" : undefined} key={item.key} role="listitem"><i style={{ background: item.color }} /><span>{item.name}</span><small>{formatHoursPtBr(item.hours, analysisView)}</small><strong>{formatPercentagePtBr(item.percentage)}</strong></div>)}
           </div>
         </div>
       )}

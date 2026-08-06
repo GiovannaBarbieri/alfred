@@ -1271,3 +1271,89 @@ export type ReportPeriodsComparisonResponse = {
   };
   differentDurations: boolean;
 };
+
+export type ReportComparisonType = "FREE" | "QUARTER" | "SEMESTER" | "YEAR";
+export type ReportPeriodKind =
+  | "FIRST_QUARTER"
+  | "SECOND_QUARTER"
+  | "THIRD_QUARTER"
+  | "FOURTH_QUARTER"
+  | "FIRST_SEMESTER"
+  | "SECOND_SEMESTER"
+  | "YEAR"
+  | "CUSTOM";
+
+export type SavedReportComparisonOption = {
+  revisionId: number;
+  reportId: number;
+  reportName: string;
+  reportType: SavedReportType;
+  periodStart: string;
+  periodEnd: string;
+  periodKind: ReportPeriodKind;
+  periodLabel: string;
+  versionNumber: number;
+  status: "CURRENT" | "SUPERSEDED" | "ARCHIVED";
+  isCurrent: boolean;
+  generatedAt: string;
+  totalHours: number;
+  consideredLaunchCount: number;
+};
+
+export type SavedReportComparisonOptionsResponse = {
+  reportType: SavedReportType;
+  comparisonType: ReportComparisonType;
+  items: SavedReportComparisonOption[];
+};
+
+export type SavedReportComparisonContext = {
+  revisionId: number;
+  reportId: number;
+  reportName: string;
+  reportType: SavedReportType;
+  versionNumber: number;
+  status: "CURRENT" | "SUPERSEDED" | "ARCHIVED";
+  isCurrent: boolean;
+  generatedAt: string;
+  period: {
+    startDate: string;
+    endDate: string;
+    dayCount: number;
+    dailyAverageHours: number;
+    dailyAverageLaunches: number;
+    periodKind: ReportPeriodKind;
+    periodLabel: string;
+  };
+  totalHours: number;
+  consideredLaunchCount: number;
+  consideredCollaboratorCount: number;
+};
+
+export type SavedReportsComparisonResponse = {
+  source: "SAVED_SNAPSHOTS";
+  reportType: SavedReportType;
+  reportA: SavedReportComparisonContext;
+  reportB: SavedReportComparisonContext;
+  summaryA: ReportPeriodAnalysisResponse["summary"] & {
+    consideredCollaboratorCount: number;
+  };
+  summaryB: ReportPeriodAnalysisResponse["summary"] & {
+    consideredCollaboratorCount: number;
+  };
+  differences: {
+    totalHours: ReportComparisonDifference;
+    consideredLaunches: ReportComparisonDifference;
+    consideredCollaborators: ReportComparisonDifference;
+    dailyAverageHours: ReportComparisonDifference;
+    dailyAverageLaunches: ReportComparisonDifference;
+    projectsImprovements: ReportComparisonDifference;
+    errorsBugs: ReportComparisonDifference;
+  };
+  categoriesComparison: ReportCategoryComparison[];
+  chartData: ReportCategoryComparison[];
+  comparisonSummary: ReportPeriodsComparisonResponse["comparisonSummary"];
+  differentDurations: boolean;
+  differentPeriodTypes: boolean;
+  overlappingPeriods: boolean;
+  warnings: Array<{ code: string; message: string }>;
+};
