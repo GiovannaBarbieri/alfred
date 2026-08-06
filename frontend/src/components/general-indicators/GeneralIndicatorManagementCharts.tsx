@@ -35,6 +35,7 @@ import {
   formatPercentagePtBr,
 } from "../../utils/numberFormatting";
 import type { PeriodRange } from "../../utils/periodPresentation";
+import { buildLineChartHighlights, LinePointValueLabel } from "./GeneralIndicatorLineChartPrimitives";
 import { PeriodContextLine } from "./PeriodContextLine";
 
 type ResultProps = {
@@ -74,7 +75,7 @@ export function GeneralIndicatorMonthlyCategoryChart({
     [executive, result.months],
   );
   const series = executive ? EXECUTIVE_CHART_SERIES : STRATEGIC_CHART_SERIES;
-  const highlights = useMemo(() => buildMonthlyLineHighlights(data, series), [data, series]);
+  const highlights = useMemo(() => buildLineChartHighlights(data, series), [data, series]);
   return (
     <article className={`panel general-indicators-chart management-chart-panel${analysisView ? " period-analysis-chart" : ""}`}>
       <ChartHeading
@@ -107,9 +108,10 @@ export function GeneralIndicatorMonthlyCategoryChart({
                   <LabelList
                     dataKey={item.key}
                     content={(props) => (
-                      <MonthlyLinePointLabel
+                      <LinePointValueLabel
                         {...props}
                         highlightedIndexes={highlights[item.key] ?? new Set<number>()}
+                        formatter={(value: number) => formatHoursPtBr(value, false)}
                       />
                     )}
                   />
@@ -120,46 +122,6 @@ export function GeneralIndicatorMonthlyCategoryChart({
         </div>
       )}
     </article>
-  );
-}
-
-function buildMonthlyLineHighlights(
-  data: Array<Record<string, any>>,
-  series: ReadonlyArray<{ key: string }>,
-) {
-  return Object.fromEntries(
-    series.map((item) => {
-      const values = data
-        .map((point, index) => ({ index, value: Number(point[item.key] || 0) }))
-        .filter((point) => Number.isFinite(point.value));
-      const highlighted = new Set<number>();
-      if (values.length > 0) {
-        const max = values.reduce((current, point) => point.value > current.value ? point : current, values[0]);
-        const min = values.reduce((current, point) => point.value < current.value ? point : current, values[0]);
-        highlighted.add(max.index);
-        highlighted.add(min.index);
-        highlighted.add(values[values.length - 1].index);
-      }
-      return [item.key, highlighted];
-    }),
-  ) as Record<string, Set<number>>;
-}
-
-function MonthlyLinePointLabel(props: any & { highlightedIndexes: Set<number> }) {
-  const { x = 0, y = 0, index, value, highlightedIndexes } = props;
-  const numericValue = Number(value || 0);
-  if (!highlightedIndexes.has(Number(index)) || !Number.isFinite(numericValue)) return null;
-
-  return (
-    <text
-      className="monthly-line-point-label"
-      dominantBaseline="auto"
-      textAnchor="middle"
-      x={Number(x)}
-      y={Number(y) - 10}
-    >
-      {formatHoursPtBr(numericValue, false)}
-    </text>
   );
 }
 

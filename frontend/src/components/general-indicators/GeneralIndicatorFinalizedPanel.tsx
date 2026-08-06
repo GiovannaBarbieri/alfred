@@ -1,6 +1,6 @@
 import { BarChart3, Bug, CheckCircle2, Clock3, TrendingUp } from "lucide-react";
-import type { ReactNode } from "react";
-import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useMemo, type ReactNode } from "react";
+import { CartesianGrid, LabelList, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { GeneralIndicatorFinalizedResponse, GeneralIndicatorKpi } from "../../types";
 import { GENERAL_INDICATOR_CHART_COLORS } from "../../utils/generalIndicatorCharts";
 import { buildDisregardedModulesPresentation } from "../../utils/disregardedModulesPresentation";
@@ -9,6 +9,7 @@ import {
   GeneralIndicatorMonthlyCategoryChart,
   GeneralIndicatorQuarterlyChart,
 } from "./GeneralIndicatorManagementCharts";
+import { buildLineChartHighlights, LinePointValueLabel } from "./GeneralIndicatorLineChartPrimitives";
 import { GeneralIndicatorHoursComposition, GeneralIndicatorUpdateDistribution } from "./GeneralIndicatorResultTables";
 import { PeriodContextLine } from "./PeriodContextLine";
 
@@ -18,6 +19,11 @@ const statusLabels = {
   alert: "Alerta",
   critical: "Crítico",
 };
+
+const monthlyIndicatorSeries = [
+  { key: "projetos", label: "Novos projetos e melhorias", color: GENERAL_INDICATOR_CHART_COLORS.development },
+  { key: "erros", label: "Erros TI e Bugs", color: GENERAL_INDICATOR_CHART_COLORS.bug },
+] as const;
 
 export function GeneralIndicatorFinalizedPanel({
   result,
@@ -32,11 +38,15 @@ export function GeneralIndicatorFinalizedPanel({
 }) {
   const snapshotExcludedCollaboratorCount =
     result.summary?.excludedCollaboratorCount ?? excludedCollaboratorCount;
-  const chartData = result.months.map((item) => ({
+  const chartData = useMemo(() => result.months.map((item) => ({
     label: item.label,
     projetos: item.projectsImprovements.percentage,
     erros: item.errorsBugs.percentage,
-  }));
+  })), [result.months]);
+  const chartHighlights = useMemo(
+    () => buildLineChartHighlights(chartData, monthlyIndicatorSeries),
+    [chartData],
+  );
   const disregardedModules = buildDisregardedModulesPresentation(result.disregardedModules);
   const hasHoursComposition = result.categories.some(
     (item) => Math.abs(item.originalHours) > 0.005 || Math.abs(item.allocatedHours) > 0.005 || Math.abs(item.adjustedHours) > 0.005,
@@ -81,7 +91,41 @@ export function GeneralIndicatorFinalizedPanel({
 
       <article className="panel general-indicators-chart">
         <Heading title="Evolução mensal" subtitle="Comparação dos indicadores ao longo dos meses do período." period={result.period} />
-        <div className="general-indicators-chart-area"><ResponsiveContainer width="100%" height="100%"><LineChart data={chartData}><CartesianGrid strokeDasharray="3 3" stroke={GENERAL_INDICATOR_CHART_COLORS.grid} vertical={false} /><XAxis dataKey="label" /><YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} /><Tooltip formatter={(value: number) => `${value.toFixed(2)}%`} /><Legend /><Line type="monotone" dataKey="projetos" name="Novos projetos e melhorias" stroke={GENERAL_INDICATOR_CHART_COLORS.development} strokeWidth={3} /><Line type="monotone" dataKey="erros" name="Erros TI e Bugs" stroke={GENERAL_INDICATOR_CHART_COLORS.bug} strokeWidth={3} /></LineChart></ResponsiveContainer></div>
+        <div className="general-indicators-chart-area">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 18, right: 22, left: 6, bottom: 0 }}>
+              <CartesianGrid stroke={GENERAL_INDICATOR_CHART_COLORS.grid} strokeDasharray="3 3" strokeOpacity={0.5} vertical={false} />
+              <XAxis dataKey="label" axisLine={false} tickLine={false} />
+              <YAxis domain={[0, 100]} axisLine={false} tickLine={false} tickFormatter={(value) => `${value}%`} />
+              <Tooltip content={<MonthlyIndicatorTooltip />} />
+              <Legend verticalAlign="bottom" height={34} />
+              {monthlyIndicatorSeries.map((item) => (
+                <Line
+                  key={item.key}
+                  type="monotone"
+                  dataKey={item.key}
+                  name={item.label}
+                  stroke={item.color}
+                  strokeWidth={2.8}
+                  dot={{ r: 3.5, stroke: item.color, strokeWidth: 2, fill: "#ffffff" }}
+                  activeDot={{ r: 5, stroke: item.color, strokeWidth: 2, fill: item.color }}
+                  isAnimationActive={false}
+                >
+                  <LabelList
+                    dataKey={item.key}
+                    content={(props) => (
+                      <LinePointValueLabel
+                        {...props}
+                        highlightedIndexes={chartHighlights[item.key] ?? new Set<number>()}
+                        formatter={formatPercentage}
+                      />
+                    )}
+                  />
+                </Line>
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
         <details className="general-indicator-chart-details"><summary>Ver detalhamento mensal</summary><div className="general-indicators-table-wrap"><table><thead><tr><th>Mês</th><th>Total</th><th>Projetos + melhorias</th><th>Meta</th><th>Situação</th><th>Erros TI + Bugs</th><th>Limite</th><th>Situação</th></tr></thead><tbody>
           {result.months.map((item) => <tr key={item.month}><td>{item.label}</td><td>{formatHours(item.totalHours)}</td><td>{item.projectsImprovements.percentage.toFixed(2)}%</td><td>{item.projectsImprovements.target}%</td><td>{statusLabels[item.projectsImprovements.status]}</td><td>{item.errorsBugs.percentage.toFixed(2)}%</td><td>{item.errorsBugs.limit}%</td><td>{statusLabels[item.errorsBugs.status]}</td></tr>)}
         </tbody></table></div></details>
@@ -141,6 +185,29 @@ export function GeneralIndicatorFinalizedPanel({
   );
 }
 
+function MonthlyIndicatorTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: Array<any>;
+  label?: string;
+}) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="management-chart-tooltip">
+      <strong>{String(label ?? "")}</strong>
+      {payload.map((item) => (
+        <span key={String(item.dataKey)}>
+          <small>{String(item.name)}</small>
+          <b>{formatPercentage(Number(item.value || 0))}</b>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function TechnicalAccordion({ title, children }: { title: string; children: ReactNode }) {
   return (
     <details className="panel general-indicator-technical-accordion">
@@ -172,3 +239,4 @@ function formatDate(value: string) {
 
 function formatDateTime(value: string) { return new Date(value).toLocaleString("pt-BR"); }
 function formatHours(value: number) { return `${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}h`; }
+function formatPercentage(value: number) { return `${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`; }
