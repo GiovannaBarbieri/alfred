@@ -16,7 +16,6 @@ import {
 } from "../utils/reportPeriodAnalysisResponse";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api";
-const REPORT_HISTORY_REQUEST_TIMEOUT_MS = 20000;
 
 export class ReportHistoryApiError extends Error {
   public readonly status: number;
@@ -108,26 +107,12 @@ function buildQuery(params: ReportListParams): string {
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REPORT_HISTORY_REQUEST_TIMEOUT_MS);
-  try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
-      ...options,
-      signal: options?.signal ?? controller.signal,
-    });
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null) as { detail?: string } | null;
-      throw new ReportHistoryApiError(payload?.detail ?? fallbackMessage(response.status), response.status);
-    }
-    return response.json() as Promise<T>;
-  } catch (caught) {
-    if (caught instanceof DOMException && caught.name === "AbortError") {
-      throw new Error("A consulta demorou mais que o esperado. Atualize a página e tente abrir o relatório novamente.");
-    }
-    throw caught;
-  } finally {
-    clearTimeout(timeoutId);
+  const response = await fetch(`${API_BASE_URL}${path}`, options);
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null) as { detail?: string } | null;
+    throw new ReportHistoryApiError(payload?.detail ?? fallbackMessage(response.status), response.status);
   }
+  return response.json() as Promise<T>;
 }
 
 function fallbackMessage(status: number): string {
