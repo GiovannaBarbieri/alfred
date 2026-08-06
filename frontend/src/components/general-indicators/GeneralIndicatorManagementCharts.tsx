@@ -87,10 +87,10 @@ export function GeneralIndicatorMonthlyCategoryChart({
       {data.length === 0 ? <ChartEmptyState /> : (
         <div className="management-chart-area monthly-category-chart">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 18, right: 22, left: 6, bottom: 0 }}>
+            <LineChart data={data} margin={{ top: 18, right: 22, left: 0, bottom: 0 }}>
               <CartesianGrid stroke={GENERAL_INDICATOR_CHART_COLORS.grid} strokeDasharray="3 3" strokeOpacity={0.5} vertical={false} />
               <XAxis dataKey="label" axisLine={false} tickLine={false} />
-              <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => formatCompactHoursPtBr(Number(value))} />
+              <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => formatCompactHoursPtBr(Number(value))} width={54} />
               <Tooltip content={<MonthlyCategoryTooltip executive={executive} />} />
               <Legend verticalAlign="bottom" height={analysisView ? 28 : 34} />
               {series.map((item) => (

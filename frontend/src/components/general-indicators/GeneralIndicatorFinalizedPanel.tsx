@@ -40,8 +40,8 @@ export function GeneralIndicatorFinalizedPanel({
     result.summary?.excludedCollaboratorCount ?? excludedCollaboratorCount;
   const chartData = useMemo(() => result.months.map((item) => ({
     label: item.label,
-    projetos: item.projectsImprovements.percentage,
-    erros: item.errorsBugs.percentage,
+    projetos: item.projectsImprovements.hours,
+    erros: item.errorsBugs.hours,
   })), [result.months]);
   const chartHighlights = useMemo(
     () => buildLineChartHighlights(chartData, monthlyIndicatorSeries),
@@ -93,10 +93,10 @@ export function GeneralIndicatorFinalizedPanel({
         <Heading title="Evolução mensal" subtitle="Comparação dos indicadores ao longo dos meses do período." period={result.period} />
         <div className="general-indicators-chart-area">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 18, right: 22, left: 6, bottom: 0 }}>
+            <LineChart data={chartData} margin={{ top: 18, right: 22, left: 0, bottom: 0 }}>
               <CartesianGrid stroke={GENERAL_INDICATOR_CHART_COLORS.grid} strokeDasharray="3 3" strokeOpacity={0.5} vertical={false} />
               <XAxis dataKey="label" axisLine={false} tickLine={false} />
-              <YAxis domain={[0, 100]} axisLine={false} tickLine={false} tickFormatter={(value) => `${value}%`} />
+              <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => formatCompactHours(Number(value))} width={54} />
               <Tooltip content={<MonthlyIndicatorTooltip />} />
               <Legend verticalAlign="bottom" height={34} />
               {monthlyIndicatorSeries.map((item) => (
@@ -117,7 +117,7 @@ export function GeneralIndicatorFinalizedPanel({
                       <LinePointValueLabel
                         {...props}
                         highlightedIndexes={chartHighlights[item.key] ?? new Set<number>()}
-                        formatter={formatPercentage}
+                        formatter={(value: number) => formatHours(value)}
                       />
                     )}
                   />
@@ -201,7 +201,7 @@ function MonthlyIndicatorTooltip({
       {payload.map((item) => (
         <span key={String(item.dataKey)}>
           <small>{String(item.name)}</small>
-          <b>{formatPercentage(Number(item.value || 0))}</b>
+          <b>{formatHours(Number(item.value || 0))}</b>
         </span>
       ))}
     </div>
@@ -239,4 +239,4 @@ function formatDate(value: string) {
 
 function formatDateTime(value: string) { return new Date(value).toLocaleString("pt-BR"); }
 function formatHours(value: number) { return `${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}h`; }
-function formatPercentage(value: number) { return `${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`; }
+function formatCompactHours(value: number) { return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}h`; }
