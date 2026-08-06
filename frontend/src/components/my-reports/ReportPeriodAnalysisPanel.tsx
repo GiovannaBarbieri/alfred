@@ -1,31 +1,66 @@
-import { AlertTriangle, Bug, Clock3, ListChecks, RefreshCw, SearchX, TrendingUp } from "lucide-react";
+import { AlertTriangle, Bug, CalendarRange, ChevronDown, Clock3, ListChecks, RefreshCw, SearchX, TrendingUp } from "lucide-react";
+import { useMemo } from "react";
 
 import {
   GeneralIndicatorCompositionChart,
   GeneralIndicatorMonthlyCategoryChart,
 } from "../general-indicators/GeneralIndicatorManagementCharts";
+import type { GeneralIndicatorFinalizedResponse, GeneralIndicatorKpi } from "../../types";
 import { useReportPeriodAnalysis } from "../../hooks/useReportPeriodAnalysis";
-import type { GeneralIndicatorKpi } from "../../types";
 import {
   formatCountPtBr,
   formatHoursPtBr,
   formatPercentagePtBr,
 } from "../../utils/numberFormatting";
+import { validateSnapshotPeriod } from "../../utils/savedReportSnapshotPeriodAnalysis";
 
 export function ReportPeriodAnalysisPanel({
+  snapshot,
   reportId,
-  officialStart,
-  officialEnd,
 }: {
+  snapshot: GeneralIndicatorFinalizedResponse;
   reportId: number;
-  officialStart: string;
-  officialEnd: string;
 }) {
+  const officialStart = snapshot.period.startDate;
+  const officialEnd = snapshot.period.endDate;
   const analysis = useReportPeriodAnalysis(reportId, officialStart, officialEnd);
+  const { startDate, endDate, result, isLoading } = analysis;
+
+  const validation = useMemo(
+    () => validateSnapshotPeriod(startDate, endDate, officialStart, officialEnd),
+    [endDate, officialEnd, officialStart, startDate],
+  );
+  const hasDates = Boolean(startDate || endDate);
+  const hasValidationErrors = Boolean(validation.startDate || validation.endDate);
+  const shouldShowValidation = hasDates && hasValidationErrors;
+  const canAnalyze = Boolean(startDate && endDate && !hasValidationErrors && !isLoading);
+  const canClear = Boolean((hasDates || result) && !isLoading);
+
+  function analyze() {
+    if (!canAnalyze) return;
+    void analysis.analyze();
+  }
+
+  function updateStartDate(value: string) {
+    analysis.setStartDate(value);
+  }
+
+  function updateEndDate(value: string) {
+    analysis.setEndDate(value);
+  }
 
   return (
-    <section className="report-period-analysis" aria-label="Análise por período">
-      <section className="panel report-period-analysis-filters">
+    <details className="panel report-period-analysis-card">
+      <summary>
+        <span><CalendarRange size={18} /></span>
+        <div>
+          <h2>Análise por período</h2>
+          <p>Selecione um intervalo dentro do período deste relatório para visualizar indicadores específicos.</p>
+        </div>
+        <ChevronDown size={18} aria-hidden="true" />
+      </summary>
+
+      <section className="report-period-analysis" aria-label="Análise por período">
         <div className="report-period-official-range">
           <span>Período disponível para análise</span>
           <strong>{formatDate(officialStart)} a {formatDate(officialEnd)}</strong>
@@ -38,10 +73,13 @@ export function ReportPeriodAnalysisPanel({
               type="date"
               min={officialStart}
               max={officialEnd}
-              value={analysis.startDate}
-              disabled={analysis.isLoading}
-              onChange={(event) => analysis.setStartDate(event.target.value)}
+              value={startDate}
+              disabled={isLoading}
+              aria-invalid={Boolean(hasDates && validation.startDate)}
+              onChange={(event) => updateStartDate(event.target.value)}
+              onInput={(event) => updateStartDate(event.currentTarget.value)}
             />
+            {hasDates && validation.startDate && <small role="alert">{validation.startDate}</small>}
           </label>
           <label>
             <span>Data final</span>
@@ -49,103 +87,85 @@ export function ReportPeriodAnalysisPanel({
               type="date"
               min={officialStart}
               max={officialEnd}
-              value={analysis.endDate}
-              disabled={analysis.isLoading}
-              onChange={(event) => analysis.setEndDate(event.target.value)}
+              value={endDate}
+              disabled={isLoading}
+              aria-invalid={Boolean(hasDates && validation.endDate)}
+              onChange={(event) => updateEndDate(event.target.value)}
+              onInput={(event) => updateEndDate(event.currentTarget.value)}
             />
+            {hasDates && validation.endDate && <small role="alert">{validation.endDate}</small>}
           </label>
           <button
             className="primary-button report-period-analyze-button"
             type="button"
-            disabled={analysis.isLoading}
-            onClick={() => void analysis.analyze()}
+            disabled={!canAnalyze}
+            onClick={analyze}
           >
-            <RefreshCw size={16} className={analysis.isLoading ? "spinning" : ""} />
-            {analysis.isLoading ? "Analisando..." : "Analisar"}
+            <RefreshCw size={16} className={isLoading ? "spinning" : ""} />
+            {isLoading ? "Analisando..." : "Analisar"}
           </button>
           <button
             className="secondary-button report-period-clear-button"
             type="button"
-            disabled={analysis.isLoading}
+            disabled={!canClear}
             onClick={analysis.clear}
           >
             Limpar
           </button>
         </div>
 
-        <div className="report-period-shortcuts" aria-label="Atalhos de período">
-          <span>Preencher período:</span>
-          <button type="button" disabled={analysis.isLoading} onClick={() => analysis.applyShortcut("complete")}>Período completo</button>
-          <button type="button" disabled={analysis.isLoading} onClick={() => analysis.applyShortcut("first-month")}>Primeiro mês</button>
-          <button type="button" disabled={analysis.isLoading} onClick={() => analysis.applyShortcut("last-month")}>Último mês</button>
-        </div>
-      </section>
+        {shouldShowValidation && <div className="error-banner compact" role="alert"><AlertTriangle size={17} />Revise as datas informadas para continuar.</div>}
 
-      {analysis.error && <div className="error-banner" role="alert"><AlertTriangle size={18} />{analysis.error}</div>}
-      {analysis.isLoading && (
-        <div className="general-indicator-processing" role="status" aria-live="polite">
-          <RefreshCw className="spinning" size={18} />
-          <div><strong>Analisando o período</strong><span>Recalculando exclusivamente com os dados do snapshot salvo.</span></div>
-        </div>
-      )}
+        {analysis.error && <div className="error-banner compact" role="alert"><AlertTriangle size={17} />{analysis.error}</div>}
 
-      {!analysis.isLoading && !analysis.result && (
-        <section className="panel report-period-analysis-empty">
-          <span><SearchX size={24} /></span>
-          <div><h2>Por período</h2><p>Selecione um intervalo dentro do período do relatório para gerar a análise.</p></div>
-        </section>
-      )}
-
-      {!analysis.isLoading && analysis.result?.recordCount === 0 && (
-        <section className="panel report-period-analysis-empty">
-          <span><SearchX size={24} /></span>
-          <div><h2>Sem dados no período</h2><p>Não foram encontrados lançamentos no período selecionado.</p></div>
-        </section>
-      )}
-
-      {!analysis.isLoading && analysis.result && analysis.result.recordCount > 0 && (
-        <section className="report-period-analysis-result">
-          <div className="report-period-analysis-caption">
-            <span>Resultado da análise</span>
-            <strong>{formatDate(analysis.result.analyzedPeriod.startDate)} a {formatDate(analysis.result.analyzedPeriod.endDate)}</strong>
+        {isLoading && (
+          <div className="general-indicator-processing compact" role="status" aria-live="polite">
+            <RefreshCw className="spinning" size={18} />
+            <div><strong>Analisando o período</strong><span>Recalculando exclusivamente com os dados do snapshot salvo.</span></div>
           </div>
-          <section className="general-indicators-kpis" aria-label="Indicadores do período analisado">
-            <article className="general-indicator-card period-analysis-kpi">
-              <span><Clock3 size={20} /></span>
-              <div><small>Total de horas</small><strong>{formatHoursPtBr(analysis.result.totalHours)}</strong></div>
-            </article>
-            <article className="general-indicator-card period-analysis-kpi">
-              <span><ListChecks size={20} /></span>
-              <div><small>Lançamentos considerados</small><strong>{formatCountPtBr(analysis.result.recordCount)}</strong></div>
-            </article>
-            <PeriodKpiCard icon={<TrendingUp size={20} />} title="Novos projetos + melhorias" kpi={analysis.result.kpis.projectsImprovements} />
-            <PeriodKpiCard icon={<Bug size={20} />} title="Erro TI + Bug" kpi={analysis.result.kpis.errorsBugs} />
+        )}
+
+        {!isLoading && result?.recordCount === 0 && (
+          <section className="panel report-period-analysis-empty">
+            <span><SearchX size={24} /></span>
+            <div><h2>Sem dados no período</h2><p>Não foram encontrados lançamentos no período selecionado.</p></div>
           </section>
-          <GeneralIndicatorCompositionChart
-            result={{ ...analysis.result, period: analysis.result.analyzedPeriod }}
-            title="Composição das horas por categoria"
-            analysisView
-          />
-          <GeneralIndicatorMonthlyCategoryChart
-            result={{
-              ...analysis.result,
-              period: analysis.result.analyzedPeriod,
-              months: analysis.result.evolution?.length
-                ? analysis.result.evolution
-                : analysis.result.months,
-            }}
-            title="Evolução das horas no intervalo selecionado"
-            executive
-            analysisView
-            description={
-              analysis.result.granularity === "DAY"
-                ? "Evolução diária das categorias no intervalo selecionado."
-                : "Evolução mensal das categorias no intervalo selecionado."
-            }
-          />
-        </section>
-      )}
-    </section>
+        )}
+
+        {!isLoading && result && result.recordCount > 0 && (
+          <section className="report-period-analysis-result">
+            <div className="report-period-analysis-caption">
+              <span>Período analisado</span>
+              <strong>{formatDate(result.analyzedPeriod.startDate)} a {formatDate(result.analyzedPeriod.endDate)}</strong>
+            </div>
+            <section className="general-indicators-kpis" aria-label="Indicadores do período analisado">
+              <article className="general-indicator-card period-analysis-kpi">
+                <span><Clock3 size={20} /></span>
+                <div><small>Total de horas</small><strong>{formatHoursPtBr(result.totalHours)}</strong></div>
+              </article>
+              <article className="general-indicator-card period-analysis-kpi">
+                <span><ListChecks size={20} /></span>
+                <div><small>Lançamentos considerados</small><strong>{formatCountPtBr(result.recordCount)}</strong></div>
+              </article>
+              <PeriodKpiCard icon={<TrendingUp size={20} />} title="Novos projetos + melhorias" kpi={result.kpis.projectsImprovements} />
+              <PeriodKpiCard icon={<Bug size={20} />} title="Erro TI + Bug" kpi={result.kpis.errorsBugs} />
+            </section>
+            <GeneralIndicatorCompositionChart
+              result={{ ...result, period: result.analyzedPeriod }}
+              title="Composição das horas por categoria"
+              analysisView
+            />
+            <GeneralIndicatorMonthlyCategoryChart
+              result={{ ...result, period: result.analyzedPeriod, months: result.evolution }}
+              title="Evolução mensal no intervalo selecionado"
+              executive
+              analysisView
+              description="Evolução mensal das categorias no intervalo selecionado."
+            />
+          </section>
+        )}
+      </section>
+    </details>
   );
 }
 

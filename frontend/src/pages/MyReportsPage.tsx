@@ -1,11 +1,11 @@
 import { AlertTriangle, ArrowLeft, FileBarChart, RefreshCw, SearchX } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { GeneralIndicatorFinalizedPanel } from "../components/general-indicators/GeneralIndicatorFinalizedPanel";
-import { ReportAnalysesPanel } from "../components/my-reports/ReportAnalysesPanel";
 import { ReportActionModal } from "../components/my-reports/ReportActionModal";
 import { ReportCard } from "../components/my-reports/ReportCard";
 import { ReportFilters } from "../components/my-reports/ReportFilters";
 import { ReportPagination } from "../components/my-reports/ReportPagination";
+import { ReportPeriodAnalysisPanel } from "../components/my-reports/ReportPeriodAnalysisPanel";
 import { useReportHistory } from "../hooks/useReportHistory";
 import { shouldShowReportPagination } from "../utils/reportHistoryPresentation";
 
@@ -20,7 +20,6 @@ export function MyReportsPage({
 }) {
   const history = useReportHistory();
   const automaticallyOpenedReportId = useRef<number | null>(null);
-  const [activeReportTab, setActiveReportTab] = useState<"overview" | "analyses">("overview");
 
   useEffect(() => {
     if (!openReportId || automaticallyOpenedReportId.current === openReportId) return;
@@ -28,10 +27,6 @@ export function MyReportsPage({
     history.showNotice("Relatório salvo com sucesso.");
     void history.openReport(openReportId).finally(() => onOpenReportHandled?.());
   }, [openReportId]);
-
-  useEffect(() => {
-    setActiveReportTab("overview");
-  }, [history.view?.reportId]);
 
   if (history.view) {
     if (!history.view.detail.currentRevision) {
@@ -59,38 +54,18 @@ export function MyReportsPage({
             <h1>{detail.report.name}</h1>
           </div>
         </header>
-        <nav className="saved-report-tabs" aria-label="Visualizações do relatório">
-          <button
-            type="button"
-            className={activeReportTab === "overview" ? "active" : undefined}
-            aria-current={activeReportTab === "overview" ? "page" : undefined}
-            onClick={() => setActiveReportTab("overview")}
-          >
-            Visão Geral
-          </button>
-          <button
-            type="button"
-            className={activeReportTab === "analyses" ? "active" : undefined}
-            aria-current={activeReportTab === "analyses" ? "page" : undefined}
-            onClick={() => setActiveReportTab("analyses")}
-          >
-            Análises
-          </button>
-        </nav>
-        {activeReportTab === "overview" ? (
-          <GeneralIndicatorFinalizedPanel
-            result={history.view.detail.snapshot}
-            excludedCollaboratorCount={history.view.detail.report.excludedCollaboratorCount}
-            contextTitle="Resumo do relatório"
-            savedReportContext
-          />
-        ) : (
-          <ReportAnalysesPanel
-            reportId={detail.report.id}
-            officialStart={detail.report.periodStart}
-            officialEnd={detail.report.periodEnd}
-          />
-        )}
+        <GeneralIndicatorFinalizedPanel
+          result={history.view.detail.snapshot}
+          excludedCollaboratorCount={history.view.detail.report.excludedCollaboratorCount}
+          contextTitle="Resumo do relatório"
+          savedReportContext
+          periodAnalysisSlot={(
+            <ReportPeriodAnalysisPanel
+              snapshot={history.view.detail.snapshot}
+              reportId={detail.report.id}
+            />
+          )}
+        />
       </section>
     );
   }

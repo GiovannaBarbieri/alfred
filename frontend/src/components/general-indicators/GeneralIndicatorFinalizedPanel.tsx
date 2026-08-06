@@ -30,11 +30,13 @@ export function GeneralIndicatorFinalizedPanel({
   excludedCollaboratorCount = 0,
   contextTitle = "Indicadores finalizados",
   savedReportContext,
+  periodAnalysisSlot,
 }: {
   result: GeneralIndicatorFinalizedResponse;
   excludedCollaboratorCount?: number;
   contextTitle?: string;
   savedReportContext?: boolean;
+  periodAnalysisSlot?: ReactNode;
 }) {
   const snapshotExcludedCollaboratorCount =
     result.summary?.excludedCollaboratorCount ?? excludedCollaboratorCount;
@@ -135,6 +137,8 @@ export function GeneralIndicatorFinalizedPanel({
 
       <GeneralIndicatorMonthlyCategoryChart result={result} />
       <GeneralIndicatorQuarterlyChart result={result} />
+
+      {periodAnalysisSlot}
 
       {hasTechnicalAppendix && (
         <section className="general-indicator-technical-appendix" aria-label="Informações técnicas do relatório">

@@ -2,12 +2,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import {
-  periodForShortcut,
-  validatePeriod,
-} from "../src/utils/reportPeriodAnalysis.ts";
 import { buildPeriodEvolutionChart } from "../src/utils/generalIndicatorCharts.ts";
-import { normalizePeriodAnalysisResponse } from "../src/utils/reportPeriodAnalysisResponse.ts";
+import {
+  validateSnapshotPeriod,
+} from "../src/utils/savedReportSnapshotPeriodAnalysis.ts";
 import {
   formatCountPtBr,
   formatHoursPtBr,
@@ -16,79 +14,81 @@ import {
 
 const read = (path) => readFileSync(new URL(`../src/${path}`, import.meta.url), "utf8");
 const page = read("pages/MyReportsPage.tsx");
-const analyses = read("components/my-reports/ReportAnalysesPanel.tsx");
 const component = read("components/my-reports/ReportPeriodAnalysisPanel.tsx");
 const charts = read("components/general-indicators/GeneralIndicatorManagementCharts.tsx");
 const service = read("services/reportHistoryService.ts");
 const hook = read("hooks/useReportPeriodAnalysis.ts");
 const styles = read("styles.css");
 
-test("atalhos respeitam os limites oficiais do relatório", () => {
-  assert.deepEqual(
-    periodForShortcut("complete", "2026-01-10", "2026-06-20"),
-    { startDate: "2026-01-10", endDate: "2026-06-20" },
-  );
-  assert.deepEqual(
-    periodForShortcut("first-month", "2026-01-10", "2026-06-20"),
-    { startDate: "2026-01-10", endDate: "2026-01-31" },
-  );
-  assert.deepEqual(
-    periodForShortcut("last-month", "2026-01-10", "2026-06-20"),
-    { startDate: "2026-06-01", endDate: "2026-06-20" },
-  );
+test("detalhe do relatório não possui aba Análises e inclui análise por período na visão geral", () => {
+  assert.doesNotMatch(page, /activeReportTab|saved-report-tabs|ReportAnalysesPanel/);
+  assert.match(page, /periodAnalysisSlot/);
+  assert.match(page, /ReportPeriodAnalysisPanel/);
+  assert.match(component, /<details className="panel report-period-analysis-card">/);
+  assert.match(component, /Análise por período/);
+});
+
+test("card inicia recolhível e não oferece atalhos ou abas internas", () => {
+  assert.match(component, /Selecione um intervalo dentro do período deste relatório para visualizar indicadores específicos\./);
+  assert.doesNotMatch(component, /Período completo|Primeiro mês|Último mês|Tipo de análise|Por período/);
+  assert.match(styles, /\.report-period-analysis-card > summary/);
+  assert.match(styles, /\.report-period-analysis-card\[open\] > summary/);
 });
 
 test("validação bloqueia datas vazias, invertidas e externas", () => {
-  assert.match(validatePeriod("", "2026-06-20", "2026-01-01", "2026-06-30"), /Data Inicial/);
-  assert.match(validatePeriod("2026-01-01", "", "2026-01-01", "2026-06-30"), /Data Final/);
-  assert.match(validatePeriod("2026-04-01", "2026-03-31", "2026-01-01", "2026-06-30"), /menor ou igual/);
-  assert.match(validatePeriod("2025-12-31", "2026-03-31", "2026-01-01", "2026-06-30"), /período oficial/);
-  assert.equal(validatePeriod("2026-02-01", "2026-03-31", "2026-01-01", "2026-06-30"), null);
+  assert.deepEqual(
+    validateSnapshotPeriod("", "2026-06-20", "2026-01-01", "2026-06-30"),
+    { startDate: "Informe a data inicial." },
+  );
+  assert.deepEqual(
+    validateSnapshotPeriod("2026-01-01", "", "2026-01-01", "2026-06-30"),
+    { endDate: "Informe a data final." },
+  );
+  assert.deepEqual(
+    validateSnapshotPeriod("2026-04-01", "2026-03-31", "2026-01-01", "2026-06-30"),
+    { endDate: "A data final não pode ser anterior à data inicial." },
+  );
+  assert.deepEqual(
+    validateSnapshotPeriod("2025-12-31", "2026-07-01", "2026-01-01", "2026-06-30"),
+    {
+      startDate: "A data inicial deve estar dentro do período do relatório.",
+      endDate: "A data final deve estar dentro do período do relatório.",
+    },
+  );
+  assert.deepEqual(validateSnapshotPeriod("2026-02-01", "2026-03-31", "2026-01-01", "2026-06-30"), {});
 });
 
-test("relatório possui somente as abas principais Visão Geral e Análises", () => {
-  assert.match(page, /Visão Geral/);
-  assert.match(page, />\s*Análises\s*</);
-  assert.match(page, /ReportAnalysesPanel/);
-  assert.doesNotMatch(page, />\s*Análise por período\s*</);
+test("campos HTML aplicam min e max e botões respeitam validação", () => {
+  assert.match(component, /min=\{officialStart\}/);
+  assert.match(component, /max=\{officialEnd\}/);
+  assert.match(component, /disabled=\{!canAnalyze\}/);
+  assert.match(component, /disabled=\{!canClear\}/);
+  assert.match(component, />\s*Limpar\s*</);
+  assert.match(component, /aria-invalid=\{Boolean\(hasDates && validation\.startDate\)\}/);
+  assert.match(component, /aria-invalid=\{Boolean\(hasDates && validation\.endDate\)\}/);
 });
 
-test("Análises possui seletor interno compacto apenas com Por período", () => {
-  assert.match(analyses, /Tipo de análise/);
-  assert.match(analyses, /Por período/);
-  assert.doesNotMatch(analyses, /Comparação|ReportPeriodsComparisonPanel/);
-  assert.match(analyses, /ReportPeriodAnalysisPanel/);
-  assert.doesNotMatch(analyses, /Categoria|Linha do tempo|Exportação|inteligência artificial/i);
-  assert.match(styles, /\.saved-report-analysis-selector/);
+test("análise por período reutiliza o cálculo oficial de snapshot salvo", () => {
+  assert.match(component, /useReportPeriodAnalysis/);
+  assert.match(service, /reports\/\$\{id\}\/period-analysis/);
+  assert.doesNotMatch(hook, /consultGeneralIndicator|SQLServer|TFS/);
+  assert.doesNotMatch(component, /getReportPeriodAnalysis|reports\/\$\{id\}\/period-analysis/);
 });
 
-test("filtros e ações possuem proporções de desktop e comportamento mobile", () => {
-  assert.match(styles, /grid-template-columns:\s*repeat\(2, minmax\(190px, 220px\)\) 180px 132px/);
-  assert.match(styles, /\.report-period-analyze-button[\s\S]*?width:\s*180px/);
-  assert.match(styles, /\.report-period-clear-button[\s\S]*?width:\s*132px/);
-  assert.match(styles, /@media \(max-width: 720px\)[\s\S]*?\.report-period-analyze-button,[\s\S]*?width:\s*100%/);
-});
-
-test("resultado e quatro KPIs usam apresentação compacta e neutra", () => {
-  assert.match(component, /Resultado da análise/);
-  assert.match(component, /period-analysis-kpi/g);
-  assert.doesNotMatch(component, /className=\{`general-indicator-card \$\{kpi\.status\}`\}/);
+test("resultado exibe quatro indicadores e dois gráficos", () => {
+  assert.match(component, /Total de horas/);
+  assert.match(component, /Lançamentos considerados/);
+  assert.match(component, /Novos projetos \+ melhorias/);
   assert.match(component, /Erro TI \+ Bug/);
-  assert.match(styles, /\.report-period-analysis-caption/);
+  assert.match(component, /GeneralIndicatorCompositionChart/);
+  assert.match(component, /GeneralIndicatorMonthlyCategoryChart/);
+  assert.match(component, /Período analisado/);
 });
 
-test("gráficos recebem variação visual exclusiva da análise", () => {
-  assert.match(component, /analysisView/);
-  assert.match(charts, /period-analysis-chart/);
-  assert.match(styles, /\.report-period-analysis \.period-analysis-composition/);
-  assert.match(styles, /\.report-period-analysis \.monthly-category-chart/);
-});
-
-test("tooltip executivo apresenta total, horas e participação e omite zeros", () => {
-  assert.match(charts, /filter\(\(item\) => Number\(item\.value \|\| 0\) > 0\)/);
-  assert.match(charts, /\["Total", formatHoursPtBr\(totalHours\)\]/);
-  assert.match(charts, /formatPercentagePtBr\(participation\)/);
-  assert.match(charts, /periodTooltipTitle/);
+test("Limpar restaura datas vazias e resultado local", () => {
+  assert.match(hook, /setStartDate\(""\)/);
+  assert.match(hook, /setEndDate\(""\)/);
+  assert.match(hook, /setResult\(null\)/);
 });
 
 test("formatadores pt-BR padronizam horas, percentuais e contagens", () => {
@@ -97,59 +97,11 @@ test("formatadores pt-BR padronizam horas, percentuais e contagens", () => {
   assert.equal(formatCountPtBr(9413), "9.413");
 });
 
-test("análise reutiliza gráficos e possui estados inicial, carregando, vazio e erro", () => {
-  assert.match(component, /GeneralIndicatorCompositionChart/);
-  assert.match(component, /GeneralIndicatorMonthlyCategoryChart/);
-  assert.match(component, /Analisando o período/);
-  assert.match(component, /Sem dados no período/);
-  assert.match(component, /Selecione um intervalo dentro do período do relatório para gerar a análise/);
-  assert.match(component, /role="alert"/);
-});
-
-test("service chama somente o endpoint de snapshot por período", () => {
-  assert.match(service, /reports\/\$\{id\}\/period-analysis/);
-  assert.match(service, /startDate, endDate/);
-  assert.doesNotMatch(hook, /consultGeneralIndicator|SQLServer|TFS/);
-  assert.match(hook, /requestInFlight/);
-});
-
-test("contrato antigo é normalizado sem derrubar a tela", () => {
-  const legacy = {
-    reportId: 36,
-    source: "SAVED_SNAPSHOT",
-    officialPeriod: { startDate: "2026-01-01", endDate: "2026-06-30" },
-    analyzedPeriod: { startDate: "2026-01-01", endDate: "2026-06-30" },
-    recordCount: 10,
-    totalHours: 25,
-    kpis: {
-      projectsImprovements: { hours: 10, percentage: 40, difference: 0, status: "ON_TARGET", target: 40 },
-      errorsBugs: { hours: 2.5, percentage: 10, difference: 0, status: "WITHIN_LIMIT", limit: 10 },
-    },
-    categories: [],
-    months: [],
-  };
-  const normalized = normalizePeriodAnalysisResponse(legacy);
-  assert.deepEqual(normalized.evolution, []);
-  assert.equal(normalized.granularity, "MONTH");
-  assert.equal(normalized.summary.consideredLaunchCount, 10);
-  assert.deepEqual(normalized.appliedWeights, []);
-});
-
-test("filtros HTML também aplicam min e max do relatório", () => {
-  assert.match(component, /min=\{officialStart\}/);
-  assert.match(component, /max=\{officialEnd\}/);
-  assert.match(component, /Período completo/);
-  assert.match(component, /Primeiro mês/);
-  assert.match(component, /Último mês/);
-  assert.match(component, />\s*Limpar\s*</);
-});
-
-test("Limpar restaura o período completo sem iniciar nova consulta", () => {
-  const clearBody = hook.match(/function clear\(\) \{([\s\S]*?)\n  \}/)?.[1] ?? "";
-  assert.match(clearBody, /setStartDate\(officialStart\)/);
-  assert.match(clearBody, /setEndDate\(officialEnd\)/);
-  assert.match(clearBody, /setResult\(null\)/);
-  assert.doesNotMatch(clearBody, /getReportPeriodAnalysis|analyze/);
+test("gráficos preservam variação visual da análise", () => {
+  assert.match(component, /analysisView/);
+  assert.match(charts, /period-analysis-chart/);
+  assert.match(styles, /\.report-period-analysis \.period-analysis-composition/);
+  assert.match(styles, /\.report-period-analysis \.monthly-category-chart/);
 });
 
 test("evolução executiva preserva as seis categorias", () => {
@@ -158,8 +110,8 @@ test("evolução executiva preserva as seis categorias", () => {
     label: "01/01",
     competence: { startDate: "2026-01-01", endDate: "2026-01-01" },
     totalHours: 21,
-    projectsImprovements: { hours: 7, percentage: 33.33, target: 40, status: "BELOW_TARGET" },
-    errorsBugs: { hours: 7, percentage: 33.33, target: 10, status: "ABOVE_LIMIT" },
+    projectsImprovements: { hours: 7, percentage: 33.33, target: 40, status: "attention" },
+    errorsBugs: { hours: 7, percentage: 33.33, target: 10, status: "critical" },
     categories: {
       "Novo projeto": 3,
       Melhoria: 4,

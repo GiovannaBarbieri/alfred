@@ -2,19 +2,15 @@ import { useCallback, useRef, useState } from "react";
 
 import { getReportPeriodAnalysis } from "../services/reportHistoryService";
 import type { ReportPeriodAnalysisResponse } from "../types";
-import {
-  periodForShortcut,
-  type PeriodAnalysisShortcut,
-  validatePeriod,
-} from "../utils/reportPeriodAnalysis";
+import { validatePeriod } from "../utils/reportPeriodAnalysis";
 
 export function useReportPeriodAnalysis(
   reportId: number,
   officialStart: string,
   officialEnd: string,
 ) {
-  const [startDate, setStartDate] = useState(officialStart);
-  const [endDate, setEndDate] = useState(officialEnd);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [result, setResult] = useState<ReportPeriodAnalysisResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,23 +36,15 @@ export function useReportPeriodAnalysis(
     }
   }, [endDate, officialEnd, officialStart, reportId, startDate]);
 
-  function applyShortcut(shortcut: PeriodAnalysisShortcut) {
-    const period = periodForShortcut(shortcut, officialStart, officialEnd);
-    setStartDate(period.startDate);
-    setEndDate(period.endDate);
-    setError(null);
-  }
-
   function clear() {
-    setStartDate(officialStart);
-    setEndDate(officialEnd);
+    setStartDate("");
+    setEndDate("");
     setResult(null);
     setError(null);
   }
 
   return {
     analyze,
-    applyShortcut,
     clear,
     endDate,
     error,

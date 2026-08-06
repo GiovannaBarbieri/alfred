@@ -3265,10 +3265,68 @@ input {
   outline-offset: 2px;
 }
 
-.report-period-analysis-filters {
+.report-period-analysis-card {
   display: grid;
-  gap: 9px;
-  padding: 13px 14px;
+  gap: 0;
+  padding: 0;
+}
+
+.report-period-analysis-card > summary {
+  align-items: center;
+  cursor: pointer;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  list-style: none;
+  padding: 16px;
+}
+
+.report-period-analysis-card > summary::-webkit-details-marker {
+  display: none;
+}
+
+.report-period-analysis-card > summary > span {
+  align-items: center;
+  background: #eff6ff;
+  border-radius: 8px;
+  color: #2563eb;
+  display: inline-flex;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.report-period-analysis-card > summary h2,
+.report-period-analysis-card > summary p {
+  margin: 0;
+}
+
+.report-period-analysis-card > summary h2 {
+  color: #0f2340;
+  font-size: 16px;
+}
+
+.report-period-analysis-card > summary p {
+  color: #52627a;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.report-period-analysis-card > summary > svg {
+  color: #64748b;
+  transition: transform 160ms ease;
+}
+
+.report-period-analysis-card[open] > summary {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.report-period-analysis-card[open] > summary > svg {
+  transform: rotate(180deg);
+}
+
+.report-period-analysis-card .report-period-analysis {
+  padding: 14px 16px 16px;
 }
 
 .report-period-official-range {
@@ -3297,6 +3355,7 @@ input {
 .report-period-analysis-filter-row label {
   display: grid;
   gap: 5px;
+  min-width: 0;
 }
 
 .report-period-analysis-filter-row label span {
@@ -3311,6 +3370,16 @@ input {
   height: 40px;
   padding: 8px 10px;
   width: 100%;
+}
+
+.report-period-analysis-filter-row input[aria-invalid="true"] {
+  border-color: #fca5a5;
+}
+
+.report-period-analysis-filter-row label small {
+  color: #b91c1c;
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .report-period-analysis-filter-row input:focus-visible {
@@ -3375,6 +3444,11 @@ input {
 .report-period-shortcuts button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+}
+
+.error-banner.compact,
+.general-indicator-processing.compact {
+  padding: 9px 11px;
 }
 
 .report-period-analysis-empty {
