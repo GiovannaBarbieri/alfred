@@ -3556,6 +3556,17 @@ input {
   margin-right: 0 !important;
 }
 
+.monthly-line-point-label {
+  fill: #334155;
+  font-size: 10px;
+  font-weight: 700;
+  paint-order: stroke;
+  pointer-events: none;
+  stroke: #ffffff;
+  stroke-linejoin: round;
+  stroke-width: 3px;
+}
+
 .management-chart-note {
   align-items: center;
   color: #64748b;

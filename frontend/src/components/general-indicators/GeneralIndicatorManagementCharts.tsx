@@ -7,6 +7,8 @@ import {
   Cell,
   Legend,
   LabelList,
+  Line,
+  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -72,6 +74,7 @@ export function GeneralIndicatorMonthlyCategoryChart({
     [executive, result.months],
   );
   const series = executive ? EXECUTIVE_CHART_SERIES : STRATEGIC_CHART_SERIES;
+  const highlights = useMemo(() => buildMonthlyLineHighlights(data, series), [data, series]);
   return (
     <article className={`panel general-indicators-chart management-chart-panel${analysisView ? " period-analysis-chart" : ""}`}>
       <ChartHeading
@@ -83,28 +86,80 @@ export function GeneralIndicatorMonthlyCategoryChart({
       {data.length === 0 ? <ChartEmptyState /> : (
         <div className="management-chart-area monthly-category-chart">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 8, right: 12, left: 6, bottom: 0 }}>
-              <CartesianGrid stroke={GENERAL_INDICATOR_CHART_COLORS.grid} strokeDasharray="3 3" vertical={false} />
+            <LineChart data={data} margin={{ top: 18, right: 22, left: 6, bottom: 0 }}>
+              <CartesianGrid stroke={GENERAL_INDICATOR_CHART_COLORS.grid} strokeDasharray="3 3" strokeOpacity={0.5} vertical={false} />
               <XAxis dataKey="label" axisLine={false} tickLine={false} />
               <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => formatCompactHoursPtBr(Number(value))} />
               <Tooltip content={<MonthlyCategoryTooltip executive={executive} />} />
               <Legend verticalAlign="bottom" height={analysisView ? 28 : 34} />
               {series.map((item) => (
-                <Bar
+                <Line
                   key={item.key}
+                  type="monotone"
                   dataKey={item.key}
                   name={item.label}
-                  fill={item.color}
-                  stackId="strategic"
-                  maxBarSize={58}
+                  stroke={item.color}
+                  strokeWidth={2.8}
+                  dot={{ r: 3.5, stroke: item.color, strokeWidth: 2, fill: "#ffffff" }}
+                  activeDot={{ r: 5, stroke: item.color, strokeWidth: 2, fill: item.color }}
                   isAnimationActive={false}
-                />
+                >
+                  <LabelList
+                    dataKey={item.key}
+                    content={(props) => (
+                      <MonthlyLinePointLabel
+                        {...props}
+                        highlightedIndexes={highlights[item.key] ?? new Set<number>()}
+                      />
+                    )}
+                  />
+                </Line>
               ))}
-            </BarChart>
+            </LineChart>
           </ResponsiveContainer>
         </div>
       )}
     </article>
+  );
+}
+
+function buildMonthlyLineHighlights(
+  data: Array<Record<string, any>>,
+  series: ReadonlyArray<{ key: string }>,
+) {
+  return Object.fromEntries(
+    series.map((item) => {
+      const values = data
+        .map((point, index) => ({ index, value: Number(point[item.key] || 0) }))
+        .filter((point) => Number.isFinite(point.value));
+      const highlighted = new Set<number>();
+      if (values.length > 0) {
+        const max = values.reduce((current, point) => point.value > current.value ? point : current, values[0]);
+        const min = values.reduce((current, point) => point.value < current.value ? point : current, values[0]);
+        highlighted.add(max.index);
+        highlighted.add(min.index);
+        highlighted.add(values[values.length - 1].index);
+      }
+      return [item.key, highlighted];
+    }),
+  ) as Record<string, Set<number>>;
+}
+
+function MonthlyLinePointLabel(props: any & { highlightedIndexes: Set<number> }) {
+  const { x = 0, y = 0, index, value, highlightedIndexes } = props;
+  const numericValue = Number(value || 0);
+  if (!highlightedIndexes.has(Number(index)) || !Number.isFinite(numericValue)) return null;
+
+  return (
+    <text
+      className="monthly-line-point-label"
+      dominantBaseline="auto"
+      textAnchor="middle"
+      x={Number(x)}
+      y={Number(y) - 10}
+    >
+      {formatHoursPtBr(numericValue, false)}
+    </text>
   );
 }
 
@@ -297,7 +352,7 @@ function MonthlyCategoryTooltip({ active, payload, label, executive = false }: T
   }
   const rows = payload.map((item) => [String(item.name), formatHoursPtBr(Number(item.value || 0), false)] as [string, string]);
   const strategicTotal = payload.reduce((total, item) => total + Number(item.value || 0), 0);
-  rows.push(["Total estratégico do mês", formatHoursPtBr(strategicTotal, false)]);
+  rows.push(["Total do mês", formatHoursPtBr(strategicTotal, false)]);
   return <ChartTooltip title={String(label ?? "")} rows={rows} />;
 }
 
