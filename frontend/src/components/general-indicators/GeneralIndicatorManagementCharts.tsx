@@ -173,7 +173,7 @@ function CategoryHoursChart({ result, title }: ResultProps & { title: string }) 
               <Tooltip content={<CategoryHoursTooltip />} cursor={{ fill: "#f8fafc" }} />
               <Bar dataKey="hours" name="Horas" radius={[0, 6, 6, 0]} maxBarSize={24} isAnimationActive={false}>
                 {data.map((item) => <Cell key={item.key} fill={item.color} />)}
-                <LabelList dataKey="hours" content={<CategoryHoursBarLabel />} />
+                <LabelList dataKey="hours" content={(props) => <CategoryHoursBarLabel {...props} data={data} />} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -184,10 +184,11 @@ function CategoryHoursChart({ result, title }: ResultProps & { title: string }) 
   );
 }
 
-function CategoryHoursBarLabel(props: any) {
-  const { x = 0, y = 0, width = 0, height = 0, payload } = props;
-  if (!payload) return null;
-  const label = `${formatHoursPtBr(Number(payload.hours || 0), false)} (${formatPercentagePtBr(Number(payload.percentage || 0))})`;
+function CategoryHoursBarLabel(props: any & { data: ReturnType<typeof buildCategoryHoursChart> }) {
+  const { x = 0, y = 0, width = 0, height = 0, index, data } = props;
+  const item = data[Number(index)];
+  if (!item) return null;
+  const label = `${formatHoursPtBr(Number(item.hours || 0), false)} (${formatPercentagePtBr(Number(item.percentage || 0))})`;
   return (
     <text
       className="category-hours-bar-label"
