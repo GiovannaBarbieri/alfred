@@ -21,7 +21,7 @@ export type ReportFilterDraft = {
 
 const defaultFilters: ReportFilterDraft = {
   search: "",
-  year: "",
+  year: currentYearFilter(),
 };
 
 export function useReportHistory(actor?: string | null) {
@@ -219,4 +219,8 @@ export function useReportHistory(actor?: string | null) {
 
 function messageFrom(value: unknown, fallback: string): string {
   return value instanceof Error ? value.message : fallback;
+}
+
+function currentYearFilter(): string {
+  return String(new Date().getFullYear());
 }

@@ -1,6 +1,8 @@
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import type { ReportFilterDraft } from "../../hooks/useReportHistory";
 
+const MIN_REPORT_YEAR = 2020;
+
 export function ReportFilters({
   draft,
   onChange,
@@ -35,5 +37,5 @@ export function ReportFilters({
 
 function yearOptions() {
   const currentYear = new Date().getFullYear();
-  return Array.from({ length: currentYear - 1999 }, (_, index) => currentYear - index);
+  return Array.from({ length: currentYear - MIN_REPORT_YEAR + 1 }, (_, index) => MIN_REPORT_YEAR + index);
 }
