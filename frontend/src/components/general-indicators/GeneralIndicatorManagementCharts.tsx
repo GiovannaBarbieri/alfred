@@ -30,6 +30,8 @@ import {
   STRATEGIC_CHART_SERIES,
 } from "../../utils/generalIndicatorCharts";
 import {
+  formatChartLabelHoursPtBr,
+  formatChartLabelPercentagePtBr,
   formatCompactHoursPtBr,
   formatHoursPtBr,
   formatPercentagePtBr,
@@ -111,7 +113,7 @@ export function GeneralIndicatorMonthlyCategoryChart({
                       <LinePointValueLabel
                         {...props}
                         highlightedIndexes={highlights[item.key] ?? new Set<number>()}
-                        formatter={(value: number) => formatHoursPtBr(value, false)}
+                        formatter={(value: number) => formatChartLabelHoursPtBr(value, false)}
                       />
                     )}
                   />
@@ -221,7 +223,7 @@ function CategoryHoursBarLabel(props: any & { data: ReturnType<typeof buildCateg
   const { x = 0, y = 0, width = 0, height = 0, index, data } = props;
   const item = data[Number(index)];
   if (!item) return null;
-  const label = `${formatHoursPtBr(Number(item.hours || 0), false)} (${formatPercentagePtBr(Number(item.percentage || 0))})`;
+  const label = `${formatChartLabelHoursPtBr(Number(item.hours || 0), false)} (${formatChartLabelPercentagePtBr(Number(item.percentage || 0))})`;
   return (
     <text
       className="category-hours-bar-label"

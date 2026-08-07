@@ -4,6 +4,7 @@ import { CartesianGrid, LabelList, Legend, Line, LineChart, ResponsiveContainer,
 import type { GeneralIndicatorFinalizedResponse, GeneralIndicatorKpi } from "../../types";
 import { GENERAL_INDICATOR_CHART_COLORS } from "../../utils/generalIndicatorCharts";
 import { buildDisregardedModulesPresentation } from "../../utils/disregardedModulesPresentation";
+import { formatChartLabelHoursPtBr } from "../../utils/numberFormatting";
 import {
   GeneralIndicatorCategoryCharts,
   GeneralIndicatorMonthlyCategoryChart,
@@ -119,7 +120,7 @@ export function GeneralIndicatorFinalizedPanel({
                       <LinePointValueLabel
                         {...props}
                         highlightedIndexes={chartHighlights[item.key] ?? new Set<number>()}
-                        formatter={(value: number) => formatHours(value)}
+                        formatter={(value: number) => formatChartLabelHoursPtBr(value, false)}
                       />
                     )}
                   />

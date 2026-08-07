@@ -7,6 +7,8 @@ import {
   validateSnapshotPeriod,
 } from "../src/utils/savedReportSnapshotPeriodAnalysis.ts";
 import {
+  formatChartLabelHoursPtBr,
+  formatChartLabelPercentagePtBr,
   formatCountPtBr,
   formatHoursPtBr,
   formatPercentagePtBr,
@@ -114,6 +116,8 @@ test("Limpar restaura datas vazias e resultado local", () => {
 test("formatadores pt-BR padronizam horas, percentuais e contagens", () => {
   assert.equal(formatHoursPtBr(8316.32), "8.316,32 h");
   assert.equal(formatPercentagePtBr(39.28), "39,28%");
+  assert.equal(formatChartLabelHoursPtBr(2422.02), "2.422,0h");
+  assert.equal(formatChartLabelPercentagePtBr(14.43), "14,4%");
   assert.equal(formatCountPtBr(9413), "9.413");
 });
 

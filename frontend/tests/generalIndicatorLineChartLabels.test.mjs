@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 const source = readFileSync(new URL("../src/components/general-indicators/GeneralIndicatorLineChartPrimitives.tsx", import.meta.url), "utf8");
+const finalizedPanel = readFileSync(new URL("../src/components/general-indicators/GeneralIndicatorFinalizedPanel.tsx", import.meta.url), "utf8");
+const managementCharts = readFileSync(new URL("../src/components/general-indicators/GeneralIndicatorManagementCharts.tsx", import.meta.url), "utf8");
 
 test("line chart labels highlight first, min, max and last points", () => {
   assert.match(source, /highlighted\.add\(values\[0\]\.index\)/);
@@ -16,4 +18,11 @@ test("line chart label positioning uses offsets around the marker", () => {
   assert.match(source, /x=\{Number\(x\) \+ offsets\.dx\}/);
   assert.match(source, /y=\{Number\(y\) \+ offsets\.dy\}/);
   assert.match(source, /textAnchor=\{offsets\.anchor\}/);
+});
+
+test("line chart labels use compact one-decimal formatting while tooltips keep detailed formatting", () => {
+  assert.match(finalizedPanel, /formatChartLabelHoursPtBr\(value, false\)/);
+  assert.match(finalizedPanel, /<b>\{formatHours\(Number\(item\.value \|\| 0\)\)\}<\/b>/);
+  assert.match(managementCharts, /formatChartLabelHoursPtBr\(value, false\)/);
+  assert.match(managementCharts, /formatHoursPtBr\(Number\(item\.value \|\| 0\), false\)/);
 });
