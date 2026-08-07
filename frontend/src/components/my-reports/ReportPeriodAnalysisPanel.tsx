@@ -132,15 +132,9 @@ export function ReportPeriodAnalysisPanel({
               <span>Período analisado</span>
               <strong>{formatDate(result.analyzedPeriod.startDate)} a {formatDate(result.analyzedPeriod.endDate)}</strong>
             </div>
-            <section className="general-indicators-kpis" aria-label="Indicadores do período analisado">
-              <article className="general-indicator-card period-analysis-kpi">
-                <span><Clock3 size={20} /></span>
-                <div><small>Total de horas</small><strong>{formatHoursPtBr(result.totalHours)}</strong></div>
-              </article>
-              <article className="general-indicator-card period-analysis-kpi">
-                <span><ListChecks size={20} /></span>
-                <div><small>Lançamentos considerados</small><strong>{formatCountPtBr(result.recordCount)}</strong></div>
-              </article>
+            <section className="report-period-kpi-strip" aria-label="Indicadores do período analisado">
+              <PeriodInfoMetric icon={<Clock3 size={16} />} title="Total de horas" value={formatHoursPtBr(result.totalHours)} />
+              <PeriodInfoMetric icon={<ListChecks size={16} />} title="Lançamentos considerados" value={formatCountPtBr(result.recordCount)} />
               <PeriodKpiCard icon={<TrendingUp size={20} />} title="Novos projetos + melhorias" kpi={result.kpis.projectsImprovements} />
               <PeriodKpiCard icon={<Bug size={20} />} title="Erro TI + Bug" kpi={result.kpis.errorsBugs} />
             </section>
@@ -165,16 +159,36 @@ export function ReportPeriodAnalysisPanel({
 
 function PeriodKpiCard({ icon, title, kpi }: { icon: JSX.Element; title: string; kpi: GeneralIndicatorKpi }) {
   return (
-    <article className="general-indicator-card period-analysis-kpi">
+    <article className={`period-analysis-metric is-kpi ${kpi.status}`}>
       <span>{icon}</span>
       <div>
         <small>{title}</small>
         <strong>{formatPercentagePtBr(kpi.percentage)}</strong>
         <em>{formatHoursPtBr(kpi.hours)}</em>
       </div>
+      <b>{statusLabels[kpi.status]}</b>
     </article>
   );
 }
+
+function PeriodInfoMetric({ icon, title, value }: { icon: JSX.Element; title: string; value: string }) {
+  return (
+    <article className="period-analysis-metric is-informative">
+      <span>{icon}</span>
+      <div>
+        <small>{title}</small>
+        <strong>{value}</strong>
+      </div>
+    </article>
+  );
+}
+
+const statusLabels: Record<GeneralIndicatorKpi["status"], string> = {
+  alert: "Alerta",
+  attention: "Atenção",
+  critical: "Crítico",
+  within_target: "Dentro da meta",
+};
 
 function formatDate(value: string) {
   const [year, month, day] = value.slice(0, 10).split("-");

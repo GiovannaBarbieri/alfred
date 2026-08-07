@@ -103,6 +103,10 @@ test("resultado exibe quatro indicadores e dois gráficos", () => {
   assert.match(component, /Lançamentos considerados/);
   assert.match(component, /Novos projetos \+ melhorias/);
   assert.match(component, /Erro TI \+ Bug/);
+  assert.match(component, /report-period-kpi-strip/);
+  assert.match(component, /period-analysis-metric is-informative/);
+  assert.match(component, /period-analysis-metric is-kpi/);
+  assert.match(component, /statusLabels\[kpi\.status\]/);
   assert.match(component, /GeneralIndicatorCompositionChart/);
   assert.match(component, /GeneralIndicatorMonthlyCategoryChart/);
   assert.match(component, /Período analisado/);
