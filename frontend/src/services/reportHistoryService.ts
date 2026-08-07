@@ -1,5 +1,6 @@
 import type {
   ReportDeleteResponse,
+  AnnualReportUpdateRequest,
   ReportComparisonType,
   ReportListParams,
   ReportPeriodAnalysisResponse,
@@ -41,6 +42,17 @@ export async function listReports(params: ReportListParams): Promise<SavedReport
 
 export async function getReportDetail(id: number): Promise<SavedReportDetail> {
   return request<SavedReportDetail>(`/general-indicators/reports/${id}`);
+}
+
+export async function updateReport(
+  id: number,
+  payload: AnnualReportUpdateRequest,
+): Promise<SavedReportDetail> {
+  return request<SavedReportDetail>(`/general-indicators/reports/${id}/update`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function getReportPeriodAnalysis(

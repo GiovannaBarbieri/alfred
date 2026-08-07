@@ -20,7 +20,8 @@ class AnnualReportUpdateRepositoryTests(unittest.TestCase):
         result = begin_annual_report_update(
             connection,
             10,
-            new_period_end=date(2026, 6, 30),
+            period_start=date(2026, 1, 1),
+            period_end=date(2026, 6, 30),
             actor="giovanna",
             hierarchy_contract_version=2,
         )
@@ -31,7 +32,26 @@ class AnnualReportUpdateRepositoryTests(unittest.TestCase):
         self.assertEqual(insert.args[1][0], date(2026, 1, 1))
         self.assertEqual(insert.args[1][1], date(2026, 6, 30))
 
-    def test_update_rejects_reduction(self) -> None:
+    def test_update_accepts_changed_period(self) -> None:
+        connection, cursor = connection_with_cursor()
+        cursor.fetchone.side_effect = [
+            annual_row(),
+            {"id": 91, "criado_em": datetime(2026, 7, 1, tzinfo=timezone.utc)},
+        ]
+
+        result = begin_annual_report_update(
+            connection,
+            10,
+            period_start=date(2026, 2, 1),
+            period_end=date(2026, 2, 28),
+            actor=None,
+            hierarchy_contract_version=2,
+        )
+
+        self.assertEqual(result["period_start"], date(2026, 2, 1))
+        self.assertEqual(result["period_end"], date(2026, 2, 28))
+
+    def test_update_rejects_inverted_period(self) -> None:
         connection, cursor = connection_with_cursor()
         cursor.fetchone.return_value = annual_row()
 
@@ -39,33 +59,8 @@ class AnnualReportUpdateRepositoryTests(unittest.TestCase):
             begin_annual_report_update(
                 connection,
                 10,
-                new_period_end=date(2026, 2, 28),
-                actor=None,
-                hierarchy_contract_version=2,
-            )
-
-    def test_update_rejects_same_period(self) -> None:
-        connection, cursor = connection_with_cursor()
-        cursor.fetchone.return_value = annual_row()
-
-        with self.assertRaisesRegex(ValueError, "posterior"):
-            begin_annual_report_update(
-                connection,
-                10,
-                new_period_end=date(2026, 3, 31),
-                actor=None,
-                hierarchy_contract_version=2,
-            )
-
-    def test_update_rejects_another_year(self) -> None:
-        connection, cursor = connection_with_cursor()
-        cursor.fetchone.return_value = annual_row()
-
-        with self.assertRaisesRegex(ValueError, "mesmo ano"):
-            begin_annual_report_update(
-                connection,
-                10,
-                new_period_end=date(2027, 1, 31),
+                period_start=date(2026, 3, 31),
+                period_end=date(2026, 2, 28),
                 actor=None,
                 hierarchy_contract_version=2,
             )
@@ -78,7 +73,8 @@ class AnnualReportUpdateRepositoryTests(unittest.TestCase):
             begin_annual_report_update(
                 connection,
                 10,
-                new_period_end=date(2026, 6, 30),
+                period_start=date(2026, 1, 1),
+                period_end=date(2026, 6, 30),
                 actor=None,
                 hierarchy_contract_version=2,
             )
@@ -93,7 +89,8 @@ class AnnualReportUpdateRepositoryTests(unittest.TestCase):
         begin_annual_report_update(
             connection,
             10,
-            new_period_end=date(2026, 6, 30),
+            period_start=date(2026, 1, 1),
+            period_end=date(2026, 6, 30),
             actor=None,
             hierarchy_contract_version=2,
         )

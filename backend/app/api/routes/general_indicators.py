@@ -26,6 +26,7 @@ from app.services.general_indicators_service import (
 )
 from app.schemas.general_indicators import GeneralIndicatorFinalizationResponse, GeneralIndicatorFinalizedSnapshot
 from app.schemas.report_history import (
+    AnnualReportUpdateRequest,
     GeneralIndicatorFinalizeRequest,
     ReportType,
     SavedReportDeleteResponse,
@@ -49,6 +50,7 @@ from app.services.report_history_service import (
     get_annual_saved_report,
     list_annual_saved_reports,
     list_saved_reports_for_comparison,
+    update_annual_saved_report,
 )
 from app.services.sqlserver_service import (
     SQLServerConfigurationError,
@@ -113,6 +115,32 @@ def get_general_indicator_report(report_id: int) -> SavedReportDetail:
         return get_annual_saved_report(report_id)
     except ReportHistoryNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/reports/{report_id}/update", response_model=SavedReportDetail)
+def update_general_indicator_report(
+    report_id: int,
+    payload: AnnualReportUpdateRequest,
+) -> SavedReportDetail:
+    try:
+        return update_annual_saved_report(
+            report_id,
+            start_date=payload.startDate,
+            end_date=payload.endDate,
+            actor=payload.actor,
+        )
+    except ReportHistoryNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ReportHistoryConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except (SQLServerConfigurationError, SQLServerConnectionError) as exc:
+        raise HTTPException(status_code=503, detail=exc.user_message) from exc
+    except SQLServerTimeoutError as exc:
+        raise HTTPException(status_code=504, detail=exc.user_message) from exc
+    except SQLServerIntegrationError as exc:
+        raise HTTPException(status_code=400, detail=exc.user_message) from exc
 
 
 @router.get("/reports/{report_id}/period-analysis", response_model=ReportPeriodAnalysisResponse)

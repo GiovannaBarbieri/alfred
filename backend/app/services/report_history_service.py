@@ -8,6 +8,7 @@ from math import ceil
 from typing import Any
 
 from app.db import get_connection
+from app.repositories.general_indicators_repository import HIERARCHY_CONTRACT_VERSION
 from app.repositories.report_history_repository import (
     archive_report_history,
     begin_annual_report_update,
@@ -826,7 +827,8 @@ def _audit_item_to_validated_launch(item: dict[str, Any]) -> dict[str, Any]:
 def start_annual_saved_report_update(
     report_id: int,
     *,
-    new_period_end: date,
+    start_date: date,
+    end_date: date,
     actor: str | None,
     hierarchy_contract_version: int,
 ) -> AnnualReportUpdateResponse:
@@ -835,7 +837,8 @@ def start_annual_saved_report_update(
             row = begin_annual_report_update(
                 connection,
                 report_id,
-                new_period_end=new_period_end,
+                period_start=start_date,
+                period_end=end_date,
                 actor=_clean_actor(actor),
                 hierarchy_contract_version=hierarchy_contract_version,
             )
@@ -852,12 +855,85 @@ def start_annual_saved_report_update(
     )
 
 
+def update_annual_saved_report(
+    report_id: int,
+    *,
+    start_date: date,
+    end_date: date,
+    actor: str | None,
+) -> AnnualReportDetail:
+    if end_date < start_date:
+        raise ValueError("A data final deve ser igual ou posterior à data inicial.")
+    consultation_id: int | None = None
+    clean_actor = _clean_actor(actor)
+    try:
+        try:
+            with get_connection() as connection:
+                row = begin_annual_report_update(
+                    connection,
+                    report_id,
+                    period_start=start_date,
+                    period_end=end_date,
+                    actor=clean_actor,
+                    hierarchy_contract_version=HIERARCHY_CONTRACT_VERSION,
+                )
+        except ValueError as exc:
+            raise ReportHistoryConflictError(str(exc)) from exc
+        if row is None:
+            raise ReportHistoryNotFoundError("Relatório não encontrado.")
+        consultation_id = int(row["consultation_id"])
+
+        from app.services.general_indicators_service import (
+            finalize_general_indicator_consultation,
+            process_general_indicator_validation,
+        )
+
+        validation = process_general_indicator_validation(
+            consultation_id,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        if validation.get("status") != "PRONTA_PARA_FINALIZAR":
+            raise ValueError("A atualização encontrou inconsistências. O relatório anterior foi preservado.")
+        finalize_general_indicator_consultation(consultation_id, report_name="Relatório atualizado")
+    except ValueError:
+        if consultation_id is not None:
+            _cancel_annual_report_update(report_id, consultation_id, "Atualização cancelada por validação.")
+        raise
+    except Exception as exc:
+        if consultation_id is not None:
+            _cancel_annual_report_update(report_id, consultation_id, str(exc))
+        raise
+    return get_annual_saved_report(report_id)
+
+
 def get_annual_saved_report_update(report_id: int) -> AnnualReportUpdateState:
     with get_connection() as connection:
         row = get_annual_report_update(connection, report_id)
     if row is None:
         raise ReportHistoryNotFoundError("Relatório não encontrado.")
     return _update_state(row)
+
+
+def _cancel_annual_report_update(report_id: int, consultation_id: int, message: str) -> None:
+    with get_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE general_indicator_annual_reports
+                SET active_consultation_id = NULL
+                WHERE id = %s AND active_consultation_id = %s
+                """,
+                (report_id, consultation_id),
+            )
+            cursor.execute(
+                """
+                UPDATE general_indicator_consultations
+                SET status = 'ERRO', mensagem_erro = %s, atualizado_em = NOW()
+                WHERE id = %s AND status <> 'FINALIZADA'
+                """,
+                (message, consultation_id),
+            )
 
 
 def get_annual_saved_report_revisions(report_id: int) -> list[AnnualReportRevisionSummary]:

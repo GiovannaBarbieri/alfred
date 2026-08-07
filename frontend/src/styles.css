@@ -2521,6 +2521,40 @@ input {
   padding: 0 10px;
 }
 
+.saved-report-update-period-fields {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.saved-report-update-period-fields label {
+  color: #455468;
+  display: grid;
+  font-size: 12px;
+  font-weight: 650;
+  gap: 6px;
+}
+
+.saved-report-update-period-fields input {
+  border: 1px solid #cfd9e5;
+  border-radius: 7px;
+  color: #0f172a;
+  font: inherit;
+  height: 38px;
+  padding: 0 10px;
+}
+
+.saved-report-update-period-fields input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+  outline: 0;
+}
+
+.saved-report-update-period-fields small {
+  color: #b42318;
+  font-size: 11.5px;
+}
+
 .annual-report-update-help {
   background: #f5f8fc;
   border-radius: 8px;

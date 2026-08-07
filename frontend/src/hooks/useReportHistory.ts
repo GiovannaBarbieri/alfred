@@ -4,6 +4,7 @@ import {
   getReportDetail,
   listReports,
   ReportHistoryApiError,
+  updateReport,
 } from "../services/reportHistoryService";
 import type {
   ReportActionState,
@@ -39,6 +40,7 @@ export function useReportHistory(actor?: string | null) {
   const [openingId, setOpeningId] = useState<number | null>(null);
   const [view, setView] = useState<SavedReportViewState | null>(null);
   const [viewRefreshing, setViewRefreshing] = useState(false);
+  const [updatePeriodDraft, setUpdatePeriodDraft] = useState<{ startDate: string; endDate: string } | null>(null);
   const noticeSequence = useRef(0);
   const [notice, setNotice] = useState<{ id: number; message: string } | null>(null);
 
@@ -112,17 +114,41 @@ export function useReportHistory(actor?: string | null) {
     }
   }
 
-  async function refreshOpenReport() {
+  function requestReportUpdate() {
     if (!view || viewRefreshing) return;
+    setError(null);
+    setUpdatePeriodDraft({
+      startDate: view.detail.report.periodStart.slice(0, 10),
+      endDate: view.detail.report.periodEnd.slice(0, 10),
+    });
+  }
+
+  function updateReportPeriodDraft(field: "startDate" | "endDate", value: string) {
+    setUpdatePeriodDraft((current) => current ? { ...current, [field]: value } : current);
+  }
+
+  function closeReportUpdateModal() {
+    if (viewRefreshing) return;
+    setUpdatePeriodDraft(null);
+    setError(null);
+  }
+
+  async function refreshOpenReport() {
+    if (!view || !updatePeriodDraft || viewRefreshing) return;
     const reportId = view.reportId;
     setViewRefreshing(true);
     setError(null);
     try {
-      const detail = await getReportDetail(reportId);
+      const detail = await updateReport(reportId, {
+        startDate: updatePeriodDraft.startDate,
+        endDate: updatePeriodDraft.endDate,
+        actor,
+      });
       setView((current) => current?.reportId === reportId ? { ...current, detail } : current);
-      showNotice("RelatÃ³rio atualizado com sucesso.");
+      setUpdatePeriodDraft(null);
+      showNotice("Relatório atualizado com sucesso.");
     } catch (caught) {
-      setError(messageFrom(caught, "NÃ£o foi possÃ­vel atualizar o relatÃ³rio."));
+      setError(messageFrom(caught, "Não foi possível atualizar o relatório."));
     } finally {
       setViewRefreshing(false);
     }
@@ -208,10 +234,14 @@ export function useReportHistory(actor?: string | null) {
     showNotice,
     setPage,
     updateDraft,
+    updatePeriodDraft,
+    updateReportPeriodDraft,
     applyFilters,
     changePageSize,
     view,
     viewRefreshing,
+    requestReportUpdate,
+    closeReportUpdateModal,
     refreshOpenReport,
     closeView,
   };

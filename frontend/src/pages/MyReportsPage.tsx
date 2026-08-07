@@ -6,6 +6,7 @@ import { ReportCard } from "../components/my-reports/ReportCard";
 import { ReportFilters } from "../components/my-reports/ReportFilters";
 import { ReportPagination } from "../components/my-reports/ReportPagination";
 import { ReportPeriodAnalysisPanel } from "../components/my-reports/ReportPeriodAnalysisPanel";
+import { ReportUpdatePeriodModal } from "../components/my-reports/ReportUpdatePeriodModal";
 import { useReportHistory } from "../hooks/useReportHistory";
 import { shouldShowReportPagination } from "../utils/reportHistoryPresentation";
 
@@ -53,12 +54,12 @@ export function MyReportsPage({
             </button>
             <h1>{detail.report.name}</h1>
           </div>
-          <button className="primary-button saved-report-update-button" type="button" onClick={() => void history.refreshOpenReport()} disabled={history.viewRefreshing}>
+          <button className="primary-button saved-report-update-button" type="button" onClick={history.requestReportUpdate} disabled={history.viewRefreshing}>
             <RefreshCw className={history.viewRefreshing ? "spinning" : ""} size={16} />
             {history.viewRefreshing ? "Atualizando..." : "Atualizar relatório"}
           </button>
         </header>
-        {history.error && <div className="error-banner" role="alert"><AlertTriangle size={17} />{history.error}<button type="button" onClick={() => void history.refreshOpenReport()}>Tentar novamente</button></div>}
+        {history.error && !history.updatePeriodDraft && <div className="error-banner" role="alert"><AlertTriangle size={17} />{history.error}</div>}
         <GeneralIndicatorFinalizedPanel
           result={history.view.detail.snapshot}
           excludedCollaboratorCount={history.view.detail.report.excludedCollaboratorCount}
@@ -71,6 +72,16 @@ export function MyReportsPage({
             />
           )}
         />
+        {history.updatePeriodDraft && (
+          <ReportUpdatePeriodModal
+            draft={history.updatePeriodDraft}
+            busy={history.viewRefreshing}
+            error={history.error}
+            onChange={history.updateReportPeriodDraft}
+            onCancel={history.closeReportUpdateModal}
+            onConfirm={() => void history.refreshOpenReport()}
+          />
+        )}
       </section>
     );
   }

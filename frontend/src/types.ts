@@ -1149,7 +1149,8 @@ export type ReportListParams = {
 };
 
 export type AnnualReportUpdateRequest = {
-  newPeriodEnd: string;
+  startDate: string;
+  endDate: string;
   actor?: string | null;
 };
 

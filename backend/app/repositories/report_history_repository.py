@@ -224,6 +224,137 @@ def _register_legacy_annual_general_indicator_report(
     return report
 
 
+def _register_existing_annual_general_indicator_report(
+    connection: Connection,
+    *,
+    consultation: dict[str, Any],
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    start_date = consultation["data_inicial"]
+    end_date = consultation["data_final"]
+    annual_report_id = int(consultation["annual_report_id"])
+    period_key = f"{GENERAL_INDICATORS_REPORT_TYPE}:annual:{annual_report_id}:consultation:{consultation['id']}"
+    summary = dict(result.get("summary") or {})
+    kpis = dict(result.get("kpis") or {})
+    projects_kpi = dict(kpis.get("projectsImprovements") or {})
+    errors_kpi = dict(kpis.get("errorsBugs") or {})
+    metadata = dict(result.get("metadata") or {})
+    integrity = dict(result.get("integrity") or {})
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))", (period_key,))
+        cursor.execute(
+            """
+            SELECT id, display_name, current_revision_id
+            FROM general_indicator_annual_reports
+            WHERE id = %s
+            FOR UPDATE
+            """,
+            (annual_report_id,),
+        )
+        annual = cursor.fetchone()
+        if annual is None:
+            raise RuntimeError("Relatório anual vinculado à consulta não foi encontrado.")
+        current_revision_id = annual.get("current_revision_id")
+        cursor.execute(
+            """
+            SELECT COALESCE(MAX(version_number), 0) + 1 AS next_version
+            FROM report_history
+            WHERE annual_report_id = %s
+            """,
+            (annual_report_id,),
+        )
+        version_number = int(cursor.fetchone()["next_version"])
+        if current_revision_id:
+            cursor.execute(
+                """
+                UPDATE report_history
+                SET report_status = 'SUPERSEDED',
+                    is_current = FALSE,
+                    superseded_at = %s
+                WHERE id = %s
+                """,
+                (consultation["finalizado_em"], current_revision_id),
+            )
+        cursor.execute(
+            """
+            INSERT INTO report_history (
+                report_type, source_consultation_id, period_start, period_end, period_key,
+                display_name, version_number, report_status, is_current,
+                created_at, finalized_at, created_by, finalized_by,
+                total_hours, considered_launch_count, excluded_collaborator_count,
+                projects_improvements_percentage, projects_improvements_status,
+                errors_bugs_percentage, errors_bugs_status,
+                snapshot_contract_version, result_hash,
+                annual_report_id, previous_revision_id
+            )
+            VALUES (
+                %s, %s, %s, %s, %s,
+                %s, %s, 'CURRENT', TRUE,
+                %s, %s, %s, %s,
+                %s, %s, %s,
+                %s, %s, %s, %s,
+                %s, %s, %s, %s
+            )
+            RETURNING id
+            """,
+            (
+                GENERAL_INDICATORS_REPORT_TYPE,
+                consultation["id"],
+                start_date,
+                end_date,
+                period_key,
+                annual["display_name"],
+                version_number,
+                consultation["criado_em"],
+                consultation["finalizado_em"],
+                consultation.get("iniciado_por") or metadata.get("initiatedBy"),
+                consultation.get("finalizado_por") or metadata.get("finalizedBy"),
+                Decimal(str(result.get("totalHours") or 0)),
+                int(summary.get("consideredLaunchCount") or result.get("recordCount") or 0),
+                int(summary.get("excludedCollaboratorCount") or 0),
+                _decimal_or_none(projects_kpi.get("percentage")),
+                projects_kpi.get("status"),
+                _decimal_or_none(errors_kpi.get("percentage")),
+                errors_kpi.get("status"),
+                int(result.get("contractVersion") or metadata.get("resultContractVersion") or 1),
+                integrity.get("resultHash"),
+                annual_report_id,
+                current_revision_id,
+            ),
+        )
+        report_id = int(cursor.fetchone()["id"])
+        if current_revision_id:
+            cursor.execute(
+                "UPDATE report_history SET superseded_by_id = %s WHERE id = %s",
+                (report_id, current_revision_id),
+            )
+        cursor.execute(
+            """
+            UPDATE general_indicator_annual_reports
+            SET current_revision_id = %s,
+                active_consultation_id = NULL,
+                current_period_start = %s,
+                current_period_end = %s,
+                updated_at = %s,
+                last_updated_by = %s
+            WHERE id = %s
+            """,
+            (
+                report_id,
+                start_date,
+                end_date,
+                consultation["finalizado_em"],
+                consultation.get("finalizado_por") or metadata.get("finalizedBy"),
+                annual_report_id,
+            ),
+        )
+    report = get_report_history_detail(connection, report_id)
+    if report is None:
+        raise RuntimeError("O relatório atualizado não pôde ser registrado no histórico.")
+    return {**report, "annual_report_id": annual_report_id}
+
+
 def register_finalized_general_indicator_report(
     connection: Connection,
     *,
@@ -235,6 +366,12 @@ def register_finalized_general_indicator_report(
     start_date = consultation["data_inicial"]
     end_date = consultation["data_final"]
     report_year = start_date.year
+    if consultation.get("annual_report_id"):
+        return _register_existing_annual_general_indicator_report(
+            connection,
+            consultation=consultation,
+            result=result,
+        )
     report_name = report_name or general_indicator_display_name(start_date, end_date)
     period_key = f"{GENERAL_INDICATORS_REPORT_TYPE}:consultation:{consultation['id']}"
     summary = dict(result.get("summary") or {})
@@ -854,7 +991,8 @@ def begin_annual_report_update(
     connection: Connection,
     report_id: int,
     *,
-    new_period_end: date,
+    period_start: date,
+    period_end: date,
     actor: str | None,
     hierarchy_contract_version: int,
 ) -> dict[str, Any] | None:
@@ -875,10 +1013,8 @@ def begin_annual_report_update(
         annual = cursor.fetchone()
         if annual is None:
             return None
-        if new_period_end.year != int(annual["report_year"]):
-            raise ValueError("A nova data final deve pertencer ao mesmo ano do relatório.")
-        if new_period_end <= annual["current_period_end"]:
-            raise ValueError("A nova data final deve ser posterior ao período atual do relatório anual.")
+        if period_end < period_start:
+            raise ValueError("A data final deve ser igual ou posterior à data inicial.")
         if annual.get("active_consultation_id"):
             cursor.execute(
                 "SELECT status FROM general_indicator_consultations WHERE id = %s FOR UPDATE",
@@ -897,8 +1033,8 @@ def begin_annual_report_update(
             RETURNING id, criado_em
             """,
             (
-                annual["current_period_start"],
-                new_period_end,
+                period_start,
+                period_end,
                 hierarchy_contract_version,
                 report_id,
                 actor,
@@ -916,8 +1052,8 @@ def begin_annual_report_update(
         return {
             "report_id": report_id,
             "consultation_id": int(consultation["id"]),
-            "period_start": annual["current_period_start"],
-            "period_end": new_period_end,
+            "period_start": period_start,
+            "period_end": period_end,
             "created_at": consultation["criado_em"],
         }
 

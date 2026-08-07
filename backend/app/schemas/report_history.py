@@ -179,7 +179,8 @@ class AnnualReportDetail(BaseModel):
 
 
 class AnnualReportUpdateRequest(BaseModel):
-    newPeriodEnd: date
+    startDate: date
+    endDate: date
     actor: str | None = Field(default=None, max_length=255)
 
 

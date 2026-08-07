@@ -77,11 +77,12 @@ class ReportHistoryRepositoryTests(unittest.TestCase):
         insert = next(call for call in cursor.execute.call_args_list if "INSERT INTO report_history" in call.args[0])
         self.assertIn("1, 'CURRENT', TRUE", insert.args[0])
 
-    def test_second_finalization_creates_an_independent_report(self) -> None:
+    def test_update_finalization_replaces_current_revision_on_same_report(self) -> None:
         connection, cursor = connection_with_cursor()
-        detail = report_row(version=1, status="CURRENT", current=True)
+        detail = report_row(version=2, status="CURRENT", current=True)
         cursor.fetchone.side_effect = [
-            {"id": 2},
+            {"id": 1, "display_name": "Relatorio existente", "current_revision_id": 10},
+            {"next_version": 2},
             {"id": 11},
             detail,
         ]
@@ -93,8 +94,10 @@ class ReportHistoryRepositoryTests(unittest.TestCase):
         )
 
         statements = [call.args[0] for call in cursor.execute.call_args_list]
-        self.assertFalse(any("report_status = 'SUPERSEDED'" in sql for sql in statements))
-        self.assertFalse(any("superseded_by_id = %s" in sql for sql in statements))
+        self.assertFalse(any("INSERT INTO general_indicator_annual_reports" in sql for sql in statements))
+        self.assertTrue(any("report_status = 'SUPERSEDED'" in sql for sql in statements))
+        self.assertTrue(any("superseded_by_id = %s" in sql for sql in statements))
+        self.assertTrue(any("UPDATE general_indicator_annual_reports" in sql for sql in statements))
 
     def test_finalization_uses_transaction_advisory_lock_for_period(self) -> None:
         connection, cursor = connection_with_cursor()
