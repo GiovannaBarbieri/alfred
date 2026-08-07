@@ -3274,11 +3274,12 @@ input {
 .report-period-analysis-card > summary {
   align-items: center;
   cursor: pointer;
-  display: grid;
-  gap: 10px;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
   list-style: none;
-  padding: 16px;
+  min-height: 54px;
+  padding: 0 18px;
 }
 
 .report-period-analysis-card > summary::-webkit-details-marker {
@@ -3287,46 +3288,39 @@ input {
 
 .report-period-analysis-card > summary > span {
   align-items: center;
-  background: #eff6ff;
-  border-radius: 8px;
-  color: #2563eb;
+  color: #0b1f36;
   display: inline-flex;
-  height: 30px;
-  justify-content: center;
-  width: 30px;
+  font-size: 15px;
+  font-weight: 800;
+  gap: 8px;
 }
 
-.report-period-analysis-card > summary h2,
-.report-period-analysis-card > summary p {
-  margin: 0;
-}
-
-.report-period-analysis-card > summary h2 {
-  color: #0f2340;
-  font-size: 16px;
-}
-
-.report-period-analysis-card > summary p {
-  color: #52627a;
-  font-size: 13px;
-  margin-top: 2px;
-}
-
-.report-period-analysis-card > summary > svg {
-  color: #64748b;
+.report-period-analysis-card > summary i {
+  border: solid #49637f;
+  border-width: 0 2px 2px 0;
+  display: inline-block;
+  height: 8px;
+  transform: rotate(45deg);
   transition: transform 160ms ease;
+  width: 8px;
 }
 
 .report-period-analysis-card[open] > summary {
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #edf1f6;
 }
 
-.report-period-analysis-card[open] > summary > svg {
-  transform: rotate(180deg);
+.report-period-analysis-card[open] > summary i {
+  transform: rotate(-135deg);
 }
 
 .report-period-analysis-card .report-period-analysis {
   padding: 14px 16px 16px;
+}
+
+.report-period-analysis-intro {
+  color: #52627a;
+  font-size: 13px;
+  margin: 0;
 }
 
 .report-period-official-range {
@@ -3875,9 +3869,12 @@ input {
 }
 
 .general-indicator-technical-accordion > summary span {
+  align-items: center;
   color: #0b1f36;
+  display: inline-flex;
   font-size: 15px;
   font-weight: 800;
+  gap: 8px;
 }
 
 .general-indicator-technical-accordion > summary i {

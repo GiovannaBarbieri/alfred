@@ -1,4 +1,4 @@
-import { AlertTriangle, Bug, CalendarRange, ChevronDown, Clock3, ListChecks, RefreshCw, SearchX, TrendingUp } from "lucide-react";
+import { AlertTriangle, Bug, CalendarRange, Clock3, ListChecks, RefreshCw, SearchX, TrendingUp } from "lucide-react";
 import { useMemo } from "react";
 
 import {
@@ -52,15 +52,12 @@ export function ReportPeriodAnalysisPanel({
   return (
     <details className="panel report-period-analysis-card">
       <summary>
-        <span><CalendarRange size={18} /></span>
-        <div>
-          <h2>Análise por período</h2>
-          <p>Selecione um intervalo dentro do período deste relatório para visualizar indicadores específicos.</p>
-        </div>
-        <ChevronDown size={18} aria-hidden="true" />
+        <span><CalendarRange size={18} />Análise por período</span>
+        <i aria-hidden="true" />
       </summary>
 
       <section className="report-period-analysis" aria-label="Análise por período">
+        <p className="report-period-analysis-intro">Selecione um intervalo dentro do período deste relatório para visualizar indicadores específicos.</p>
         <div className="report-period-official-range">
           <span>Período disponível para análise</span>
           <strong>{formatDate(officialStart)} a {formatDate(officialEnd)}</strong>

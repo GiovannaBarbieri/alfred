@@ -35,6 +35,26 @@ test("card inicia recolhível e não oferece atalhos ou abas internas", () => {
   assert.match(styles, /\.report-period-analysis-card\[open\] > summary/);
 });
 
+test("accordions do relatorio salvo seguem a nova ordem e iniciam fechados", () => {
+  const finalizedPanel = read("components/general-indicators/GeneralIndicatorFinalizedPanel.tsx");
+  const periodIndex = finalizedPanel.indexOf("{periodAnalysisSlot}");
+  const quarterlyIndex = finalizedPanel.indexOf("accordion />");
+  const hoursIndex = finalizedPanel.indexOf('title="Composição das horas"');
+  const updateIndex = finalizedPanel.indexOf('title="Distribuição da Atualização do sistema"');
+  const modulesIndex = finalizedPanel.indexOf('title="Módulos desconsiderados nesta consulta"');
+
+  assert.ok(periodIndex >= 0);
+  assert.ok(quarterlyIndex >= 0);
+  assert.ok(periodIndex < quarterlyIndex);
+  assert.ok(quarterlyIndex < hoursIndex);
+  assert.ok(hoursIndex < updateIndex);
+  assert.ok(updateIndex < modulesIndex);
+  assert.match(charts, /accordion = false/);
+  assert.match(charts, /general-indicator-technical-accordion/);
+  assert.doesNotMatch(component, /<details className="panel report-period-analysis-card" open/);
+  assert.doesNotMatch(charts, /<details className="panel general-indicator-technical-accordion" open/);
+});
+
 test("validação bloqueia datas vazias, invertidas e externas", () => {
   assert.deepEqual(
     validateSnapshotPeriod("", "2026-06-20", "2026-01-01", "2026-06-30"),

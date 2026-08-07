@@ -136,12 +136,25 @@ export function GeneralIndicatorFinalizedPanel({
       <GeneralIndicatorCategoryCharts result={result} />
 
       <GeneralIndicatorMonthlyCategoryChart result={result} />
-      <GeneralIndicatorQuarterlyChart result={result} />
 
       {periodAnalysisSlot}
 
-      {hasTechnicalAppendix && (
+      {(hasTechnicalAppendix || result.months.length > 1) && (
         <section className="general-indicator-technical-appendix" aria-label="Informações técnicas do relatório">
+          <GeneralIndicatorQuarterlyChart result={result} accordion />
+
+          {hasHoursComposition && (
+            <TechnicalAccordion title="Composição das horas">
+              <GeneralIndicatorHoursComposition categories={result.categories} totalHours={result.totalHours} />
+            </TechnicalAccordion>
+          )}
+
+          {hasUpdateDistribution && (
+            <TechnicalAccordion title="Distribuição da Atualização do sistema">
+              <GeneralIndicatorUpdateDistribution distribution={result.distribution} totalHours={result.totalHours} />
+            </TechnicalAccordion>
+          )}
+
           {disregardedModules.moduleCount > 0 && (
             <TechnicalAccordion title="Módulos desconsiderados nesta consulta">
               <article className="disregarded-modules-summary">
@@ -169,18 +182,6 @@ export function GeneralIndicatorFinalizedPanel({
                   ))}
                 </div>
               </article>
-            </TechnicalAccordion>
-          )}
-
-          {hasUpdateDistribution && (
-            <TechnicalAccordion title="Distribuição da Atualização do sistema">
-              <GeneralIndicatorUpdateDistribution distribution={result.distribution} totalHours={result.totalHours} />
-            </TechnicalAccordion>
-          )}
-
-          {hasHoursComposition && (
-            <TechnicalAccordion title="Composição das horas">
-              <GeneralIndicatorHoursComposition categories={result.categories} totalHours={result.totalHours} />
             </TechnicalAccordion>
           )}
         </section>

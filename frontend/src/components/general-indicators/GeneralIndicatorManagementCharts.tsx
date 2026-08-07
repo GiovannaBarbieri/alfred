@@ -125,7 +125,7 @@ export function GeneralIndicatorMonthlyCategoryChart({
   );
 }
 
-export function GeneralIndicatorQuarterlyChart({ result }: ResultProps) {
+export function GeneralIndicatorQuarterlyChart({ result, accordion = false }: ResultProps & { accordion?: boolean }) {
   const projectsTarget = result.kpis.projectsImprovements.target ?? 40;
   const errorsLimit = result.kpis.errorsBugs.limit ?? 10;
   const data = useMemo(
@@ -133,6 +133,39 @@ export function GeneralIndicatorQuarterlyChart({ result }: ResultProps) {
     [errorsLimit, projectsTarget, result.months],
   );
   if (data.length <= 1) return null;
+
+  const content = (
+    <div className="general-indicators-table-wrap executive-table-wrap">
+      <table className="quarterly-indicators-table">
+        <thead><tr><th>Trimestre</th><th>Projetos + melhorias</th><th>Meta</th><th>Situação</th><th>Erro TI + Bug</th><th>Limite</th><th>Situação</th></tr></thead>
+        <tbody>{data.map((item) => {
+          const projectsWithinTarget = item.projectsPercentage >= item.projectsTarget;
+          const errorsWithinLimit = item.errorsPercentage <= item.errorsLimit;
+          return <tr key={item.key}>
+            <td><strong>{item.label}</strong></td>
+            <td>{formatPercentagePtBr(item.projectsPercentage)}</td>
+            <td>{formatPercentagePtBr(item.projectsTarget)}</td>
+            <td><QuarterlyStatus success={projectsWithinTarget} successLabel="Dentro da meta" warningLabel="Atenção" /></td>
+            <td>{formatPercentagePtBr(item.errorsPercentage)}</td>
+            <td>{formatPercentagePtBr(item.errorsLimit)}</td>
+            <td><QuarterlyStatus success={errorsWithinLimit} successLabel="Dentro do limite" warningLabel="Acima do limite" /></td>
+          </tr>;
+        })}</tbody>
+      </table>
+    </div>
+  );
+
+  if (accordion) {
+    return (
+      <details className="panel general-indicator-technical-accordion">
+        <summary>
+          <span><CalendarRange size={18} />Comparativo trimestral dos indicadores</span>
+          <i aria-hidden="true" />
+        </summary>
+        <div className="general-indicator-technical-content">{content}</div>
+      </details>
+    );
+  }
 
   return (
     <article className="panel general-indicators-chart management-chart-panel quarterly-summary-panel">
@@ -142,24 +175,7 @@ export function GeneralIndicatorQuarterlyChart({ result }: ResultProps) {
         description="Visão consolidada das metas de desenvolvimento e qualidade por trimestre."
         period={result.period}
       />
-      <div className="general-indicators-table-wrap executive-table-wrap">
-        <table className="quarterly-indicators-table">
-          <thead><tr><th>Trimestre</th><th>Projetos + melhorias</th><th>Meta</th><th>Situação</th><th>Erro TI + Bug</th><th>Limite</th><th>Situação</th></tr></thead>
-          <tbody>{data.map((item) => {
-            const projectsWithinTarget = item.projectsPercentage >= item.projectsTarget;
-            const errorsWithinLimit = item.errorsPercentage <= item.errorsLimit;
-            return <tr key={item.key}>
-              <td><strong>{item.label}</strong></td>
-              <td>{formatPercentagePtBr(item.projectsPercentage)}</td>
-              <td>{formatPercentagePtBr(item.projectsTarget)}</td>
-              <td><QuarterlyStatus success={projectsWithinTarget} successLabel="Dentro da meta" warningLabel="Atenção" /></td>
-              <td>{formatPercentagePtBr(item.errorsPercentage)}</td>
-              <td>{formatPercentagePtBr(item.errorsLimit)}</td>
-              <td><QuarterlyStatus success={errorsWithinLimit} successLabel="Dentro do limite" warningLabel="Acima do limite" /></td>
-            </tr>;
-          })}</tbody>
-        </table>
-      </div>
+      {content}
     </article>
   );
 }
