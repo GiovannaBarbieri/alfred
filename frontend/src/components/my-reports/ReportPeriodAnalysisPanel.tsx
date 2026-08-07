@@ -127,7 +127,7 @@ export function ReportPeriodAnalysisPanel({
         )}
 
         {!isLoading && result && result.recordCount > 0 && (
-          <section className="report-period-analysis-result">
+          <section className="report-period-analysis-result" data-period-analysis-result="true">
             <div className="report-period-analysis-caption">
               <span>Período analisado</span>
               <strong>{formatDate(result.analyzedPeriod.startDate)} a {formatDate(result.analyzedPeriod.endDate)}</strong>

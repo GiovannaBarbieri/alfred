@@ -1,5 +1,5 @@
-import { AlertTriangle, ArrowLeft, FileBarChart, RefreshCw, SearchX } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { AlertTriangle, ArrowLeft, Download, FileBarChart, RefreshCw, SearchX } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { GeneralIndicatorFinalizedPanel } from "../components/general-indicators/GeneralIndicatorFinalizedPanel";
 import { ReportActionModal } from "../components/my-reports/ReportActionModal";
 import { ReportCard } from "../components/my-reports/ReportCard";
@@ -8,6 +8,12 @@ import { ReportPagination } from "../components/my-reports/ReportPagination";
 import { ReportPeriodAnalysisPanel } from "../components/my-reports/ReportPeriodAnalysisPanel";
 import { ReportUpdatePeriodModal } from "../components/my-reports/ReportUpdatePeriodModal";
 import { useReportHistory } from "../hooks/useReportHistory";
+import {
+  exportChartAsPng,
+  exportChartsAsZip,
+  getCurrentExportableChart,
+  getExportableCharts,
+} from "../utils/chartImageExport";
 import { shouldShowReportPagination } from "../utils/reportHistoryPresentation";
 
 export function MyReportsPage({
@@ -54,10 +60,13 @@ export function MyReportsPage({
             </button>
             <h1>{detail.report.name}</h1>
           </div>
-          <button className="primary-button saved-report-update-button" type="button" onClick={history.requestReportUpdate} disabled={history.viewRefreshing}>
-            <RefreshCw className={history.viewRefreshing ? "spinning" : ""} size={16} />
-            {history.viewRefreshing ? "Atualizando..." : "Atualizar relatório"}
-          </button>
+          <div className="saved-report-header-actions">
+            <SavedReportExportMenu reportName={detail.report.name} />
+            <button className="primary-button saved-report-update-button" type="button" onClick={history.requestReportUpdate} disabled={history.viewRefreshing}>
+              <RefreshCw className={history.viewRefreshing ? "spinning" : ""} size={16} />
+              {history.viewRefreshing ? "Atualizando..." : "Atualizar relatório"}
+            </button>
+          </div>
         </header>
         {history.error && !history.updatePeriodDraft && <div className="error-banner" role="alert"><AlertTriangle size={17} />{history.error}</div>}
         <GeneralIndicatorFinalizedPanel
@@ -134,6 +143,74 @@ export function MyReportsPage({
 
       {history.action && <ReportActionModal action={history.action} busy={history.actionBusy} error={history.actionError} onClose={history.closeAction} onConfirm={() => void history.confirmAction()} />}
     </section>
+  );
+}
+
+function SavedReportExportMenu({ reportName }: { reportName: string }) {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState<"current" | "all" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function exportCurrent() {
+    const chart = getCurrentExportableChart();
+    if (!chart) {
+      setError("Nenhum gráfico disponível para exportação.");
+      return;
+    }
+    setBusy("current");
+    setError(null);
+    try {
+      await exportChartAsPng(chart);
+      setOpen(false);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Não foi possível exportar o gráfico.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function exportAll() {
+    const charts = getExportableCharts();
+    if (charts.length === 0) {
+      setError("Nenhum gráfico disponível para exportação.");
+      return;
+    }
+    setBusy("all");
+    setError(null);
+    try {
+      await exportChartsAsZip(charts, `Indicadores Gerais - ${reportName}`);
+      setOpen(false);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Não foi possível exportar as imagens.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <div className="saved-report-export-menu" data-export-exclude>
+      <button
+        aria-expanded={open}
+        className="secondary-button saved-report-export-trigger"
+        disabled={Boolean(busy)}
+        onClick={() => setOpen((current) => !current)}
+        type="button"
+      >
+        <Download size={16} />
+        {busy ? "Exportando..." : "Exportar"}
+      </button>
+      {open && (
+        <div className="saved-report-export-options" role="menu">
+          <button disabled={Boolean(busy)} onClick={() => void exportAll()} role="menuitem" type="button">
+            {busy === "all" ? "Gerando imagens..." : "Exportar todas as imagens (.zip)"}
+          </button>
+          <button disabled={Boolean(busy)} onClick={() => void exportCurrent()} role="menuitem" type="button">
+            {busy === "current" ? "Gerando PNG..." : "Exportar gráfico atual (.png)"}
+          </button>
+          {error && <small role="alert">{error}</small>}
+        </div>
+      )}
+    </div>
   );
 }
 

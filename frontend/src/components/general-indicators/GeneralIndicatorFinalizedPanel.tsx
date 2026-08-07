@@ -5,6 +5,8 @@ import type { GeneralIndicatorFinalizedResponse, GeneralIndicatorKpi } from "../
 import { GENERAL_INDICATOR_CHART_COLORS } from "../../utils/generalIndicatorCharts";
 import { buildDisregardedModulesPresentation } from "../../utils/disregardedModulesPresentation";
 import { formatChartLabelHoursPtBr } from "../../utils/numberFormatting";
+import { formatAnalyzedPeriodLabel } from "../../utils/periodPresentation";
+import { ChartExportButton } from "./ChartExportButton";
 import {
   GeneralIndicatorCategoryCharts,
   GeneralIndicatorMonthlyCategoryChart,
@@ -92,7 +94,12 @@ export function GeneralIndicatorFinalizedPanel({
         <KpiCard icon={<Bug size={20} />} title="Erros TI e Bugs" kpi={result.kpis.errorsBugs} total={result.totalHours} reference={`Limite ≤ ${result.kpis.errorsBugs.limit}%`} />
       </section>
 
-      <article className="panel general-indicators-chart">
+      <article
+        className="panel general-indicators-chart"
+        data-chart-export-card="true"
+        data-chart-export-period={formatAnalyzedPeriodLabel(result.period)}
+        data-chart-export-title="Evolução mensal"
+      >
         <Heading title="Evolução mensal" subtitle="Comparação dos indicadores ao longo dos meses do período." period={result.period} />
         <div className="general-indicators-chart-area">
           <ResponsiveContainer width="100%" height="100%">
@@ -129,7 +136,7 @@ export function GeneralIndicatorFinalizedPanel({
             </LineChart>
           </ResponsiveContainer>
         </div>
-        <details className="general-indicator-chart-details"><summary>Ver detalhamento mensal</summary><div className="general-indicators-table-wrap"><table><thead><tr><th>Mês</th><th>Total</th><th>Projetos + melhorias</th><th>Meta</th><th>Situação</th><th>Erros TI + Bugs</th><th>Limite</th><th>Situação</th></tr></thead><tbody>
+        <details className="general-indicator-chart-details" data-export-exclude><summary>Ver detalhamento mensal</summary><div className="general-indicators-table-wrap"><table><thead><tr><th>Mês</th><th>Total</th><th>Projetos + melhorias</th><th>Meta</th><th>Situação</th><th>Erros TI + Bugs</th><th>Limite</th><th>Situação</th></tr></thead><tbody>
           {result.months.map((item) => <tr key={item.month}><td>{item.label}</td><td>{formatHours(item.totalHours)}</td><td>{item.projectsImprovements.percentage.toFixed(2)}%</td><td>{item.projectsImprovements.target}%</td><td>{statusLabels[item.projectsImprovements.status]}</td><td>{item.errorsBugs.percentage.toFixed(2)}%</td><td>{item.errorsBugs.limit}%</td><td>{statusLabels[item.errorsBugs.status]}</td></tr>)}
         </tbody></table></div></details>
       </article>
@@ -227,7 +234,7 @@ function TechnicalAccordion({ title, children }: { title: string; children: Reac
 }
 
 function Heading({ title, subtitle, period }: { title: string; subtitle: string; period?: GeneralIndicatorFinalizedResponse["period"] }) {
-  return <div className="general-indicators-heading"><span><BarChart3 size={18} /></span><div><h2>{title}</h2><p>{subtitle}</p><PeriodContextLine period={period} /></div></div>;
+  return <div className="general-indicators-heading"><span><BarChart3 size={18} /></span><div><h2>{title}</h2><p>{subtitle}</p><PeriodContextLine period={period} /></div><ChartExportButton /></div>;
 }
 
 function Summary({ label, value, detail }: { label: string; value: string | number; detail?: string }) {

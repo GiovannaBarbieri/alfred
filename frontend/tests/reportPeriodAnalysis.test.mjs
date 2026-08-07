@@ -112,6 +112,23 @@ test("resultado exibe quatro indicadores e dois gráficos", () => {
   assert.match(component, /Período analisado/);
 });
 
+test("relatório salvo permite exportar cards gráficos como imagens", () => {
+  const finalizedPanel = read("components/general-indicators/GeneralIndicatorFinalizedPanel.tsx");
+  const exportButton = read("components/general-indicators/ChartExportButton.tsx");
+  const exportUtils = read("utils/chartImageExport.ts");
+  assert.match(page, /SavedReportExportMenu/);
+  assert.match(page, /Exportar todas as imagens \(\.zip\)/);
+  assert.match(page, /Exportar gráfico atual \(\.png\)/);
+  assert.match(charts, /data-chart-export-card/);
+  assert.match(finalizedPanel, /data-chart-export-card/);
+  assert.match(exportButton, /data-export-exclude/);
+  assert.match(exportUtils, /data-chart-export-card/);
+  assert.match(exportUtils, /data-export-exclude/);
+  assert.match(exportUtils, /data-period-analysis-result/);
+  assert.match(component, /data-period-analysis-result/);
+  assert.match(exportUtils, /type: "application\/zip"/);
+});
+
 test("Limpar restaura datas vazias e resultado local", () => {
   assert.match(hook, /setStartDate\(""\)/);
   assert.match(hook, /setEndDate\(""\)/);

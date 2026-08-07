@@ -36,13 +36,22 @@ import {
   formatHoursPtBr,
   formatPercentagePtBr,
 } from "../../utils/numberFormatting";
-import type { PeriodRange } from "../../utils/periodPresentation";
+import { formatAnalyzedPeriodLabel, type PeriodRange } from "../../utils/periodPresentation";
+import { ChartExportButton } from "./ChartExportButton";
 import { buildLineChartHighlights, LinePointValueLabel } from "./GeneralIndicatorLineChartPrimitives";
 import { PeriodContextLine } from "./PeriodContextLine";
 
 type ResultProps = {
   result: Pick<GeneralIndicatorFinalizedResponse, "categories" | "months" | "kpis"> & { period?: PeriodRange };
 };
+
+function chartExportAttributes(title: string, period?: PeriodRange) {
+  return {
+    "data-chart-export-card": "true",
+    "data-chart-export-period": period?.startDate && period?.endDate ? formatAnalyzedPeriodLabel(period) : "",
+    "data-chart-export-title": title,
+  };
+}
 
 export function GeneralIndicatorCategoryCharts({
   result,
@@ -80,7 +89,7 @@ export function GeneralIndicatorMonthlyCategoryChart({
   const series = strategicOnly ? STRATEGIC_CHART_SERIES : executive ? EXECUTIVE_CHART_SERIES : STRATEGIC_CHART_SERIES;
   const highlights = useMemo(() => buildLineChartHighlights(data, series), [data, series]);
   return (
-    <article className={`panel general-indicators-chart management-chart-panel${analysisView ? " period-analysis-chart" : ""}`}>
+    <article className={`panel general-indicators-chart management-chart-panel${analysisView ? " period-analysis-chart" : ""}`} {...chartExportAttributes(title, result.period)}>
       <ChartHeading
         icon={<Layers3 size={18} />}
         title={title}
@@ -171,7 +180,7 @@ export function GeneralIndicatorQuarterlyChart({ result, accordion = false }: Re
   }
 
   return (
-    <article className="panel general-indicators-chart management-chart-panel quarterly-summary-panel">
+    <article className="panel general-indicators-chart management-chart-panel quarterly-summary-panel" {...chartExportAttributes("Comparativo trimestral dos indicadores", result.period)}>
       <ChartHeading
         icon={<CalendarRange size={18} />}
         title="Comparativo trimestral dos indicadores"
@@ -186,7 +195,7 @@ export function GeneralIndicatorQuarterlyChart({ result, accordion = false }: Re
 function CategoryHoursChart({ result, title }: ResultProps & { title: string }) {
   const data = useMemo(() => buildCategoryHoursChart(result.categories), [result.categories]);
   return (
-    <article className="panel general-indicators-chart management-chart-panel">
+    <article className="panel general-indicators-chart management-chart-panel" {...chartExportAttributes(title, result.period)}>
       <ChartHeading
         icon={<BarChart3 size={18} />}
         title={title}
@@ -248,7 +257,7 @@ function PeriodCompositionChart({
   const legendData = sortCategoryHoursDescending(data);
   const totalHours = data.reduce((total, item) => total + item.hours, 0);
   return (
-    <article className={`panel general-indicators-chart management-chart-panel${analysisView ? " period-analysis-chart period-analysis-composition" : ""}`}>
+    <article className={`panel general-indicators-chart management-chart-panel${analysisView ? " period-analysis-chart period-analysis-composition" : ""}`} {...chartExportAttributes(title, result.period)}>
       <ChartHeading
         icon={<PieChartIcon size={18} />}
         title={title}
@@ -336,7 +345,7 @@ function ChartHeading({
   description: string;
   period?: PeriodRange;
 }) {
-  return <div className="general-indicators-heading"><span>{icon}</span><div><h2>{title}</h2><p>{description}</p><PeriodContextLine period={period} /></div></div>;
+  return <div className="general-indicators-heading"><span>{icon}</span><div><h2>{title}</h2><p>{description}</p><PeriodContextLine period={period} /></div><ChartExportButton /></div>;
 }
 
 function ChartEmptyState() {
