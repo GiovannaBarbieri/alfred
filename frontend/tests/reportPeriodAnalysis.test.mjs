@@ -57,14 +57,14 @@ test("accordions do relatorio salvo seguem a nova ordem e iniciam fechados", () 
   assert.doesNotMatch(charts, /<details className="panel general-indicator-technical-accordion" open/);
 });
 
-test("validação bloqueia datas vazias, invertidas e externas", () => {
+test("validação visual ignora datas incompletas e bloqueia apenas intervalos inválidos", () => {
   assert.deepEqual(
     validateSnapshotPeriod("", "2026-06-20", "2026-01-01", "2026-06-30"),
-    { startDate: "Informe a data inicial." },
+    {},
   );
   assert.deepEqual(
     validateSnapshotPeriod("2026-01-01", "", "2026-01-01", "2026-06-30"),
-    { endDate: "Informe a data final." },
+    {},
   );
   assert.deepEqual(
     validateSnapshotPeriod("2026-04-01", "2026-03-31", "2026-01-01", "2026-06-30"),
@@ -86,8 +86,9 @@ test("campos HTML aplicam min e max e botões respeitam validação", () => {
   assert.match(component, /disabled=\{!canAnalyze\}/);
   assert.match(component, /disabled=\{!canClear\}/);
   assert.match(component, />\s*Limpar\s*</);
-  assert.match(component, /aria-invalid=\{Boolean\(hasDates && validation\.startDate\)\}/);
-  assert.match(component, /aria-invalid=\{Boolean\(hasDates && validation\.endDate\)\}/);
+  assert.match(component, /aria-invalid=\{Boolean\(validation\.startDate\)\}/);
+  assert.match(component, /aria-invalid=\{Boolean\(validation\.endDate\)\}/);
+  assert.doesNotMatch(component, /Revise as datas informadas para continuar/);
 });
 
 test("análise por período reutiliza o cálculo oficial de snapshot salvo", () => {

@@ -32,7 +32,6 @@ export function ReportPeriodAnalysisPanel({
   );
   const hasDates = Boolean(startDate || endDate);
   const hasValidationErrors = Boolean(validation.startDate || validation.endDate);
-  const shouldShowValidation = hasDates && hasValidationErrors;
   const canAnalyze = Boolean(startDate && endDate && !hasValidationErrors && !isLoading);
   const canClear = Boolean((hasDates || result) && !isLoading);
 
@@ -72,11 +71,11 @@ export function ReportPeriodAnalysisPanel({
               max={officialEnd}
               value={startDate}
               disabled={isLoading}
-              aria-invalid={Boolean(hasDates && validation.startDate)}
+              aria-invalid={Boolean(validation.startDate)}
               onChange={(event) => updateStartDate(event.target.value)}
               onInput={(event) => updateStartDate(event.currentTarget.value)}
             />
-            {hasDates && validation.startDate && <small role="alert">{validation.startDate}</small>}
+            {validation.startDate && <small role="alert">{validation.startDate}</small>}
           </label>
           <label>
             <span>Data final</span>
@@ -86,11 +85,11 @@ export function ReportPeriodAnalysisPanel({
               max={officialEnd}
               value={endDate}
               disabled={isLoading}
-              aria-invalid={Boolean(hasDates && validation.endDate)}
+              aria-invalid={Boolean(validation.endDate)}
               onChange={(event) => updateEndDate(event.target.value)}
               onInput={(event) => updateEndDate(event.currentTarget.value)}
             />
-            {hasDates && validation.endDate && <small role="alert">{validation.endDate}</small>}
+            {validation.endDate && <small role="alert">{validation.endDate}</small>}
           </label>
           <button
             className="primary-button report-period-analyze-button"
@@ -110,8 +109,6 @@ export function ReportPeriodAnalysisPanel({
             Limpar
           </button>
         </div>
-
-        {shouldShowValidation && <div className="error-banner compact" role="alert"><AlertTriangle size={17} />Revise as datas informadas para continuar.</div>}
 
         {analysis.error && <div className="error-banner compact" role="alert"><AlertTriangle size={17} />{analysis.error}</div>}
 
