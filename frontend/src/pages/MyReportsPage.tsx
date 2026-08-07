@@ -53,7 +53,12 @@ export function MyReportsPage({
             </button>
             <h1>{detail.report.name}</h1>
           </div>
+          <button className="primary-button saved-report-update-button" type="button" onClick={() => void history.refreshOpenReport()} disabled={history.viewRefreshing}>
+            <RefreshCw className={history.viewRefreshing ? "spinning" : ""} size={16} />
+            {history.viewRefreshing ? "Atualizando..." : "Atualizar relatório"}
+          </button>
         </header>
+        {history.error && <div className="error-banner" role="alert"><AlertTriangle size={17} />{history.error}<button type="button" onClick={() => void history.refreshOpenReport()}>Tentar novamente</button></div>}
         <GeneralIndicatorFinalizedPanel
           result={history.view.detail.snapshot}
           excludedCollaboratorCount={history.view.detail.report.excludedCollaboratorCount}
@@ -77,10 +82,6 @@ export function MyReportsPage({
     <section className="my-reports-page">
       <header className="saved-report-page-header">
         <div><h1>Meus Relatórios</h1><p>Consulte e acesse as análises finalizadas no Alfred.</p></div>
-        <button className="secondary-button" type="button" onClick={() => void history.refresh()} disabled={history.isRefreshing}>
-          <RefreshCw className={history.isRefreshing ? "spinning" : ""} size={16} />
-          {history.isRefreshing ? "Atualizando..." : "Atualizar"}
-        </button>
       </header>
 
       {history.notice && <div className="saved-report-notice" role="status" aria-live="polite"><span>{history.notice}</span><button type="button" aria-label="Fechar mensagem" onClick={history.dismissNotice}>×</button></div>}
@@ -103,8 +104,6 @@ export function MyReportsPage({
       {history.isLoading && !history.data && <ReportSkeletons />}
 
       {history.data && history.error && <div className="error-banner" role="alert"><AlertTriangle size={17} />{history.error}<button type="button" onClick={() => void history.refresh()}>Tentar novamente</button></div>}
-      {history.isRefreshing && history.data && <div className="saved-report-refreshing" role="status"><RefreshCw className="spinning" size={15} />Atualizando a listagem...</div>}
-
       {history.data && <div className="saved-report-result-count">{history.data.totalItems.toLocaleString("pt-BR")} {history.data.totalItems === 1 ? "relatório encontrado" : "relatórios encontrados"}</div>}
 
       {!history.isLoading && history.data && items.length === 0 && (

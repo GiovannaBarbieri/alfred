@@ -38,6 +38,7 @@ export function useReportHistory(actor?: string | null) {
   const [actionBusy, setActionBusy] = useState(false);
   const [openingId, setOpeningId] = useState<number | null>(null);
   const [view, setView] = useState<SavedReportViewState | null>(null);
+  const [viewRefreshing, setViewRefreshing] = useState(false);
   const noticeSequence = useRef(0);
   const [notice, setNotice] = useState<{ id: number; message: string } | null>(null);
 
@@ -111,6 +112,22 @@ export function useReportHistory(actor?: string | null) {
     }
   }
 
+  async function refreshOpenReport() {
+    if (!view || viewRefreshing) return;
+    const reportId = view.reportId;
+    setViewRefreshing(true);
+    setError(null);
+    try {
+      const detail = await getReportDetail(reportId);
+      setView((current) => current?.reportId === reportId ? { ...current, detail } : current);
+      showNotice("RelatÃ³rio atualizado com sucesso.");
+    } catch (caught) {
+      setError(messageFrom(caught, "NÃ£o foi possÃ­vel atualizar o relatÃ³rio."));
+    } finally {
+      setViewRefreshing(false);
+    }
+  }
+
   function requestAction(nextAction: Exclude<ReportActionState, null>) {
     setActionError(null);
     setAction(nextAction);
@@ -120,6 +137,11 @@ export function useReportHistory(actor?: string | null) {
     if (actionBusy) return;
     setAction(null);
     setActionError(null);
+  }
+
+  function closeView() {
+    setView(null);
+    setError(null);
   }
 
   async function confirmAction() {
@@ -189,7 +211,9 @@ export function useReportHistory(actor?: string | null) {
     applyFilters,
     changePageSize,
     view,
-    closeView: () => setView(null),
+    viewRefreshing,
+    refreshOpenReport,
+    closeView,
   };
 }
 

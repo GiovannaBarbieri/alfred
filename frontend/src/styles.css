@@ -2237,8 +2237,7 @@ input {
   margin: 6px 0 16px;
 }
 
-.saved-report-notice,
-.saved-report-refreshing {
+.saved-report-notice {
   align-items: center;
   background: #edf9f1;
   border: 1px solid #bce5ca;
@@ -2256,14 +2255,6 @@ input {
   color: inherit;
   cursor: pointer;
   font-size: 20px;
-}
-
-.saved-report-refreshing {
-  background: #eef5ff;
-  border-color: #c9dcfb;
-  color: #174d88;
-  gap: 7px;
-  justify-content: flex-start;
 }
 
 .saved-report-skeleton {
