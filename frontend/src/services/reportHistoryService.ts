@@ -16,6 +16,11 @@ import {
 } from "../utils/reportPeriodAnalysisResponse";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api";
+const REPORT_DELETE_TIMEOUT_MS = 45_000;
+
+type ReportHistoryRequestOptions = RequestInit & {
+  timeoutMs?: number;
+};
 
 export class ReportHistoryApiError extends Error {
   public readonly status: number;
@@ -94,7 +99,10 @@ export async function compareSavedReports(
 
 export async function deleteReport(id: number, actor?: string | null): Promise<ReportDeleteResponse> {
   const query = actor?.trim() ? `?actor=${encodeURIComponent(actor.trim())}` : "";
-  return request<ReportDeleteResponse>(`/general-indicators/reports/${id}${query}`, { method: "DELETE" });
+  return request<ReportDeleteResponse>(`/general-indicators/reports/${id}${query}`, {
+    method: "DELETE",
+    timeoutMs: REPORT_DELETE_TIMEOUT_MS,
+  });
 }
 
 function buildQuery(params: ReportListParams): string {
@@ -106,16 +114,35 @@ function buildQuery(params: ReportListParams): string {
   return serialized ? `?${serialized}` : "";
 }
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, options);
-  if (!response.ok) {
-    const payload = await response.json().catch(() => null) as { detail?: string } | null;
-    throw new ReportHistoryApiError(payload?.detail ?? fallbackMessage(response.status), response.status);
+async function request<T>(path: string, options?: ReportHistoryRequestOptions): Promise<T> {
+  const { timeoutMs, ...fetchOptions } = options ?? {};
+  const controller = timeoutMs ? new AbortController() : null;
+  const timeoutId = timeoutMs
+    ? window.setTimeout(() => controller?.abort(), timeoutMs)
+    : null;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...fetchOptions,
+      signal: controller?.signal ?? fetchOptions.signal,
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null) as { detail?: string } | null;
+      throw new ReportHistoryApiError(payload?.detail ?? fallbackMessage(response.status), response.status);
+    }
+    return response.json() as Promise<T>;
+  } catch (caught) {
+    if (caught instanceof Error && caught.name === "AbortError") {
+      throw new ReportHistoryApiError(fallbackMessage(408), 408);
+    }
+    throw caught;
+  } finally {
+    if (timeoutId !== null) window.clearTimeout(timeoutId);
   }
-  return response.json() as Promise<T>;
 }
 
 function fallbackMessage(status: number): string {
+  if (status === 408) return "A exclusão demorou mais que o esperado. Atualize a página e tente novamente.";
   if (status === 404) return "O relatório não existe mais.";
   if (status === 409) return "A análise está em processamento e não pode ser alterada agora.";
   return "Não foi possível concluir a operação.";
