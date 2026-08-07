@@ -32,6 +32,7 @@ export function GeneralIndicatorsFlowPage({
   const [reportName, setReportName] = useState("");
   const [consultationProgress, setConsultationProgress] = useState<GeneralIndicatorConsultationProgress | null>(null);
   const finalizationInFlight = useRef(false);
+  const consultationAbortController = useRef<AbortController | null>(null);
   const busy = operation !== null;
 
   useEffect(() => {
@@ -62,17 +63,35 @@ export function GeneralIndicatorsFlowPage({
     setError(null);
     setConsultation(null);
     setReportName("");
+    consultationAbortController.current?.abort();
+    const controller = new AbortController();
+    consultationAbortController.current = controller;
     try {
-      const result = await consultGeneralIndicatorLaunches(startDate, endDate, setConsultationProgress);
+      const result = await consultGeneralIndicatorLaunches(startDate, endDate, setConsultationProgress, controller.signal);
       setConsultation(result);
       setReportName(suggestReportName(startDate, endDate));
     } catch (caught) {
+      if (isAbortError(caught)) {
+        setError("Consulta cancelada. Informe um novo período para gerar outro relatório.");
+        return;
+      }
       setError(errorMessage(caught, "Não foi possível consultar os indicadores."));
     } finally {
+      if (consultationAbortController.current === controller) consultationAbortController.current = null;
       setOperation(null);
       setConsultationProgress(null);
     }
   }, [endDate, startDate]);
+
+  const cancelConsultation = useCallback(() => {
+    consultationAbortController.current?.abort();
+    consultationAbortController.current = null;
+    setOperation(null);
+    setConsultationProgress(null);
+    setConsultation(null);
+    setReportName("");
+    setError("Consulta cancelada. Informe um novo período para gerar outro relatório.");
+  }, []);
 
   const refreshPendings = useCallback(async () => {
     if (!consultation) return;
@@ -138,24 +157,25 @@ export function GeneralIndicatorsFlowPage({
         </div>
       </section>
 
-      {operation && <Processing operation={operation} affected={consultation?.summary.affectedLaunchCount} progress={consultationProgress} />}
+      {operation && <Processing operation={operation} affected={consultation?.summary.affectedLaunchCount} progress={consultationProgress} onCancel={operation === "consultation" ? cancelConsultation : undefined} />}
       {error && <div className="error-banner" role="alert"><AlertTriangle size={18} />{error}</div>}
       {consultation && <GeneralIndicatorConsultationPanel consultation={consultation} operation={operation} onRefreshPendings={() => void refreshPendings()} onFinalize={() => void finalize()} reportName={reportName} onReportNameChange={setReportName} />}
     </section>
   );
 }
 
-function Processing({ operation, affected, progress }: { operation: Exclude<Operation, null>; affected?: number; progress?: GeneralIndicatorConsultationProgress | null }) {
+function Processing({ operation, affected, progress, onCancel }: { operation: Exclude<Operation, null>; affected?: number; progress?: GeneralIndicatorConsultationProgress | null; onCancel?: () => void }) {
   const content = {
     consultation: ["Buscando lançamentos", "Consultando o período, resolvendo hierarquias e validando os dados."],
     pending: ["Atualizando pendências", `Reconsultando somente os itens afetados${affected !== undefined ? ` (${affected} lançamentos)` : ""}.`],
     finalization: ["Salvando relatório", "Registrando um novo snapshot independente."],
   }[operation];
   const message = operation === "consultation" && progress ? `${progress.message} (${progress.percentage}%)` : content[1];
-  return <div className="general-indicator-processing" role="status" aria-live="polite"><RefreshCw className="spinning" size={18} /><div><strong>{content[0]}</strong><span>{message}</span></div></div>;
+  return <div className="general-indicator-processing" role="status" aria-live="polite"><RefreshCw className="spinning" size={18} /><div><strong>{content[0]}</strong><span>{message}</span></div>{onCancel && <button className="secondary-button compact" type="button" onClick={onCancel}>Cancelar consulta</button>}</div>;
 }
 
 function errorMessage(value: unknown, fallback: string) { return value instanceof Error ? value.message : fallback; }
+function isAbortError(value: unknown) { return value instanceof DOMException && value.name === "AbortError"; }
 function yearDates(year: number) { return { startDate: `${String(year).padStart(4, "0")}-01-01`, endDate: `${String(year).padStart(4, "0")}-12-31` }; }
 function shortcutDates(shortcut: DateShortcut, today: Date) {
   const year = today.getFullYear(); const month = today.getMonth(); let start: Date; let end: Date;

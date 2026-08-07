@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
@@ -35,9 +36,20 @@ import {
 } from "../src/utils/periodPresentation.ts";
 
 const base = { hasConsultation: false, uniqueLaunchCount: 0, canFinalize: false, hasFinalData: false, operation: null, hasError: false };
+const read = (path) => readFileSync(new URL(`../src/${path}`, import.meta.url), "utf8");
 
 test("1. consulta ainda não executada", () => assert.equal(resolveGeneralIndicatorScreenState(base), "initial"));
 test("2. consulta em processamento", () => assert.equal(resolveGeneralIndicatorScreenState({ ...base, operation: "consultation" }), "processing"));
+
+test("2a. consulta em processamento pode ser cancelada para iniciar novo relatório", () => {
+  const page = read("pages/GeneralIndicatorsFlowPage.tsx");
+  const api = read("services/api.ts");
+  assert.match(page, /consultationAbortController/);
+  assert.match(page, /Cancelar consulta/);
+  assert.match(page, /Consulta cancelada\. Informe um novo período para gerar outro relatório\./);
+  assert.match(api, /signal\?: AbortSignal/);
+  assert.match(api, /new DOMException\("Aborted", "AbortError"\)/);
+});
 test("3. consulta sem resultados", () => assert.equal(resolveGeneralIndicatorScreenState({ ...base, hasConsultation: true }), "empty"));
 test("4. consulta com inconsistências", () => assert.equal(resolveGeneralIndicatorScreenState({ ...base, hasConsultation: true, uniqueLaunchCount: 10 }), "inconsistencies"));
 test("5. atualização de pendências", () => assert.equal(resolveGeneralIndicatorScreenState({ ...base, hasConsultation: true, uniqueLaunchCount: 10, operation: "pending" }), "processing"));

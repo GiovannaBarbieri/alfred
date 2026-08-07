@@ -770,26 +770,29 @@ export async function consultGeneralIndicatorLaunches(
   startDate: string,
   endDate: string,
   onProgress?: (progress: GeneralIndicatorConsultationProgress) => void,
+  signal?: AbortSignal,
 ): Promise<GeneralIndicatorConsultationResponse> {
   const params = new URLSearchParams({ startDate, endDate });
-  const response = await fetch(`${API_BASE_URL}/general-indicators/consultations?${params.toString()}`, { method: "POST" });
+  const response = await fetch(`${API_BASE_URL}/general-indicators/consultations?${params.toString()}`, { method: "POST", signal });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
     throw new Error(payload?.detail ?? "Não foi possível iniciar a consulta dos indicadores.");
   }
   const job = await response.json() as GeneralIndicatorConsultationJobResponse;
   onProgress?.(job.progress);
-  return waitForGeneralIndicatorConsultation(job.consultationId, onProgress);
+  return waitForGeneralIndicatorConsultation(job.consultationId, onProgress, signal);
 }
 
 export async function waitForGeneralIndicatorConsultation(
   consultationId: number,
   onProgress?: (progress: GeneralIndicatorConsultationProgress) => void,
+  signal?: AbortSignal,
 ): Promise<GeneralIndicatorConsultationResponse> {
   while (true) {
-    await wait(1000);
+    await wait(1000, signal);
     const pollResponse = await fetch(
       `${API_BASE_URL}/general-indicators/consultations/${consultationId}?page=1&pageSize=100`,
+      { signal },
     );
     if (!pollResponse.ok) {
       const payload = await pollResponse.json().catch(() => null);
@@ -863,6 +866,16 @@ export async function getGeneralIndicatorResult(
   return response.json();
 }
 
-function wait(milliseconds: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+function wait(milliseconds: number, signal?: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
+    const timer = window.setTimeout(resolve, milliseconds);
+    signal?.addEventListener("abort", () => {
+      window.clearTimeout(timer);
+      reject(new DOMException("Aborted", "AbortError"));
+    }, { once: true });
+  });
 }

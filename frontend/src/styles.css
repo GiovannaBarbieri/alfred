@@ -1485,7 +1485,17 @@ input {
   color: #1e40af;
   display: flex;
   gap: 10px;
+  justify-content: space-between;
   padding: 12px 14px;
+}
+
+.general-indicator-processing > div {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.general-indicator-processing > button {
+  flex: 0 0 auto;
 }
 
 .general-indicator-processing div,
@@ -4432,6 +4442,15 @@ input {
 }
 
 @media (max-width: 760px) {
+  .general-indicator-processing {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .general-indicator-processing > button {
+    width: 100%;
+  }
+
   .general-indicator-charts-grid {
     grid-template-columns: 1fr;
     max-width: 100%;
