@@ -3794,6 +3794,15 @@ input {
   height: 250px;
 }
 
+.period-composition-bars {
+  height: 250px;
+  min-width: 0;
+}
+
+.period-composition-bar-label {
+  fill: #334155;
+}
+
 .period-composition-total {
   display: grid;
   left: 50%;

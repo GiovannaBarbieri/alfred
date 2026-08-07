@@ -257,17 +257,21 @@ function PeriodCompositionChart({
       />
       {visibleData.length === 0 ? <ChartEmptyState /> : (
         <div className="period-composition-layout">
-          <div className="period-composition-chart">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={visibleData} dataKey="hours" nameKey="name" innerRadius="61%" outerRadius="88%" paddingAngle={2} isAnimationActive={false}>
-                  {visibleData.map((item) => <Cell key={item.key} fill={item.color} stroke="#ffffff" strokeWidth={2} />)}
-                </Pie>
-                <Tooltip content={<CompositionTooltip spaceBeforeUnit={analysisView} />} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="period-composition-total"><span>Total geral</span><strong>{formatHoursPtBr(totalHours, analysisView)}</strong></div>
-          </div>
+          {analysisView ? (
+            <PeriodCompositionBars data={visibleData} />
+          ) : (
+            <div className="period-composition-chart">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={visibleData} dataKey="hours" nameKey="name" innerRadius="61%" outerRadius="88%" paddingAngle={2} isAnimationActive={false}>
+                    {visibleData.map((item) => <Cell key={item.key} fill={item.color} stroke="#ffffff" strokeWidth={2} />)}
+                  </Pie>
+                  <Tooltip content={<CompositionTooltip spaceBeforeUnit={analysisView} />} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="period-composition-total"><span>Total geral</span><strong>{formatHoursPtBr(totalHours, analysisView)}</strong></div>
+            </div>
+          )}
           <div className="period-composition-legend" role="list" aria-label="Composição percentual do período">
             <div className="period-composition-legend-header" aria-hidden="true"><span>Categoria</span><span>Horas</span><span>Participação</span></div>
             {legendData.map((item) => <div className={item.key === "operational" || item.key === "maintenance" ? "operational" : undefined} key={item.key} role="listitem"><i style={{ background: item.color }} /><span>{item.name}</span><small>{formatHoursPtBr(item.hours, analysisView)}</small><strong>{formatPercentagePtBr(item.percentage)}</strong></div>)}
@@ -275,6 +279,49 @@ function PeriodCompositionChart({
         </div>
       )}
     </article>
+  );
+}
+
+function PeriodCompositionBars({ data }: { data: ReturnType<typeof buildPeriodCompositionChart> }) {
+  return (
+    <div className="period-composition-bars">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} layout="vertical" margin={{ top: 4, right: 132, left: 8, bottom: 0 }}>
+          <CartesianGrid stroke={GENERAL_INDICATOR_CHART_COLORS.grid} strokeDasharray="3 3" strokeOpacity={0.45} horizontal={false} />
+          <XAxis
+            type="number"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: "#94a3b8", fontSize: 11 }}
+            tickFormatter={(value) => formatCompactHoursPtBr(Number(value))}
+          />
+          <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} width={104} />
+          <Tooltip content={<CompositionTooltip spaceBeforeUnit />} cursor={{ fill: "#f8fafc" }} />
+          <Bar dataKey="hours" name="Horas" radius={[0, 6, 6, 0]} maxBarSize={22} isAnimationActive={false}>
+            {data.map((item) => <Cell key={item.key} fill={item.color} />)}
+            <LabelList dataKey="hours" content={(props) => <PeriodCompositionBarLabel {...props} data={data} />} />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function PeriodCompositionBarLabel(props: any & { data: ReturnType<typeof buildPeriodCompositionChart> }) {
+  const { x = 0, y = 0, width = 0, height = 0, index, data } = props;
+  const item = data[Number(index)];
+  if (!item) return null;
+  const label = `${formatChartLabelHoursPtBr(Number(item.hours || 0), true)} (${formatChartLabelPercentagePtBr(Number(item.percentage || 0))})`;
+  return (
+    <text
+      className="category-hours-bar-label period-composition-bar-label"
+      dominantBaseline="middle"
+      textAnchor="start"
+      x={Number(x) + Number(width) + 8}
+      y={Number(y) + Number(height) / 2}
+    >
+      {label}
+    </text>
   );
 }
 

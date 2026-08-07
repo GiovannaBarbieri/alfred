@@ -134,6 +134,10 @@ test("gráficos preservam variação visual da análise", () => {
   assert.match(charts, /period-analysis-chart/);
   assert.match(styles, /\.report-period-analysis \.period-analysis-composition/);
   assert.match(styles, /\.report-period-analysis \.monthly-category-chart/);
+  assert.match(charts, /analysisView \? \(\s*<PeriodCompositionBars data=\{visibleData\} \/>/);
+  assert.match(charts, /<PieChart>/);
+  assert.match(charts, /period-composition-legend/);
+  assert.match(styles, /\.period-composition-bars/);
 });
 
 test("evolução executiva preserva as seis categorias", () => {
