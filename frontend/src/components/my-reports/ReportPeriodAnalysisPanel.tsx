@@ -148,6 +148,7 @@ export function ReportPeriodAnalysisPanel({
               title="Evolução mensal no intervalo selecionado"
               executive
               analysisView
+              strategicOnly
               description="Evolução mensal das categorias no intervalo selecionado."
             />
           </section>

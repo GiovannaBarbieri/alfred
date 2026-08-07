@@ -128,6 +128,9 @@ test("formatadores pt-BR padronizam horas, percentuais e contagens", () => {
 
 test("gráficos preservam variação visual da análise", () => {
   assert.match(component, /analysisView/);
+  assert.match(component, /strategicOnly/);
+  assert.match(charts, /strategicOnly \? STRATEGIC_CHART_SERIES : executive \? EXECUTIVE_CHART_SERIES : STRATEGIC_CHART_SERIES/);
+  assert.match(charts, /periodTitle=\{executive \|\| strategicOnly\}/);
   assert.match(charts, /period-analysis-chart/);
   assert.match(styles, /\.report-period-analysis \.period-analysis-composition/);
   assert.match(styles, /\.report-period-analysis \.monthly-category-chart/);

@@ -70,13 +70,14 @@ export function GeneralIndicatorMonthlyCategoryChart({
   title = "Evolução mensal das categorias estratégicas",
   executive = false,
   analysisView = false,
+  strategicOnly = false,
   description,
-}: ResultProps & { title?: string; executive?: boolean; analysisView?: boolean; description?: string }) {
+}: ResultProps & { title?: string; executive?: boolean; analysisView?: boolean; strategicOnly?: boolean; description?: string }) {
   const data = useMemo(
     () => executive ? buildPeriodEvolutionChart(result.months) : buildMonthlyStrategicChart(result.months),
     [executive, result.months],
   );
-  const series = executive ? EXECUTIVE_CHART_SERIES : STRATEGIC_CHART_SERIES;
+  const series = strategicOnly ? STRATEGIC_CHART_SERIES : executive ? EXECUTIVE_CHART_SERIES : STRATEGIC_CHART_SERIES;
   const highlights = useMemo(() => buildLineChartHighlights(data, series), [data, series]);
   return (
     <article className={`panel general-indicators-chart management-chart-panel${analysisView ? " period-analysis-chart" : ""}`}>
@@ -93,7 +94,7 @@ export function GeneralIndicatorMonthlyCategoryChart({
               <CartesianGrid stroke={GENERAL_INDICATOR_CHART_COLORS.grid} strokeDasharray="3 3" strokeOpacity={0.5} vertical={false} />
               <XAxis dataKey="label" axisLine={false} tickLine={false} />
               <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => formatCompactHoursPtBr(Number(value))} width={54} />
-              <Tooltip content={<MonthlyCategoryTooltip executive={executive} />} />
+              <Tooltip content={<MonthlyCategoryTooltip executive={executive && !strategicOnly} periodTitle={executive || strategicOnly} />} />
               <Legend verticalAlign="bottom" height={analysisView ? 28 : 34} />
               {series.map((item) => (
                 <Line
@@ -313,7 +314,7 @@ function CompositionTooltip({ active, payload, spaceBeforeUnit = false }: Toolti
   return <ChartTooltip title={String(item.name)} rows={rows} />;
 }
 
-function MonthlyCategoryTooltip({ active, payload, label, executive = false }: TooltipProps & { executive?: boolean }) {
+function MonthlyCategoryTooltip({ active, payload, label, executive = false, periodTitle = false }: TooltipProps & { executive?: boolean; periodTitle?: boolean }) {
   if (!active || !payload?.length) return null;
   if (executive) {
     const totalHours = Number(payload[0]?.payload?.totalHours || 0);
@@ -333,7 +334,7 @@ function MonthlyCategoryTooltip({ active, payload, label, executive = false }: T
   const rows = payload.map((item) => [String(item.name), formatHoursPtBr(Number(item.value || 0), false)] as [string, string]);
   const strategicTotal = payload.reduce((total, item) => total + Number(item.value || 0), 0);
   rows.push(["Total do mês", formatHoursPtBr(strategicTotal, false)]);
-  return <ChartTooltip title={String(label ?? "")} rows={rows} />;
+  return <ChartTooltip title={periodTitle ? periodTooltipTitle(payload[0]?.payload, label) : String(label ?? "")} rows={rows} />;
 }
 
 function periodTooltipTitle(point: any, fallbackLabel?: string) {
