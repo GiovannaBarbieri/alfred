@@ -1,3 +1,5 @@
+import html2canvas from "html2canvas";
+
 type ExportableChart = {
   element: HTMLElement;
   title: string;
@@ -67,72 +69,24 @@ export function sanitizeFileName(value: string) {
 }
 
 async function captureElementAsPng(element: HTMLElement) {
-  const box = element.getBoundingClientRect();
-  const width = Math.ceil(box.width);
-  const height = Math.ceil(box.height);
-  const clone = element.cloneNode(true) as HTMLElement;
-  if (clone instanceof HTMLDetailsElement) clone.open = true;
-  clone.style.margin = "0";
-  clone.style.width = `${width}px`;
-  clone.style.minWidth = `${width}px`;
-  clone.style.maxWidth = `${width}px`;
-  clone.style.height = "auto";
-  inlineComputedStyles(element, clone);
-  clone.querySelectorAll("[data-export-exclude]").forEach((item) => item.remove());
-
-  const wrapper = document.createElement("div");
-  wrapper.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
-  wrapper.style.background = "#ffffff";
-  wrapper.style.boxSizing = "border-box";
-  wrapper.style.margin = "0";
-  wrapper.style.padding = "0";
-  wrapper.style.width = `${width}px`;
-  wrapper.appendChild(clone);
-
-  const serialized = new XMLSerializer().serializeToString(wrapper);
-  const svg = [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`,
-    `<foreignObject width="100%" height="100%">${serialized}</foreignObject>`,
-    "</svg>",
-  ].join("");
-  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
+  const hiddenElements = Array.from(element.querySelectorAll<HTMLElement>("[data-export-exclude]"));
+  const previousVisibility = hiddenElements.map((item) => item.style.visibility);
+  hiddenElements.forEach((item) => {
+    item.style.visibility = "hidden";
+  });
   try {
-    const image = await loadImage(url);
-    const scale = Math.min(Math.max(window.devicePixelRatio || 2, 2), 3);
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.ceil(width * scale);
-    canvas.height = Math.ceil(height * scale);
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("Nao foi possivel preparar a imagem do grafico.");
-    context.scale(scale, scale);
-    context.fillStyle = "#ffffff";
-    context.fillRect(0, 0, width, height);
-    context.drawImage(image, 0, 0, width, height);
+    const canvas = await html2canvas(element, {
+      backgroundColor: "#ffffff",
+      logging: false,
+      scale: Math.min(Math.max(window.devicePixelRatio || 2, 2), 3),
+      useCORS: true,
+    });
     return await canvasToBlob(canvas);
   } finally {
-    URL.revokeObjectURL(url);
+    hiddenElements.forEach((item, index) => {
+      item.style.visibility = previousVisibility[index] ?? "";
+    });
   }
-}
-
-function inlineComputedStyles(source: Element, target: Element) {
-  const computed = window.getComputedStyle(source);
-  const targetElement = target as HTMLElement;
-  Array.from(computed).forEach((property) => {
-    targetElement.style.setProperty(property, computed.getPropertyValue(property), computed.getPropertyPriority(property));
-  });
-  Array.from(source.children).forEach((sourceChild, index) => {
-    const targetChild = target.children.item(index);
-    if (targetChild) inlineComputedStyles(sourceChild, targetChild);
-  });
-}
-
-function loadImage(url: string) {
-  return new Promise<HTMLImageElement>((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("Nao foi possivel gerar a imagem do grafico."));
-    image.src = url;
-  });
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement) {

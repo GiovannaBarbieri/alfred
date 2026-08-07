@@ -125,6 +125,8 @@ test("relatório salvo permite exportar cards gráficos como imagens", () => {
   assert.match(exportUtils, /data-chart-export-card/);
   assert.match(exportUtils, /data-export-exclude/);
   assert.match(exportUtils, /data-period-analysis-result/);
+  assert.match(exportUtils, /html2canvas/);
+  assert.doesNotMatch(exportUtils, /foreignObject/);
   assert.match(component, /data-period-analysis-result/);
   assert.match(exportUtils, /type: "application\/zip"/);
 });
