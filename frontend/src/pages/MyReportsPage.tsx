@@ -101,6 +101,7 @@ export function MyReportsPage({
         draft={history.draft}
         canApply={history.canApplyFilters}
         canClear={history.canClearFilters}
+        reportTypes={history.reportTypes}
         onChange={history.updateDraft}
         onApply={history.applyFilters}
         onClear={history.clearFilters}

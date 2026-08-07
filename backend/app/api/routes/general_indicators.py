@@ -38,6 +38,7 @@ from app.schemas.report_history import (
     SavedReportComparisonOptionsResponse,
     SavedReportsComparisonRequest,
     SavedReportsComparisonResponse,
+    ReportTypeOptionsResponse,
 )
 from app.services.report_history_service import (
     ReportHistoryConflictError,
@@ -48,6 +49,7 @@ from app.services.report_history_service import (
     compare_saved_report_snapshots,
     delete_annual_saved_report,
     get_annual_saved_report,
+    list_annual_saved_report_types,
     list_annual_saved_reports,
     list_saved_reports_for_comparison,
     update_annual_saved_report,
@@ -64,7 +66,7 @@ router = APIRouter()
 
 @router.get("/reports", response_model=SavedReportListResponse)
 def list_general_indicator_reports(
-    report_type: ReportType = Query(default=ReportType.GENERAL_INDICATORS, alias="type"),
+    report_type: str | None = Query(default=None, alias="type", max_length=100),
     year: int | None = Query(default=None, ge=2000, le=2200),
     search: str | None = Query(default=None, max_length=255),
     page: int = Query(default=1, ge=1),
@@ -77,6 +79,11 @@ def list_general_indicator_reports(
         page=page,
         page_size=page_size,
     )
+
+
+@router.get("/reports/types", response_model=ReportTypeOptionsResponse)
+def list_general_indicator_report_types() -> ReportTypeOptionsResponse:
+    return list_annual_saved_report_types()
 
 
 @router.get("/reports/comparison-options", response_model=SavedReportComparisonOptionsResponse)

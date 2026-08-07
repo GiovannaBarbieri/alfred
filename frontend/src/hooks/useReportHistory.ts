@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   deleteReport,
   getReportDetail,
+  listReportTypes,
   listReports,
   ReportHistoryApiError,
   updateReport,
@@ -10,6 +11,7 @@ import type {
   ReportActionState,
   ReportListParams,
   SavedReportListResponse,
+  SavedReportTypeOption,
   SavedReportViewState,
 } from "../types";
 import { areReportFiltersEqual } from "../utils/reportHistoryFilters";
@@ -18,11 +20,13 @@ import { scheduleReportNoticeDismiss } from "../utils/reportHistoryNotice";
 export type ReportFilterDraft = {
   search: string;
   year: string;
+  type: string;
 };
 
 const defaultFilters: ReportFilterDraft = {
   search: "",
   year: currentYearFilter(),
+  type: "",
 };
 
 export function useReportHistory(actor?: string | null) {
@@ -41,11 +45,12 @@ export function useReportHistory(actor?: string | null) {
   const [view, setView] = useState<SavedReportViewState | null>(null);
   const [viewRefreshing, setViewRefreshing] = useState(false);
   const [updatePeriodDraft, setUpdatePeriodDraft] = useState<{ startDate: string; endDate: string } | null>(null);
+  const [reportTypes, setReportTypes] = useState<SavedReportTypeOption[]>([]);
   const noticeSequence = useRef(0);
   const [notice, setNotice] = useState<{ id: number; message: string } | null>(null);
 
   const params = useMemo<ReportListParams>(() => ({
-    type: "GENERAL_INDICATORS",
+    type: applied.type || undefined,
     year: applied.year ? Number(applied.year) : undefined,
     search: applied.search.trim(),
     page,
@@ -68,6 +73,20 @@ export function useReportHistory(actor?: string | null) {
   useEffect(() => {
     void load(false);
   }, [load]);
+
+  useEffect(() => {
+    let ignore = false;
+    async function loadReportTypeOptions() {
+      try {
+        const response = await listReportTypes();
+        if (!ignore) setReportTypes(response.items);
+      } catch {
+        if (!ignore) setReportTypes([]);
+      }
+    }
+    void loadReportTypeOptions();
+    return () => { ignore = true; };
+  }, []);
 
   const dismissNotice = useCallback(() => setNotice(null), []);
 
@@ -229,6 +248,7 @@ export function useReportHistory(actor?: string | null) {
     openingId,
     page,
     pageSize,
+    reportTypes,
     refresh: () => load(true),
     requestAction,
     showNotice,

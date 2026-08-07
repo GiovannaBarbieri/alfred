@@ -1073,7 +1073,11 @@ export type GeneralIndicatorFinalizationResponse = GeneralIndicatorFinalizedResp
   reportId: number;
 };
 
-export type SavedReportType = "GENERAL_INDICATORS";
+export type SavedReportType = string;
+export type SavedReportTypeOption = {
+  value: SavedReportType;
+  label: string;
+};
 export type AnnualReportUpdateStatus = "IDLE" | "PROCESSING" | "PENDING_CORRECTIONS" | "READY_TO_FINALIZE" | "FAILED";
 
 export type AnnualReportListItem = {
@@ -1146,6 +1150,10 @@ export type ReportListParams = {
   search?: string;
   page?: number;
   pageSize?: number;
+};
+
+export type ReportTypeOptionsResponse = {
+  items: SavedReportTypeOption[];
 };
 
 export type AnnualReportUpdateRequest = {

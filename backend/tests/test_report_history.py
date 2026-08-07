@@ -412,6 +412,10 @@ class ReportHistoryServiceTests(unittest.TestCase):
             "#/components/schemas/SavedReportListResponse",
         )
         self.assertEqual(
+            paths["/api/general-indicators/reports/types"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"],
+            "#/components/schemas/ReportTypeOptionsResponse",
+        )
+        self.assertEqual(
             paths["/api/general-indicators/reports/{report_id}"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"],
             "#/components/schemas/SavedReportDetail",
         )

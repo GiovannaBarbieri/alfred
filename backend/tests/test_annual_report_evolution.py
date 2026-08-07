@@ -159,6 +159,14 @@ class AnnualReportArchitectureTests(unittest.TestCase):
         self.assertNotIn("current_revision_id =", begin)
         self.assertIn("active_consultation_id = %s", begin)
 
+    def test_annual_report_listing_supports_all_report_types(self) -> None:
+        repository = read_repository()
+        listing = repository.split("def list_annual_reports", 1)[1].split("def list_annual_report_types", 1)[0]
+        self.assertIn("if report_type:", listing)
+        self.assertIn("Annual.report_type = %s", listing)
+        self.assertIn("def list_annual_report_types", repository)
+        self.assertIn("SELECT DISTINCT report_type", repository)
+
     def test_detail_reads_persisted_snapshot_without_tfs(self) -> None:
         repository = read_repository()
         detail = repository.split("def get_annual_report_detail", 1)[1].split("def begin_annual_report_update", 1)[0]

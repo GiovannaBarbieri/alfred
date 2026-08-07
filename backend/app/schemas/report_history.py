@@ -130,7 +130,7 @@ class AnnualReportCurrentRevision(BaseModel):
 class AnnualReportListItem(BaseModel):
     id: int
     name: str
-    type: ReportType
+    type: str
     year: int
     currentRevisionNumber: int
     periodStart: date
@@ -156,6 +156,15 @@ class AnnualReportListResponse(BaseModel):
     pageSize: int
     totalItems: int
     totalPages: int
+
+
+class ReportTypeOption(BaseModel):
+    value: str
+    label: str
+
+
+class ReportTypeOptionsResponse(BaseModel):
+    items: list[ReportTypeOption]
 
 
 class AnnualReportUpdateState(BaseModel):
@@ -206,7 +215,7 @@ class AnnualReportRevisionSummary(BaseModel):
 class AnnualReportDeleteResponse(BaseModel):
     deleted: bool
     id: int
-    type: ReportType
+    type: str
     year: int
     deletedRevisionCount: int
     deletedConsultationCount: int

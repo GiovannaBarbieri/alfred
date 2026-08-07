@@ -34,6 +34,7 @@ test("relatórios salvos continuam listáveis, pesquisáveis e excluíveis", () 
   assert.match(page, /items\.map\(\(report\) => <ReportCard key=\{report\.id\}/);
   assert.match(service, /return request<SavedReportListResponse>/);
   assert.match(filters, /Buscar por nome/);
+  assert.match(filters, /Tipo de relatório/);
   assert.match(card, /type: "delete", report/);
   assert.match(service, /method: "DELETE"/);
   assert.match(modal, /Excluir relatório\?/);

@@ -20,6 +20,7 @@ from app.repositories.report_history_repository import (
     get_report_history_detail,
     get_saved_report_comparison_source,
     list_annual_report_revisions,
+    list_annual_report_types,
     list_annual_reports,
     list_saved_report_comparison_options,
     list_report_history,
@@ -48,6 +49,8 @@ from app.schemas.report_history import (
     ReportListResponse,
     ReportStatusFilter,
     ReportType,
+    ReportTypeOption,
+    ReportTypeOptionsResponse,
     ReportVersionInfo,
     ReportComparisonType,
     ReportPeriodKind,
@@ -73,7 +76,7 @@ class ReportHistoryPeriodAnalysisError(Exception):
 
 def list_annual_saved_reports(
     *,
-    report_type: ReportType,
+    report_type: str | None,
     year: int | None,
     search: str | None,
     page: int,
@@ -82,7 +85,7 @@ def list_annual_saved_reports(
     with get_connection() as connection:
         rows, total = list_annual_reports(
             connection,
-            report_type=report_type.value,
+            report_type=report_type,
             year=year,
             search=search,
             offset=(page - 1) * page_size,
@@ -94,6 +97,18 @@ def list_annual_saved_reports(
         pageSize=page_size,
         totalItems=total,
         totalPages=ceil(total / page_size) if total else 0,
+    )
+
+
+def list_annual_saved_report_types() -> ReportTypeOptionsResponse:
+    with get_connection() as connection:
+        rows = list_annual_report_types(connection)
+    return ReportTypeOptionsResponse(
+        items=[
+            ReportTypeOption(value=row["report_type"], label=_report_type_label(row["report_type"]))
+            for row in rows
+            if row.get("report_type")
+        ]
     )
 
 
@@ -1109,7 +1124,7 @@ def delete_saved_report(report_id: int, *, actor: str | None) -> ReportDeleteRes
         "Permanent report deletion completed",
         extra={
             "report_id": response.id,
-            "report_type": response.type.value,
+            "report_type": response.type,
             "period_start": response.periodStart.isoformat(),
             "period_end": response.periodEnd.isoformat(),
             "version_number": response.versionNumber,
@@ -1183,6 +1198,16 @@ def _annual_list_item(row: dict[str, Any]) -> AnnualReportListItem:
         updateStatus=update_status,
         responsible=row.get("last_updated_by") or row.get("created_by"),
     )
+
+
+def _report_type_label(value: str) -> str:
+    known = {
+        ReportType.GENERAL_INDICATORS.value: "Indicadores Gerais",
+    }
+    if value in known:
+        return known[value]
+    words = value.replace("_", " ").replace("-", " ").strip().split()
+    return " ".join(word[:1].upper() + word[1:].lower() for word in words) or value
 
 
 def _annual_detail(row: dict[str, Any]) -> AnnualReportDetail:

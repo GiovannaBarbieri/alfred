@@ -807,14 +807,17 @@ _ANNUAL_REPORT_COLUMNS = """
 def list_annual_reports(
     connection: Connection,
     *,
-    report_type: str,
+    report_type: str | None,
     year: int | None,
     search: str | None,
     offset: int,
     limit: int,
 ) -> tuple[list[dict[str, Any]], int]:
-    conditions = ["Annual.report_type = %s", "Annual.current_revision_id IS NOT NULL"]
-    params: list[Any] = [report_type]
+    conditions = ["Annual.current_revision_id IS NOT NULL"]
+    params: list[Any] = []
+    if report_type:
+        conditions.append("Annual.report_type = %s")
+        params.append(report_type)
     if year is not None:
         conditions.append(
             "Revision.period_start <= make_date(%s, 12, 31) "
@@ -849,6 +852,19 @@ def list_annual_reports(
             [*params, offset, limit],
         )
         return list(cursor.fetchall()), total
+
+
+def list_annual_report_types(connection: Connection) -> list[dict[str, Any]]:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT DISTINCT report_type
+            FROM general_indicator_annual_reports
+            WHERE current_revision_id IS NOT NULL
+            ORDER BY report_type
+            """
+        )
+        return list(cursor.fetchall())
 
 
 def get_annual_report_detail(connection: Connection, report_id: int) -> dict[str, Any] | None:

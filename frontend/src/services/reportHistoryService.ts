@@ -8,6 +8,7 @@ import type {
   SavedReportDetail,
   SavedReportComparisonOptionsResponse,
   SavedReportListResponse,
+  ReportTypeOptionsResponse,
   SavedReportsComparisonResponse,
   SavedReportType,
 } from "../types";
@@ -38,6 +39,10 @@ export class ReportHistoryApiError extends Error {
 
 export async function listReports(params: ReportListParams): Promise<SavedReportListResponse> {
   return request<SavedReportListResponse>(`/general-indicators/reports${buildQuery(params)}`);
+}
+
+export async function listReportTypes(): Promise<ReportTypeOptionsResponse> {
+  return request<ReportTypeOptionsResponse>("/general-indicators/reports/types");
 }
 
 export async function getReportDetail(id: number): Promise<SavedReportDetail> {

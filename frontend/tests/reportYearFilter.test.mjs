@@ -8,6 +8,7 @@ const filters = read("components/my-reports/ReportFilters.tsx");
 
 test("year filter defaults to the current year and clears back to it", () => {
   assert.match(hook, /year: currentYearFilter\(\)/);
+  assert.match(hook, /type: ""/);
   assert.match(hook, /function currentYearFilter\(\)/);
   assert.match(hook, /new Date\(\)\.getFullYear\(\)/);
   assert.match(hook, /setDraft\(defaultFilters\)/);
@@ -20,4 +21,12 @@ test("year options keep all-years and individual years from 2020 to current year
   assert.match(filters, /currentYear - MIN_REPORT_YEAR \+ 1/);
   assert.match(filters, /MIN_REPORT_YEAR \+ index/);
   assert.doesNotMatch(filters, /1999|2000|2019/);
+});
+
+test("report type filter starts with all types and uses dynamic options", () => {
+  assert.match(filters, /Tipo de relatório/);
+  assert.match(filters, /Todos os tipos/);
+  assert.match(filters, /reportTypes\.map/);
+  assert.match(hook, /listReportTypes\(\)/);
+  assert.match(hook, /type: applied\.type \|\| undefined/);
 });
