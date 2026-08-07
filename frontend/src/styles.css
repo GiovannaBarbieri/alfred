@@ -1498,6 +1498,29 @@ input {
   flex: 0 0 auto;
 }
 
+.general-indicator-cancel-button {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #123c69;
+  border-radius: 8px;
+  color: #123c69;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 14px;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+  white-space: nowrap;
+  width: auto;
+}
+
+.general-indicator-cancel-button:hover {
+  background: #dbeafe;
+  border-color: #0f3a64;
+}
+
 .general-indicator-processing div,
 .general-indicator-processing strong,
 .general-indicator-processing span {

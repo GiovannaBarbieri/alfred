@@ -48,15 +48,15 @@ SQLSERVER_IMPORT_COLUMNS = [
 
 
 class SQLServerIntegrationError(Exception):
-    user_message = "Nao foi possivel consultar o SQL Server."
+    user_message = "Não foi possível consultar o SQL Server."
 
 
 class SQLServerConfigurationError(SQLServerIntegrationError):
-    user_message = "Configuracao do SQL Server incompleta."
+    user_message = "Configuração do SQL Server incompleta."
 
 
 class SQLServerConnectionError(SQLServerIntegrationError):
-    user_message = "Nao foi possivel conectar ao SQL Server."
+    user_message = "Não foi possível conectar ao SQL Server."
 
 
 class SQLServerQueryError(SQLServerIntegrationError):
@@ -68,11 +68,11 @@ class SQLServerTimeoutError(SQLServerIntegrationError):
 
 
 class SQLServerEmptyResultError(SQLServerIntegrationError):
-    user_message = "A consulta ao SQL Server nao retornou registros."
+    user_message = "A consulta ao SQL Server não retornou registros."
 
 
 class SQLServerInvalidIdError(SQLServerIntegrationError):
-    user_message = "Informe apenas IDs numericos para consultar o SQL Server."
+    user_message = "Informe apenas IDs numéricos para consultar o SQL Server."
 
 
 class SQLServerAmbiguousIdError(SQLServerIntegrationError):

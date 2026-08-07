@@ -171,7 +171,7 @@ function Processing({ operation, affected, progress, onCancel }: { operation: Ex
     finalization: ["Salvando relatório", "Registrando um novo snapshot independente."],
   }[operation];
   const message = operation === "consultation" && progress ? `${progress.message} (${progress.percentage}%)` : content[1];
-  return <div className="general-indicator-processing" role="status" aria-live="polite"><RefreshCw className="spinning" size={18} /><div><strong>{content[0]}</strong><span>{message}</span></div>{onCancel && <button className="secondary-button compact" type="button" onClick={onCancel}>Cancelar consulta</button>}</div>;
+  return <div className="general-indicator-processing" role="status" aria-live="polite"><RefreshCw className="spinning" size={18} /><div><strong>{content[0]}</strong><span>{message}</span></div>{onCancel && <button className="general-indicator-cancel-button" type="button" onClick={onCancel}>Cancelar consulta</button>}</div>;
 }
 
 function errorMessage(value: unknown, fallback: string) { return value instanceof Error ? value.message : fallback; }

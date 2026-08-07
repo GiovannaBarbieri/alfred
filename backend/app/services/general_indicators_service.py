@@ -41,6 +41,7 @@ from app.services.general_indicator_modules_service import apply_general_indicat
 from app.services.sqlserver_service import (
     GENERAL_INDICATOR_FEATURE_BATCH_SIZE,
     GENERAL_INDICATOR_HIERARCHY_BATCH_SIZE,
+    SQLServerIntegrationError,
     query_general_indicator_raw_launches,
     query_general_indicator_raw_launches_by_ids,
     query_tfs_indicator_items,
@@ -257,9 +258,11 @@ def process_general_indicator_validation(
             save_general_indicator_validation(connection, consultation_id, validation)
         return validation
     except Exception as exc:
+        logger.exception("Falha ao processar consulta de indicadores gerais. consulta_id=%s", consultation_id)
+        message = exc.user_message if isinstance(exc, SQLServerIntegrationError) else str(exc)
         with get_connection() as connection:
-            mark_general_indicator_consultation_error(connection, consultation_id, message=str(exc))
-        raise
+            mark_general_indicator_consultation_error(connection, consultation_id, message=message)
+        return get_general_indicator_consultation_snapshot(consultation_id)
 
 
 def get_general_indicator_consultation_snapshot(
