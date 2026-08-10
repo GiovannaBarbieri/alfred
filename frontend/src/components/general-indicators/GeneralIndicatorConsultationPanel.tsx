@@ -247,12 +247,12 @@ export function GeneralIndicatorConsultationPanel({
               <div className="general-indicator-issue-detail">
                 <p>{group.messages.join(" ")}</p>
                 {group.launches.length > 0 && (
-                  <div className="launch-issue-reference-list" aria-label="Lan\u00e7amentos para corrigir">
-                    <strong>Lan\u00e7amentos para localizar no TFS</strong>
+                  <div className="launch-issue-reference-list" aria-label="Lançamentos para corrigir">
+                    <strong>Lançamentos para localizar no TFS</strong>
                     {group.launches.map((launch) => (
                       <div className="launch-issue-reference" key={`${group.type}-${launch.launchId}`}>
                         <div>
-                          <span>Lan\u00e7amento</span>
+                          <span>Lançamento</span>
                           <b>{launch.launchId || "-"}</b>
                         </div>
                         <div>
@@ -272,7 +272,7 @@ export function GeneralIndicatorConsultationPanel({
                           </div>
                         )}
                         <div>
-                          <span>Dura\u00e7\u00e3o atual</span>
+                          <span>Duração atual</span>
                           <b>{launch.durationOriginal || "N\u00e3o informada"}</b>
                         </div>
                       </div>
