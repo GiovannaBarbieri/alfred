@@ -1,6 +1,6 @@
 # Regras de negócio
 
-Versão documental: **28/07/2026**.
+Versão documental: **10/08/2026**.
 
 ## Projetos — importação
 
@@ -60,6 +60,19 @@ Regras complementares:
 | Candidato inválido | Nunca é usado como Feature nem como fonte de TAG. |
 | PBI e Bug na mesma Feature | São permitidos e preservados separadamente. |
 
+## Indicadores Gerais — Work Items removidos
+
+| Regra | Comportamento |
+| --- | --- |
+| Fonte do estado | `tbl_WorkItemCoreLatest.State`, consultado em lote junto com a hierarquia atual. |
+| Níveis avaliados | Task, PBI/Bug, Feature e Epic. |
+| Valor removido | `Removed`, com normalização de caixa e espaços antes da comparação. |
+| Desconsideração | Se qualquer nível resolvido estiver `Removed`, o lançamento fica fora dos cálculos oficiais. |
+| Deduplicação | Um `IdLancamento` é desconsiderado apenas uma vez, mesmo com múltiplos níveis `Removed`. |
+| Auditoria | O lançamento permanece no snapshot com `removedByWorkItemState`, `removedWorkItems`, `workItemRemovedReason` e `disregardedReasons`. |
+| Pendência | `Removed` não gera inconsistência impeditiva nem exige ação manual no Alfred. |
+| Atualização do sistema | Se o lançamento removido estava em `Atualização do sistema`, suas horas são retiradas antes da redistribuição. |
+
 ## Indicadores Gerais — TAGs
 
 Formato:
@@ -102,6 +115,7 @@ Categorias canônicas usadas no cálculo:
 
 - perfil participante: lançamento pode ser validado e calculado;
 - perfil não participante: lançamento permanece persistido e auditado, sem gerar bloqueios funcionais de hierarquia e sem integrar os cálculos;
+- Work Item removido: lançamento permanece persistido e auditado, sem gerar bloqueio funcional e sem integrar os cálculos;
 - totais brutos, considerados e desconsiderados devem reconciliar.
 
 ## Pendências
@@ -238,6 +252,7 @@ O snapshot guarda:
 - KPIs e limites;
 - configuração histórica de pesos;
 - auditoria por `IdLancamento`;
+- evidências de Work Items removidos quando houver desconsideração por `State = Removed`;
 - inconsistências e evidências;
 - hashes do snapshot e do resultado.
 

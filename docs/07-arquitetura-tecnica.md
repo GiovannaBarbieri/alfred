@@ -1,6 +1,6 @@
 # Arquitetura técnica
 
-Revisão: **28/07/2026**.
+Revisão: **10/08/2026**.
 
 ## Visão geral
 
@@ -94,7 +94,7 @@ sequenceDiagram
   UI->>API: POST /consultations
   API->>PG: cria consulta
   API-->>UI: 202 + consultationId
-  API->>TFS: lançamentos/hierarquia/TAGs em lote
+  API->>TFS: lançamentos/hierarquia/State/TAGs em lote
   API->>PG: lançamentos + inconsistências + progresso
   loop polling
     UI->>API: GET /consultations/{id}
@@ -104,6 +104,8 @@ sequenceDiagram
 ```
 
 Consultas oficiais não usam `NOLOCK`. Leitura suja poderia gerar hierarquia e horas inconsistentes no snapshot.
+
+A leitura de hierarquia também recupera `tbl_WorkItemCoreLatest.State` para Task, PBI/Bug, Feature e Epic. A informação é obtida em lote junto com os Work Items resolvidos, evitando consultas individuais por lançamento.
 
 ### Finalização
 
@@ -120,6 +122,8 @@ O serviço:
 9. conclui de forma atômica.
 
 Não há consulta ao TFS nessa etapa.
+
+Lançamentos marcados como removidos por `State = Removed` já chegam à finalização como desconsiderados. Eles permanecem no audit trail, mas não entram nos totais, KPIs, categorias, evolução mensal, distribuição ponderada ou análise por período.
 
 ### Relatórios
 
@@ -157,6 +161,7 @@ A listagem lê campos indexados. O detalhe lê o snapshot persistido e remove a 
 - snapshot é imutável.
 - atualização de configuração não altera histórico.
 - análise por período reutiliza o motor oficial e pesos históricos.
+- Work Items com `State = Removed` são tratados como desconsideração automática auditável, não como pendência do usuário.
 - `IdLancamento` não pode ser agregado ou substituído por outro lançamento.
 - nomes `annual_*` permanecem temporariamente por compatibilidade.
 

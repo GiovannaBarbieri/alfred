@@ -250,6 +250,7 @@ Regras centrais:
 - as TAGs `1-`, `2-` e `3-` são obrigatórias na Feature;
 - Bug é identificado pelo tipo real do pai da Task e sempre classificado como `Bug`;
 - PBI é classificado pela TAG `2-` da Feature;
+- lançamentos cuja cadeia hierárquica resolvida contenha Work Item com `State = Removed` são desconsiderados automaticamente dos Indicadores Gerais;
 - colaboradores com `participa_indicadores_gerais=false` permanecem auditáveis, mas não entram nos cálculos;
 - `Atualização do sistema` é redistribuída mensalmente pela fórmula proporcional ponderada;
 - o padrão neutro usa peso 1 em Novo projeto, Melhoria, Erro TI, Bug e Manutenção, produzindo distribuição proporcional às horas originais;

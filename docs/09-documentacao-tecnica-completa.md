@@ -1,6 +1,6 @@
 # Referência técnica completa
 
-Revisão: **28/07/2026**.
+Revisão: **10/08/2026**.
 
 Este documento orienta desenvolvimento e manutenção. Regras funcionais detalhadas estão em [02-tabela-regras.md](02-tabela-regras.md); endpoints em [11-diagramas-endpoints-fluxos.md](11-diagramas-endpoints-fluxos.md).
 
@@ -123,11 +123,13 @@ O conjunto atual inclui:
 
 O acesso deve ser somente leitura.
 
+`tbl_WorkItemCoreLatest.State` é a fonte usada para representar o estado atual do Work Item exibido no TFS. A consulta de hierarquia retorna o estado individual de Task, PBI/Bug, Feature e Epic quando o respectivo item é resolvido.
+
 ### Estratégia de desempenho
 
 - uma consulta para lançamentos do período;
 - IDs de Tasks únicos;
-- hierarquia consultada em lotes;
+- hierarquia e `State` dos Work Items consultados em lotes;
 - Features únicas consultadas em lotes;
 - métricas de tempo por etapa;
 - paginação na resposta PostgreSQL;
@@ -145,6 +147,7 @@ Não adicionar `NOLOCK` às consultas oficiais: ele permite dirty reads, linhas 
 - resolve tipo real;
 - preserva lançamentos independentes;
 - identifica Feature válida;
+- identifica Work Items com `State = Removed` na cadeia resolvida;
 - analisa TAGs;
 - produz `trace` e diagnósticos.
 
@@ -157,6 +160,7 @@ Não adicionar `NOLOCK` às consultas oficiais: ele permite dirty reads, linhas 
 - calcula impacto;
 - relaciona consequência à causa raiz;
 - considera participação de colaborador;
+- trata `State = Removed` como desconsideração automática, sem gerar inconsistência impeditiva;
 - impede distribuição sem base mensal.
 
 ### Cálculo
@@ -169,6 +173,8 @@ Não adicionar `NOLOCK` às consultas oficiais: ele permite dirty reads, linhas 
 - balanceia arredondamento;
 - monta snapshot e auditoria;
 - registra versões e configuração histórica.
+
+Lançamentos desconsiderados por Work Item removido permanecem auditáveis, mas são removidos antes dos cálculos finais. Se eram `Atualização do sistema`, suas horas não entram na base transitória e não são redistribuídas.
 
 Não duplique fórmulas no frontend. O frontend apenas apresenta resultados.
 

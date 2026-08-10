@@ -1,6 +1,6 @@
 # Modelo de dados
 
-Versão documental: **28/07/2026**.
+Versão documental: **10/08/2026**.
 
 ## Bancos
 
@@ -82,10 +82,13 @@ Snapshot técnico por lançamento:
 - `consulta_id`;
 - `id_lancamento`, Task, pai e Feature;
 - tipo real do pai;
+- `State` atual dos Work Items resolvidos na cadeia, quando disponível;
 - categoria validada;
 - estado de validação;
 - duração;
-- `dados_tecnicos` JSONB com hierarquia, TAGs, origem e participação.
+- `dados_tecnicos` JSONB com hierarquia, TAGs, origem, participação e evidências de desconsideração.
+
+Quando a cadeia contém Work Item com `State = Removed`, o lançamento continua gravado com `validationState = disregarded` e `exclusionReason = work_item_removed`. O JSON técnico preserva `removedByWorkItemState`, `removedWorkItems`, `workItemRemovedReason` e `disregardedReasons`.
 
 Restrição única parcial:
 
@@ -172,6 +175,8 @@ Revisões/snapshots vinculados ao relatório:
 - vínculo com `general_indicator_annual_reports`.
 
 O snapshot funcional completo fica em `general_indicator_consultations.resultado`. `report_history` fornece identidade, revisão, filtros e resumo rápido.
+
+O resumo do snapshot de Indicadores Gerais também pode expor `removedLaunchCount` e `removedHours`, representando lançamentos preservados em auditoria, mas retirados dos cálculos oficiais por `State = Removed`.
 
 ### `annual_report_migration_issues`
 

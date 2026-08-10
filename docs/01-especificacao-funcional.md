@@ -1,6 +1,6 @@
 # Especificação funcional
 
-Versão documental: **28/07/2026**.
+Versão documental: **10/08/2026**.
 
 ## Objetivo
 
@@ -96,6 +96,7 @@ Task → PBI ou Bug → Feature → Epic
 - Um candidato superior só é aceito como Feature se seu tipo real for `Feature`.
 - TAGs nunca são lidas de um item que não foi confirmado como Feature.
 - Falta de Task, pai, Feature ou tipo suportado gera pendência impeditiva.
+- O `State` atual da Task, PBI/Bug, Feature e Epic é lido em lote a partir do TFS para permitir auditoria e desconsideração automática de itens removidos.
 
 ### TAGs e classificação
 
@@ -112,6 +113,25 @@ A Feature deve possuir exatamente uma TAG de cada nível:
 - Mesmo lançamentos abaixo de Bug exigem a presença das três TAGs na Feature.
 - Categoria desconhecida na TAG `2-` bloqueia a finalização.
 - Normalização técnica de espaços/acentos pode ser registrada como tratamento automático.
+
+### Work Items removidos
+
+Lançamentos associados a qualquer Work Item da cadeia hierárquica atual com `State = Removed` são preservados na auditoria, mas não participam dos Indicadores Gerais.
+
+Níveis avaliados:
+
+- Task;
+- PBI ou Bug;
+- Feature;
+- Epic.
+
+Regras:
+
+- a verificação usa o estado atual retornado por `tbl_WorkItemCoreLatest.State`;
+- a comparação é normalizada para evitar diferenças de caixa ou espaços;
+- o lançamento é contado uma única vez como desconsiderado, mesmo quando mais de um nível da cadeia estiver `Removed`;
+- `Removed` não gera pendência impeditiva para o usuário, pois não deve ser corrigido no Alfred;
+- horas removidas não entram no total considerado, KPIs, categorias, gráficos, distribuição de `Atualização do sistema` nem análise por período.
 
 ### Participação de colaboradores
 
