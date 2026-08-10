@@ -255,10 +255,10 @@ Regras centrais:
 - `Atualização do sistema` é redistribuída mensalmente pela fórmula proporcional ponderada;
 - o padrão neutro usa peso 1 em Novo projeto, Melhoria, Erro TI, Bug e Manutenção, produzindo distribuição proporcional às horas originais;
 - pesos configuráveis entre 2 e 5 continuam disponíveis para aumentar a prioridade de uma categoria;
-- meta de Novos projetos + melhorias: 40%;
-- limite de Erro TI + Bug: 10%;
+- metas de Novos projetos + melhorias e limites de Erro TI + Bug vêm da configuração histórica por vigência;
+- períodos sem configuração válida não podem gerar novo relatório;
 - relatório salvo é um snapshot imutável e não consulta novamente o TFS ao ser aberto;
-- a análise por período usa apenas o snapshot e seus pesos históricos.
+- a análise por período usa apenas o snapshot e suas configurações históricas de pesos e metas.
 
 Detalhes completos: [Regras de negócio](docs/02-tabela-regras.md) e [Indicadores Gerais](docs/01-especificacao-funcional.md#indicadores-gerais).
 

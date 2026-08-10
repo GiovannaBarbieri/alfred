@@ -19,6 +19,7 @@ MODULE_FILTER_VERSION = "general-indicator-modules-v1"
 CLASSIFICATION_VERSION = "hierarchy-tags-v2"
 DISTRIBUTION_RULES_VERSION = "update-system-weighted-proportional-v2"
 TARGET_RULES_VERSION = "general-indicators-targets-v1"
+TARGET_PERIOD_RULES_VERSION = "general-indicators-target-periods-v1"
 
 DEFAULT_DISTRIBUTION_CONFIGURATION = {
     "Novo projeto": {"weight": Decimal("1"), "active": True},
@@ -35,6 +36,23 @@ INDICATOR_RULES = {
     "projects_alert": Decimal("30"),
     "errors_limit": Decimal("10"),
     "errors_critical": Decimal("15"),
+}
+
+DEFAULT_TARGET_CONFIGURATION = {
+    "id": None,
+    "version": TARGET_RULES_VERSION,
+    "startDate": None,
+    "endDate": None,
+    "projectsImprovements": {
+        "target": str(INDICATOR_RULES["projects_target"]),
+        "attentionFrom": str(INDICATOR_RULES["projects_alert"]),
+        "direction": "higher_is_better",
+    },
+    "errorsBugs": {
+        "limit": str(INDICATOR_RULES["errors_limit"]),
+        "criticalAbove": str(INDICATOR_RULES["errors_critical"]),
+        "direction": "lower_is_better",
+    },
 }
 
 _DURATION_PATTERN = re.compile(r"^\s*(?:(\d+)d\s*)?(\d+):(\d{2}):(\d{2})\s*$", re.IGNORECASE)
@@ -286,6 +304,7 @@ def build_finalized_general_indicators(
     finalized_by: str | None = None,
     backend_build: str | None = None,
     distribution_configuration: dict[str, Any] | None = None,
+    target_configuration: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Calcula o resultado oficial exclusivamente a partir do snapshot validado da consulta."""
     launch_items = deepcopy(list(launches))
@@ -318,6 +337,7 @@ def build_finalized_general_indicators(
     months: list[dict[str, Any]] = []
     distribution: list[dict[str, Any]] = []
     normalized_distribution_configuration = normalize_distribution_configuration(distribution_configuration)
+    normalized_target_configuration = normalize_target_configuration(target_configuration)
     active_distribution_categories = [
         category
         for category, settings in normalized_distribution_configuration.items()
@@ -363,7 +383,7 @@ def build_finalized_general_indicators(
             )
 
         total = sum(result["adjusted"].values(), Decimal(0))
-        month_kpis = calculate_kpis(result["adjusted"], total)
+        month_kpis = calculate_kpis(result["adjusted"], total, target_configuration=normalized_target_configuration)
         months.append(
             {
                 "month": month,
@@ -406,7 +426,7 @@ def build_finalized_general_indicators(
         )
 
     total_seconds = sum(aggregate_adjusted.values(), Decimal(0))
-    kpis = calculate_kpis(aggregate_adjusted, total_seconds)
+    kpis = calculate_kpis(aggregate_adjusted, total_seconds, target_configuration=normalized_target_configuration)
     category_names = sorted(set(aggregate_original) | set(aggregate_adjusted), key=_category_sort_key)
     categories = [
         {
@@ -482,9 +502,14 @@ def build_finalized_general_indicators(
 
     summary = _build_finalized_summary(launch_items, consultation_summary or {})
     disregarded_modules = _build_disregarded_modules(launch_items)
-    quarters = _build_quarterly_results(months, start_date=start_date, end_date=end_date)
+    quarters = _build_quarterly_results(
+        months,
+        start_date=start_date,
+        end_date=end_date,
+        target_configuration=normalized_target_configuration,
+    )
     launch_snapshot_hash = _hash_payload(_launch_hash_projection(launch_items))
-    rules = _official_rules_snapshot(normalized_distribution_configuration)
+    rules = _official_rules_snapshot(normalized_distribution_configuration, normalized_target_configuration)
     rules["modules"] = {
         "version": MODULE_FILTER_VERSION,
         "identity": "Texto completo da TAG 1-",
@@ -511,7 +536,7 @@ def build_finalized_general_indicators(
             "calculationVersion": CALCULATION_VERSION,
             "classificationVersion": CLASSIFICATION_VERSION,
             "distributionRulesVersion": DISTRIBUTION_RULES_VERSION,
-            "targetsVersion": TARGET_RULES_VERSION,
+            "targetsVersion": str(normalized_target_configuration.get("version") or TARGET_RULES_VERSION),
             "backendBuild": backend_build,
             "moduleFilterVersion": MODULE_FILTER_VERSION,
         },
@@ -612,6 +637,7 @@ def _build_quarterly_results(
     *,
     start_date: date,
     end_date: date,
+    target_configuration: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     grouped: dict[str, dict[str, Any]] = {}
     for month in months:
@@ -649,7 +675,7 @@ def _build_quarterly_results(
             "Erro TI": item["itErrorHours"],
             "Bug": item["bugHours"],
         }
-        kpis = calculate_kpis(categories, item["totalHours"])
+        kpis = calculate_kpis(categories, item["totalHours"], target_configuration=target_configuration)
         quarter_start_month = (item["quarterNumber"] - 1) * 3 + 1
         quarter_start = date(item["year"], quarter_start_month, 1)
         quarter_end_month = quarter_start_month + 2
@@ -688,14 +714,20 @@ def _month_competence(month: str, start_date: date, end_date: date) -> dict[str,
 
 def _official_rules_snapshot(
     distribution_configuration: dict[str, Any] | None = None,
+    target_configuration: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     configuration = normalize_distribution_configuration(distribution_configuration)
+    targets = normalize_target_configuration(target_configuration)
+    projects_target = targets["projectsImprovements"]["target"]
+    projects_attention = targets["projectsImprovements"]["attentionFrom"]
+    errors_limit = targets["errorsBugs"]["limit"]
+    errors_critical = targets["errorsBugs"]["criticalAbove"]
     return {
         "versions": {
             "calculation": CALCULATION_VERSION,
             "classification": CLASSIFICATION_VERSION,
             "distribution": DISTRIBUTION_RULES_VERSION,
-            "targets": TARGET_RULES_VERSION,
+            "targets": str(targets.get("version") or TARGET_RULES_VERSION),
         },
         "distribution": {
             "method": "Distribuição proporcional ponderada",
@@ -719,22 +751,23 @@ def _official_rules_snapshot(
             "launchUnit": "Cada IdLancamento é uma unidade independente.",
         },
         "targets": {
+            "configuration": target_configuration_snapshot(targets),
             "projectsImprovements": {
-                "target": float(INDICATOR_RULES["projects_target"]),
-                "attentionFrom": float(INDICATOR_RULES["projects_alert"]),
+                "target": float(projects_target),
+                "attentionFrom": float(projects_attention),
                 "statuses": {
-                    "within_target": "percentual >= 40",
-                    "attention": "30 <= percentual < 40",
-                    "alert": "percentual < 30",
+                    "within_target": f"percentual >= {projects_target}",
+                    "attention": f"{projects_attention} <= percentual < {projects_target}",
+                    "alert": f"percentual < {projects_attention}",
                 },
             },
             "errorsBugs": {
-                "limit": float(INDICATOR_RULES["errors_limit"]),
-                "criticalAbove": float(INDICATOR_RULES["errors_critical"]),
+                "limit": float(errors_limit),
+                "criticalAbove": float(errors_critical),
                 "statuses": {
-                    "within_target": "percentual <= 10",
-                    "attention": "10 < percentual <= 15",
-                    "critical": "percentual > 15",
+                    "within_target": f"percentual <= {errors_limit}",
+                    "attention": f"{errors_limit} < percentual <= {errors_critical}",
+                    "critical": f"percentual > {errors_critical}",
                 },
             },
         },
@@ -864,38 +897,98 @@ def distribute_update_system(
     return {"original": dict(original), "allocated": dict(allocated), "adjusted": dict(adjusted)}, issues
 
 
-def calculate_kpis(categories: dict[str, Decimal], total: Decimal) -> dict[str, Any]:
+def normalize_target_configuration(configuration: dict[str, Any] | None = None) -> dict[str, Any]:
+    source = dict(configuration or DEFAULT_TARGET_CONFIGURATION)
+    projects = dict(source.get("projectsImprovements") or {})
+    errors = dict(source.get("errorsBugs") or {})
+    projects_target = Decimal(str(projects.get("target", INDICATOR_RULES["projects_target"])))
+    projects_attention = Decimal(str(projects.get("attentionFrom", INDICATOR_RULES["projects_alert"])))
+    errors_limit = Decimal(str(errors.get("limit", INDICATOR_RULES["errors_limit"])))
+    errors_critical = Decimal(str(errors.get("criticalAbove", INDICATOR_RULES["errors_critical"])))
+    return {
+        "id": source.get("id"),
+        "version": source.get("version") or TARGET_RULES_VERSION,
+        "startDate": source.get("startDate"),
+        "endDate": source.get("endDate"),
+        "projectsImprovements": {
+            "target": projects_target,
+            "attentionFrom": projects_attention,
+            "direction": projects.get("direction") or "higher_is_better",
+        },
+        "errorsBugs": {
+            "limit": errors_limit,
+            "criticalAbove": errors_critical,
+            "direction": errors.get("direction") or "lower_is_better",
+        },
+        "updatedAt": source.get("updatedAt"),
+        "updatedBy": source.get("updatedBy"),
+    }
+
+
+def target_configuration_snapshot(configuration: dict[str, Any] | None = None) -> dict[str, Any]:
+    normalized = normalize_target_configuration(configuration)
+    return {
+        "id": normalized.get("id"),
+        "version": normalized.get("version") or TARGET_RULES_VERSION,
+        "startDate": normalized.get("startDate"),
+        "endDate": normalized.get("endDate"),
+        "projectsImprovements": {
+            "target": str(normalized["projectsImprovements"]["target"].quantize(Decimal("0.01"))),
+            "attentionFrom": str(normalized["projectsImprovements"]["attentionFrom"].quantize(Decimal("0.01"))),
+            "direction": normalized["projectsImprovements"]["direction"],
+        },
+        "errorsBugs": {
+            "limit": str(normalized["errorsBugs"]["limit"].quantize(Decimal("0.01"))),
+            "criticalAbove": str(normalized["errorsBugs"]["criticalAbove"].quantize(Decimal("0.01"))),
+            "direction": normalized["errorsBugs"]["direction"],
+        },
+        "updatedAt": normalized.get("updatedAt"),
+        "updatedBy": normalized.get("updatedBy"),
+    }
+
+
+def calculate_kpis(
+    categories: dict[str, Decimal],
+    total: Decimal,
+    *,
+    target_configuration: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    targets = normalize_target_configuration(target_configuration)
+    projects_target = targets["projectsImprovements"]["target"]
+    projects_attention = targets["projectsImprovements"]["attentionFrom"]
+    errors_limit = targets["errorsBugs"]["limit"]
+    errors_critical = targets["errorsBugs"]["criticalAbove"]
     projects_hours = categories.get("Novo projeto", Decimal(0)) + categories.get("Melhoria", Decimal(0))
     errors_hours = categories.get("Erro TI", Decimal(0)) + categories.get("Bug", Decimal(0))
     projects_percentage = _percentage_decimal(projects_hours, total)
     errors_percentage = _percentage_decimal(errors_hours, total)
     projects_status = (
         "within_target"
-        if projects_percentage >= INDICATOR_RULES["projects_target"]
+        if projects_percentage >= projects_target
         else "alert"
-        if projects_percentage < INDICATOR_RULES["projects_alert"]
+        if projects_percentage < projects_attention
         else "attention"
     )
     errors_status = (
         "within_target"
-        if errors_percentage <= INDICATOR_RULES["errors_limit"]
+        if errors_percentage <= errors_limit
         else "attention"
-        if errors_percentage <= INDICATOR_RULES["errors_critical"]
+        if errors_percentage <= errors_critical
         else "critical"
     )
     return {
         "projectsImprovements": {
             "hours": _hours(projects_hours),
             "percentage": float(projects_percentage.quantize(Decimal("0.01"))),
-            "target": float(INDICATOR_RULES["projects_target"]),
-            "difference": float((projects_percentage - INDICATOR_RULES["projects_target"]).quantize(Decimal("0.01"))),
+            "target": float(projects_target),
+            "difference": float((projects_percentage - projects_target).quantize(Decimal("0.01"))),
             "status": projects_status,
         },
         "errorsBugs": {
             "hours": _hours(errors_hours),
             "percentage": float(errors_percentage.quantize(Decimal("0.01"))),
-            "limit": float(INDICATOR_RULES["errors_limit"]),
-            "difference": float((errors_percentage - INDICATOR_RULES["errors_limit"]).quantize(Decimal("0.01"))),
+            "limit": float(errors_limit),
+            "difference": float((errors_percentage - errors_limit).quantize(Decimal("0.01"))),
             "status": errors_status,
         },
     }

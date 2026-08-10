@@ -143,6 +143,17 @@ Filtros variam por endpoint e incluem importação/projeto, período, colaborado
 
 Cabeçalho opcional de usuário é tratado conforme a rota atual. O serviço valida lista completa, pesos 1–5 e pelo menos uma categoria ativa.
 
+### Metas dos indicadores
+
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| GET | `/api/settings/indicator-targets` | Lista períodos de metas |
+| POST | `/api/settings/indicator-targets` | Cria período de metas |
+| PATCH | `/api/settings/indicator-targets/{period_id}` | Atualiza período de metas |
+| DELETE | `/api/settings/indicator-targets/{period_id}` | Remove período de metas |
+
+O serviço valida percentuais, datas e sobreposição. Consultas novas dos Indicadores Gerais precisam estar cobertas por uma única vigência.
+
 ### Módulos dos Indicadores Gerais
 
 | Método | Endpoint | Finalidade |

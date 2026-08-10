@@ -131,6 +131,7 @@ class GeneralIndicatorSelectiveUpdateTests(unittest.TestCase):
             stack.enter_context(patch("app.services.general_indicators_service.get_connection", return_value=context))
             save = stack.enter_context(patch("app.services.general_indicators_service.save_general_indicator_validation"))
             stack.enter_context(patch("app.services.general_indicators_service.complete_general_indicator_update"))
+            stack.enter_context(patch("app.services.general_indicators_service.target_configuration_for_period", return_value=None))
 
             result = refresh_full_general_indicator_consultation(77, confirmed=True)
 

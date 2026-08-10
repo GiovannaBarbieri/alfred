@@ -168,6 +168,15 @@ O bootstrap agrega leituras para reduzir carregamento inicial.
 - pesos entre 2 e 5 aumentam a prioridade da categoria;
 - alterações afetam somente novas consultas e não modificam snapshots finalizados.
 
+## Metas dos indicadores
+
+- lista períodos de vigência;
+- cria, edita e exclui metas;
+- valida datas, percentuais e sobreposição;
+- mantém 2025 e 2026 como configurações iniciais;
+- novas consultas exigem vigência única cobrindo todo o período;
+- alterações afetam somente novas consultas e não modificam snapshots finalizados.
+
 ## Módulos
 
 - cards de total, ativos e inativos;

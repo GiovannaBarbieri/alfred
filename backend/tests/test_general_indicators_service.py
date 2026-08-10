@@ -34,7 +34,8 @@ class GeneralIndicatorsServiceTests(unittest.TestCase):
             "summary": {},
         }
 
-        result = run_general_indicator_validation(start_date=date(2026, 1, 1), end_date=date(2026, 3, 31))
+        with patch("app.services.general_indicators_service.target_configuration_for_period", return_value=None):
+            result = run_general_indicator_validation(start_date=date(2026, 1, 1), end_date=date(2026, 3, 31))
 
         self.assertEqual(result["consultationId"], 77)
         create_consultation.assert_called_once_with(

@@ -243,6 +243,17 @@ Permite definir a participação e o peso (1 a 5) das categorias:
 
 O padrão utiliza peso 1 em todas as categorias ativas, resultando em distribuição mensal proporcional às horas originais. Pesos maiores aumentam a prioridade da categoria. Pelo menos uma categoria deve permanecer ativa. Alterações são auditadas e afetam somente novas consultas; snapshots finalizados preservam a configuração utilizada.
 
+## Metas dos indicadores
+
+Permite configurar períodos de vigência para os KPIs dos Indicadores Gerais:
+
+- meta mínima de Novos projetos + melhorias;
+- limite máximo de Erro TI + Bug.
+
+Configurações não podem se sobrepor. Uma nova consulta deve estar inteiramente coberta por um único período de metas; períodos sem cobertura ou atravessando mais de uma vigência retornam validação clara e não usam fallback silencioso. O padrão inicial cadastra 2025 com meta 31,44% e limite 10,16%, e 2026 com meta 40,00% e limite 10,00%.
+
+Relatórios finalizados salvam a configuração de metas no snapshot. Alterações futuras afetam somente novas consultas ou atualizações confirmadas, sem recalcular relatórios já salvos.
+
 ## Módulos
 
 Lista TAGs completas de nível `1-` encontradas no TFS e permite ativar ou inativar sua

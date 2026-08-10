@@ -1,4 +1,4 @@
-import { ArrowLeft, Boxes, ChevronDown, FileBarChart, Files, FolderKanban, FolderOpen, Gauge, ListChecks, Network, Scale, Settings, SlidersHorizontal, Upload } from "lucide-react";
+import { ArrowLeft, Boxes, ChevronDown, FileBarChart, Files, FolderKanban, FolderOpen, Gauge, ListChecks, Network, Scale, Settings, SlidersHorizontal, Target, Upload } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   analysisReportActiveItem,
@@ -139,6 +139,16 @@ export function AppShell({ activeSection, onSectionChange, headerOverride, heade
                 >
                   <SlidersHorizontal size={17} />
                   <span>Distribuição das categorias</span>
+                </button>
+                <button
+                  className={`nav-subitem ${activeSection === "indicator-targets" ? "active" : ""}`}
+                  type="button"
+                  tabIndex={settingsExpanded ? 0 : -1}
+                  aria-current={activeSection === "indicator-targets" ? "page" : undefined}
+                  onClick={() => onSectionChange("indicator-targets")}
+                >
+                  <Target size={17} />
+                  <span>Metas dos indicadores</span>
                 </button>
                 <button
                   className={`nav-subitem ${activeSection === "indicator-modules" ? "active" : ""}`}

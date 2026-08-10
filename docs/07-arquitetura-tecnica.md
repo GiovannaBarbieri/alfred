@@ -114,7 +114,7 @@ O serviço:
 1. adquire o direito de finalizar;
 2. valida estado, ausência de pendências e conteúdo;
 3. lê lançamentos já persistidos;
-4. lê a configuração atual de pesos;
+4. lê as configurações históricas de pesos e metas;
 5. calcula o snapshot com `build_finalized_general_indicators`;
 6. gera hashes;
 7. persiste `resultado`;
@@ -124,6 +124,8 @@ O serviço:
 Não há consulta ao TFS nessa etapa.
 
 Lançamentos marcados como removidos por `State = Removed` já chegam à finalização como desconsiderados. Eles permanecem no audit trail, mas não entram nos totais, KPIs, categorias, evolução mensal, distribuição ponderada ou análise por período.
+
+A configuração de metas é resolvida antes do processamento oficial. O período consultado deve estar contido em uma única vigência de `general_indicator_target_periods`; o snapshot resultante congela essa configuração para relatórios salvos e análises posteriores.
 
 ### Relatórios
 

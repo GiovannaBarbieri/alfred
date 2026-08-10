@@ -24,6 +24,7 @@ from app.services.general_indicators_service import (
     refresh_general_indicator_pendings,
     run_general_indicator_validation,
 )
+from app.services.general_indicator_targets_service import target_configuration_for_period
 from app.schemas.general_indicators import GeneralIndicatorFinalizationResponse, GeneralIndicatorFinalizedSnapshot
 from app.schemas.report_history import (
     AnnualReportUpdateRequest,
@@ -216,6 +217,7 @@ def start_general_indicator_consultation(
     if end_date < start_date:
         raise HTTPException(status_code=422, detail="A data final deve ser igual ou posterior à data inicial.")
     try:
+        target_configuration_for_period(start_date, end_date)
         job = create_general_indicator_validation(start_date=start_date, end_date=end_date)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

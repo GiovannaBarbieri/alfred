@@ -259,12 +259,15 @@ Ao alterar contrato:
 
 - lista;
 - visão de relatório;
-- aba Visão Geral;
-- aba Análises, com seletor interno extensível para Por período e Comparação.
+- Visão Geral, com Análise por período em card recolhível.
 
 `useReportPeriodAnalysis` não executa automaticamente ao mudar datas, bloqueia requisições simultâneas e restaura o período completo ao limpar.
 
-O endpoint da análise por período relê somente o snapshot PostgreSQL, reaplica os pesos históricos persistidos e devolve evolução diária para intervalos de até 31 dias ou mensal para intervalos maiores. Nenhuma consulta ao TFS/SQL Server e nenhuma gravação são realizadas.
+O endpoint da análise por período relê somente o snapshot PostgreSQL, reaplica pesos e metas históricas persistidas e devolve evolução diária para intervalos de até 31 dias ou mensal para intervalos maiores. Nenhuma consulta ao TFS/SQL Server e nenhuma gravação são realizadas.
+
+### Metas dos indicadores
+
+`IndicatorTargetsSettingsPage` gerencia períodos de metas em Configurações. O backend expõe `/api/settings/indicator-targets` para listar, criar, editar e excluir vigências. O serviço impede sobreposição, valida percentuais entre 0 e 100 e exige que novas consultas estejam cobertas por uma única vigência. Relatórios finalizados usam sempre a configuração gravada no snapshot.
 
 ### Estado de navegação
 

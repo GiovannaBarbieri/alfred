@@ -1,4 +1,4 @@
-export type SectionId = "dashboard" | "analytics" | "import" | "validation" | "reports" | "general-indicators" | "my-reports" | "report-comparison" | "history" | "settings" | "distribution-weights" | "indicator-modules" | "audit";
+export type SectionId = "dashboard" | "analytics" | "import" | "validation" | "reports" | "general-indicators" | "my-reports" | "report-comparison" | "history" | "settings" | "distribution-weights" | "indicator-targets" | "indicator-modules" | "audit";
 
 export const projectSectionIds: SectionId[] = ["import", "validation", "reports", "history"];
 export const analysisReportSectionIds: SectionId[] = [
@@ -68,6 +68,10 @@ export const sectionMeta: Record<SectionId, { title: string; description: string
   "distribution-weights": {
     title: "Distribuição das categorias",
     description: "Configure como as horas de Atualização do sistema serão redistribuídas entre as categorias dos Indicadores Gerais. Quando todas as categorias possuem peso igual a 1, a distribuição ocorre proporcionalmente às horas originais do período, sem priorização adicional.",
+  },
+  "indicator-targets": {
+    title: "Metas dos indicadores",
+    description: "Gerencie as vigências de metas e limites usados nos Indicadores Gerais.",
   },
   "indicator-modules": {
     title: "Configuração de Módulos",

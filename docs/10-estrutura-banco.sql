@@ -30,5 +30,8 @@
 \ir ../backend/migrations/0009_weighted_distribution_configuration.sql
 \ir ../backend/migrations/0010_distribution_weights_management.sql
 \ir ../backend/migrations/0011_independent_general_indicator_reports.sql
+\ir ../backend/migrations/0012_general_indicator_modules.sql
+\ir ../backend/migrations/0013_neutral_distribution_defaults.sql
+\ir ../backend/migrations/0014_general_indicator_target_periods.sql
 
 \echo 'Estrutura consolidada aplicada.'

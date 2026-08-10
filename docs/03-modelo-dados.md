@@ -215,6 +215,22 @@ erDiagram
 | `0009` | pesos de distribuição |
 | `0010` | gestão, defaults, faixa 1–5 e auditoria |
 | `0011` | relatórios independentes, sem unicidade anual |
+| `0012` | módulos dos Indicadores Gerais |
+| `0013` | defaults neutros de distribuição |
+| `0014` | períodos de metas dos Indicadores Gerais |
+
+### `general_indicator_target_periods`
+
+Configura metas históricas dos KPIs dos Indicadores Gerais.
+
+| Campo | Descrição |
+| --- | --- |
+| `start_date`, `end_date` | Vigência da configuração |
+| `projects_target` | Meta mínima de Novos projetos + melhorias |
+| `errors_limit` | Limite máximo de Erro TI + Bug |
+| `created_at/by`, `updated_at/by` | Auditoria simples |
+
+A aplicação valida que períodos não se sobreponham. Consultas novas exigem uma única vigência cobrindo todo o intervalo. O snapshot oficial salva a configuração utilizada em `resultado.rules.targets.configuration`.
 
 ## Índices principais
 

@@ -35,9 +35,11 @@ from app.services.general_indicators_classification import classify_general_indi
 from app.services.general_indicators_rules import (
     build_finalized_general_indicators,
     distribution_configuration_snapshot,
+    target_configuration_snapshot,
 )
 from app.services.general_indicators_validation import validate_general_indicator_consultation
 from app.services.general_indicator_modules_service import apply_general_indicator_module_configuration
+from app.services.general_indicator_targets_service import target_configuration_for_period
 from app.services.sqlserver_service import (
     GENERAL_INDICATOR_FEATURE_BATCH_SIZE,
     GENERAL_INDICATOR_HIERARCHY_BATCH_SIZE,
@@ -235,6 +237,7 @@ def process_general_indicator_validation(
 
     try:
         distribution_configuration = _current_distribution_configuration()
+        target_configuration = target_configuration_for_period(start_date, end_date)
         consultation = consult_general_indicator_launches(
             start_date=start_date,
             end_date=end_date,
@@ -248,6 +251,7 @@ def process_general_indicator_validation(
         validation["summary"]["distributionConfiguration"] = distribution_configuration_snapshot(
             distribution_configuration
         )
+        validation["summary"]["targetConfiguration"] = target_configuration_snapshot(target_configuration)
         validation["summary"]["processing"] = {
             "stage": "completed",
             "percentage": 100,
@@ -432,6 +436,18 @@ def _consultation_distribution_configuration(
     return _current_distribution_configuration()
 
 
+def _consultation_target_configuration(
+    consultation: dict[str, Any],
+) -> dict[str, Any]:
+    if "resumo" not in consultation:
+        return target_configuration_snapshot(None)
+    summary = dict(consultation.get("resumo") or {})
+    configured = summary.get("targetConfiguration")
+    if isinstance(configured, dict) and configured:
+        return configured
+    return target_configuration_snapshot(None)
+
+
 def refresh_general_indicator_pendings(consultation_id: int) -> dict[str, Any]:
     lock = _begin_update(consultation_id, update_type="SELETIVA")
     try:
@@ -516,6 +532,7 @@ def refresh_general_indicator_pendings(consultation_id: int) -> dict[str, Any]:
             for item in persisted_launches
         ]
         distribution_configuration = _consultation_distribution_configuration(consultation)
+        target_configuration = _consultation_target_configuration(consultation)
         refreshed_consultation = _rebuild_consultation_payload(
             consultation,
             merged_launches,
@@ -529,6 +546,7 @@ def refresh_general_indicator_pendings(consultation_id: int) -> dict[str, Any]:
         validation["summary"]["distributionConfiguration"] = distribution_configuration_snapshot(
             distribution_configuration
         )
+        validation["summary"]["targetConfiguration"] = target_configuration_snapshot(target_configuration)
         result = _attach_update_summary(
             validation,
             consultation_id=consultation_id,
@@ -563,6 +581,7 @@ def refresh_full_general_indicator_consultation(consultation_id: int, *, confirm
             end_date=consultation["data_final"],
         )
         distribution_configuration = _current_distribution_configuration()
+        target_configuration = target_configuration_for_period(consultation["data_inicial"], consultation["data_final"])
         validation = validate_general_indicator_consultation(
             refreshed,
             distribution_configuration=distribution_configuration,
@@ -570,6 +589,7 @@ def refresh_full_general_indicator_consultation(consultation_id: int, *, confirm
         validation["summary"]["distributionConfiguration"] = distribution_configuration_snapshot(
             distribution_configuration
         )
+        validation["summary"]["targetConfiguration"] = target_configuration_snapshot(target_configuration)
         feature_ids = {item.get("idFeature") for item in validation["launches"] if item.get("idFeature")}
         result = _attach_update_summary(
             validation,
@@ -645,6 +665,7 @@ def finalize_general_indicator_consultation(
             finalized_by=consultation.get("finalizado_por"),
             backend_build=settings.backend_build_identifier,
             distribution_configuration=_consultation_distribution_configuration(consultation),
+            target_configuration=_consultation_target_configuration(consultation),
         )
         with get_connection() as connection:
             report_id = complete_general_indicator_finalization(

@@ -30,6 +30,7 @@ from app.services.general_indicators_rules import (
     build_finalized_general_indicators,
     calculate_kpis,
     canonical_category,
+    target_configuration_snapshot,
 )
 from app.repositories.audit_repository import insert_audit_log
 from app.schemas.report_history import (
@@ -336,6 +337,7 @@ def analyze_annual_saved_report_period(
         .get("distribution", {})
         .get("configuration")
     )
+    target_configuration = _snapshot_target_configuration(snapshot)
     if not isinstance(distribution_configuration, dict) or not distribution_configuration:
         raise ReportHistoryPeriodAnalysisError(
             "Este snapshot não possui os pesos históricos necessários para a análise por período."
@@ -365,11 +367,13 @@ def analyze_annual_saved_report_period(
             ),
         },
         distribution_configuration=distribution_configuration,
+        target_configuration=target_configuration,
     )
     granularity, evolution = _period_analysis_evolution(
         analyzed,
         start_date=start_date,
         end_date=end_date,
+        target_configuration=target_configuration,
     )
     projects_improvements = analyzed["kpis"]["projectsImprovements"]
     errors_bugs = analyzed["kpis"]["errorsBugs"]
@@ -739,6 +743,34 @@ def _comparison_highlights(categories: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _snapshot_target_configuration(snapshot: dict[str, Any]) -> dict[str, Any]:
+    rules_targets = dict(dict(snapshot.get("rules") or {}).get("targets") or {})
+    configured = rules_targets.get("configuration")
+    if isinstance(configured, dict) and configured:
+        return configured
+    kpis = dict(snapshot.get("kpis") or {})
+    projects = dict(kpis.get("projectsImprovements") or {})
+    errors = dict(kpis.get("errorsBugs") or {})
+    return target_configuration_snapshot(
+        {
+            "id": None,
+            "version": dict(dict(snapshot.get("metadata") or {})).get("targetsVersion") or "legacy-snapshot-targets",
+            "startDate": dict(snapshot.get("period") or {}).get("startDate"),
+            "endDate": dict(snapshot.get("period") or {}).get("endDate"),
+            "projectsImprovements": {
+                "target": projects.get("target", 40),
+                "attentionFrom": 30,
+                "direction": "higher_is_better",
+            },
+            "errorsBugs": {
+                "limit": errors.get("limit", 10),
+                "criticalAbove": 15,
+                "direction": "lower_is_better",
+            },
+        }
+    )
+
+
 def _percentage(value: float, total: float) -> float:
     return _round((float(value) / float(total)) * 100) if total else 0.0
 
@@ -752,6 +784,7 @@ def _period_analysis_evolution(
     *,
     start_date: date,
     end_date: date,
+    target_configuration: dict[str, Any] | None = None,
 ) -> tuple[str, list[dict[str, Any]]]:
     if (end_date - start_date).days + 1 > 31:
         return "MONTH", list(analyzed["months"])
@@ -776,7 +809,7 @@ def _period_analysis_evolution(
     while current <= end_date:
         categories = categories_by_date.get(current, {})
         total_seconds = sum(categories.values(), Decimal(0))
-        kpis = calculate_kpis(categories, total_seconds)
+        kpis = calculate_kpis(categories, total_seconds, target_configuration=target_configuration)
         points.append(
             {
                 "month": current.isoformat(),

@@ -25,6 +25,9 @@ const SettingsPage = lazy(() => import("./pages/SettingsPage").then((module) => 
 const DistributionWeightsSettingsPage = lazy(() =>
   import("./pages/DistributionWeightsSettingsPage").then((module) => ({ default: module.DistributionWeightsSettingsPage })),
 );
+const IndicatorTargetsSettingsPage = lazy(() =>
+  import("./pages/IndicatorTargetsSettingsPage").then((module) => ({ default: module.IndicatorTargetsSettingsPage })),
+);
 const GeneralIndicatorModulesSettingsPage = lazy(() =>
   import("./pages/GeneralIndicatorModulesSettingsPage").then((module) => ({ default: module.GeneralIndicatorModulesSettingsPage })),
 );
@@ -48,7 +51,7 @@ const defaultCategoryOptions = [
 
 const defaultSubcategoryOptions = ["Back", "Front", "QA", "Nao aplicavel", "Nao classificado"];
 const activeSectionStorageKey = "analise-horas:active-section";
-const restorableSections: SectionId[] = ["import", "reports", "general-indicators", "my-reports", "report-comparison", "settings", "distribution-weights", "indicator-modules"];
+const restorableSections: SectionId[] = ["import", "reports", "general-indicators", "my-reports", "report-comparison", "settings", "distribution-weights", "indicator-targets", "indicator-modules"];
 
 function getInitialActiveSection(): SectionId {
   const storedSection = window.localStorage.getItem(activeSectionStorageKey) as SectionId | null;
@@ -390,6 +393,7 @@ function App() {
         {activeSection === "audit" && <AuditPage />}
 
         {activeSection === "distribution-weights" && <DistributionWeightsSettingsPage />}
+        {activeSection === "indicator-targets" && <IndicatorTargetsSettingsPage />}
         {activeSection === "indicator-modules" && <GeneralIndicatorModulesSettingsPage />}
 
         {activeSection === "settings" && (

@@ -16,6 +16,12 @@ from app.schemas.general_indicator_modules import (
     GeneralIndicatorModuleStatusRequest,
     GeneralIndicatorModuleSyncResponse,
 )
+from app.schemas.general_indicator_targets import (
+    GeneralIndicatorTargetPeriodListResponse,
+    GeneralIndicatorTargetPeriodPayload,
+    GeneralIndicatorTargetPeriodResponse,
+    GeneralIndicatorTargetPeriodUpdatePayload,
+)
 from app.services.distribution_weights_service import (
     get_distribution_weight_configuration,
     reset_distribution_weight_configuration,
@@ -25,6 +31,12 @@ from app.services.general_indicator_modules_service import (
     get_general_indicator_modules,
     set_general_indicator_module_status,
     sync_general_indicator_modules,
+)
+from app.services.general_indicator_targets_service import (
+    create_general_indicator_target_period,
+    delete_general_indicator_target_period,
+    list_general_indicator_target_periods,
+    update_general_indicator_target_period,
 )
 
 router = APIRouter()
@@ -69,6 +81,36 @@ def restore_distribution_weights(
     user: str | None = Header(default=None, alias="X-User"),
 ) -> DistributionWeightConfigurationResponse:
     return reset_distribution_weight_configuration(user=user)
+
+
+@router.get("/indicator-targets", response_model=GeneralIndicatorTargetPeriodListResponse)
+def list_indicator_targets() -> GeneralIndicatorTargetPeriodListResponse:
+    return list_general_indicator_target_periods()
+
+
+@router.post("/indicator-targets", response_model=GeneralIndicatorTargetPeriodResponse)
+def create_indicator_target(
+    payload: GeneralIndicatorTargetPeriodPayload,
+    user: str | None = Header(default=None, alias="X-User"),
+) -> GeneralIndicatorTargetPeriodResponse:
+    return create_general_indicator_target_period(payload, user=user)
+
+
+@router.patch("/indicator-targets/{period_id}", response_model=GeneralIndicatorTargetPeriodResponse)
+def update_indicator_target(
+    period_id: int,
+    payload: GeneralIndicatorTargetPeriodUpdatePayload,
+    user: str | None = Header(default=None, alias="X-User"),
+) -> GeneralIndicatorTargetPeriodResponse:
+    return update_general_indicator_target_period(period_id, payload, user=user)
+
+
+@router.delete("/indicator-targets/{period_id}", status_code=204)
+def delete_indicator_target(
+    period_id: int,
+    user: str | None = Header(default=None, alias="X-User"),
+) -> None:
+    delete_general_indicator_target_period(period_id, user=user)
 
 
 @router.get("/bootstrap")

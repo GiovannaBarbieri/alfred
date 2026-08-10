@@ -201,6 +201,15 @@ soma das horas ajustadas = total de horas consideradas
 
 ## KPIs
 
+As faixas são calculadas com a configuração de metas válida para o período consultado. A consulta precisa estar totalmente coberta por uma única vigência cadastrada. Se não houver configuração ou se o intervalo atravessar mais de uma vigência, o Alfred bloqueia a geração do relatório com erro de validação.
+
+Vigências iniciais:
+
+| Vigência | Novos projetos + melhorias | Erro TI + Bug |
+| --- | ---: | ---: |
+| 01/01/2025 a 31/12/2025 | Meta >= 31,44% | Limite <= 10,16% |
+| 01/01/2026 a 31/12/2026 | Meta >= 40,00% | Limite <= 10,00% |
+
 ### Novos projetos + melhorias
 
 ```text
@@ -211,9 +220,9 @@ percentual =
 
 | Faixa | Situação |
 | --- | --- |
-| >= 40% | Meta atendida |
-| >= 30% e < 40% | Atenção |
-| < 30% | Abaixo da meta |
+| >= meta configurada | Meta atendida |
+| >= 75% da meta e < meta configurada | Atenção |
+| < 75% da meta | Abaixo da meta |
 
 ### Erro TI + Bug
 
@@ -225,9 +234,9 @@ percentual =
 
 | Faixa | Situação |
 | --- | --- |
-| <= 10% | Dentro do limite |
-| > 10% e <= 15% | Atenção |
-| > 15% | Crítico |
+| <= limite configurado | Dentro do limite |
+| > limite configurado e <= 150% do limite | Atenção |
+| > 150% do limite | Crítico |
 
 Versões executáveis atuais:
 
@@ -236,7 +245,7 @@ Contrato do resultado: 2
 Cálculo: general-indicators-v1
 Classificação: hierarchy-tags-v2
 Distribuição: update-system-weighted-proportional-v2
-Metas: general-indicators-targets-v1
+Metas: general-indicators-target-periods-v1
 ```
 
 ## Snapshot oficial
@@ -251,18 +260,19 @@ O snapshot guarda:
 - evolução mensal;
 - KPIs e limites;
 - configuração histórica de pesos;
+- configuração histórica de metas;
 - auditoria por `IdLancamento`;
 - evidências de Work Items removidos quando houver desconsideração por `State = Removed`;
 - inconsistências e evidências;
 - hashes do snapshot e do resultado.
 
-Alterar TAGs, participação ou pesos depois da finalização não muda relatórios anteriores.
+Alterar TAGs, participação, pesos ou metas depois da finalização não muda relatórios anteriores.
 
 ## Análise por período
 
 - somente dentro do intervalo oficial;
 - filtra lançamentos do audit trail persistido;
 - recalcula usando o mesmo motor oficial;
-- usa obrigatoriamente a configuração histórica do snapshot;
+- usa obrigatoriamente as configurações históricas de pesos e metas do snapshot;
 - é somente leitura e não cria versão;
 - não chama SQL Server/TFS.
