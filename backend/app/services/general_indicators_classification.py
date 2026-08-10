@@ -12,6 +12,8 @@ _UPDATE_SYSTEM_MODULE = "atualizacao do sistema"
 HIERARCHY_CONTRACT_VERSION = 2
 _SUPPORTED_PARENT_TYPES = {"bug", "pbi", "product backlog item"}
 _FEATURE_TYPE = "feature"
+_REMOVED_STATE = "removed"
+WORK_ITEM_REMOVED_REASON = "work_item_removed"
 
 
 def classify_general_indicator_launches(
@@ -46,15 +48,19 @@ def classify_general_indicator_launches(
 
         parent_id = _clean_id(_get(hierarchy or {}, "IdParent", "id_parent"))
         task_type = _get(hierarchy or {}, "TaskWorkItemType", "task_work_item_type")
+        task_state = _get(hierarchy or {}, "TaskState", "task_state")
         task_title = _get(hierarchy or {}, "TaskTitle", "task_title")
         parent_type = _get(hierarchy or {}, "ParentWorkItemType", "parent_work_item_type")
+        parent_state = _get(hierarchy or {}, "ParentState", "parent_state")
         parent_title = _get(hierarchy or {}, "ParentTitle", "parent_title")
         parent_depth = _get(hierarchy or {}, "ParentDepth", "parent_depth")
         feature_id = _clean_id(_get(hierarchy or {}, "IdFeat", "id_feat"))
         feature_type = _get(hierarchy or {}, "FeatureWorkItemType", "feature_work_item_type")
+        feature_state = _get(hierarchy or {}, "FeatureState", "feature_state")
         feature_title = _get(hierarchy or {}, "FeatureTitle", "feature_title")
         epic_id = _clean_id(_get(hierarchy or {}, "IdEpic", "id_epic"))
         epic_type = _get(hierarchy or {}, "EpicWorkItemType", "epic_work_item_type")
+        epic_state = _get(hierarchy or {}, "EpicState", "epic_state")
         epic_title = _get(hierarchy or {}, "EpicTitle", "epic_title")
         parent_type_normalized = normalize_text(parent_type)
         feature_type_normalized = normalize_text(feature_type)
@@ -111,6 +117,13 @@ def classify_general_indicator_launches(
 
         user = _get(row, "LoginUsuario", "login_usuario")
         participates = str(user or "").strip().casefold() not in excluded_logins
+        removed_levels = _removed_work_item_levels(
+            task={"id": task_id or None, "type": task_type, "state": task_state, "title": task_title},
+            parent={"id": parent_id or None, "type": parent_type, "state": parent_state, "title": parent_title, "depth": parent_depth},
+            feature={"id": feature_id or None, "type": feature_type, "state": feature_state, "title": feature_title},
+            epic={"id": epic_id or None, "type": epic_type, "state": epic_state, "title": epic_title},
+        )
+        removed_by_work_item = bool(removed_levels)
         classified.append(
             {
                 "idLancamento": launch_id,
@@ -120,23 +133,34 @@ def classify_general_indicator_launches(
                 "durationHours": round(duration_seconds / 3600, 4) if duration_seconds is not None else None,
                 "user": user,
                 "participatesInGeneralIndicators": participates,
-                "disregardedFromGeneralIndicators": not participates,
+                "disregardedFromGeneralIndicators": not participates or removed_by_work_item,
+                "disregardedReasons": [
+                    *([] if participates else ["nonparticipating_collaborator"]),
+                    *([WORK_ITEM_REMOVED_REASON] if removed_by_work_item else []),
+                ],
+                "removedByWorkItemState": removed_by_work_item,
+                "workItemRemovedReason": WORK_ITEM_REMOVED_REASON if removed_by_work_item else None,
+                "removedWorkItems": removed_levels,
                 "idTask": task_id or None,
                 "taskWorkItemType": task_type,
+                "taskState": task_state,
                 "taskTitle": task_title,
                 "idParent": parent_id or None,
                 "parentItemId": parent_id or None,
                 "parentWorkItemType": parent_type,
                 "parentItemType": parent_type,
+                "parentState": parent_state,
                 "parentTitle": parent_title,
                 "parentItemTitle": parent_title,
                 "idFeature": resolved_feature_id or None,
                 "featureId": resolved_feature_id or None,
                 "featureWorkItemType": feature_type if resolved_feature_id else None,
+                "featureState": feature_state if resolved_feature_id else None,
                 "featureTitle": feature_title if resolved_feature_id else None,
                 "featureTags": feature_tags_raw,
                 "idEpic": epic_id or None,
                 "epicWorkItemType": epic_type,
+                "epicState": epic_state,
                 "epicTitle": epic_title,
                 "tag1": tag1,
                 "tag2": tag2,
@@ -159,11 +183,12 @@ def classify_general_indicator_launches(
                     "hierarchyCandidateCount": len(candidates),
                     "hierarchyCandidates": candidates if len(candidates) != 1 else [],
                     "hierarchy": {
-                        "task": {"id": task_id or None, "type": task_type, "title": task_title},
-                        "parent": {"id": parent_id or None, "type": parent_type, "title": parent_title, "depth": parent_depth},
-                        "feature": {"id": feature_id or None, "type": feature_type, "title": feature_title},
-                        "epic": {"id": epic_id or None, "type": epic_type, "title": epic_title},
+                        "task": {"id": task_id or None, "type": task_type, "state": task_state, "title": task_title},
+                        "parent": {"id": parent_id or None, "type": parent_type, "state": parent_state, "title": parent_title, "depth": parent_depth},
+                        "feature": {"id": feature_id or None, "type": feature_type, "state": feature_state, "title": feature_title},
+                        "epic": {"id": epic_id or None, "type": epic_type, "state": epic_state, "title": epic_title},
                     },
+                    "removedWorkItems": removed_levels,
                     "featureMetadataFound": feature is not None,
                     "featureTypeValidated": has_real_feature,
                     "featureCandidateId": feature_id or None,
@@ -182,6 +207,7 @@ def classify_general_indicator_launches(
     classified_count = sum(item["classificationState"] == "classified" for item in classified)
     disregarded = [item for item in classified if item["disregardedFromGeneralIndicators"]]
     considered = [item for item in classified if not item["disregardedFromGeneralIndicators"]]
+    removed = [item for item in classified if item.get("removedByWorkItemState")]
     return {
         "stage": "consultation_classified",
         "nextStage": "validation",
@@ -194,7 +220,18 @@ def classify_general_indicator_launches(
             "duplicateIdCount": len(duplicate_diagnostics),
             "consideredLaunchCount": len(considered),
             "disregardedLaunchCount": len(disregarded),
-            "excludedCollaboratorCount": len({str(item.get("user") or "").strip().casefold() for item in disregarded}),
+            "removedLaunchCount": len(removed),
+            "removedHours": round(
+                sum(float(item.get("durationHours") or 0) for item in removed),
+                4,
+            ),
+            "excludedCollaboratorCount": len(
+                {
+                    str(item.get("user") or "").strip().casefold()
+                    for item in disregarded
+                    if not item.get("participatesInGeneralIndicators", True)
+                }
+            ),
             "hierarchyContractVersion": HIERARCHY_CONTRACT_VERSION,
             "taskCount": len({item.get("idTask") for item in classified if item.get("idTask")}),
             "pbiParentCount": len({item.get("idParent") for item in classified if normalize_text(item.get("parentWorkItemType")) in {"pbi", "product backlog item"}}),
@@ -208,6 +245,14 @@ def classify_general_indicator_launches(
             "unresolvedTaskIds": sorted(unresolved_tasks),
             "unresolvedParentIds": sorted(unresolved_parents),
             "unresolvedFeatureIds": sorted(unresolved_features),
+            "removedWorkItems": [
+                {
+                    "idLancamento": item.get("idLancamento"),
+                    "durationHours": item.get("durationHours"),
+                    "removedWorkItems": item.get("removedWorkItems", []),
+                }
+                for item in removed
+            ],
         },
     }
 
@@ -256,16 +301,20 @@ def _group_hierarchies(rows: Iterable[dict[str, Any]]) -> dict[str, list[dict[st
     fields = (
         "IdTask",
         "TaskWorkItemType",
+        "TaskState",
         "TaskTitle",
         "IdParent",
         "ParentWorkItemType",
+        "ParentState",
         "ParentTitle",
         "ParentDepth",
         "IdFeat",
         "FeatureWorkItemType",
+        "FeatureState",
         "FeatureTitle",
         "IdEpic",
         "EpicWorkItemType",
+        "EpicState",
         "EpicTitle",
     )
     for row in rows:
@@ -309,6 +358,32 @@ def _deduplicate_with_evidence(
                 }
             )
     return unique, diagnostics
+
+
+def _removed_work_item_levels(
+    *,
+    task: dict[str, Any],
+    parent: dict[str, Any],
+    feature: dict[str, Any],
+    epic: dict[str, Any],
+) -> list[dict[str, Any]]:
+    levels = [
+        ("Task", task),
+        ("PBI/Bug", parent),
+        ("Feature", feature),
+        ("Epic", epic),
+    ]
+    return [
+        {
+            "level": level,
+            "id": item.get("id"),
+            "type": item.get("type"),
+            "state": item.get("state"),
+            "title": item.get("title"),
+        }
+        for level, item in levels
+        if item.get("id") is not None and normalize_text(item.get("state")) == _REMOVED_STATE
+    ]
 
 
 def _single_tag(values: list[str]) -> str | None:

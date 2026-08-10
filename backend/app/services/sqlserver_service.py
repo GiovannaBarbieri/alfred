@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 SQLServerIdType = Literal["auto", "epic", "feature"]
 ResolvedSQLServerIdType = Literal["epic", "feature"]
 _TFS_INDICATOR_BATCH_SIZE = 200
-_TFS_HIERARCHY_BATCH_SIZE = 1000
+_TFS_HIERARCHY_BATCH_SIZE = 250
 _GENERAL_INDICATOR_RAW_REFRESH_BATCH_SIZE = 250
 GENERAL_INDICATOR_FEATURE_BATCH_SIZE = _TFS_INDICATOR_BATCH_SIZE
 GENERAL_INDICATOR_HIERARCHY_BATCH_SIZE = _TFS_HIERARCHY_BATCH_SIZE
@@ -175,6 +175,7 @@ def query_tfs_task_hierarchies(ids: Sequence[int | str]) -> list[dict[str, Any]]
                             **path,
                             "parentId": parent_id,
                             "parentType": parent_type,
+                            "parentState": edge.get("ParentState"),
                             "parentTitle": edge.get("ParentTitle"),
                             "parentDepth": depth,
                         }
@@ -199,6 +200,7 @@ def query_tfs_task_hierarchies(ids: Sequence[int | str]) -> list[dict[str, Any]]
                     **path,
                     "featureId": _numeric_id(edge.get("IdParent")),
                     "featureType": edge.get("ParentWorkItemType"),
+                    "featureState": edge.get("ParentState"),
                     "featureTitle": edge.get("ParentTitle"),
                 }
             )
@@ -216,16 +218,20 @@ def query_tfs_task_hierarchies(ids: Sequence[int | str]) -> list[dict[str, Any]]
                 {
                     "IdTask": path["root"],
                     "TaskWorkItemType": task.get("ItemWorkItemType"),
+                    "TaskState": task.get("ItemState"),
                     "TaskTitle": task.get("ItemTitle"),
                     "IdParent": path["parentId"],
                     "ParentWorkItemType": path["parentType"],
+                    "ParentState": path.get("parentState"),
                     "ParentTitle": path["parentTitle"],
                     "ParentDepth": path["parentDepth"],
                     "IdFeat": feature_id,
                     "FeatureWorkItemType": path.get("featureType"),
+                    "FeatureState": path.get("featureState"),
                     "FeatureTitle": path.get("featureTitle"),
                     "IdEpic": _numeric_id(epic_edge.get("IdParent")),
                     "EpicWorkItemType": epic_edge.get("ParentWorkItemType"),
+                    "EpicState": epic_edge.get("ParentState"),
                     "EpicTitle": epic_edge.get("ParentTitle"),
                 }
             )
@@ -238,16 +244,20 @@ def query_tfs_task_hierarchies(ids: Sequence[int | str]) -> list[dict[str, Any]]
             {
                 "IdTask": task_id,
                 "TaskWorkItemType": task.get("ItemWorkItemType"),
+                "TaskState": task.get("ItemState"),
                 "TaskTitle": task.get("ItemTitle"),
                 "IdParent": None,
                 "ParentWorkItemType": None,
+                "ParentState": None,
                 "ParentTitle": None,
                 "ParentDepth": None,
                 "IdFeat": None,
                 "FeatureWorkItemType": None,
+                "FeatureState": None,
                 "FeatureTitle": None,
                 "IdEpic": None,
                 "EpicWorkItemType": None,
+                "EpicState": None,
                 "EpicTitle": None,
             }
         )
@@ -593,6 +603,7 @@ WITH LatestItems AS (
   SELECT
     Item.ID,
     Item.WorkItemType,
+    Item.State,
     ROW_NUMBER() OVER (PARTITION BY Item.ID ORDER BY Item.Rev DESC, Item.RevisedDate DESC) AS RowNumber
   FROM dbo.tbl_WorkItemCoreLatest AS Item
   WHERE Item.ID IN ({id_placeholders})
@@ -600,9 +611,11 @@ WITH LatestItems AS (
 SELECT DISTINCT
   Item.ID AS IdItem,
   Item.WorkItemType AS ItemWorkItemType,
+  Item.State AS ItemState,
   ItemTitle.Title AS ItemTitle,
   ParentLink.SourceID AS IdParent,
   ParentItem.WorkItemType AS ParentWorkItemType,
+  ParentItem.State AS ParentState,
   ParentTitle.Title AS ParentTitle
 FROM LatestItems AS Item
 OUTER APPLY (
@@ -615,6 +628,7 @@ LEFT JOIN dbo.LinksAre AS ParentLink
   ON ParentLink.TargetID = Item.ID AND ParentLink.LinkType = 2
 OUTER APPLY (
   SELECT TOP (1) Candidate.WorkItemType
+    , Candidate.State
   FROM dbo.tbl_WorkItemCoreLatest AS Candidate
   WHERE Candidate.ID = ParentLink.SourceID
   ORDER BY Candidate.Rev DESC, Candidate.RevisedDate DESC
@@ -634,6 +648,7 @@ WITH LatestTasks AS (
   SELECT
     Item.ID,
     Item.WorkItemType,
+    Item.State,
     ROW_NUMBER() OVER (PARTITION BY Item.ID ORDER BY Item.Rev DESC, Item.RevisedDate DESC) AS RowNumber
   FROM dbo.tbl_WorkItemCoreLatest AS Item
   WHERE Item.ID IN ({id_placeholders})
@@ -685,16 +700,20 @@ ClassificationParents AS (
 SELECT DISTINCT
   Task.ID AS IdTask,
   Task.WorkItemType AS TaskWorkItemType,
+  Task.State AS TaskState,
   TaskTitle.Title AS TaskTitle,
   ClassificationParent.CurrentID AS IdParent,
   ClassificationParent.WorkItemType AS ParentWorkItemType,
+  ParentItem.State AS ParentState,
   ParentTitle.Title AS ParentTitle,
   ClassificationParent.Depth AS ParentDepth,
   FeatureLink.SourceID AS IdFeat,
   FeatureItem.WorkItemType AS FeatureWorkItemType,
+  FeatureItem.State AS FeatureState,
   FeatureTitle.Title AS FeatureTitle,
   EpicLink.SourceID AS IdEpic,
   EpicItem.WorkItemType AS EpicWorkItemType,
+  EpicItem.State AS EpicState,
   EpicTitle.Title AS EpicTitle
 FROM LatestTasks AS Task
 OUTER APPLY (
@@ -705,6 +724,8 @@ OUTER APPLY (
 ) AS TaskTitle
 LEFT JOIN ClassificationParents AS ClassificationParent
   ON ClassificationParent.RootTaskID = Task.ID
+LEFT JOIN dbo.tbl_WorkItemCoreLatest AS ParentItem
+  ON ParentItem.ID = ClassificationParent.CurrentID
 OUTER APPLY (
   SELECT TOP (1) CONVERT(nvarchar(max), Title.Words) AS Title
   FROM dbo.WorkItemLONgTexts AS Title
@@ -714,7 +735,7 @@ OUTER APPLY (
 LEFT JOIN LinksAre AS FeatureLink
   ON FeatureLink.TargetID = ClassificationParent.CurrentID AND FeatureLink.LinkType = 2
 OUTER APPLY (
-  SELECT TOP (1) Item.WorkItemType
+  SELECT TOP (1) Item.WorkItemType, Item.State
   FROM dbo.tbl_WorkItemCoreLatest AS Item
   WHERE Item.ID = FeatureLink.SourceID
   ORDER BY Item.Rev DESC, Item.RevisedDate DESC
@@ -728,7 +749,7 @@ OUTER APPLY (
 LEFT JOIN LinksAre AS EpicLink
   ON EpicLink.TargetID = FeatureLink.SourceID AND EpicLink.LinkType = 2
 OUTER APPLY (
-  SELECT TOP (1) Item.WorkItemType
+  SELECT TOP (1) Item.WorkItemType, Item.State
   FROM dbo.tbl_WorkItemCoreLatest AS Item
   WHERE Item.ID = EpicLink.SourceID
   ORDER BY Item.Rev DESC, Item.RevisedDate DESC

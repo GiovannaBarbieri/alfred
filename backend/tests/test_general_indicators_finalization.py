@@ -165,6 +165,61 @@ class GeneralIndicatorFinalizationRulesTests(unittest.TestCase):
         self.assertIn("Erros TI e Bugs", result["audit"][3]["kpiParticipation"])
         self.assertNotIn("inconsistencies", result)
 
+    def test_removed_launches_are_excluded_from_total_distribution_kpis_and_audit(self) -> None:
+        removed_update = valid_launch(2, category="ManutenÃ§Ã£o", hours=2, update_system=True)
+        removed_update.update(
+            {
+                "validationState": "disregarded",
+                "eligibleForOfficialCalculation": False,
+                "disregardedFromGeneralIndicators": True,
+                "removedByWorkItemState": True,
+                "exclusionReason": "work_item_removed",
+                "removedWorkItems": [{"level": "Task", "id": "402", "state": "Removed", "type": "Task"}],
+            }
+        )
+        removed_bug = valid_launch(3, category="Bug", hours=1, parent_type="Bug")
+        removed_bug.update(
+            {
+                "validationState": "disregarded",
+                "eligibleForOfficialCalculation": False,
+                "disregardedFromGeneralIndicators": True,
+                "removedByWorkItemState": True,
+                "exclusionReason": "work_item_removed",
+                "removedWorkItems": [{"level": "PBI/Bug", "id": "303", "state": "Removed", "type": "Bug"}],
+            }
+        )
+
+        result = build_finalized_general_indicators(
+            [valid_launch(1, category="Melhoria", hours=1), removed_update, removed_bug],
+            start_date=date(2026, 1, 1),
+            end_date=date(2026, 1, 31),
+            consultation_id=88,
+            consulted_at=datetime(2026, 2, 1, 9, 0),
+            finalized_at=datetime(2026, 2, 1, 10, 0),
+            consultation_summary={
+                "sourceRowCount": 3,
+                "uniqueLaunchCount": 3,
+                "consideredLaunchCount": 1,
+                "disregardedLaunchCount": 2,
+                "removedLaunchCount": 2,
+                "removedHours": 3,
+            },
+        )
+
+        self.assertEqual(result["recordCount"], 1)
+        self.assertEqual(result["totalHours"], 1.0)
+        self.assertEqual(result["summary"]["removedLaunchCount"], 2)
+        self.assertEqual(result["summary"]["removedHours"], 3.0)
+        self.assertEqual(result["distribution"][0]["updateSystemHours"], 0.0)
+        self.assertEqual(result["distribution"][0]["distributedHours"], 0.0)
+        self.assertEqual(result["kpis"]["projectsImprovements"]["hours"], 1.0)
+        self.assertEqual(result["kpis"]["errorsBugs"]["hours"], 0.0)
+        removed_audit = [item for item in result["audit"] if item["removedByWorkItemState"]]
+        self.assertEqual(len(removed_audit), 2)
+        self.assertFalse(removed_audit[0]["includedInOfficialCalculation"])
+        self.assertEqual(removed_audit[0]["exclusionReason"], "work_item_removed")
+        self.assertEqual(removed_audit[0]["removedWorkItems"][0]["state"], "Removed")
+
     def test_displayed_distribution_and_launch_allocations_close_after_rounding(self) -> None:
         launches = [
             valid_launch(1, category="Manutenção", hours=1),

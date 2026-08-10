@@ -168,17 +168,20 @@ def validate_general_indicator_consultation(
         blocking_messages = [issue["message"] for issue in related_issues if issue.get("severity") == BLOCKING]
         launch["auditIssues"] = [_audit_issue_summary(issue) for issue in related_issues]
         launch["eligibleForOfficialCalculation"] = launch["validationState"] not in {"blocking", "disregarded"}
-        launch["exclusionReason"] = (
-            launch.get("moduleExclusionReason")
-            or NONPARTICIPATION_REASON
-            if launch["validationState"] == "disregarded"
-            else " | ".join(dict.fromkeys(blocking_messages)) or None
-        )
+        if launch.get("removedByWorkItemState"):
+            launch["exclusionReason"] = launch.get("workItemRemovedReason") or "work_item_removed"
+        elif launch.get("moduleExclusionReason"):
+            launch["exclusionReason"] = launch.get("moduleExclusionReason")
+        elif launch["validationState"] == "disregarded":
+            launch["exclusionReason"] = NONPARTICIPATION_REASON
+        else:
+            launch["exclusionReason"] = " | ".join(dict.fromkeys(blocking_messages)) or None
 
     considered_launches = [item for item in launches if item["validationState"] != "disregarded"]
     disregarded_launches = [item for item in launches if item["validationState"] == "disregarded"]
     valid_launches = [item for item in considered_launches if item["validationState"] != "blocking"]
     affected_launches = [item for item in launches if item["validationState"] == "blocking"]
+    removed_launches = [item for item in launches if item.get("removedByWorkItemState")]
     blocking_issues = [issue for issue in issues if issue["severity"] == BLOCKING]
     operational_pending_count = len(
         {
@@ -230,6 +233,8 @@ def validate_general_indicator_consultation(
             "validLaunchCount": len(valid_launches),
             "consideredLaunchCount": len(considered_launches),
             "disregardedLaunchCount": len(disregarded_launches),
+            "removedLaunchCount": len(removed_launches),
+            "removedHours": _sum_hours(removed_launches),
             "excludedCollaboratorCount": len(
                 {
                     str(item.get("user") or "").strip().casefold()

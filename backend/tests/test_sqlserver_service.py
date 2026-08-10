@@ -190,22 +190,34 @@ class SQLServerServiceTests(unittest.TestCase):
     def test_task_hierarchy_query_uses_unique_ids_and_safe_batches(self, execute_query) -> None:
         execute_query.side_effect = [
             [
-                {"IdItem": 1, "ItemWorkItemType": "Task", "ItemTitle": "Task", "IdParent": 301, "ParentWorkItemType": "PBI", "ParentTitle": "PBI"},
-                {"IdItem": 301, "ItemWorkItemType": "PBI", "ItemTitle": "PBI", "IdParent": 200, "ParentWorkItemType": "Feature", "ParentTitle": "Feature"},
-                {"IdItem": 200, "ItemWorkItemType": "Feature", "ItemTitle": "Feature", "IdParent": 100, "ParentWorkItemType": "Epic", "ParentTitle": "Epic"},
+                {"IdItem": 1, "ItemWorkItemType": "Task", "ItemState": "Done", "ItemTitle": "Task", "IdParent": 301, "ParentWorkItemType": "PBI", "ParentState": "Removed", "ParentTitle": "PBI"},
+            ],
+            [
+                {"IdItem": 301, "ItemWorkItemType": "PBI", "ItemState": "Removed", "ItemTitle": "PBI", "IdParent": 200, "ParentWorkItemType": "Feature", "ParentState": "Done", "ParentTitle": "Feature"},
+            ],
+            [
+                {"IdItem": 200, "ItemWorkItemType": "Feature", "ItemState": "Done", "ItemTitle": "Feature", "IdParent": 100, "ParentWorkItemType": "Epic", "ParentState": "In Progress", "ParentTitle": "Epic"},
             ],
         ]
 
-        rows = query_tfs_task_hierarchies([*range(1, 902), 1])
+        rows = query_tfs_task_hierarchies([1, 1])
 
         self.assertEqual(rows[0]["IdTask"], 1)
         self.assertEqual(rows[0]["IdParent"], 301)
         self.assertEqual(rows[0]["IdFeat"], 200)
         self.assertEqual(rows[0]["IdEpic"], 100)
-        self.assertEqual(execute_query.call_count, 1)
-        self.assertEqual(execute_query.call_args_list[0].args[1], list(range(1, 902)))
+        self.assertEqual(rows[0]["TaskState"], "Done")
+        self.assertEqual(rows[0]["ParentState"], "Removed")
+        self.assertEqual(rows[0]["FeatureState"], "Done")
+        self.assertEqual(rows[0]["EpicState"], "In Progress")
+        self.assertEqual(execute_query.call_count, 3)
+        self.assertEqual(execute_query.call_args_list[0].args[1], [1])
+        self.assertEqual(execute_query.call_args_list[1].args[1], [301])
+        self.assertEqual(execute_query.call_args_list[2].args[1], [200])
         self.assertIn("ParentWorkItemType", execute_query.call_args_list[0].args[0])
+        self.assertIn("ParentState", execute_query.call_args_list[0].args[0])
         self.assertIn("ItemWorkItemType", execute_query.call_args_list[0].args[0])
+        self.assertIn("ItemState", execute_query.call_args_list[0].args[0])
         self.assertIn("ItemTitle", execute_query.call_args_list[0].args[0])
         self.assertIn("ParentTitle", execute_query.call_args_list[0].args[0])
         self.assertIn("ORDER BY Item.Rev DESC, Item.RevisedDate DESC", execute_query.call_args_list[0].args[0])

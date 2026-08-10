@@ -266,6 +266,22 @@ class GeneralIndicatorsValidationTests(unittest.TestCase):
         self.assertTrue(audit_issue["rootCauseId"])
         self.assertTrue(audit_issue["displayGroupKey"])
 
+    def test_removed_work_item_is_disregarded_without_blocking_inconsistency(self) -> None:
+        row = hierarchy(401, 301, "PBI", 200)
+        row["ParentState"] = "Removed"
+        consultation = classify([launch(1, 401)], [row])
+
+        result = validate_general_indicator_consultation(consultation)
+
+        self.assertTrue(result["canFinalize"])
+        self.assertEqual(result["status"], "PRONTA_PARA_FINALIZAR")
+        self.assertEqual(result["summary"]["removedLaunchCount"], 1)
+        self.assertEqual(result["summary"]["removedHours"], 1.0)
+        self.assertEqual(result["summary"]["consideredLaunchCount"], 0)
+        self.assertEqual(result["inconsistencies"]["items"], [])
+        self.assertEqual(result["launches"][0]["validationState"], "disregarded")
+        self.assertEqual(result["launches"][0]["exclusionReason"], "work_item_removed")
+
     def assert_blocking(self, result, issue_type) -> None:
         self.assertTrue(issue_by_type(result, issue_type)["blocking"])
         self.assertFalse(result["canFinalize"])
@@ -307,11 +323,15 @@ def hierarchy(task_id, parent_id, parent_type, feature_id):
     return {
         "IdTask": task_id,
         "TaskWorkItemType": "Task",
+        "TaskState": "Done",
         "IdParent": parent_id,
         "ParentWorkItemType": parent_type,
+        "ParentState": "Done" if parent_id else None,
         "IdFeat": feature_id,
         "FeatureWorkItemType": "Feature" if feature_id else None,
+        "FeatureState": "Done" if feature_id else None,
         "IdEpic": 100 if feature_id else None,
+        "EpicState": "Done" if feature_id else None,
     }
 
 

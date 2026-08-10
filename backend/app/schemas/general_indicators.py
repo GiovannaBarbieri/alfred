@@ -57,6 +57,8 @@ class GeneralIndicatorSnapshotSummary(GeneralIndicatorSnapshotModel):
     uniqueLaunchCount: int | None = None
     consideredLaunchCount: int | None = None
     disregardedLaunchCount: int | None = None
+    removedLaunchCount: int | None = None
+    removedHours: float | None = None
     excludedCollaboratorCount: int | None = None
     excludedCollaborators: list[str] = Field(default_factory=list)
     grossHours: float | None = None

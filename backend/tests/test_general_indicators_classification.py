@@ -197,6 +197,75 @@ class GeneralIndicatorsClassificationTests(unittest.TestCase):
         self.assertEqual(item["trace"]["featureTagsSourceId"], "186550")
         self.assertEqual(item["trace"]["hierarchy"]["parent"]["depth"], 2)
 
+    def test_disregards_launch_when_any_resolved_work_item_state_is_removed(self) -> None:
+        scenarios = [
+            ("task", {"TaskState": "Removed"}, "Task"),
+            ("pbi", {"ParentState": "Removed"}, "PBI/Bug"),
+            ("bug", {"ParentWorkItemType": "Bug", "ParentState": "Removed"}, "PBI/Bug"),
+            ("feature", {"FeatureState": "Removed"}, "Feature"),
+            ("epic", {"EpicState": "Removed"}, "Epic"),
+        ]
+
+        for name, updates, level in scenarios:
+            with self.subTest(name=name):
+                row = hierarchy(401, 301, "PBI", 200)
+                row.update(updates)
+                result = classify([launch(1, 401)], [row])
+                item = result["launches"][0]
+
+                self.assertTrue(item["disregardedFromGeneralIndicators"])
+                self.assertTrue(item["removedByWorkItemState"])
+                self.assertEqual(item["workItemRemovedReason"], "work_item_removed")
+                self.assertIn("work_item_removed", item["disregardedReasons"])
+                self.assertEqual(item["removedWorkItems"][0]["level"], level)
+                self.assertEqual(result["summary"]["consideredLaunchCount"], 0)
+                self.assertEqual(result["summary"]["removedLaunchCount"], 1)
+                self.assertEqual(result["summary"]["removedHours"], 1.0)
+
+    def test_removed_state_is_normalized_and_null_state_is_ignored(self) -> None:
+        removed = hierarchy(401, 301, "PBI", 200)
+        removed["ParentState"] = " REMOVED "
+        clean = hierarchy(402, 302, "PBI", 201)
+        clean["ParentState"] = None
+
+        result = classify([launch(1, 401), launch(2, 402)], [removed, clean])
+
+        self.assertTrue(result["launches"][0]["removedByWorkItemState"])
+        self.assertFalse(result["launches"][1]["removedByWorkItemState"])
+        self.assertFalse(result["launches"][1]["disregardedFromGeneralIndicators"])
+        self.assertEqual(result["summary"]["consideredLaunchCount"], 1)
+
+    def test_multiple_removed_levels_disregard_launch_once_with_full_audit(self) -> None:
+        row = hierarchy(401, 301, "PBI", 200)
+        row.update({"TaskState": "Removed", "ParentState": "removed", "FeatureState": " REMOVED ", "EpicState": "Removed"})
+
+        result = classify([launch(1, 401)], [row])
+        item = result["launches"][0]
+
+        self.assertEqual(result["summary"]["uniqueLaunchCount"], 1)
+        self.assertEqual(result["summary"]["removedLaunchCount"], 1)
+        self.assertEqual(result["summary"]["disregardedLaunchCount"], 1)
+        self.assertEqual([level["level"] for level in item["removedWorkItems"]], ["Task", "PBI/Bug", "Feature", "Epic"])
+
+    def test_partial_hierarchy_without_removed_keeps_existing_pending_behavior(self) -> None:
+        result = classify([launch(1, 401)], [hierarchy(401, None, None, None)])
+        item = result["launches"][0]
+
+        self.assertFalse(item["removedByWorkItemState"])
+        self.assertFalse(item["disregardedFromGeneralIndicators"])
+        self.assertEqual(item["classificationState"], "parent_pending")
+
+    def test_duplicate_launch_id_with_removed_is_counted_once(self) -> None:
+        row = hierarchy(401, 301, "PBI", 200)
+        row["TaskState"] = "Removed"
+
+        result = classify([launch(1, 401), launch(1, 401)], [row])
+
+        self.assertEqual(result["summary"]["sourceRowCount"], 2)
+        self.assertEqual(result["summary"]["uniqueLaunchCount"], 1)
+        self.assertEqual(result["summary"]["removedLaunchCount"], 1)
+        self.assertEqual(result["summary"]["removedHours"], 1.0)
+
 
 def classify(launches, hierarchies, *, tags="1-Mobile; 2-Melhoria; 3-Produtos", features=None):
     if features is None:
@@ -225,11 +294,15 @@ def hierarchy(task_id, parent_id, parent_type, feature_id):
     return {
         "IdTask": task_id,
         "TaskWorkItemType": "Task",
+        "TaskState": "Done",
         "IdParent": parent_id,
         "ParentWorkItemType": parent_type,
+        "ParentState": "Done" if parent_id else None,
         "IdFeat": feature_id,
         "FeatureWorkItemType": "Feature" if feature_id else None,
+        "FeatureState": "Done" if feature_id else None,
         "IdEpic": 100 if feature_id else None,
+        "EpicState": "Done" if feature_id else None,
     }
 
 

@@ -468,6 +468,9 @@ def build_finalized_general_indicators(
                 "participatesInGeneralIndicators": item.get("participatesInGeneralIndicators", True),
                 "disregardedFromGeneralIndicators": item.get("disregardedFromGeneralIndicators", False),
                 "exclusionReason": item.get("exclusionReason"),
+                "disregardedReasons": list(item.get("disregardedReasons", [])),
+                "removedByWorkItemState": bool(item.get("removedByWorkItemState")),
+                "removedWorkItems": list(item.get("removedWorkItems", [])),
                 "moduleTag": item.get("moduleTag"),
                 "moduleActive": item.get("moduleActive", True),
                 "excludedByModule": item.get("excludedByModule", False),
@@ -548,6 +551,7 @@ def _build_finalized_summary(
 ) -> dict[str, Any]:
     disregarded = [item for item in launches if item.get("disregardedFromGeneralIndicators")]
     considered = [item for item in launches if not item.get("disregardedFromGeneralIndicators")]
+    removed = [item for item in launches if item.get("removedByWorkItemState")]
     excluded_collaborators = sorted(
         {
             str(item.get("user") or "").strip()
@@ -562,6 +566,8 @@ def _build_finalized_summary(
         "uniqueLaunchCount": int(persisted_summary.get("uniqueLaunchCount", len(launches))),
         "consideredLaunchCount": int(persisted_summary.get("consideredLaunchCount", len(considered))),
         "disregardedLaunchCount": int(persisted_summary.get("disregardedLaunchCount", len(disregarded))),
+        "removedLaunchCount": int(persisted_summary.get("removedLaunchCount", len(removed))),
+        "removedHours": _summary_hours(persisted_summary, "removedHours", removed),
         "excludedCollaboratorCount": int(
             persisted_summary.get("excludedCollaboratorCount", len(excluded_collaborators))
         ),
@@ -761,6 +767,9 @@ def _launch_hash_projection(launches: list[dict[str, Any]]) -> list[dict[str, An
             "participatesInGeneralIndicators": item.get("participatesInGeneralIndicators", True),
             "disregardedFromGeneralIndicators": item.get("disregardedFromGeneralIndicators", False),
             "exclusionReason": item.get("exclusionReason"),
+            "disregardedReasons": list(item.get("disregardedReasons", [])),
+            "removedByWorkItemState": bool(item.get("removedByWorkItemState")),
+            "removedWorkItems": list(item.get("removedWorkItems", [])),
             "moduleTag": item.get("moduleTag"),
             "moduleActive": item.get("moduleActive", True),
             "excludedByModule": item.get("excludedByModule", False),
