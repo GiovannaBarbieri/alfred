@@ -708,6 +708,9 @@ def _launch_issue(
             "hierarchyCandidates": launch.get("trace", {}).get("hierarchyCandidates", []),
             "affectedLaunchCount": 1 if launch.get("idLancamento") is not None else 0,
             "affectedHours": float(launch.get("durationHours") or 0),
+            "launchDate": launch.get("launchDate"),
+            "durationOriginal": launch.get("durationOriginal"),
+            "user": launch.get("user"),
         },
     )
 

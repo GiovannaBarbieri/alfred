@@ -1729,6 +1729,50 @@ input {
   margin: 3px 0;
 }
 
+.launch-issue-reference-list {
+  background: #ffffff;
+  border: 1px solid #fed7aa;
+  border-radius: 7px;
+  display: grid;
+  gap: 7px;
+  margin: 8px 0;
+  padding: 8px;
+}
+
+.launch-issue-reference-list > strong {
+  color: #9a3412;
+  font-size: 11px;
+}
+
+.launch-issue-reference {
+  align-items: start;
+  background: #fffaf5;
+  border: 1px solid #ffedd5;
+  border-radius: 6px;
+  display: grid;
+  gap: 6px;
+  grid-template-columns: minmax(90px, 0.7fr) minmax(220px, 2fr) minmax(130px, 1fr) minmax(95px, 0.8fr) minmax(110px, 0.9fr);
+  padding: 8px;
+}
+
+.launch-issue-reference div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.launch-issue-reference span {
+  color: #9a3412;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.launch-issue-reference b {
+  color: #172033;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
 .hierarchy-issue-detail > div {
   display: grid;
   gap: 10px;

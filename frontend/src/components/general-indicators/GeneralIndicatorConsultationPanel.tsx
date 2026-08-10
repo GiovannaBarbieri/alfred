@@ -246,6 +246,39 @@ export function GeneralIndicatorConsultationPanel({
               </summary>
               <div className="general-indicator-issue-detail">
                 <p>{group.messages.join(" ")}</p>
+                {group.launches.length > 0 && (
+                  <div className="launch-issue-reference-list" aria-label="Lan\u00e7amentos para corrigir">
+                    <strong>Lan\u00e7amentos para localizar no TFS</strong>
+                    {group.launches.map((launch) => (
+                      <div className="launch-issue-reference" key={`${group.type}-${launch.launchId}`}>
+                        <div>
+                          <span>Lan\u00e7amento</span>
+                          <b>{launch.launchId || "-"}</b>
+                        </div>
+                        <div>
+                          <span>Task</span>
+                          <b>{formatWorkItem(launch.taskId, launch.taskTitle)}</b>
+                        </div>
+                        {launch.user && (
+                          <div>
+                            <span>Colaborador</span>
+                            <b>{launch.user}</b>
+                          </div>
+                        )}
+                        {launch.launchDate && (
+                          <div>
+                            <span>Data</span>
+                            <b>{formatDate(launch.launchDate)}</b>
+                          </div>
+                        )}
+                        <div>
+                          <span>Dura\u00e7\u00e3o atual</span>
+                          <b>{launch.durationOriginal || "N\u00e3o informada"}</b>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <p><b>Como corrigir:</b> {correctionFor(group.type)}</p>
               </div>
             </details>
@@ -361,6 +394,14 @@ function groupLaunchIssues(consultation: GeneralIndicatorConsultationResponse) {
     type,
     launchCount: new Set(issues.flatMap((item) => item.affectedLaunchIds.length ? item.affectedLaunchIds : item.idLancamento ? [item.idLancamento] : [])).size,
     messages: [...new Set(issues.map((item) => item.message))],
+    launches: issues.map((item) => ({
+      launchId: item.idLancamento || item.affectedLaunchIds[0] || "",
+      taskId: detailText(item.details.idTask),
+      taskTitle: detailText(item.details.taskTitle),
+      user: detailText(item.details.user),
+      launchDate: detailText(item.details.launchDate),
+      durationOriginal: detailText(item.details.durationOriginal),
+    })),
   }));
 }
 
