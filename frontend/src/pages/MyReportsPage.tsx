@@ -108,12 +108,9 @@ export function MyReportsPage({
 
       <ReportFilters
         draft={history.draft}
-        canApply={history.canApplyFilters}
-        canClear={history.canClearFilters}
         reportTypes={history.reportTypes}
         onChange={history.updateDraft}
-        onApply={history.applyFilters}
-        onClear={history.clearFilters}
+        onClearSearch={history.clearSearch}
       />
 
       {history.error && !history.data && (
@@ -125,11 +122,18 @@ export function MyReportsPage({
       {history.isLoading && !history.data && <ReportSkeletons />}
 
       {history.data && history.error && <div className="error-banner" role="alert"><AlertTriangle size={17} />{history.error}<button type="button" onClick={() => void history.refresh()}>Tentar novamente</button></div>}
-      {history.data && <div className="saved-report-result-count">{history.data.totalItems.toLocaleString("pt-BR")} {history.data.totalItems === 1 ? "relatório encontrado" : "relatórios encontrados"}</div>}
+      {history.data && (
+        <div className="saved-report-result-count">
+          <span>
+            {history.data.totalItems.toLocaleString("pt-BR")} {history.data.totalItems === 1 ? "relatório encontrado" : "relatórios encontrados"}
+          </span>
+          {history.isRefreshing && <small><RefreshCw className="spinning" size={13} />Atualizando</small>}
+        </div>
+      )}
 
       {!history.isLoading && history.data && items.length === 0 && (
         history.hasActiveFilters
-          ? <StatePanel icon={<SearchX size={26} />} title="Nenhum relatório encontrado" text="Tente ajustar ou limpar os filtros aplicados."><button className="secondary-button" type="button" onClick={history.clearFilters}>Limpar filtros</button></StatePanel>
+          ? <StatePanel icon={<SearchX size={26} />} title="Nenhum relatório encontrado" text="Tente ajustar os filtros aplicados."><span /></StatePanel>
           : <StatePanel icon={<FileBarChart size={26} />} title="Nenhuma análise salva" text="As análises finalizadas em Indicadores Gerais aparecerão aqui."><button className="primary-button" type="button" onClick={() => onGoToGeneralIndicators()}>Ir para Indicadores Gerais</button></StatePanel>
       )}
 

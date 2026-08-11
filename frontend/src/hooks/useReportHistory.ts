@@ -14,7 +14,6 @@ import type {
   SavedReportTypeOption,
   SavedReportViewState,
 } from "../types";
-import { areReportFiltersEqual } from "../utils/reportHistoryFilters";
 import { scheduleReportNoticeDismiss } from "../utils/reportHistoryNotice";
 
 export type ReportFilterDraft = {
@@ -25,7 +24,7 @@ export type ReportFilterDraft = {
 
 const defaultFilters: ReportFilterDraft = {
   search: "",
-  year: currentYearFilter(),
+  year: "",
   type: "",
 };
 
@@ -47,6 +46,7 @@ export function useReportHistory(actor?: string | null) {
   const [updatePeriodDraft, setUpdatePeriodDraft] = useState<{ startDate: string; endDate: string } | null>(null);
   const [reportTypes, setReportTypes] = useState<SavedReportTypeOption[]>([]);
   const noticeSequence = useRef(0);
+  const hasLoadedReports = useRef(false);
   const [notice, setNotice] = useState<{ id: number; message: string } | null>(null);
 
   const params = useMemo<ReportListParams>(() => ({
@@ -67,12 +67,21 @@ export function useReportHistory(actor?: string | null) {
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+      hasLoadedReports.current = true;
     }
   }, [params]);
 
   useEffect(() => {
-    void load(false);
+    void load(hasLoadedReports.current);
   }, [load]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setPage(1);
+      setApplied((current) => current.search === draft.search ? current : { ...current, search: draft.search });
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [draft.search]);
 
   useEffect(() => {
     let ignore = false;
@@ -101,18 +110,18 @@ export function useReportHistory(actor?: string | null) {
   }, [dismissNotice, notice]);
 
   function updateDraft<K extends keyof ReportFilterDraft>(key: K, value: ReportFilterDraft[K]) {
-    setDraft((current) => ({ ...current, [key]: value }));
+    const next = { ...draft, [key]: value };
+    setDraft(next);
+    if (key !== "search") {
+      setPage(1);
+      setApplied(next);
+    }
   }
 
-  function applyFilters() {
+  function clearSearch() {
     setPage(1);
-    setApplied({ ...draft });
-  }
-
-  function clearFilters() {
-    setPage(1);
-    setDraft(defaultFilters);
-    setApplied(defaultFilters);
+    setDraft((current) => ({ ...current, search: "" }));
+    setApplied((current) => ({ ...current, search: "" }));
   }
 
   function changePageSize(pageSize: number) {
@@ -219,21 +228,14 @@ export function useReportHistory(actor?: string | null) {
     }
   }
 
-  const hasActiveFilters = Boolean(applied.search || applied.year);
-  const canApplyFilters = !areReportFiltersEqual(draft, applied);
-  const canClearFilters = (
-    !areReportFiltersEqual(draft, defaultFilters)
-    || !areReportFiltersEqual(applied, defaultFilters)
-  );
+  const hasActiveFilters = Boolean(applied.search || applied.year || applied.type);
 
   return {
     action,
     actionBusy,
     actionError,
     applied,
-    canApplyFilters,
-    canClearFilters,
-    clearFilters,
+    clearSearch,
     closeAction,
     confirmAction,
     data,
@@ -256,7 +258,6 @@ export function useReportHistory(actor?: string | null) {
     updateDraft,
     updatePeriodDraft,
     updateReportPeriodDraft,
-    applyFilters,
     changePageSize,
     view,
     viewRefreshing,
@@ -269,8 +270,4 @@ export function useReportHistory(actor?: string | null) {
 
 function messageFrom(value: unknown, fallback: string): string {
   return value instanceof Error ? value.message : fallback;
-}
-
-function currentYearFilter(): string {
-  return String(new Date().getFullYear());
 }
