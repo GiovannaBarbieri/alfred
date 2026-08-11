@@ -110,7 +110,6 @@ export function MyReportsPage({
         draft={history.draft}
         reportTypes={history.reportTypes}
         onChange={history.updateDraft}
-        onClearSearch={history.clearSearch}
       />
 
       {history.error && !history.data && (

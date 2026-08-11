@@ -2001,7 +2001,6 @@ input {
 }
 
 .saved-report-page-header button,
-.saved-report-filter-actions button,
 .saved-report-card-actions button,
 .saved-report-summary-heading button,
 .saved-report-state button,
@@ -2026,7 +2025,7 @@ input {
   align-items: end;
   display: grid;
   gap: 12px;
-  grid-template-columns: minmax(320px, 1fr) minmax(150px, 0.28fr) minmax(220px, 0.38fr);
+  grid-template-columns: minmax(150px, 180px) minmax(220px, 280px);
 }
 
 .saved-report-filter-grid label {
@@ -2037,7 +2036,6 @@ input {
   gap: 6px;
 }
 
-.saved-report-filter-grid input,
 .saved-report-filter-grid select,
 .saved-report-pagination select {
   background: #fff;
@@ -2051,49 +2049,10 @@ input {
   width: 100%;
 }
 
-.saved-report-search > div {
-  align-items: center;
-  border: 1px solid #cfd9e5;
-  border-radius: 7px;
-  display: flex;
-  min-width: 0;
-  padding-left: 10px;
-}
-
-.saved-report-search > div:focus-within,
-.saved-report-filter-grid input:focus,
 .saved-report-filter-grid select:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgb(37 99 235 / 12%);
   outline: 0;
-}
-
-.saved-report-search svg {
-  color: #7b8798;
-  flex: 0 0 auto;
-}
-
-.saved-report-search input {
-  border: 0;
-  box-shadow: none !important;
-}
-
-.saved-report-search button {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  color: #64748b;
-  cursor: pointer;
-  display: inline-flex;
-  flex: 0 0 auto;
-  height: 30px;
-  justify-content: center;
-  margin-right: 4px;
-  width: 30px;
-}
-
-.saved-report-search button:hover {
-  color: #0f3f73;
 }
 
 .saved-report-result-count {
@@ -2745,12 +2704,7 @@ input {
 
 @media (max-width: 1280px) {
   .saved-report-filter-grid {
-    grid-template-columns: minmax(260px, 1fr) minmax(140px, 0.45fr) minmax(180px, 0.55fr);
-  }
-
-  .saved-report-filter-actions {
-    align-self: end;
-    grid-column: 1 / -1;
+    grid-template-columns: minmax(150px, 180px) minmax(220px, 280px);
   }
 
   .saved-report-metrics {
@@ -2770,10 +2724,6 @@ input {
 
   .saved-report-filter-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .saved-report-filter-actions {
-    grid-column: span 2;
   }
 
   .saved-report-card {
@@ -2804,10 +2754,6 @@ input {
   .saved-report-filter-grid,
   .saved-report-metrics {
     grid-template-columns: 1fr;
-  }
-
-  .saved-report-search {
-    grid-column: auto;
   }
 
   .saved-report-modal footer {

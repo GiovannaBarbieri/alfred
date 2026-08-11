@@ -17,13 +17,11 @@ import type {
 import { scheduleReportNoticeDismiss } from "../utils/reportHistoryNotice";
 
 export type ReportFilterDraft = {
-  search: string;
   year: string;
   type: string;
 };
 
 const defaultFilters: ReportFilterDraft = {
-  search: "",
   year: "",
   type: "",
 };
@@ -52,7 +50,6 @@ export function useReportHistory(actor?: string | null) {
   const params = useMemo<ReportListParams>(() => ({
     type: applied.type || undefined,
     year: applied.year ? Number(applied.year) : undefined,
-    search: applied.search.trim(),
     page,
     pageSize,
   }), [applied, page, pageSize]);
@@ -74,14 +71,6 @@ export function useReportHistory(actor?: string | null) {
   useEffect(() => {
     void load(hasLoadedReports.current);
   }, [load]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setPage(1);
-      setApplied((current) => current.search === draft.search ? current : { ...current, search: draft.search });
-    }, 400);
-    return () => window.clearTimeout(timer);
-  }, [draft.search]);
 
   useEffect(() => {
     let ignore = false;
@@ -112,16 +101,8 @@ export function useReportHistory(actor?: string | null) {
   function updateDraft<K extends keyof ReportFilterDraft>(key: K, value: ReportFilterDraft[K]) {
     const next = { ...draft, [key]: value };
     setDraft(next);
-    if (key !== "search") {
-      setPage(1);
-      setApplied(next);
-    }
-  }
-
-  function clearSearch() {
     setPage(1);
-    setDraft((current) => ({ ...current, search: "" }));
-    setApplied((current) => ({ ...current, search: "" }));
+    setApplied(next);
   }
 
   function changePageSize(pageSize: number) {
@@ -228,14 +209,13 @@ export function useReportHistory(actor?: string | null) {
     }
   }
 
-  const hasActiveFilters = Boolean(applied.search || applied.year || applied.type);
+  const hasActiveFilters = Boolean(applied.year || applied.type);
 
   return {
     action,
     actionBusy,
     actionError,
     applied,
-    clearSearch,
     closeAction,
     confirmAction,
     data,

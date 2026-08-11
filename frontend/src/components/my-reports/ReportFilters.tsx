@@ -1,4 +1,3 @@
-import { Search, X } from "lucide-react";
 import type { ReportFilterDraft } from "../../hooks/useReportHistory";
 import type { SavedReportTypeOption } from "../../types";
 
@@ -7,33 +6,15 @@ const MIN_REPORT_YEAR = 2020;
 export function ReportFilters({
   draft,
   onChange,
-  onClearSearch,
   reportTypes,
 }: {
   draft: ReportFilterDraft;
   onChange: <K extends keyof ReportFilterDraft>(key: K, value: ReportFilterDraft[K]) => void;
-  onClearSearch: () => void;
   reportTypes: SavedReportTypeOption[];
 }) {
   return (
     <form className="panel saved-report-filters" onSubmit={(event) => event.preventDefault()}>
       <div className="saved-report-filter-grid">
-        <label className="saved-report-search">
-          <span>Buscar por nome</span>
-          <div>
-            <Search size={16} />
-            <input
-              value={draft.search}
-              onChange={(event) => onChange("search", event.target.value)}
-              placeholder="Ex.: 1º semestre de 2026"
-            />
-            {draft.search && (
-              <button type="button" aria-label="Limpar busca" onClick={onClearSearch}>
-                <X size={15} />
-              </button>
-            )}
-          </div>
-        </label>
         <label>
           <span>Ano</span>
           <select value={draft.year} onChange={(event) => onChange("year", event.target.value)}>
