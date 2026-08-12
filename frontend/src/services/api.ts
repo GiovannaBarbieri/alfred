@@ -227,6 +227,17 @@ export async function getImportDetail(importId: number): Promise<ImportDetail> {
   return response.json();
 }
 
+export async function refreshProjectImport(importId: number): Promise<ImportCompleteResponse> {
+  const response = await fetch(`${API_BASE_URL}/imports/${importId}/refresh-sqlserver`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.detail ?? "NÃ£o foi possÃ­vel atualizar os dados do projeto.");
+  }
+  return response.json();
+}
+
 export async function getImportReprocessPreview(importId: number): Promise<ImportReprocessPreview> {
   const response = await fetch(`${API_BASE_URL}/imports/${importId}/reprocess-preview`);
   if (!response.ok) {

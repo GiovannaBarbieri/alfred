@@ -19,6 +19,7 @@ import { useProjectCollaboratorTasks } from "../hooks/useProjectCollaboratorTask
 import { useProjectComparisons } from "../hooks/useProjectComparisons";
 import { useProjectEvolution } from "../hooks/useProjectEvolution";
 import { useProjectReportData } from "../hooks/useProjectReportData";
+import { refreshProjectImport } from "../services/api";
 import type {
   ImportSummary,
   ProjectExecutiveSummary,
@@ -49,7 +50,7 @@ export function ReportsPage({
   projectExecutiveSummary: ProjectExecutiveSummary;
   projectInsights: ProjectInsights;
   projectRecommendations: ProjectRecommendation[];
-  onOpenProject: (importId: number) => void;
+  onOpenProject: (importId: number) => void | Promise<void>;
 }) {
   const [projectSearch, setProjectSearch] = useState("");
   const [reportNotice, setReportNotice] = useState<ReportNoticeState | null>(null);
@@ -93,6 +94,7 @@ export function ReportsPage({
   const [isSmartSummaryOpen, setIsSmartSummaryOpen] = useState(false);
   const [isProjectInsightsOpen, setIsProjectInsightsOpen] = useState(false);
   const [isExecutiveSummaryOpen, setIsExecutiveSummaryOpen] = useState(false);
+  const [isRefreshingProject, setIsRefreshingProject] = useState(false);
   const [taskPage, setTaskPage] = useState(1);
   const {
     selectedCollaborator,
@@ -166,6 +168,26 @@ export function ReportsPage({
     onOpenProject(importId);
   }
 
+  async function handleRefreshProjectData() {
+    if (!selectedImport || isRefreshingProject) return;
+    setReportNotice(null);
+    setIsRefreshingProject(true);
+    try {
+      await refreshProjectImport(selectedImport.id);
+      await onOpenProject(selectedImport.id);
+      resetCollaboratorTasks();
+      setTaskPage(1);
+      setReportNotice({ tone: "success", message: "Dados do projeto atualizados com sucesso." });
+    } catch (err) {
+      setReportNotice({
+        tone: "error",
+        message: err instanceof Error ? err.message : "NÃ£o foi possÃ­vel atualizar os dados do projeto.",
+      });
+    } finally {
+      setIsRefreshingProject(false);
+    }
+  }
+
   if (!selectedImport) {
     return (
       <>
@@ -230,6 +252,8 @@ export function ReportsPage({
         projectTitle={projectTitle}
         selectedImport={selectedImport}
         excelExportUrl={excelExportUrl}
+        isRefreshing={isRefreshingProject}
+        onRefreshData={handleRefreshProjectData}
       />
 
       <section className="report-executive-kpis" aria-label="Indicadores executivos do projeto">

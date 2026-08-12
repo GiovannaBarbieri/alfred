@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import re
 from collections import Counter
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
@@ -32,7 +33,10 @@ from app.services.import_pipeline import (
     create_staged_import_from_dataframe,
     reprocess_staged_import,
 )
+from app.services.import_persistence_service import replace_final_import
+from app.services.import_record_builder import build_records_from_staging_rows
 from app.services.import_service import build_import_records, validate_import_file
+from app.services.import_service import validate_import_dataframe
 from app.services.sqlserver_service import (
     SQLServerAmbiguousIdError,
     SQLServerConfigurationError,
@@ -47,6 +51,7 @@ from app.services.sqlserver_service import (
     query_import_dataframe,
     test_sqlserver_connection,
 )
+from app.services.staging_row_builder import build_staging_rows_from_dataframe
 from app.services.validation_service import REQUIRED_COLUMNS
 
 router = APIRouter()
@@ -252,6 +257,66 @@ def create_sqlserver_import_session(payload: SQLServerImportRequest) -> ImportSe
         )
     except SQLServerIntegrationError as exc:
         _raise_sqlserver_http_error(exc)
+
+
+@router.post("/{import_id}/refresh-sqlserver", response_model=ImportCompleteResponse)
+def refresh_sqlserver_project_import(import_id: int) -> ImportCompleteResponse:
+    logger.info("Atualizando dados do projeto via SQL Server. import_id=%s", import_id)
+    with get_connection() as connection:
+        source = _resolve_sqlserver_refresh_source(connection, import_id)
+
+    try:
+        dataframe = query_import_dataframe(ids=[source["id"]], id_type=source["idType"])
+    except SQLServerIntegrationError as exc:
+        _raise_sqlserver_http_error(exc)
+
+    filename = source["filename"]
+    content = dataframe_to_import_content(dataframe)
+    file_hash = hashlib.sha256(content).hexdigest()
+    column_lookup = {column: column for column in REQUIRED_COLUMNS}
+    validation = validate_import_dataframe(filename=filename, dataframe=dataframe, column_lookup=column_lookup)
+    if not validation.canComplete:
+        raise HTTPException(
+            status_code=422,
+            detail="A atualizacao encontrou bloqueios de validacao. Corrija a origem dos dados antes de atualizar o relatorio.",
+        )
+
+    staging_rows = build_staging_rows_from_dataframe(dataframe, column_lookup, validation.classifications)
+    records = build_records_from_staging_rows(staging_rows, validation)
+    with get_connection() as connection:
+        saved_rows = replace_final_import(
+            connection,
+            import_id=import_id,
+            filename=filename,
+            file_hash=file_hash,
+            validation=validation,
+            records=records,
+        )
+        insert_audit_log(
+            connection,
+            entity="importacao",
+            record_id=import_id,
+            action="dados_atualizados_sqlserver",
+            after={
+                "sourceId": source["id"],
+                "sourceType": source["idType"],
+                "totalRows": validation.totalRows,
+                "validRows": validation.validRows,
+                "savedRows": saved_rows,
+            },
+            user="usuario_local",
+        )
+
+    return ImportCompleteResponse(
+        importId=import_id,
+        filename=filename,
+        status="concluida",
+        totalRows=validation.totalRows,
+        validRows=validation.validRows,
+        alertRows=validation.alertRows,
+        blockedRows=validation.blockedRows,
+        savedRows=saved_rows,
+    )
 
 
 @router.get("", response_model=list[ImportSummary])
@@ -700,6 +765,93 @@ def _sqlserver_import_filename(payload: SQLServerImportRequest) -> str:
     suffix = "mais" if len(payload.ids) > 5 else ""
     parts = ["sqlserver", payload.idType, ids_label, suffix]
     return "-".join(part for part in parts if part) + ".csv"
+
+
+def _resolve_sqlserver_refresh_source(connection, import_id: int) -> dict[str, str | int]:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT id, nome_arquivo
+            FROM importacoes
+            WHERE id = %s
+            """,
+            (import_id,),
+        )
+        import_row = cursor.fetchone()
+        if not import_row:
+            raise HTTPException(status_code=404, detail="Relatorio de projeto nao encontrado.")
+
+        cursor.execute(
+            """
+            SELECT
+                ARRAY_AGG(DISTINCT id_epic) FILTER (WHERE COALESCE(id_epic, '') <> '') AS epic_ids,
+                ARRAY_AGG(DISTINCT id_feat) FILTER (WHERE COALESCE(id_feat, '') <> '') AS feature_ids
+            FROM lancamentos_horas
+            WHERE importacao_id = %s
+            """,
+            (import_id,),
+        )
+        scope_row = cursor.fetchone()
+
+    filename = str(import_row["nome_arquivo"])
+    epic_ids = _numeric_scope_values(scope_row["epic_ids"] if scope_row else None)
+    feature_ids = _numeric_scope_values(scope_row["feature_ids"] if scope_row else None)
+    if not epic_ids and not feature_ids:
+        raise HTTPException(
+            status_code=422,
+            detail="Nao foi possivel identificar o Epic ou Feature de origem deste relatorio.",
+        )
+
+    filename_type = _scope_type_from_filename(filename)
+    filename_id = _leading_numeric_id(filename)
+    if filename_id is not None:
+        if filename_id in epic_ids and filename_id not in feature_ids:
+            return {"filename": filename, "id": filename_id, "idType": "epic"}
+        if filename_id in feature_ids and filename_id not in epic_ids:
+            return {"filename": filename, "id": filename_id, "idType": "feature"}
+        if filename_type in {"epic", "feature"}:
+            ids = epic_ids if filename_type == "epic" else feature_ids
+            if filename_id in ids:
+                return {"filename": filename, "id": filename_id, "idType": filename_type}
+
+    if filename_type == "epic" and len(epic_ids) == 1:
+        return {"filename": filename, "id": epic_ids[0], "idType": "epic"}
+    if filename_type == "feature" and len(feature_ids) == 1:
+        return {"filename": filename, "id": feature_ids[0], "idType": "feature"}
+    if len(epic_ids) == 1 and len(feature_ids) > 1:
+        return {"filename": filename, "id": epic_ids[0], "idType": "epic"}
+    if len(feature_ids) == 1:
+        return {"filename": filename, "id": feature_ids[0], "idType": "feature"}
+    if len(epic_ids) == 1:
+        return {"filename": filename, "id": epic_ids[0], "idType": "epic"}
+
+    raise HTTPException(
+        status_code=422,
+        detail="Nao foi possivel identificar um unico Epic ou Feature para atualizar este relatorio.",
+    )
+
+
+def _numeric_scope_values(values: list | None) -> list[int]:
+    result: set[int] = set()
+    for value in values or []:
+        text = str(value or "").strip()
+        if text.isdigit():
+            result.add(int(text))
+    return sorted(result)
+
+
+def _scope_type_from_filename(filename: str) -> str | None:
+    normalized = filename.strip().casefold()
+    if normalized.startswith("sqlserver-epic-"):
+        return "epic"
+    if normalized.startswith("sqlserver-feature-"):
+        return "feature"
+    return None
+
+
+def _leading_numeric_id(filename: str) -> int | None:
+    match = re.match(r"^\s*(\d+)", filename)
+    return int(match.group(1)) if match else None
 
 
 def _safe_import_filename(value: str | None) -> str | None:

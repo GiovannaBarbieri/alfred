@@ -33,6 +33,84 @@ def persist_final_import(
     return import_id
 
 
+def replace_final_import(
+    connection,
+    *,
+    import_id: int,
+    filename: str,
+    file_hash: str,
+    validation: ImportValidationResponse,
+    records: list[dict[str, Any]],
+) -> int:
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT id FROM importacoes WHERE id = %s FOR UPDATE", (import_id,))
+        if not cursor.fetchone():
+            raise ValueError("Relatorio de projeto nao encontrado.")
+
+        cursor.execute("DELETE FROM analytics_insights WHERE importacao_id = %s", (import_id,))
+        cursor.execute("DELETE FROM pending_reviews WHERE importacao_id = %s", (import_id,))
+        cursor.execute("DELETE FROM duplicidades_importacao WHERE importacao_id = %s", (import_id,))
+        cursor.execute("DELETE FROM erros_importacao WHERE importacao_id = %s", (import_id,))
+        cursor.execute("DELETE FROM lancamentos_horas WHERE importacao_id = %s", (import_id,))
+        cursor.execute(
+            """
+            UPDATE importacoes
+            SET
+                nome_arquivo = %s,
+                hash_arquivo = %s,
+                status = %s,
+                total_registros = %s,
+                registros_validos = %s,
+                registros_com_alerta = %s,
+                registros_bloqueados = %s,
+                versao_classificador = %s,
+                data_importacao = NOW()
+            WHERE id = %s
+            """,
+            (
+                filename,
+                file_hash,
+                "concluida",
+                validation.totalRows,
+                validation.validRows,
+                validation.alertRows,
+                validation.blockedRows,
+                _classifier_version_from_records(records),
+                import_id,
+            ),
+        )
+
+    for issue in validation.issues:
+        insert_issue(connection, import_id, issue.model_dump())
+
+    saved_rows = 0
+    for record in records:
+        category_id = get_lookup_id(connection, "categorias", record["Categoria"])
+        subcategory_id = get_lookup_id(connection, "subcategorias", record["Subcategoria"])
+        lancamento_id = insert_lancamento(
+            connection,
+            import_id=import_id,
+            record=record,
+            category_id=category_id,
+            subcategory_id=subcategory_id,
+            classification_status=classification_status(record["OrigemClassificacao"]),
+        )
+        insert_classification(
+            connection,
+            lancamento_id=lancamento_id,
+            title=record["TituloTask"],
+            category_id=category_id,
+            subcategory_id=subcategory_id,
+            origin=record["OrigemClassificacao"],
+            confidence=record["ConfiancaClassificacao"],
+            confidence_level=record["NivelConfianca"],
+            classifier_version=record["VersaoClassificador"],
+        )
+        saved_rows += 1
+
+    return saved_rows
+
+
 def classification_status(origin: str) -> str:
     if origin in {"padrao_titulo", "padrao_titulo_categoria"}:
         return "automatica"
