@@ -612,7 +612,10 @@ def build_project_evolution_insights(first: dict, latest: dict) -> list[dict]:
 def get_project_summary(import_id: int = Query(..., alias="importId")) -> dict:
     top_users = _query_project_rank(import_id=import_id, group_by="user", limit=5)
     top_tasks = _query_project_rank(import_id=import_id, group_by="task", limit=5)
-    categories = _query_project_rank(import_id=import_id, group_by="category", limit=6)
+    categories = _with_development_adjustments(
+        import_id=import_id,
+        categories=_query_project_rank(import_id=import_id, group_by="category", limit=6),
+    )
     pending_counts = _query_project_pending_counts(import_id)
 
     with get_connection() as connection:
@@ -656,6 +659,65 @@ def get_project_summary(import_id: int = Query(..., alias="importId")) -> dict:
 
 def _query_project_rank(*, import_id: int, group_by: ReportGroup, limit: int) -> list[dict]:
     return _query_hours_report(group_by=group_by, limit=limit, import_id=import_id)
+
+
+def _with_development_adjustments(*, import_id: int, categories: list[dict]) -> list[dict]:
+    has_development = any(item.get("label") == "Desenvolvimento" for item in categories)
+    if not has_development:
+        return categories
+
+    with get_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    COALESCE(SUM(l.duracao_segundos), 0) AS development_seconds,
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN l.titulo_task ILIKE %s THEN l.duracao_segundos
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    ) AS adjustment_seconds
+                FROM lancamentos_horas l
+                JOIN categorias c ON c.id = l.categoria_id
+                WHERE l.importacao_id = %s
+                  AND c.nome = 'Desenvolvimento'
+                """,
+                ["%[Ajustes]%", import_id],
+            )
+            row = cursor.fetchone()
+
+    development_seconds = int(row["development_seconds"] or 0)
+    adjustment_seconds = int(row["adjustment_seconds"] or 0)
+    if development_seconds <= 0 or adjustment_seconds <= 0:
+        return categories
+
+    adjustment_seconds = min(adjustment_seconds, development_seconds)
+    regular_seconds = max(development_seconds - adjustment_seconds, 0)
+
+    def as_hours(seconds: int) -> float:
+        return round(seconds / 3600, 2)
+
+    def as_percentage(seconds: int) -> float:
+        return round((seconds / development_seconds) * 100, 2)
+
+    return [
+        {
+            **item,
+            "developmentAdjustments": {
+                "regularHours": as_hours(regular_seconds),
+                "regularPercentage": as_percentage(regular_seconds),
+                "adjustmentHours": as_hours(adjustment_seconds),
+                "adjustmentPercentage": as_percentage(adjustment_seconds),
+            },
+        }
+        if item.get("label") == "Desenvolvimento"
+        else item
+        for item in categories
+    ]
 
 
 def _query_project_pending_counts(import_id: int) -> dict:

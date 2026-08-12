@@ -580,6 +580,12 @@ export type HoursReportItem = {
   totalHours: number;
   totalRecords: number;
   percentage: number;
+  developmentAdjustments?: {
+    regularHours: number;
+    regularPercentage: number;
+    adjustmentHours: number;
+    adjustmentPercentage: number;
+  };
 };
 
 export type ReportsOverview = {

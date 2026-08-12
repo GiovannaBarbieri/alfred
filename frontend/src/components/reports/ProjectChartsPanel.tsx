@@ -23,6 +23,7 @@ type SpecificTab = "collaborators" | "categories";
 type ChartPeriodicity = "daily" | "weekly" | "monthly";
 
 const donutColors = ["#2563eb", "#16a34a", "#f97316", "#7c3aed", "#0891b2", "#64748b"];
+const adjustmentsSegmentColor = "#0f766e";
 const chartIdByTabAndPeriodicity: Record<SpecificTab, Partial<Record<ChartPeriodicity, TimelineChartId>>> = {
   collaborators: {
     daily: "dailyByUser",
@@ -135,6 +136,7 @@ function CategoryDonutChart({ items }: { items: HoursReportItem[] }) {
     name: item.label || item.key,
     value: Number(item.totalHours.toFixed(2)),
     percentage: item.percentage,
+    developmentAdjustments: item.developmentAdjustments,
   }));
   const dominantValue = Math.max(...chartData.map((item) => item.value), 0);
 
@@ -188,14 +190,11 @@ function CategoryDonutChart({ items }: { items: HoursReportItem[] }) {
                     </strong>
                     {item.value === dominantValue && <em>Dominante</em>}
                   </span>
-                  <span className="category-donut-progress" aria-hidden="true">
-                    <span
-                      style={{
-                        background: donutColors[index % donutColors.length],
-                        width: `${Math.max(item.percentage, 3)}%`,
-                      }}
-                    />
-                  </span>
+                  <CategoryProgressBar
+                    color={donutColors[index % donutColors.length]}
+                    percentage={item.percentage}
+                    developmentAdjustments={item.developmentAdjustments}
+                  />
                 </span>
                 <span>{item.value.toFixed(2)}h</span>
                 <span>{item.percentage.toFixed(1)}%</span>
@@ -205,5 +204,63 @@ function CategoryDonutChart({ items }: { items: HoursReportItem[] }) {
         </div>
       )}
     </section>
+  );
+}
+
+function CategoryProgressBar({
+  color,
+  percentage,
+  developmentAdjustments,
+}: {
+  color: string;
+  percentage: number;
+  developmentAdjustments?: HoursReportItem["developmentAdjustments"];
+}) {
+  const progressWidth = `${Math.max(percentage, 3)}%`;
+  if (!developmentAdjustments || developmentAdjustments.adjustmentHours <= 0) {
+    return (
+      <span className="category-donut-progress">
+        <span
+          style={{
+            background: color,
+            width: progressWidth,
+          }}
+        />
+      </span>
+    );
+  }
+
+  const regularTitle = [
+    "Desenvolvimento sem ajustes",
+    `${developmentAdjustments.regularHours.toFixed(2)}h`,
+    `${developmentAdjustments.regularPercentage.toFixed(1)}% das horas de Desenvolvimento`,
+  ].join("\n");
+  const adjustmentTitle = [
+    "Ajustes de testes cruzados",
+    `${developmentAdjustments.adjustmentHours.toFixed(2)}h`,
+    `${developmentAdjustments.adjustmentPercentage.toFixed(1)}% das horas de Desenvolvimento`,
+  ].join("\n");
+
+  return (
+    <span className="category-donut-progress segmented" style={{ width: progressWidth }}>
+      {developmentAdjustments.regularHours > 0 && (
+        <span
+          className="category-donut-progress-segment"
+          title={regularTitle}
+          style={{
+            background: color,
+            width: `${developmentAdjustments.regularPercentage}%`,
+          }}
+        />
+      )}
+      <span
+        className="category-donut-progress-segment adjustments"
+        title={adjustmentTitle}
+        style={{
+          background: adjustmentsSegmentColor,
+          width: `${Math.max(developmentAdjustments.adjustmentPercentage, 2)}%`,
+        }}
+      />
+    </span>
   );
 }

@@ -12525,6 +12525,23 @@ input {
   opacity: 0.78;
 }
 
+.category-donut-progress.segmented {
+  display: flex;
+  width: auto;
+}
+
+.category-donut-progress.segmented span {
+  flex: 0 0 auto;
+}
+
+.category-donut-progress-segment {
+  cursor: help;
+}
+
+.category-donut-progress-segment.adjustments {
+  opacity: 0.9;
+}
+
 .mini-line-chart {
   height: 240px;
 }
