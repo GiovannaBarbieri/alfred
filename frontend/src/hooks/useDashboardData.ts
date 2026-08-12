@@ -142,6 +142,7 @@ export function useDashboardData() {
   const [projectRecommendations, setProjectRecommendations] = useState<ProjectRecommendation[]>(emptyProjectRecommendations);
   const [filters, setFilters] = useState<ReportFilters>(emptyFilters);
   const [filterOptions, setFilterOptions] = useState<ReportFilterOptions>(emptyFilterOptions);
+  const [isLoadingProjectReport, setIsLoadingProjectReport] = useState(false);
 
   async function refreshDashboard(activeFilters: ReportFilters = filters) {
     const [summaryData, importsData, reportsData] = await Promise.all([
@@ -192,20 +193,25 @@ export function useDashboardData() {
   async function handleOpenReportProject(importId: number) {
     setSelectedReportImportId(importId);
     setSelectedReportView(null);
+    setIsLoadingProjectReport(true);
     const projectFilters = { ...filters, importId: String(importId) };
-    const [, timelineChartsData, executiveSummaryData, pendingItemsData, insightsData, recommendationsData] = await Promise.all([
-      refreshDashboard(projectFilters),
-      getProjectTimelineCharts(importId),
-      getProjectExecutiveSummary(importId),
-      getProjectPendingItems(importId),
-      getProjectInsights(importId),
-      getProjectRecommendations(importId),
-    ]);
-    setProjectTimelineCharts(timelineChartsData);
-    setProjectExecutiveSummary(executiveSummaryData);
-    setProjectPendingItems(pendingItemsData);
-    setProjectInsights(insightsData);
-    setProjectRecommendations(recommendationsData);
+    try {
+      const [, timelineChartsData, executiveSummaryData, pendingItemsData, insightsData, recommendationsData] = await Promise.all([
+        refreshDashboard(projectFilters),
+        getProjectTimelineCharts(importId),
+        getProjectExecutiveSummary(importId),
+        getProjectPendingItems(importId),
+        getProjectInsights(importId),
+        getProjectRecommendations(importId),
+      ]);
+      setProjectTimelineCharts(timelineChartsData);
+      setProjectExecutiveSummary(executiveSummaryData);
+      setProjectPendingItems(pendingItemsData);
+      setProjectInsights(insightsData);
+      setProjectRecommendations(recommendationsData);
+    } finally {
+      setIsLoadingProjectReport(false);
+    }
   }
 
   function handleBackToReportProjects() {
@@ -216,6 +222,7 @@ export function useDashboardData() {
     setProjectPendingItems(emptyProjectPendingItems);
     setProjectInsights(emptyProjectInsights);
     setProjectRecommendations(emptyProjectRecommendations);
+    setIsLoadingProjectReport(false);
     void refreshDashboard(filters);
   }
 
@@ -233,6 +240,7 @@ export function useDashboardData() {
     projectPendingItems,
     projectInsights,
     projectRecommendations,
+    isLoadingProjectReport,
     filters,
     filterOptions,
     refreshDashboard,

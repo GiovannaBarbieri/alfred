@@ -34,9 +34,7 @@ from app.services.import_pipeline import (
     reprocess_staged_import,
 )
 from app.services.import_persistence_service import replace_final_import
-from app.services.import_record_builder import build_records_from_staging_rows
 from app.services.import_service import build_import_records, validate_import_file
-from app.services.import_service import validate_import_dataframe
 from app.services.sqlserver_service import (
     SQLServerAmbiguousIdError,
     SQLServerConfigurationError,
@@ -51,7 +49,6 @@ from app.services.sqlserver_service import (
     query_import_dataframe,
     test_sqlserver_connection,
 )
-from app.services.staging_row_builder import build_staging_rows_from_dataframe
 from app.services.validation_service import REQUIRED_COLUMNS
 
 router = APIRouter()
@@ -273,16 +270,19 @@ def refresh_sqlserver_project_import(import_id: int) -> ImportCompleteResponse:
     filename = source["filename"]
     content = dataframe_to_import_content(dataframe)
     file_hash = hashlib.sha256(content).hexdigest()
-    column_lookup = {column: column for column in REQUIRED_COLUMNS}
-    validation = validate_import_dataframe(filename=filename, dataframe=dataframe, column_lookup=column_lookup)
+    validation = validate_import_file(filename=filename, content=content)
     if not validation.canComplete:
         raise HTTPException(
             status_code=422,
             detail="A atualizacao encontrou bloqueios de validacao. Corrija a origem dos dados antes de atualizar o relatorio.",
         )
 
-    staging_rows = build_staging_rows_from_dataframe(dataframe, column_lookup, validation.classifications)
-    records = build_records_from_staging_rows(staging_rows, validation)
+    records = build_import_records(filename=filename, content=content)
+    if validation.validRows > 0 and not records:
+        raise HTTPException(
+            status_code=500,
+            detail="Nao foi possivel montar os registros atualizados do projeto.",
+        )
     with get_connection() as connection:
         saved_rows = replace_final_import(
             connection,

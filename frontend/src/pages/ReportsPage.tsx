@@ -37,6 +37,7 @@ export function ReportsPage({
   imports,
   landingCollaboratorsCount,
   selectedImportId,
+  isLoadingProjectReport,
   projectTimelineCharts,
   projectExecutiveSummary,
   projectInsights,
@@ -46,6 +47,7 @@ export function ReportsPage({
   imports: ImportSummary[];
   landingCollaboratorsCount: number;
   selectedImportId: number | null;
+  isLoadingProjectReport: boolean;
   projectTimelineCharts: ProjectTimelineCharts;
   projectExecutiveSummary: ProjectExecutiveSummary;
   projectInsights: ProjectInsights;
@@ -256,6 +258,12 @@ export function ReportsPage({
         onRefreshData={handleRefreshProjectData}
       />
 
+      {isLoadingProjectReport && (
+        <section className="panel loading-panel">Carregando dados do projeto...</section>
+      )}
+
+      {!isLoadingProjectReport && (
+        <>
       <section className="report-executive-kpis" aria-label="Indicadores executivos do projeto">
         <span><strong>{projectExecutiveSummary.metrics.totalHours.toFixed(2)}h</strong><small>Horas</small></span>
         <span><strong>{selectedImport.validRows}</strong><small>Registros</small></span>
@@ -319,6 +327,8 @@ export function ReportsPage({
           onTaskSortChange={setTaskSort}
           onTaskPageChange={setTaskPage}
         />
+      )}
+        </>
       )}
 
     </>

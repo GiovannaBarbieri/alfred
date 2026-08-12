@@ -352,6 +352,7 @@ function App() {
             imports={dashboard.imports}
             landingCollaboratorsCount={dashboard.overview.summary.collaboratorsCount}
             selectedImportId={dashboard.selectedReportImportId}
+            isLoadingProjectReport={dashboard.isLoadingProjectReport}
             projectTimelineCharts={dashboard.projectTimelineCharts}
             projectExecutiveSummary={dashboard.projectExecutiveSummary}
             projectInsights={dashboard.projectInsights}
