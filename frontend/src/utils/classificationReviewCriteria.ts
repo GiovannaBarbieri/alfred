@@ -2,7 +2,6 @@ import type { ImportIssue, ImportValidationResponse } from "../types";
 
 type ReviewableClassification = ImportValidationResponse["classifications"][number];
 
-const FALLBACK_ORIGINS = new Set(["padrao_titulo", "padrao_titulo_categoria"]);
 const PENDING_ORIGINS = new Set(["pendente"]);
 const CONFLICT_ISSUE_CODES = new Set(["conflicting_categories", "conflicting_category"]);
 const SUBCATEGORY_ISSUE_CODES = new Set(["missing_technical_profile"]);
@@ -78,10 +77,6 @@ export function reviewReasonsForClassification(
 
   if (PENDING_ORIGINS.has(classification.origin)) {
     reasons.add("Regra de classificação não encontrada");
-  }
-
-  if (FALLBACK_ORIGINS.has(classification.origin)) {
-    reasons.add("Classificação padrão aplicada");
   }
 
   if (hasConflictReason(suggestionReasons) || lineIssues.some((issue) => CONFLICT_ISSUE_CODES.has(issue.code))) {
