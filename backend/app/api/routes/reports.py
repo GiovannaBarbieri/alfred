@@ -675,7 +675,7 @@ def _with_development_adjustments(*, import_id: int, categories: list[dict]) -> 
                     COALESCE(
                         SUM(
                             CASE
-                                WHEN l.titulo_task ILIKE %s THEN l.duracao_segundos
+                                WHEN l.titulo_task ~* %s THEN l.duracao_segundos
                                 ELSE 0
                             END
                         ),
@@ -686,7 +686,7 @@ def _with_development_adjustments(*, import_id: int, categories: list[dict]) -> 
                 WHERE l.importacao_id = %s
                   AND c.nome = 'Desenvolvimento'
                 """,
-                ["%[Ajustes]%", import_id],
+                [r"\[\s*desenvolvimento\s*\]\s*\[\s*ajustes\s*\]", import_id],
             )
             row = cursor.fetchone()
 
