@@ -240,6 +240,11 @@ function CategoryProgressBar({
     `${developmentAdjustments.adjustmentHours.toFixed(2)}h`,
     `${developmentAdjustments.adjustmentPercentage.toFixed(1)}% das horas de Desenvolvimento`,
   ].join("\n");
+  const adjustmentDisplayPercentage =
+    developmentAdjustments.adjustmentPercentage > 0 && developmentAdjustments.adjustmentPercentage < 6
+      ? 6
+      : developmentAdjustments.adjustmentPercentage;
+  const regularDisplayPercentage = Math.max(100 - adjustmentDisplayPercentage, 0);
 
   return (
     <span className="category-donut-progress segmented" style={{ width: progressWidth }}>
@@ -249,7 +254,7 @@ function CategoryProgressBar({
           title={regularTitle}
           style={{
             background: color,
-            width: `${developmentAdjustments.regularPercentage}%`,
+            width: `${regularDisplayPercentage}%`,
           }}
         />
       )}
@@ -258,7 +263,7 @@ function CategoryProgressBar({
         title={adjustmentTitle}
         style={{
           background: adjustmentsSegmentColor,
-          width: `${Math.max(developmentAdjustments.adjustmentPercentage, 2)}%`,
+          width: `${adjustmentDisplayPercentage}%`,
         }}
       />
     </span>
