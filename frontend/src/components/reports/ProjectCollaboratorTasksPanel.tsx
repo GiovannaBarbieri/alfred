@@ -182,7 +182,6 @@ export function ProjectCollaboratorTasksPanel({
                 <option value="title_asc">Título A-Z</option>
                 <option value="category_asc">Categoria A-Z</option>
               </select>
-              <span>{taskPageSize} por página</span>
             </div>
             {filteredCollaboratorTasks.length === 0 ? (
               <div className="task-empty-state">Nenhuma Task encontrada com os filtros aplicados.</div>
