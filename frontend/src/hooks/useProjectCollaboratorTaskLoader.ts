@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 
-import { getProjectCollaboratorTasks } from "../services/api";
-import type { ProjectCollaboratorTask } from "../types";
+import { getProjectCollaboratorCategoryTimeline, getProjectCollaboratorTasks } from "../services/api";
+import type { ProjectCollaboratorTask, ProjectTimelinePoint } from "../types";
 import type { TaskSortId } from "../components/reports/reportsConfig";
 
 export function useProjectCollaboratorTaskLoader(selectedImportId: number | null) {
   const [selectedCollaborator, setSelectedCollaborator] = useState("");
   const [collaboratorTasks, setCollaboratorTasks] = useState<ProjectCollaboratorTask[]>([]);
+  const [collaboratorCategoryTimeline, setCollaboratorCategoryTimeline] = useState<ProjectTimelinePoint[]>([]);
   const [taskSearch, setTaskSearch] = useState("");
   const [taskCategoryFilter, setTaskCategoryFilter] = useState("");
   const [taskSort, setTaskSort] = useState<TaskSortId>("duration_desc");
@@ -16,6 +17,7 @@ export function useProjectCollaboratorTaskLoader(selectedImportId: number | null
   function resetCollaboratorTasks() {
     setSelectedCollaborator("");
     setCollaboratorTasks([]);
+    setCollaboratorCategoryTimeline([]);
     setTaskSearch("");
     setTaskCategoryFilter("");
     setTaskSort("duration_desc");
@@ -25,6 +27,7 @@ export function useProjectCollaboratorTaskLoader(selectedImportId: number | null
   useEffect(() => {
     if (!selectedImportId || !selectedCollaborator) {
       setCollaboratorTasks([]);
+      setCollaboratorCategoryTimeline([]);
       setTaskSearch("");
       setTaskCategoryFilter("");
       setTaskSort("duration_desc");
@@ -39,9 +42,14 @@ export function useProjectCollaboratorTaskLoader(selectedImportId: number | null
     setTaskCategoryFilter("");
     setTaskSort("duration_desc");
 
-    getProjectCollaboratorTasks(selectedImportId, selectedCollaborator)
-      .then((tasks) => {
-        if (active) setCollaboratorTasks(tasks);
+    Promise.all([
+      getProjectCollaboratorTasks(selectedImportId, selectedCollaborator),
+      getProjectCollaboratorCategoryTimeline(selectedImportId, selectedCollaborator),
+    ])
+      .then(([tasks, timeline]) => {
+        if (!active) return;
+        setCollaboratorTasks(tasks);
+        setCollaboratorCategoryTimeline(timeline);
       })
       .catch((err) => {
         if (active) setTasksError(err instanceof Error ? err.message : "Erro inesperado.");
@@ -58,6 +66,7 @@ export function useProjectCollaboratorTaskLoader(selectedImportId: number | null
   return {
     selectedCollaborator,
     collaboratorTasks,
+    collaboratorCategoryTimeline,
     taskSearch,
     taskCategoryFilter,
     taskSort,

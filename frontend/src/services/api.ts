@@ -24,6 +24,7 @@ import type {
   ProjectPendingItems,
   ProjectRecommendation,
   ProjectTimelineCharts,
+  ProjectTimelinePoint,
   ReprocessHistoryItem,
   ReportFilterOptions,
   ReportFilters,
@@ -456,6 +457,15 @@ export async function getProjectCollaboratorTasks(importId: number, user: string
   const response = await fetch(`${API_BASE_URL}/reports/project-collaborator-tasks?${params.toString()}`);
   if (!response.ok) {
     throw new Error("Não foi possível carregar as tasks do colaborador.");
+  }
+  return response.json();
+}
+
+export async function getProjectCollaboratorCategoryTimeline(importId: number, user: string): Promise<ProjectTimelinePoint[]> {
+  const params = new URLSearchParams({ importId: String(importId), user });
+  const response = await fetch(`${API_BASE_URL}/reports/project-collaborator-category-timeline?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error("Não foi possível carregar a evolução por categoria do colaborador.");
   }
   return response.json();
 }

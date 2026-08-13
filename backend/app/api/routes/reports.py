@@ -1317,6 +1317,41 @@ def get_project_collaborator_tasks(
     ]
 
 
+@router.get("/project-collaborator-category-timeline")
+def get_project_collaborator_category_timeline(
+    import_id: int = Query(..., alias="importId"),
+    user: str = Query(..., min_length=1),
+) -> list[dict]:
+    with get_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    l.data_hora_cadastro::date AS period,
+                    COALESCE(c.nome, 'Nao classificado') AS series,
+                    ROUND((SUM(l.duracao_segundos)::numeric / 3600), 2) AS horas
+                FROM lancamentos_horas l
+                LEFT JOIN categorias c ON c.id = l.categoria_id
+                WHERE l.importacao_id = %s
+                  AND l.login_usuario = %s
+                GROUP BY l.data_hora_cadastro::date, COALESCE(c.nome, 'Nao classificado')
+                HAVING SUM(l.duracao_segundos) > 0
+                ORDER BY period, series
+                """,
+                [import_id, user],
+            )
+            rows = cursor.fetchall()
+
+    return [
+        {
+            "period": row["period"].isoformat(),
+            "series": row["series"],
+            "horas": float(row["horas"]),
+        }
+        for row in rows
+    ]
+
+
 def _query_project_timeline(
     *,
     import_id: int,

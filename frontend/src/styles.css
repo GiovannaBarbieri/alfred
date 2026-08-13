@@ -12215,6 +12215,55 @@ input {
   height: 410px;
 }
 
+.collaborator-category-timeline-panel {
+  margin-bottom: 14px;
+}
+
+.collaborator-category-chart-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.collaborator-category-chart-options label {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e1e8f0;
+  border-radius: 999px;
+  color: #172033;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 10px;
+}
+
+.collaborator-category-chart-options input {
+  accent-color: #123c69;
+  margin: 0;
+}
+
+.collaborator-category-chart-options i {
+  border-radius: 999px;
+  height: 8px;
+  width: 8px;
+}
+
+.collaborator-category-chart-options span {
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.collaborator-category-chart-options strong {
+  color: #123c69;
+  font-size: 12px;
+}
+
+.collaborator-category-chart-wrap {
+  height: 360px;
+}
+
 .chart-empty-state {
   align-items: center;
   background: #f7f9fc;

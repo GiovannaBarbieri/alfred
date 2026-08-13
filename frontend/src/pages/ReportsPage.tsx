@@ -63,6 +63,7 @@ export function ReportsPage({
   const {
     selectedCollaborator,
     collaboratorTasks,
+    collaboratorCategoryTimeline,
     taskSearch,
     taskCategoryFilter,
     taskSort,
@@ -241,6 +242,7 @@ export function ReportsPage({
           collaboratorOptions={collaboratorOptions}
           selectedCollaborator={selectedCollaborator}
           collaboratorTasks={collaboratorTasks}
+          collaboratorCategoryTimeline={collaboratorCategoryTimeline}
           filteredCollaboratorTasks={filteredCollaboratorTasks}
           paginatedCollaboratorTasks={paginatedCollaboratorTasks}
           taskCategoryOptions={taskCategoryOptions}

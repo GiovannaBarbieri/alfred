@@ -1,11 +1,25 @@
-import { ChevronLeft, ChevronRight, Clock3, Layers3, ListChecks, Trophy, UserRound } from "lucide-react";
-import type { ProjectCollaboratorTask } from "../../types";
+import { BarChart3, ChevronLeft, ChevronRight, Clock3, Layers3, ListChecks, Trophy, UserRound } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import type { ProjectCollaboratorTask, ProjectTimelinePoint } from "../../types";
+import { formatPeriodBR } from "../../utils/date";
+import { ChartExportButton } from "../general-indicators/ChartExportButton";
 import type { TaskSortId } from "./reportsConfig";
 
 type ProjectCollaboratorTasksPanelProps = {
   collaboratorOptions: string[];
   selectedCollaborator: string;
   collaboratorTasks: ProjectCollaboratorTask[];
+  collaboratorCategoryTimeline: ProjectTimelinePoint[];
   filteredCollaboratorTasks: ProjectCollaboratorTask[];
   paginatedCollaboratorTasks: ProjectCollaboratorTask[];
   taskCategoryOptions: string[];
@@ -29,6 +43,7 @@ export function ProjectCollaboratorTasksPanel({
   collaboratorOptions,
   selectedCollaborator,
   collaboratorTasks,
+  collaboratorCategoryTimeline,
   filteredCollaboratorTasks,
   paginatedCollaboratorTasks,
   taskCategoryOptions,
@@ -96,6 +111,11 @@ export function ProjectCollaboratorTasksPanel({
         )}
         {selectedCollaborator && !isLoadingTasks && !tasksError && collaboratorTasks.length > 0 && (
           <>
+            <CollaboratorCategoryTimelineChart
+              collaborator={selectedCollaborator}
+              data={collaboratorCategoryTimeline}
+            />
+
             <section className="collaborator-summary-card" aria-label="Resumo do colaborador selecionado">
               <div className="collaborator-summary-identity">
                 <span className="collaborator-avatar"><UserRound size={22} /></span>
@@ -254,6 +274,196 @@ export function ProjectCollaboratorTasksPanel({
       </section>
     </>
   );
+}
+
+type CollaboratorChartPeriodicity = "daily" | "weekly" | "monthly";
+
+function CollaboratorCategoryTimelineChart({
+  collaborator,
+  data,
+}: {
+  collaborator: string;
+  data: ProjectTimelinePoint[];
+}) {
+  const [periodicity, setPeriodicity] = useState<CollaboratorChartPeriodicity>("daily");
+  const categoryOptions = useMemo(() => buildCategoryTotals(data), [data]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    setSelectedCategories(categoryOptions.map((category) => category.name));
+    setPeriodicity("daily");
+  }, [collaborator, categoryOptions]);
+
+  const activeCategories = selectedCategories.filter((category) => categoryOptions.some((option) => option.name === category));
+  const chartData = useMemo(() => buildCollaboratorCategoryChartRows(data, activeCategories, periodicity), [activeCategories, data, periodicity]);
+
+  function toggleCategory(category: string) {
+    setSelectedCategories((current) => {
+      if (current.includes(category)) {
+        return current.length === 1 ? current : current.filter((item) => item !== category);
+      }
+      return [...current, category];
+    });
+  }
+
+  return (
+    <section
+      className="panel collaborator-category-timeline-panel"
+      data-chart-export-card="true"
+      data-chart-export-period=""
+      data-chart-export-title={`Evolucao das Horas por Categoria - ${collaborator}`}
+    >
+      <div className="panel-heading timeline-chart-heading">
+        <BarChart3 size={20} />
+        <div>
+          <h2>Evolução das Horas por Categoria</h2>
+          <p className="muted">Distribuição das horas apontadas pelo colaborador ao longo do projeto.</p>
+        </div>
+        <div className="chart-periodicity-control" data-export-exclude>
+          <span>Linha do tempo</span>
+          <select value={periodicity} onChange={(event) => setPeriodicity(event.target.value as CollaboratorChartPeriodicity)}>
+            <option value="daily">Diária</option>
+            <option value="weekly">Semanal</option>
+            <option value="monthly">Mensal</option>
+          </select>
+        </div>
+        <ChartExportButton compact />
+      </div>
+
+      {categoryOptions.length === 0 ? (
+        <div className="chart-empty-state compact">Sem categorias para exibir.</div>
+      ) : (
+        <>
+          <div className="collaborator-category-chart-options" aria-label="Categorias do colaborador" data-export-exclude>
+            {categoryOptions.map((category) => (
+              <label key={category.name}>
+                <input
+                  type="checkbox"
+                  checked={selectedCategories.includes(category.name)}
+                  onChange={() => toggleCategory(category.name)}
+                />
+                <i style={{ background: categoryColor(category.name) }} />
+                <span>{category.name}</span>
+                <strong>{category.totalHours.toFixed(2)}h</strong>
+              </label>
+            ))}
+          </div>
+
+          <div className="chart-wrap project-chart-wrap collaborator-category-chart-wrap">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData} margin={{ left: 2, right: 10, top: 6, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#d9e2ec" />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={18} />
+                <YAxis tickLine={false} axisLine={false} />
+                <Tooltip content={<CollaboratorCategoryTooltip />} />
+                {activeCategories.length > 1 && <Legend verticalAlign="bottom" height={32} />}
+                {activeCategories.map((category) => (
+                  <Line
+                    key={category}
+                    type="monotone"
+                    dataKey={category}
+                    stroke={categoryColor(category)}
+                    strokeWidth={2.5}
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 5 }}
+                    connectNulls
+                    isAnimationActive={false}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
+function CollaboratorCategoryTooltip({ active, payload }: { active?: boolean; payload?: Array<Record<string, any>> }) {
+  if (!active || !payload?.length) return null;
+
+  const row = payload[0]?.payload ?? {};
+  const visiblePayload = payload.filter((item) => item.dataKey !== "__periodTotal" && Number(item.value ?? 0) > 0);
+
+  return (
+    <div className="timeline-tooltip">
+      <strong>{formatPeriodBR(String(row.period ?? ""))}</strong>
+      <div className="timeline-tooltip-series">
+        {visiblePayload.map((item) => (
+          <span key={String(item.dataKey)}>
+            <i style={{ background: String(item.color ?? "#2563eb") }} />
+            <small>{String(item.name)}</small>
+            <b>{Number(item.value ?? 0).toFixed(2)}h</b>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function buildCategoryTotals(data: ProjectTimelinePoint[]) {
+  const totals = new Map<string, number>();
+  data.forEach((point) => {
+    const category = point.series ?? "Nao classificado";
+    totals.set(category, (totals.get(category) ?? 0) + Number(point.horas ?? 0));
+  });
+  return Array.from(totals.entries())
+    .map(([name, totalHours]) => ({ name, totalHours }))
+    .filter((category) => category.totalHours > 0)
+    .sort((a, b) => b.totalHours - a.totalHours || a.name.localeCompare(b.name));
+}
+
+function buildCollaboratorCategoryChartRows(
+  data: ProjectTimelinePoint[],
+  activeCategories: string[],
+  periodicity: CollaboratorChartPeriodicity,
+) {
+  const rowsByPeriod = new Map<string, Record<string, string | number>>();
+  const active = new Set(activeCategories);
+  data.forEach((point) => {
+    const category = point.series ?? "Nao classificado";
+    if (!active.has(category)) return;
+    const period = normalizeTimelinePeriod(point.period, periodicity);
+    const current = rowsByPeriod.get(period) ?? {
+      period,
+      label: formatPeriodBR(period),
+      __periodTotal: 0,
+    };
+    const hours = Number(point.horas ?? 0);
+    current[category] = Number(current[category] ?? 0) + hours;
+    current.__periodTotal = Number(current.__periodTotal ?? 0) + hours;
+    rowsByPeriod.set(period, current);
+  });
+
+  return Array.from(rowsByPeriod.values()).sort((a, b) => String(a.period).localeCompare(String(b.period)));
+}
+
+function normalizeTimelinePeriod(period: string, periodicity: CollaboratorChartPeriodicity) {
+  if (periodicity === "monthly") return `${period.slice(0, 7)}-01`;
+  if (periodicity === "weekly") return startOfWeek(period);
+  return period;
+}
+
+function startOfWeek(period: string) {
+  const date = new Date(`${period}T00:00:00`);
+  const day = date.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  date.setDate(date.getDate() + diff);
+  return date.toISOString().slice(0, 10);
+}
+
+function categoryColor(value: string) {
+  const className = categoryClassName(value);
+  const colors: Record<string, string> = {
+    development: "#2563eb",
+    quality: "#16a34a",
+    definition: "#d97706",
+    followup: "#f97316",
+    blocked: "#ef4444",
+    rework: "#7c3aed",
+    neutral: "#64748b",
+  };
+  return colors[className] ?? colors.neutral;
 }
 
 function buildCollaboratorSummary(tasks: ProjectCollaboratorTask[]) {
