@@ -99,7 +99,7 @@ export function ReportCard({
       <div className="saved-report-card-actions">
         <button className="primary-button" type="button" onClick={onOpen} disabled={opening}>
           <Eye size={16} />
-          {opening ? "Abrindo..." : "Abrir relatório"}
+          {opening ? "Abrindo..." : "Abrir"}
         </button>
         <button className="saved-report-delete" type="button" onClick={() => onAction({ type: "delete", report })}>
           <Trash2 size={15} />

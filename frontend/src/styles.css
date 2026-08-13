@@ -2110,21 +2110,29 @@ input {
 
 .saved-report-list {
   display: grid;
-  gap: 12px;
+  gap: 11px;
 }
 
 .saved-report-card {
   align-items: stretch;
+  background: #fff;
+  border: 1px solid #dce5ef;
+  border-radius: 10px;
   display: grid;
-  gap: 15px;
-  grid-template-columns: minmax(0, 1fr) max-content;
-  padding: 14px 16px;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) 172px;
+  padding: 13px 15px;
+}
+
+.saved-report-card-main {
+  min-width: 0;
 }
 
 .saved-report-card-heading h2 {
   color: #172033;
   font-size: 17px;
-  margin: 7px 0 5px;
+  line-height: 1.25;
+  margin: 6px 0 5px;
 }
 
 .saved-report-card-heading p,
@@ -2182,8 +2190,9 @@ input {
   display: inline-flex;
   font-size: 11px;
   font-weight: 700;
-  min-height: 25px;
-  padding: 4px 9px;
+  line-height: 1;
+  min-height: 23px;
+  padding: 3px 9px;
 }
 
 .saved-report-badges .saved-report-type {
@@ -2207,17 +2216,17 @@ input {
 
 .saved-report-metrics {
   display: grid;
-  gap: 8px;
+  gap: 7px;
   grid-template-columns: repeat(3, minmax(120px, 0.78fr)) repeat(2, minmax(170px, 1.12fr));
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .saved-report-metric {
   background: #f8fafc;
   border: 1px solid #eef2f7;
   border-radius: 8px;
-  min-height: 58px;
-  padding: 8px 10px;
+  min-height: 52px;
+  padding: 7px 9px;
 }
 
 .saved-report-metric.operational {
@@ -2229,7 +2238,7 @@ input {
   color: #172033;
   display: block;
   font-size: 15px;
-  margin-top: 5px;
+  margin-top: 4px;
 }
 
 .saved-report-metric.operational strong {
@@ -2244,8 +2253,8 @@ input {
 }
 
 .saved-report-metric.strategic strong {
-  font-size: 18px;
-  margin-top: 4px;
+  font-size: 17px;
+  margin-top: 3px;
 }
 
 .saved-report-metric small {
@@ -2284,7 +2293,7 @@ input {
   display: flex;
   flex-wrap: wrap;
   font-size: 12px;
-  gap: 10px 14px;
+  gap: 6px 12px;
   margin-top: 10px;
 }
 
@@ -2303,15 +2312,16 @@ input {
   align-content: center;
   border-left: 1px solid #e1e8f0;
   display: grid;
-  gap: 7px;
+  gap: 8px;
   justify-items: stretch;
-  padding-left: 15px;
+  padding-left: 14px;
 }
 
 .saved-report-card-actions > button {
+  border-radius: 7px;
   min-height: 38px;
   white-space: nowrap;
-  width: auto;
+  width: 100%;
 }
 
 .saved-report-delete {
@@ -2322,8 +2332,10 @@ input {
   color: #b42318;
   cursor: pointer;
   display: inline-flex;
+  gap: 7px;
+  justify-content: center;
   font-weight: 600;
-  min-height: 36px;
+  min-height: 38px;
 }
 
 .saved-report-delete:hover {
@@ -2858,6 +2870,10 @@ input {
     justify-content: flex-end;
     padding-left: 0;
     padding-top: 12px;
+  }
+
+  .saved-report-card-actions > button {
+    width: auto;
   }
 
   .saved-report-pagination {
