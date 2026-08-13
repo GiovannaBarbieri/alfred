@@ -121,7 +121,7 @@ export function ProjectTimelineChart({
           <p className="muted">{description}</p>
         </div>
         {timelineControl && <div data-export-exclude>{timelineControl}</div>}
-        <ChartExportButton />
+        <ChartExportButton compact />
       </div>
 
       {chartData.length === 0 ? (

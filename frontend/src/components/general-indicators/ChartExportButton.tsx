@@ -3,7 +3,7 @@ import { useState, type MouseEvent } from "react";
 
 import { exportChartAsPng } from "../../utils/chartImageExport";
 
-export function ChartExportButton() {
+export function ChartExportButton({ compact = false }: { compact?: boolean }) {
   const [busy, setBusy] = useState(false);
 
   async function exportCurrentCard(event: MouseEvent<HTMLButtonElement>) {
@@ -23,16 +23,16 @@ export function ChartExportButton() {
 
   return (
     <button
-      aria-label="Exportar gráfico atual em PNG"
-      className="chart-export-button"
+      aria-label="Baixar gráfico como PNG"
+      className={`chart-export-button${compact ? " compact" : ""}`}
       data-export-exclude
       disabled={busy}
       onClick={(event) => void exportCurrentCard(event)}
-      title="Exportar gráfico atual em PNG"
+      title="Baixar gráfico como PNG"
       type="button"
     >
-      <Download size={14} />
-      {busy ? "Exportando..." : "PNG"}
+      <Download size={compact ? 16 : 14} />
+      {!compact && (busy ? "Exportando..." : "PNG")}
     </button>
   );
 }

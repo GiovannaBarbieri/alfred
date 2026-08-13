@@ -3895,6 +3895,17 @@ input {
   opacity: .65;
 }
 
+.chart-export-button.compact {
+  align-self: center;
+  border-color: #c8d3df;
+  border-radius: 8px;
+  gap: 0;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  width: 36px;
+}
+
 .report-period-analysis .period-analysis-chart {
   padding: 14px;
 }

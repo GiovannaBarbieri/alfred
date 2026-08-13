@@ -166,7 +166,7 @@ function CategoryDonutChart({ exportTitle, items }: { exportTitle: string; items
           <h2>Distribuição das Horas por Categoria</h2>
           <p className="muted">Leitura visual da composição de esforço por categoria.</p>
         </div>
-        <ChartExportButton />
+        <ChartExportButton compact />
       </div>
       {chartData.length === 0 ? (
         <div className="chart-empty-state compact">Sem categorias para exibir.</div>
