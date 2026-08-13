@@ -1,1 +1,1 @@
-export const projectAdjustmentColor = "#d97706";
+export const projectAdjustmentColor = "#facc15";

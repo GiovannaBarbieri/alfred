@@ -396,18 +396,12 @@ function CollaboratorCategoryTooltip({ active, payload }: { active?: boolean; pa
           const totalHours = Number(item.value ?? 0);
           const adjustmentHours = getAdjustmentHours(row, category);
           if (isDevelopmentCategory(category) && adjustmentHours > 0) {
-            const regularHours = Math.max(totalHours - adjustmentHours, 0);
             return (
               <div className="timeline-tooltip-composition" key={category}>
                 <span>
                   <i style={{ background: String(item.color ?? "#2563eb") }} />
                   <small>{String(item.name)}</small>
                   <b>{formatHoursDuration(totalHours)}</b>
-                </span>
-                <span>
-                  <i style={{ background: String(item.color ?? "#2563eb") }} />
-                  <small>Desenvolvimento sem ajustes</small>
-                  <b>{formatHoursDuration(regularHours)}</b>
                 </span>
                 <span className="adjustment">
                   <i style={{ background: projectAdjustmentColor }} />
@@ -438,9 +432,10 @@ function CollaboratorCategoryDot(props: Record<string, any> & { active?: boolean
 
   const category = String(props.dataKey ?? "");
   const hasAdjustment = isDevelopmentCategory(category) && getAdjustmentHours(props.payload ?? {}, category) > 0;
-  const radius = props.active ? (hasAdjustment ? 6 : 5) : (hasAdjustment ? 5 : 3);
-  const color = hasAdjustment ? projectAdjustmentColor : "#ffffff";
-  const stroke = hasAdjustment ? projectAdjustmentColor : String(props.stroke ?? "#2563eb");
+  const radius = props.active ? (hasAdjustment ? 6.5 : 5) : (hasAdjustment ? 5 : 3.5);
+  const seriesColor = String(props.stroke ?? "#2563eb");
+  const color = seriesColor;
+  const stroke = hasAdjustment ? projectAdjustmentColor : "#ffffff";
 
   return (
     <circle
@@ -449,7 +444,7 @@ function CollaboratorCategoryDot(props: Record<string, any> & { active?: boolean
       fill={color}
       r={radius}
       stroke={stroke}
-      strokeWidth={hasAdjustment ? 2.5 : 2}
+      strokeWidth={hasAdjustment ? 3 : 2}
     />
   );
 }
