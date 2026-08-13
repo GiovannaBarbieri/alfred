@@ -2011,12 +2011,6 @@ input {
   justify-content: center;
 }
 
-.saved-report-metric span {
-  color: #637083;
-  display: block;
-  font-size: 12px;
-}
-
 .saved-report-filters {
   padding: 10px 12px;
   width: fit-content;
@@ -2214,96 +2208,21 @@ input {
   gap: 5px;
 }
 
-.saved-report-metrics {
-  display: grid;
-  gap: 7px;
-  grid-template-columns: repeat(3, minmax(120px, 0.78fr)) repeat(2, minmax(170px, 1.12fr));
-  margin-top: 10px;
-}
-
-.saved-report-metric {
-  background: #f8fafc;
-  border: 1px solid #eef2f7;
-  border-radius: 8px;
-  min-height: 52px;
-  padding: 7px 9px;
-}
-
-.saved-report-metric.operational {
-  background: #fafbfc;
-  border-color: #edf2f7;
-}
-
-.saved-report-metric strong {
-  color: #172033;
-  display: block;
-  font-size: 15px;
-  margin-top: 4px;
-}
-
-.saved-report-metric.operational strong {
-  font-size: 14px;
-  font-weight: 750;
-}
-
-.saved-report-metric.strategic {
-  background: #f7fbff;
-  border-color: #d9e8fb;
-  box-shadow: inset 0 0 0 1px rgba(15, 63, 115, 0.02);
-}
-
-.saved-report-metric.strategic strong {
-  font-size: 17px;
-  margin-top: 3px;
-}
-
-.saved-report-metric small {
-  color: #637083;
-  display: block;
-  font-size: 10px;
-  margin-top: 2px;
-}
-
-.saved-report-metric-reference {
-  color: #455468 !important;
-  font-weight: 700;
-}
-
-.saved-report-metric-status {
-  font-weight: 650;
-}
-
-.saved-report-metric.within_target {
-  border-left: 3px solid #16a34a;
-}
-
-.saved-report-metric.attention,
-.saved-report-metric.alert,
-.saved-report-metric.critical {
-  border-left: 3px solid #d97706;
-}
-
 .saved-report-responsible {
   margin-top: 10px;
 }
 
-.saved-report-project-summary {
+.saved-report-card-summary {
   align-items: center;
   color: #40536b;
   display: flex;
   flex-wrap: wrap;
   font-size: 12px;
   gap: 6px 12px;
-  margin-top: 10px;
+  margin-top: 9px;
 }
 
-.saved-report-project-summary span {
-  align-items: center;
-  display: inline-flex;
-  gap: 6px;
-}
-
-.saved-report-project-summary strong {
+.saved-report-card-summary strong {
   color: #172033;
   font-size: 13px;
 }
@@ -2839,9 +2758,6 @@ input {
     grid-template-columns: minmax(150px, 180px) minmax(220px, 280px);
   }
 
-  .saved-report-metrics {
-    grid-template-columns: repeat(3, minmax(120px, 1fr));
-  }
 }
 
 @media (max-width: 860px) {
@@ -2887,8 +2803,7 @@ input {
 }
 
 @media (max-width: 600px) {
-  .saved-report-filter-grid,
-  .saved-report-metrics {
+  .saved-report-filter-grid {
     grid-template-columns: 1fr;
   }
 

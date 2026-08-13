@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowLeft, Clock3, Download, Eye, FileBarChart, FileSpreadsheet, RefreshCw, SearchX, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Clock3, Download, Eye, FileBarChart, RefreshCw, SearchX, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GeneralIndicatorFinalizedPanel } from "../components/general-indicators/GeneralIndicatorFinalizedPanel";
 import { ReportActionModal } from "../components/my-reports/ReportActionModal";
@@ -306,8 +306,7 @@ function ProjectReportCard({
             </p>
           </div>
         </div>
-        <div className="saved-report-project-summary">
-          <span><FileSpreadsheet size={15} />{report.filename}</span>
+        <div className="saved-report-card-summary">
           <strong>{formatReportHours(report.totalHours)} · {formatReportNumber(report.consideredLaunchCount)} registros</strong>
         </div>
       </div>
