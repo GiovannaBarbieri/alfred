@@ -11,6 +11,7 @@ import {
 import type { HoursReportItem, ProjectExecutiveSummary, ProjectTimelineCharts } from "../../types";
 import { ProjectTimelineChart } from "../ProjectTimelineChart";
 import { ChartExportButton } from "../general-indicators/ChartExportButton";
+import { projectAdjustmentColor } from "./projectChartStyles";
 import { timelineCharts, type TimelineChartId } from "./reportsConfig";
 
 type ProjectChartsPanelProps = {
@@ -25,7 +26,6 @@ type SpecificTab = "collaborators" | "categories";
 type ChartPeriodicity = "daily" | "weekly" | "monthly";
 
 const donutColors = ["#2563eb", "#16a34a", "#f97316", "#7c3aed", "#0891b2", "#64748b"];
-const adjustmentsSegmentColor = "#d97706";
 const chartIdByTabAndPeriodicity: Record<SpecificTab, Partial<Record<ChartPeriodicity, TimelineChartId>>> = {
   collaborators: {
     daily: "dailyByUser",
@@ -270,7 +270,7 @@ function CategoryProgressBar({
         className="category-donut-progress-segment adjustments"
         tabIndex={0}
         style={{
-          background: adjustmentsSegmentColor,
+          background: projectAdjustmentColor,
           width: `${adjustmentDisplayPercentage}%`,
         }}
       >

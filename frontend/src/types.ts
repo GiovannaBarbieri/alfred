@@ -338,6 +338,7 @@ export type TimelinePoint = {
 
 export type ProjectTimelinePoint = TimelinePoint & {
   series?: string;
+  adjustmentHours?: number;
 };
 
 export type ProjectTimelineCharts = {

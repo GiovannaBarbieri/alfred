@@ -14,6 +14,7 @@ router = APIRouter()
 ReportGroup = Literal["user", "epic", "feature", "pbi", "task", "category", "subcategory"]
 TimelinePeriod = Literal["day", "week", "month"]
 TimelineSeries = Literal["user", "category"]
+DEVELOPMENT_ADJUSTMENTS_PATTERN = r"\[\s*desenvolvimento\s*\]\s*\[\s*ajustes\s*\]"
 
 
 class PendingAlertReviewPayload(BaseModel):
@@ -686,7 +687,7 @@ def _with_development_adjustments(*, import_id: int, categories: list[dict]) -> 
                 WHERE l.importacao_id = %s
                   AND c.nome = 'Desenvolvimento'
                 """,
-                [r"\[\s*desenvolvimento\s*\]\s*\[\s*ajustes\s*\]", import_id],
+                [DEVELOPMENT_ADJUSTMENTS_PATTERN, import_id],
             )
             row = cursor.fetchone()
 
@@ -1329,7 +1330,20 @@ def get_project_collaborator_category_timeline(
                 SELECT
                     l.data_hora_cadastro::date AS period,
                     COALESCE(c.nome, 'Nao classificado') AS series,
-                    ROUND((SUM(l.duracao_segundos)::numeric / 3600), 2) AS horas
+                    ROUND((SUM(l.duracao_segundos)::numeric / 3600), 2) AS horas,
+                    ROUND((
+                        COALESCE(
+                            SUM(
+                                CASE
+                                    WHEN c.nome = 'Desenvolvimento'
+                                     AND l.titulo_task ~* %s
+                                    THEN l.duracao_segundos
+                                    ELSE 0
+                                END
+                            ),
+                            0
+                        )::numeric / 3600
+                    ), 2) AS adjustment_hours
                 FROM lancamentos_horas l
                 LEFT JOIN categorias c ON c.id = l.categoria_id
                 WHERE l.importacao_id = %s
@@ -1338,7 +1352,7 @@ def get_project_collaborator_category_timeline(
                 HAVING SUM(l.duracao_segundos) > 0
                 ORDER BY period, series
                 """,
-                [import_id, user],
+                [DEVELOPMENT_ADJUSTMENTS_PATTERN, import_id, user],
             )
             rows = cursor.fetchall()
 
@@ -1347,6 +1361,7 @@ def get_project_collaborator_category_timeline(
             "period": row["period"].isoformat(),
             "series": row["series"],
             "horas": float(row["horas"]),
+            "adjustmentHours": float(row["adjustment_hours"] or 0),
         }
         for row in rows
     ]

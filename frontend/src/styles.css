@@ -12264,6 +12264,29 @@ input {
   font-size: 12px;
 }
 
+.collaborator-category-chart-options em {
+  color: #a16207;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 750;
+  margin-left: 2px;
+}
+
+.timeline-tooltip-composition {
+  display: grid;
+  gap: 4px;
+}
+
+.timeline-tooltip-series .timeline-tooltip-composition span {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+}
+
+.timeline-tooltip-composition .adjustment small,
+.timeline-tooltip-composition .adjustment b {
+  color: #fbbf24;
+}
+
 .collaborator-category-chart-wrap {
   height: 360px;
 }

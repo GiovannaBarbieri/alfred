@@ -13,6 +13,7 @@ import {
 import type { ProjectCollaboratorTask, ProjectTimelinePoint } from "../../types";
 import { formatPeriodBR } from "../../utils/date";
 import { ChartExportButton } from "../general-indicators/ChartExportButton";
+import { projectAdjustmentColor } from "./projectChartStyles";
 import type { TaskSortId } from "./reportsConfig";
 
 type ProjectCollaboratorTasksPanelProps = {
@@ -344,6 +345,9 @@ function CollaboratorCategoryTimelineChart({
                 <i style={{ background: categoryColor(category.name) }} />
                 <span>{category.name}</span>
                 <strong>{category.totalHours.toFixed(2)}h</strong>
+                {isDevelopmentCategory(category.name) && category.adjustmentHours > 0 && (
+                  <em>Ajustes: {category.adjustmentHours.toFixed(2)}h</em>
+                )}
               </label>
             ))}
           </div>
@@ -363,8 +367,8 @@ function CollaboratorCategoryTimelineChart({
                     dataKey={category}
                     stroke={categoryColor(category)}
                     strokeWidth={2.5}
-                    dot={{ r: 3 }}
-                    activeDot={{ r: 5 }}
+                    dot={<CollaboratorCategoryDot />}
+                    activeDot={<CollaboratorCategoryDot active />}
                     isAnimationActive={false}
                   />
                 ))}
@@ -387,26 +391,80 @@ function CollaboratorCategoryTooltip({ active, payload }: { active?: boolean; pa
     <div className="timeline-tooltip">
       <strong>{formatPeriodBR(String(row.period ?? ""))}</strong>
       <div className="timeline-tooltip-series">
-        {visiblePayload.map((item) => (
-          <span key={String(item.dataKey)}>
-            <i style={{ background: String(item.color ?? "#2563eb") }} />
-            <small>{String(item.name)}</small>
-            <b>{Number(item.value ?? 0).toFixed(2)}h</b>
-          </span>
-        ))}
+        {visiblePayload.map((item) => {
+          const category = String(item.dataKey);
+          const totalHours = Number(item.value ?? 0);
+          const adjustmentHours = getAdjustmentHours(row, category);
+          if (isDevelopmentCategory(category) && adjustmentHours > 0) {
+            const regularHours = Math.max(totalHours - adjustmentHours, 0);
+            return (
+              <div className="timeline-tooltip-composition" key={category}>
+                <span>
+                  <i style={{ background: String(item.color ?? "#2563eb") }} />
+                  <small>{String(item.name)}</small>
+                  <b>{formatHoursDuration(totalHours)}</b>
+                </span>
+                <span>
+                  <i style={{ background: String(item.color ?? "#2563eb") }} />
+                  <small>Desenvolvimento sem ajustes</small>
+                  <b>{formatHoursDuration(regularHours)}</b>
+                </span>
+                <span className="adjustment">
+                  <i style={{ background: projectAdjustmentColor }} />
+                  <small>Ajustes de testes cruzados</small>
+                  <b>{formatHoursDuration(adjustmentHours)}</b>
+                </span>
+              </div>
+            );
+          }
+
+          return (
+            <span key={category}>
+              <i style={{ background: String(item.color ?? "#2563eb") }} />
+              <small>{String(item.name)}</small>
+              <b>{formatHoursDuration(totalHours)}</b>
+            </span>
+          );
+        })}
       </div>
     </div>
   );
 }
 
+function CollaboratorCategoryDot(props: Record<string, any> & { active?: boolean }) {
+  const cx = Number(props.cx);
+  const cy = Number(props.cy);
+  if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
+
+  const category = String(props.dataKey ?? "");
+  const hasAdjustment = isDevelopmentCategory(category) && getAdjustmentHours(props.payload ?? {}, category) > 0;
+  const radius = props.active ? (hasAdjustment ? 6 : 5) : (hasAdjustment ? 5 : 3);
+  const color = hasAdjustment ? projectAdjustmentColor : "#ffffff";
+  const stroke = hasAdjustment ? projectAdjustmentColor : String(props.stroke ?? "#2563eb");
+
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      fill={color}
+      r={radius}
+      stroke={stroke}
+      strokeWidth={hasAdjustment ? 2.5 : 2}
+    />
+  );
+}
+
 function buildCategoryTotals(data: ProjectTimelinePoint[]) {
-  const totals = new Map<string, number>();
+  const totals = new Map<string, { totalHours: number; adjustmentHours: number }>();
   data.forEach((point) => {
     const category = point.series ?? "Nao classificado";
-    totals.set(category, (totals.get(category) ?? 0) + Number(point.horas ?? 0));
+    const current = totals.get(category) ?? { totalHours: 0, adjustmentHours: 0 };
+    current.totalHours += Number(point.horas ?? 0);
+    current.adjustmentHours += Number(point.adjustmentHours ?? 0);
+    totals.set(category, current);
   });
   return Array.from(totals.entries())
-    .map(([name, totalHours]) => ({ name, totalHours }))
+    .map(([name, values]) => ({ name, ...values }))
     .filter((category) => category.totalHours > 0)
     .sort((a, b) => b.totalHours - a.totalHours || a.name.localeCompare(b.name));
 }
@@ -427,6 +485,9 @@ function buildCollaboratorCategoryChartRows(
     };
     activeCategories.forEach((category) => {
       current[category] = Number(current[category] ?? 0);
+      if (isDevelopmentCategory(category)) {
+        current[adjustmentKey(category)] = Number(current[adjustmentKey(category)] ?? 0);
+      }
     });
     rowsByPeriod.set(period, current);
     return current;
@@ -439,10 +500,32 @@ function buildCollaboratorCategoryChartRows(
     const current = ensurePeriodRow(period);
     const hours = Number(point.horas ?? 0);
     current[category] = Number(current[category] ?? 0) + hours;
+    if (isDevelopmentCategory(category)) {
+      current[adjustmentKey(category)] = Number(current[adjustmentKey(category)] ?? 0) + Number(point.adjustmentHours ?? 0);
+    }
     current.__periodTotal = Number(current.__periodTotal ?? 0) + hours;
   });
 
   return Array.from(rowsByPeriod.values()).sort((a, b) => String(a.period).localeCompare(String(b.period)));
+}
+
+function adjustmentKey(category: string) {
+  return `${category}AdjustmentHours`;
+}
+
+function getAdjustmentHours(row: Record<string, any>, category: string) {
+  return Number(row[adjustmentKey(category)] ?? 0);
+}
+
+function isDevelopmentCategory(category: string) {
+  return categoryClassName(category) === "development";
+}
+
+function formatHoursDuration(hours: number) {
+  const totalMinutes = Math.round(Math.max(hours, 0) * 60);
+  const fullHours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return minutes > 0 ? `${fullHours}h${String(minutes).padStart(2, "0")}` : `${fullHours}h`;
 }
 
 function normalizeTimelinePeriod(period: string, periodicity: CollaboratorChartPeriodicity) {
