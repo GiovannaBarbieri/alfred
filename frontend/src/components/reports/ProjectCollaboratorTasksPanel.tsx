@@ -94,7 +94,7 @@ export function ProjectCollaboratorTasksPanel({
       <section className="panel collaborator-tasks-panel">
         <div className="collaborator-tasks-title">
           <h2>Tasks por colaborador</h2>
-          <p className="muted">Lista agrupada por ID, categoria e duracao total.</p>
+          <p className="muted">Lista agrupada por ID, categoria e duração total.</p>
         </div>
 
         {!selectedCollaborator && (
@@ -128,7 +128,7 @@ export function ProjectCollaboratorTasksPanel({
                 <span>
                   <Clock3 size={18} />
                   <strong>{collaboratorSummary.totalDuration}</strong>
-                  <small>trabalhadas</small>
+                  <small>Horas trabalhadas</small>
                 </span>
                 <span>
                   <ListChecks size={18} />
@@ -156,7 +156,7 @@ export function ProjectCollaboratorTasksPanel({
             <div className="task-list-toolbar">
               <input
                 aria-label="Buscar Task"
-                placeholder="Buscar por ID ou titulo"
+                placeholder="Buscar por ID ou título"
                 value={taskSearch}
                 onChange={(event) => onTaskSearchChange(event.target.value)}
               />
@@ -177,12 +177,12 @@ export function ProjectCollaboratorTasksPanel({
                 value={taskSort}
                 onChange={(event) => onTaskSortChange(event.target.value as TaskSortId)}
               >
-                <option value="duration_desc">Maior duracao</option>
-                <option value="duration_asc">Menor duracao</option>
-                <option value="title_asc">Titulo A-Z</option>
+                <option value="duration_desc">Maior duração</option>
+                <option value="duration_asc">Menor duração</option>
+                <option value="title_asc">Título A-Z</option>
                 <option value="category_asc">Categoria A-Z</option>
               </select>
-              <span>{taskPageSize} por pagina</span>
+              <span>{taskPageSize} por página</span>
             </div>
             {filteredCollaboratorTasks.length === 0 ? (
               <div className="task-empty-state">Nenhuma Task encontrada com os filtros aplicados.</div>
@@ -193,10 +193,10 @@ export function ProjectCollaboratorTasksPanel({
                     <thead>
                       <tr>
                         <th>ID</th>
-                        <th>Titulo</th>
+                        <th>TÍTULO</th>
                         <th>Categoria</th>
                         <th>Subcategoria</th>
-                        <th>Duracao</th>
+                        <th>DURAÇÃO</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -236,11 +236,11 @@ export function ProjectCollaboratorTasksPanel({
                 <div className="task-pagination-summary">
                   Mostrando {firstVisibleTask}-{lastVisibleTask} de {filteredCollaboratorTasks.length} registros
                 </div>
-                <div className="task-pagination" aria-label="Paginacao de Tasks">
+                <div className="task-pagination" aria-label="Paginação de Tasks">
                   <button
                     className="task-page-button nav"
                     type="button"
-                    aria-label="Pagina anterior"
+                    aria-label="Página anterior"
                     disabled={taskPage <= 1}
                     onClick={() => onTaskPageChange(taskPage - 1)}
                   >
@@ -260,7 +260,7 @@ export function ProjectCollaboratorTasksPanel({
                   <button
                     className="task-page-button nav"
                     type="button"
-                    aria-label="Proxima pagina"
+                    aria-label="Próxima página"
                     disabled={taskPage >= totalTaskPages}
                     onClick={() => onTaskPageChange(taskPage + 1)}
                   >
@@ -311,7 +311,7 @@ function CollaboratorCategoryTimelineChart({
       className="panel collaborator-category-timeline-panel"
       data-chart-export-card="true"
       data-chart-export-period=""
-      data-chart-export-title={`Evolucao das Horas por Categoria - ${collaborator}`}
+      data-chart-export-title={`Evolução das Horas por Categoria - ${collaborator}`}
     >
       <div className="panel-heading timeline-chart-heading">
         <BarChart3 size={20} />
