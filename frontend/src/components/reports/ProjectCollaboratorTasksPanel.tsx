@@ -365,7 +365,6 @@ function CollaboratorCategoryTimelineChart({
                     strokeWidth={2.5}
                     dot={{ r: 3 }}
                     activeDot={{ r: 5 }}
-                    connectNulls
                     isAnimationActive={false}
                   />
                 ))}
@@ -419,19 +418,28 @@ function buildCollaboratorCategoryChartRows(
 ) {
   const rowsByPeriod = new Map<string, Record<string, string | number>>();
   const active = new Set(activeCategories);
-  data.forEach((point) => {
-    const category = point.series ?? "Nao classificado";
-    if (!active.has(category)) return;
-    const period = normalizeTimelinePeriod(point.period, periodicity);
+
+  function ensurePeriodRow(period: string) {
     const current = rowsByPeriod.get(period) ?? {
       period,
       label: formatPeriodBR(period),
       __periodTotal: 0,
     };
+    activeCategories.forEach((category) => {
+      current[category] = Number(current[category] ?? 0);
+    });
+    rowsByPeriod.set(period, current);
+    return current;
+  }
+
+  data.forEach((point) => {
+    const category = point.series ?? "Nao classificado";
+    if (!active.has(category)) return;
+    const period = normalizeTimelinePeriod(point.period, periodicity);
+    const current = ensurePeriodRow(period);
     const hours = Number(point.horas ?? 0);
     current[category] = Number(current[category] ?? 0) + hours;
     current.__periodTotal = Number(current.__periodTotal ?? 0) + hours;
-    rowsByPeriod.set(period, current);
   });
 
   return Array.from(rowsByPeriod.values()).sort((a, b) => String(a.period).localeCompare(String(b.period)));
