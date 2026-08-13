@@ -298,6 +298,7 @@ export function ReportsPage({
       {activeProjectTab === "charts" && (
         <ProjectChartsPanel
           selectedChartId={selectedChartId}
+          projectExportPrefix={projectTitle}
           projectExecutiveSummary={projectExecutiveSummary}
           projectTimelineCharts={projectTimelineCharts}
           onSelectedChartChange={setSelectedChartId}

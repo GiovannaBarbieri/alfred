@@ -10,10 +10,12 @@ import {
 
 import type { HoursReportItem, ProjectExecutiveSummary, ProjectTimelineCharts } from "../../types";
 import { ProjectTimelineChart } from "../ProjectTimelineChart";
+import { ChartExportButton } from "../general-indicators/ChartExportButton";
 import { timelineCharts, type TimelineChartId } from "./reportsConfig";
 
 type ProjectChartsPanelProps = {
   selectedChartId: TimelineChartId;
+  projectExportPrefix: string;
   projectExecutiveSummary: ProjectExecutiveSummary;
   projectTimelineCharts: ProjectTimelineCharts;
   onSelectedChartChange: (chartId: TimelineChartId) => void;
@@ -38,6 +40,7 @@ const chartIdByTabAndPeriodicity: Record<SpecificTab, Partial<Record<ChartPeriod
 
 export function ProjectChartsPanel({
   selectedChartId,
+  projectExportPrefix,
   projectExecutiveSummary,
   projectTimelineCharts,
   onSelectedChartChange,
@@ -70,9 +73,13 @@ export function ProjectChartsPanel({
         title="Evolução Diária do Projeto"
         description="Tendência diária do volume total de horas apontadas no projeto."
         data={projectTimelineCharts.dailyTotal}
+        chartExportTitle={buildProjectChartExportTitle(projectExportPrefix, "Evolucao Diaria do Projeto")}
       />
 
-      <CategoryDonutChart items={projectExecutiveSummary.categories} />
+      <CategoryDonutChart
+        exportTitle={buildProjectChartExportTitle(projectExportPrefix, "Distribuicao das Horas por Categoria")}
+        items={projectExecutiveSummary.categories}
+      />
 
       <section className="panel chart-specific-analysis-panel">
         <div className="reports-section-title">
@@ -108,6 +115,7 @@ export function ProjectChartsPanel({
           title={selectedChart.title}
           description={selectedChart.description}
           data={projectTimelineCharts[activeChartId]}
+          chartExportTitle={buildProjectChartExportTitle(projectExportPrefix, selectedChart.title)}
           seriesSummaryTitle={activeTab === "collaborators" ? "Selecionar colaboradores" : "Selecionar categorias"}
           timelineControl={(
             <label className="chart-periodicity-control">
@@ -125,13 +133,18 @@ export function ProjectChartsPanel({
   );
 }
 
+function buildProjectChartExportTitle(projectExportPrefix: string, chartTitle: string) {
+  const trimmedPrefix = projectExportPrefix.trim();
+  return trimmedPrefix ? `${trimmedPrefix} - ${chartTitle}` : chartTitle;
+}
+
 function getPeriodicityFromChartId(chartId: TimelineChartId): ChartPeriodicity {
   if (chartId === "weeklyByUser" || chartId === "weeklyByCategory") return "weekly";
   if (chartId === "monthlyByCategory") return "monthly";
   return "daily";
 }
 
-function CategoryDonutChart({ items }: { items: HoursReportItem[] }) {
+function CategoryDonutChart({ exportTitle, items }: { exportTitle: string; items: HoursReportItem[] }) {
   const chartData = items.slice(0, 6).map((item) => ({
     name: item.label || item.key,
     value: Number(item.totalHours.toFixed(2)),
@@ -141,13 +154,19 @@ function CategoryDonutChart({ items }: { items: HoursReportItem[] }) {
   const dominantValue = Math.max(...chartData.map((item) => item.value), 0);
 
   return (
-    <section className="panel category-donut-panel">
+    <section
+      className="panel category-donut-panel"
+      data-chart-export-card="true"
+      data-chart-export-period=""
+      data-chart-export-title={exportTitle}
+    >
       <div className="reports-section-title">
         <PieChartIcon size={18} />
         <div>
           <h2>Distribuição das Horas por Categoria</h2>
           <p className="muted">Leitura visual da composição de esforço por categoria.</p>
         </div>
+        <ChartExportButton />
       </div>
       {chartData.length === 0 ? (
         <div className="chart-empty-state compact">Sem categorias para exibir.</div>

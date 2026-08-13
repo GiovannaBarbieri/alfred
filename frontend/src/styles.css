@@ -3860,7 +3860,9 @@ input {
   width: 100%;
 }
 
-.general-indicators-heading .chart-export-button {
+.general-indicators-heading .chart-export-button,
+.timeline-chart-heading .chart-export-button,
+.reports-section-title .chart-export-button {
   align-items: center;
   align-self: flex-start;
   background: #fff;
@@ -3878,12 +3880,16 @@ input {
   transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 
-.general-indicators-heading .chart-export-button:hover:not(:disabled) {
+.general-indicators-heading .chart-export-button:hover:not(:disabled),
+.timeline-chart-heading .chart-export-button:hover:not(:disabled),
+.reports-section-title .chart-export-button:hover:not(:disabled) {
   background: #edf4ff;
   border-color: #8ab4f8;
 }
 
-.general-indicators-heading .chart-export-button:disabled {
+.general-indicators-heading .chart-export-button:disabled,
+.timeline-chart-heading .chart-export-button:disabled,
+.reports-section-title .chart-export-button:disabled {
   cursor: wait;
   opacity: .65;
 }
@@ -12099,6 +12105,11 @@ input {
   gap: 9px;
 }
 
+.reports-section-title > div {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .reports-section-title h2 {
   color: #0f172a;
   font-size: 16px;
@@ -12175,8 +12186,13 @@ input {
 }
 
 .timeline-chart-heading {
-  align-items: start;
+  align-items: center;
   margin-bottom: 10px;
+}
+
+.timeline-chart-heading > div:first-of-type {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .timeline-chart-heading p {

@@ -14,11 +14,14 @@ import {
 
 import type { ProjectTimelinePoint } from "../types";
 import { formatPeriodBR } from "../utils/date";
+import { ChartExportButton } from "./general-indicators/ChartExportButton";
 
 type ProjectTimelineChartProps = {
   title: string;
   description: string;
   data: ProjectTimelinePoint[];
+  chartExportTitle?: string;
+  chartExportPeriod?: string;
   seriesSummaryTitle?: string;
   timelineControl?: ReactNode;
 };
@@ -29,6 +32,8 @@ export function ProjectTimelineChart({
   title,
   description,
   data,
+  chartExportTitle,
+  chartExportPeriod = "",
   seriesSummaryTitle = "Selecionar series",
   timelineControl,
 }: ProjectTimelineChartProps) {
@@ -103,14 +108,20 @@ export function ProjectTimelineChart({
   }
 
   return (
-    <section className="panel timeline-chart-panel">
+    <section
+      className="panel timeline-chart-panel"
+      data-chart-export-card="true"
+      data-chart-export-period={chartExportPeriod}
+      data-chart-export-title={chartExportTitle ?? title}
+    >
       <div className="panel-heading timeline-chart-heading">
         <BarChart3 size={20} />
         <div>
           <h2>{title}</h2>
           <p className="muted">{description}</p>
         </div>
-        {timelineControl}
+        {timelineControl && <div data-export-exclude>{timelineControl}</div>}
+        <ChartExportButton />
       </div>
 
       {chartData.length === 0 ? (
@@ -121,7 +132,7 @@ export function ProjectTimelineChart({
       ) : (
         <>
           {seriesNames.length > 1 && (
-            <div className="chart-series-selection">
+            <div className="chart-series-selection" data-export-exclude>
               <div className="chart-series-selection-header">
                 <strong>{seriesSummaryTitle}</strong>
                 <div>
