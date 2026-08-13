@@ -25,7 +25,7 @@ type SpecificTab = "collaborators" | "categories";
 type ChartPeriodicity = "daily" | "weekly" | "monthly";
 
 const donutColors = ["#2563eb", "#16a34a", "#f97316", "#7c3aed", "#0891b2", "#64748b"];
-const adjustmentsSegmentColor = "#0f766e";
+const adjustmentsSegmentColor = "#d97706";
 const chartIdByTabAndPeriodicity: Record<SpecificTab, Partial<Record<ChartPeriodicity, TimelineChartId>>> = {
   collaborators: {
     daily: "dailyByUser",
@@ -249,16 +249,6 @@ function CategoryProgressBar({
     );
   }
 
-  const regularTitle = [
-    "Desenvolvimento sem ajustes",
-    `${developmentAdjustments.regularHours.toFixed(2)}h`,
-    `${developmentAdjustments.regularPercentage.toFixed(1)}% das horas de Desenvolvimento`,
-  ].join("\n");
-  const adjustmentTitle = [
-    "Ajustes de testes cruzados",
-    `${developmentAdjustments.adjustmentHours.toFixed(2)}h`,
-    `${developmentAdjustments.adjustmentPercentage.toFixed(1)}% das horas de Desenvolvimento`,
-  ].join("\n");
   const adjustmentDisplayPercentage =
     developmentAdjustments.adjustmentPercentage > 0 && developmentAdjustments.adjustmentPercentage < 6
       ? 6
@@ -270,7 +260,6 @@ function CategoryProgressBar({
       {developmentAdjustments.regularHours > 0 && (
         <span
           className="category-donut-progress-segment"
-          title={regularTitle}
           style={{
             background: color,
             width: `${regularDisplayPercentage}%`,
@@ -279,12 +268,18 @@ function CategoryProgressBar({
       )}
       <span
         className="category-donut-progress-segment adjustments"
-        title={adjustmentTitle}
+        tabIndex={0}
         style={{
           background: adjustmentsSegmentColor,
           width: `${adjustmentDisplayPercentage}%`,
         }}
-      />
+      >
+        <span className="category-adjustments-tooltip" role="tooltip">
+          <strong>Ajustes de testes cruzados</strong>
+          <b>{developmentAdjustments.adjustmentHours.toFixed(2)}h</b>
+          <small>{developmentAdjustments.adjustmentPercentage.toFixed(1)}% das horas de Desenvolvimento</small>
+        </span>
+      </span>
     </span>
   );
 }
