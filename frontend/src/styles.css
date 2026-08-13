@@ -2498,20 +2498,6 @@ input {
   margin: 0;
 }
 
-.saved-report-permanent-warning strong {
-  display: block;
-  margin-top: 3px;
-}
-
-.saved-report-confirm-check {
-  align-items: flex-start;
-  color: #354459;
-  display: flex;
-  font-size: 12px;
-  gap: 8px;
-  margin: 13px 0;
-}
-
 .saved-report-modal footer {
   display: flex;
   gap: 8px;

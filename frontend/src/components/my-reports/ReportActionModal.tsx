@@ -1,5 +1,5 @@
 import { AlertTriangle, Trash2, X } from "lucide-react";
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { ReportActionState } from "../../types";
 import { formatReportDate } from "../../utils/reportHistoryPresentation";
 
@@ -18,13 +18,11 @@ export function ReportActionModal({
   onClose: () => void;
   onConfirm: () => void;
 }) {
-  const [acknowledged, setAcknowledged] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const destructive = true;
   const copy = modalCopy(action.report.type === "PROJECT");
 
   useEffect(() => {
-    setAcknowledged(false);
     dialogRef.current?.focus();
   }, [action.report.id, action.type]);
 
@@ -38,7 +36,7 @@ export function ReportActionModal({
 
   function keepFocus(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (event.key !== "Tab") return;
-    const elements = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>("button:not(:disabled), input:not(:disabled)") ?? []);
+    const elements = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>("button:not(:disabled)") ?? []);
     if (!elements.length) return;
     const first = elements[0];
     const last = elements[elements.length - 1];
@@ -69,21 +67,15 @@ export function ReportActionModal({
             : <span>Atualizado em {new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(action.report.updatedAt))}</span>}
         </div>
         {destructive && (
-          <>
-            <div className="saved-report-permanent-warning">
-              <AlertTriangle size={18} />
-              <p>{copy.warning}<strong>Não será possível desfazer.</strong></p>
-            </div>
-            <label className="saved-report-confirm-check">
-              <input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} />
-              Entendo que esta ação não poderá ser desfeita.
-            </label>
-          </>
+          <div className="saved-report-permanent-warning">
+            <AlertTriangle size={18} />
+            <p>{copy.warning}</p>
+          </div>
         )}
         {error && <div className="error-banner" role="alert"><AlertTriangle size={17} />{error}</div>}
         <footer>
           <button className="secondary-button" type="button" onClick={onClose} disabled={busy}>Cancelar</button>
-          <button className={destructive ? "danger-button" : "primary-button"} type="button" onClick={onConfirm} disabled={busy || (destructive && !acknowledged)}>
+          <button className={destructive ? "danger-button" : "primary-button"} type="button" onClick={onConfirm} disabled={busy}>
             {busy ? "Processando..." : copy.confirm}
           </button>
         </footer>
@@ -95,11 +87,11 @@ export function ReportActionModal({
 function modalCopy(isProject: boolean) {
   return {
     title: "Excluir relatório?",
-    description: "Confirme os dados antes de realizar a exclusão permanente.",
+    description: "Esta ação não poderá ser desfeita.",
     warning: isProject
-      ? "Esta ação excluirá permanentemente o relatório de projeto e seus dados persistidos no Alfred."
-      : "Esta ação excluirá permanentemente o relatório e seu snapshot salvo.",
-    confirm: "Excluir permanentemente",
+      ? "O relatório e seus dados persistidos no Alfred serão excluídos permanentemente."
+      : "O relatório e seu snapshot salvo serão excluídos permanentemente.",
+    confirm: "Excluir",
     icon: <Trash2 size={20} />,
   };
 }

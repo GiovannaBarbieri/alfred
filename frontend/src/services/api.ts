@@ -233,7 +233,7 @@ export async function refreshProjectImport(importId: number): Promise<ImportComp
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new Error(payload?.detail ?? "NÃ£o foi possÃ­vel atualizar os dados do projeto.");
+    throw new Error(payload?.detail ?? "Não foi possível atualizar os dados do projeto.");
   }
   return response.json();
 }
@@ -245,7 +245,10 @@ export async function deleteProjectImport(importId: number, actor?: string | nul
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new Error(payload?.detail ?? "Nao foi possivel excluir o relatorio de projeto.");
+    if (response.status === 405) {
+      throw new Error("Não foi possível excluir o relatório. Atualize o backend do Alfred e tente novamente.");
+    }
+    throw new Error(payload?.detail ?? "Não foi possível excluir o relatório de projeto.");
   }
   return response.json();
 }
