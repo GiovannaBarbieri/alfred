@@ -9,15 +9,11 @@ import { ReportLandingView } from "../components/reports/ReportLandingView";
 import { ReportNotice } from "../components/reports/ReportNotice";
 import {
   type ProjectTabId,
-  type ReportLandingTabId,
   type TaskSortId,
   type TimelineChartId,
-  timelineCharts,
 } from "../components/reports/reportsConfig";
 import { useProjectCollaboratorTaskLoader } from "../hooks/useProjectCollaboratorTaskLoader";
 import { useProjectCollaboratorTasks } from "../hooks/useProjectCollaboratorTasks";
-import { useProjectComparisons } from "../hooks/useProjectComparisons";
-import { useProjectEvolution } from "../hooks/useProjectEvolution";
 import { useProjectReportData } from "../hooks/useProjectReportData";
 import { refreshProjectImport } from "../services/api";
 import type {
@@ -56,42 +52,8 @@ export function ReportsPage({
 }) {
   const [projectSearch, setProjectSearch] = useState("");
   const [reportNotice, setReportNotice] = useState<ReportNoticeState | null>(null);
-  const {
-    evolutionOptions,
-    selectedEvolutionProject,
-    projectEvolution,
-    isLoadingEvolution,
-    evolutionError,
-    evolutionExportUrl,
-    setSelectedEvolutionProject,
-    setProjectEvolution,
-    loadEvolution,
-  } = useProjectEvolution();
-  const {
-    comparisonSelection,
-    projectComparison,
-    isLoadingComparison,
-    comparisonError,
-    savedComparisons,
-    saveComparisonName,
-    isLoadingSavedComparisons,
-    savedComparisonActionId,
-    isSavingComparison,
-    savedComparisonError,
-    comparisonExportUrl,
-    comparisonProjectOptions,
-    setSaveComparisonName,
-    toggleComparisonSelection,
-    clearComparison,
-    compareProjects,
-    compareEvolutionImports,
-    saveComparison,
-    openSavedComparison,
-    deleteSavedComparison,
-  } = useProjectComparisons({ imports, projectEvolution, onNotice: setReportNotice });
   const [selectedChartId, setSelectedChartId] = useState<TimelineChartId>("dailyTotal");
   const [activeProjectTab, setActiveProjectTab] = useState<ProjectTabId>("executive");
-  const [reportLandingTab, setReportLandingTab] = useState<ReportLandingTabId>("projects");
   const [nextProjectTab, setNextProjectTab] = useState<ProjectTabId | null>(null);
   const [isSmartSummaryOpen, setIsSmartSummaryOpen] = useState(false);
   const [isProjectInsightsOpen, setIsProjectInsightsOpen] = useState(false);
@@ -198,40 +160,9 @@ export function ReportsPage({
           imports={imports}
           filteredImports={filteredImports}
           projectSearch={projectSearch}
-          reportLandingTab={reportLandingTab}
-          evolutionOptions={evolutionOptions}
-          selectedEvolutionProject={selectedEvolutionProject}
-          projectEvolution={projectEvolution}
-          isLoadingEvolution={isLoadingEvolution}
-          isLoadingComparison={isLoadingComparison}
-          evolutionError={evolutionError}
-          evolutionExportUrl={evolutionExportUrl}
-          comparisonProjectOptions={comparisonProjectOptions}
-          comparisonSelection={comparisonSelection}
-          projectComparison={projectComparison}
-          comparisonError={comparisonError}
-          savedComparisons={savedComparisons}
-          isLoadingSavedComparisons={isLoadingSavedComparisons}
-          savedComparisonActionId={savedComparisonActionId}
-          savedComparisonError={savedComparisonError}
-          saveComparisonName={saveComparisonName}
-          isSavingComparison={isSavingComparison}
-          comparisonExportUrl={comparisonExportUrl}
           landingCollaboratorsCount={landingCollaboratorsCount}
-          onLandingTabChange={setReportLandingTab}
           onProjectSearchChange={setProjectSearch}
           onOpenProject={handleOpenProject}
-          onSelectedEvolutionProjectChange={setSelectedEvolutionProject}
-          onClearEvolution={() => setProjectEvolution(null)}
-          onLoadEvolution={() => loadEvolution()}
-          onCompareEvolutionImports={compareEvolutionImports}
-          onClearComparison={clearComparison}
-          onToggleComparisonSelection={toggleComparisonSelection}
-          onCompareProjects={compareProjects}
-          onSaveComparisonNameChange={setSaveComparisonName}
-          onSaveComparison={saveComparison}
-          onOpenSavedComparison={openSavedComparison}
-          onDeleteSavedComparison={deleteSavedComparison}
         />
       </>
     );

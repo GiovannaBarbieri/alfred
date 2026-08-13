@@ -31,7 +31,7 @@ const analysisReportItems: Array<{ id: "import" | "general-indicators" | "my-rep
   { id: "import", label: "Projetos", icon: <FolderKanban size={17} /> },
   { id: "general-indicators", label: "Indicadores Gerais", icon: <Gauge size={17} /> },
   { id: "my-reports", label: "Meus Relatórios", icon: <Files size={17} /> },
-  { id: "report-comparison", label: "Comparação de Relatórios", icon: <Scale size={17} /> },
+  { id: "report-comparison", label: "Comparação de Indicadores", icon: <Scale size={17} /> },
 ];
 
 export function AppShell({ activeSection, onSectionChange, headerOverride, headerBackAction, hideHeader = false, children }: AppShellProps) {

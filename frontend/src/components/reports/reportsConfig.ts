@@ -4,7 +4,6 @@ export type TimelineChartId = keyof ProjectTimelineCharts;
 export type TaskSortId = "duration_desc" | "duration_asc" | "title_asc" | "category_asc";
 export type PdfChartMode = "none" | "current" | "all";
 export type ProjectTabId = "executive" | "charts" | "tasks";
-export type ReportLandingTabId = "projects" | "evolution" | "comparisons";
 export type PendingTypeFilter = "all" | "unclassified" | "low_confidence" | "zero_duration" | "alert";
 export type PendingStatusFilter = "all" | "pendente" | "revisado" | "ignorado";
 
@@ -49,10 +48,4 @@ export const projectTabs: Array<{ id: ProjectTabId; label: string }> = [
   { id: "executive", label: "Executivo" },
   { id: "charts", label: "Gráficos" },
   { id: "tasks", label: "Tasks" },
-];
-
-export const reportLandingTabs: Array<{ id: ReportLandingTabId; label: string }> = [
-  { id: "projects", label: "Projetos" },
-  { id: "evolution", label: "Evolução" },
-  { id: "comparisons", label: "Comparativos" },
 ];

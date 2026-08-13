@@ -54,8 +54,8 @@ export const sectionMeta: Record<SectionId, { title: string; description: string
     description: "Consulte e acesse as análises finalizadas no Alfred.",
   },
   "report-comparison": {
-    title: "Comparação de Relatórios",
-    description: "Compare snapshots salvos de forma independente, sem realizar novas consultas ao TFS.",
+    title: "Comparação de Indicadores",
+    description: "Compare snapshots salvos dos Indicadores Gerais de forma independente, sem realizar novas consultas ao TFS.",
   },
   history: {
     title: "Histórico",
