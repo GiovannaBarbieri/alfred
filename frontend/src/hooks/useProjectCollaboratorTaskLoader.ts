@@ -42,14 +42,18 @@ export function useProjectCollaboratorTaskLoader(selectedImportId: number | null
     setTaskCategoryFilter("");
     setTaskSort("duration_desc");
 
-    Promise.all([
-      getProjectCollaboratorTasks(selectedImportId, selectedCollaborator),
-      getProjectCollaboratorCategoryTimeline(selectedImportId, selectedCollaborator),
-    ])
-      .then(([tasks, timeline]) => {
+    getProjectCollaboratorTasks(selectedImportId, selectedCollaborator)
+      .then((tasks) => {
         if (!active) return;
         setCollaboratorTasks(tasks);
-        setCollaboratorCategoryTimeline(timeline);
+
+        getProjectCollaboratorCategoryTimeline(selectedImportId, selectedCollaborator)
+          .then((timeline) => {
+            if (active) setCollaboratorCategoryTimeline(timeline);
+          })
+          .catch(() => {
+            if (active) setCollaboratorCategoryTimeline([]);
+          });
       })
       .catch((err) => {
         if (active) setTasksError(err instanceof Error ? err.message : "Erro inesperado.");
