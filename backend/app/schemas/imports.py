@@ -98,6 +98,12 @@ class ImportCompleteResponse(BaseModel):
     savedRows: int
 
 
+class ImportDeleteResponse(BaseModel):
+    id: int
+    filename: str
+    deleted: bool
+
+
 class ImportSessionSummary(BaseModel):
     sessionId: int
     filename: str

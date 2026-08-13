@@ -4,7 +4,7 @@ import logging
 import re
 from collections import Counter
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 
 from app.db import get_connection
 from app.repositories.audit_repository import insert_audit_log
@@ -22,7 +22,7 @@ from app.repositories.import_repository import (
     list_imports,
     update_import_classifier_version,
 )
-from app.schemas.imports import ImportCompleteResponse, ImportDetail, ImportReprocessApplyRequest, ImportReprocessApplyResponse, ImportReprocessPreview, ImportSummary, ImportValidationResponse, ReprocessHistoryItem
+from app.schemas.imports import ImportCompleteResponse, ImportDeleteResponse, ImportDetail, ImportReprocessApplyRequest, ImportReprocessApplyResponse, ImportReprocessPreview, ImportSummary, ImportValidationResponse, ReprocessHistoryItem
 from app.schemas.imports import CompleteSessionRequest, ImportSessionResponse, ImportSessionSummary
 from app.schemas.imports import SQLServerConnectionStatus, SQLServerImportRequest
 from app.services.classification_service import classify_title, load_classification_settings, load_collaborator_subcategories
@@ -33,7 +33,7 @@ from app.services.import_pipeline import (
     create_staged_import_from_dataframe,
     reprocess_staged_import,
 )
-from app.services.import_persistence_service import replace_final_import
+from app.services.import_persistence_service import delete_final_import, replace_final_import
 from app.services.import_service import build_import_records, validate_import_file
 from app.services.sqlserver_service import (
     SQLServerAmbiguousIdError,
@@ -339,6 +339,23 @@ def get_imports() -> list[ImportSummary]:
         )
         for row in rows
     ]
+
+
+@router.delete("/{import_id}", response_model=ImportDeleteResponse)
+def delete_import(import_id: int, actor: str | None = Query(default=None, max_length=180)) -> ImportDeleteResponse:
+    with get_connection() as connection:
+        deleted = delete_final_import(connection, import_id=import_id, actor=actor)
+
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Relatorio de projeto nao encontrado.")
+
+    logger.info(
+        "Relatorio de projeto excluido: importacao_id=%s arquivo=%s usuario=%s",
+        import_id,
+        deleted["filename"],
+        actor or "sistema",
+    )
+    return ImportDeleteResponse(id=import_id, filename=str(deleted["filename"]), deleted=True)
 
 
 @router.get("/{import_id}/reprocess-preview", response_model=ImportReprocessPreview)

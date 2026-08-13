@@ -231,6 +231,16 @@ function App() {
     setActiveSection("general-indicators");
   }
 
+  async function handleOpenSavedProjectReport(importId: number) {
+    setActiveSection("reports");
+    await dashboard.handleOpenReportProject(importId);
+  }
+
+  async function handleProjectReportDeleted() {
+    await dashboard.refreshDashboard(dashboard.filters);
+    await dashboard.refreshFilterOptions();
+  }
+
   const headerOverride =
     activeSection === "validation" && importFlow.importWizardStep === "confirm" && !completedImport
       ? {
@@ -381,7 +391,10 @@ function App() {
 
         {activeSection === "my-reports" && (
           <MyReportsPage
+            imports={dashboard.imports}
             onGoToGeneralIndicators={handleGoToGeneralIndicators}
+            onOpenProjectReport={handleOpenSavedProjectReport}
+            onProjectDeleted={handleProjectReportDeleted}
             openReportId={generalIndicatorReportToOpen}
             onOpenReportHandled={() => setGeneralIndicatorReportToOpen(null)}
           />

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.repositories.audit_repository import insert_audit_log
 from app.repositories.import_repository import (
     create_import,
     get_lookup_id,
@@ -31,6 +32,65 @@ def persist_final_import(
     )
     _persist_duplicate_resolutions(connection, import_id, validation, records, duplicate_keep_lines)
     return import_id
+
+
+def delete_final_import(connection, *, import_id: int, actor: str | None = None) -> dict[str, Any] | None:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT id, nome_arquivo, status, total_registros, registros_validos, data_importacao
+            FROM importacoes
+            WHERE id = %s
+            FOR UPDATE
+            """,
+            (import_id,),
+        )
+        import_row = cursor.fetchone()
+        if not import_row:
+            return None
+
+        cursor.execute(
+            """
+            SELECT
+                COUNT(*) AS lancamentos,
+                COALESCE(SUM(duracao_segundos), 0) AS total_seconds
+            FROM lancamentos_horas
+            WHERE importacao_id = %s
+            """,
+            (import_id,),
+        )
+        totals = cursor.fetchone() or {"lancamentos": 0, "total_seconds": 0}
+
+        # Some related tables already cascade from importacoes, but deleting the
+        # direct children first avoids FK ordering issues with duplicate rows that
+        # reference lancamentos_horas.
+        cursor.execute("DELETE FROM duplicidades_importacao WHERE importacao_id = %s", (import_id,))
+        cursor.execute("DELETE FROM erros_importacao WHERE importacao_id = %s", (import_id,))
+        cursor.execute("DELETE FROM pending_reviews WHERE importacao_id = %s", (import_id,))
+        cursor.execute("DELETE FROM analytics_insights WHERE importacao_id = %s", (import_id,))
+        cursor.execute("DELETE FROM import_logs WHERE importacao_id = %s", (import_id,))
+        cursor.execute("DELETE FROM lancamentos_horas WHERE importacao_id = %s", (import_id,))
+        cursor.execute("DELETE FROM importacoes WHERE id = %s", (import_id,))
+
+    before = {
+        "id": import_row["id"],
+        "filename": import_row["nome_arquivo"],
+        "status": import_row["status"],
+        "totalRows": import_row["total_registros"],
+        "validRows": import_row["registros_validos"],
+        "importedAt": import_row["data_importacao"],
+        "launchCount": totals["lancamentos"],
+        "totalSeconds": totals["total_seconds"],
+    }
+    insert_audit_log(
+        connection,
+        entity="project_report",
+        action="delete",
+        record_id=import_id,
+        user=(actor or "sistema").strip() or "sistema",
+        before=before,
+    )
+    return before
 
 
 def replace_final_import(

@@ -1201,8 +1201,18 @@ export type AnnualReportDeleteResponse = {
   deletedAt: string;
 };
 
+export type ProjectSavedReportListItem = {
+  id: number;
+  name: string;
+  type: "PROJECT";
+  filename: string;
+  updatedAt: string;
+  totalHours: number;
+  consideredLaunchCount: number;
+};
+
 export type ReportActionState =
-  | { type: "delete"; report: AnnualReportListItem }
+  | { type: "delete"; report: AnnualReportListItem | ProjectSavedReportListItem }
   | null;
 
 export type SavedReportViewState = {

@@ -238,6 +238,18 @@ export async function refreshProjectImport(importId: number): Promise<ImportComp
   return response.json();
 }
 
+export async function deleteProjectImport(importId: number, actor?: string | null): Promise<{ id: number; filename: string; deleted: boolean }> {
+  const query = actor?.trim() ? `?actor=${encodeURIComponent(actor.trim())}` : "";
+  const response = await fetch(`${API_BASE_URL}/imports/${importId}${query}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.detail ?? "Nao foi possivel excluir o relatorio de projeto.");
+  }
+  return response.json();
+}
+
 export async function getImportReprocessPreview(importId: number): Promise<ImportReprocessPreview> {
   const response = await fetch(`${API_BASE_URL}/imports/${importId}/reprocess-preview`);
   if (!response.ok) {
