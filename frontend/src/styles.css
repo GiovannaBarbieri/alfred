@@ -2505,6 +2505,20 @@ input {
   margin-top: 18px;
 }
 
+.saved-report-modal footer .secondary-button,
+.saved-report-modal footer .danger-button {
+  align-items: center;
+  border-radius: 8px;
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 700;
+  justify-content: center;
+  line-height: 1;
+  margin-top: 0;
+  min-height: 44px;
+  padding: 0 16px;
+}
+
 .danger-button {
   background: #b42318;
   border: 1px solid #b42318;
