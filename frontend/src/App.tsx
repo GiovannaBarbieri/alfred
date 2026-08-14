@@ -359,6 +359,7 @@ function App() {
 
         {activeSection === "reports" && (
           <ReportsPage
+            categoryOptions={categoryOptions}
             imports={dashboard.imports}
             landingCollaboratorsCount={dashboard.overview.summary.collaboratorsCount}
             selectedImportId={dashboard.selectedReportImportId}
@@ -367,6 +368,7 @@ function App() {
             projectExecutiveSummary={dashboard.projectExecutiveSummary}
             projectInsights={dashboard.projectInsights}
             projectRecommendations={dashboard.projectRecommendations}
+            subcategoryOptions={subcategoryOptions}
             onOpenProject={dashboard.handleOpenReportProject}
           />
         )}

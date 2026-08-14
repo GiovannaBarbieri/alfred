@@ -228,9 +228,14 @@ export async function getImportDetail(importId: number): Promise<ImportDetail> {
   return response.json();
 }
 
-export async function refreshProjectImport(importId: number): Promise<ImportCompleteResponse> {
+export async function refreshProjectImport(
+  importId: number,
+  classificationOverrides: Array<{ line: number; category: string; subcategory: string }> = [],
+): Promise<ImportCompleteResponse> {
   const response = await fetch(`${API_BASE_URL}/imports/${importId}/refresh-sqlserver`, {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ classificationOverrides }),
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);

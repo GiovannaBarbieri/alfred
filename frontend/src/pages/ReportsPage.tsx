@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { AlertTriangle, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ProjectChartsPanel } from "../components/reports/ProjectChartsPanel";
 import { ProjectCollaboratorTasksPanel } from "../components/reports/ProjectCollaboratorTasksPanel";
@@ -21,6 +22,7 @@ import type {
   ProjectExecutiveSummary,
   ProjectInsights,
   ProjectRecommendation,
+  ProjectRefreshPendingTask,
   ProjectTimelineCharts,
 } from "../types";
 
@@ -30,6 +32,7 @@ type ReportNoticeState = { tone: "success" | "error"; message: string };
 const taskPageSize = 20;
 
 export function ReportsPage({
+  categoryOptions,
   imports,
   landingCollaboratorsCount,
   selectedImportId,
@@ -38,8 +41,10 @@ export function ReportsPage({
   projectExecutiveSummary,
   projectInsights,
   projectRecommendations,
+  subcategoryOptions,
   onOpenProject,
 }: {
+  categoryOptions: string[];
   imports: ImportSummary[];
   landingCollaboratorsCount: number;
   selectedImportId: number | null;
@@ -48,6 +53,7 @@ export function ReportsPage({
   projectExecutiveSummary: ProjectExecutiveSummary;
   projectInsights: ProjectInsights;
   projectRecommendations: ProjectRecommendation[];
+  subcategoryOptions: string[];
   onOpenProject: (importId: number) => void | Promise<void>;
 }) {
   const [projectSearch, setProjectSearch] = useState("");
@@ -59,6 +65,8 @@ export function ReportsPage({
   const [isProjectInsightsOpen, setIsProjectInsightsOpen] = useState(false);
   const [isExecutiveSummaryOpen, setIsExecutiveSummaryOpen] = useState(false);
   const [isRefreshingProject, setIsRefreshingProject] = useState(false);
+  const [pendingRefreshTasks, setPendingRefreshTasks] = useState<ProjectRefreshPendingTask[]>([]);
+  const [pendingRefreshOverrides, setPendingRefreshOverrides] = useState<Record<string, { category: string; subcategory: string }>>({});
   const [taskPage, setTaskPage] = useState(1);
   const {
     selectedCollaborator,
@@ -136,9 +144,26 @@ export function ReportsPage({
   async function handleRefreshProjectData() {
     if (!selectedImport || isRefreshingProject) return;
     setReportNotice(null);
+    setPendingRefreshTasks([]);
+    setPendingRefreshOverrides({});
     setIsRefreshingProject(true);
     try {
-      await refreshProjectImport(selectedImport.id);
+      const result = await refreshProjectImport(selectedImport.id);
+      if (result.status === "pendente_classificacao" && result.pendingTasks?.length) {
+        setPendingRefreshTasks(result.pendingTasks);
+        setPendingRefreshOverrides(
+          Object.fromEntries(
+            result.pendingTasks.map((task) => [
+              task.idTask,
+              {
+                category: isUnclassifiedValue(task.category) ? "" : task.category,
+                subcategory: isUnclassifiedValue(task.subcategory) ? "" : task.subcategory,
+              },
+            ]),
+          ),
+        );
+        return;
+      }
       await onOpenProject(selectedImport.id);
       resetCollaboratorTasks();
       setTaskPage(1);
@@ -151,6 +176,55 @@ export function ReportsPage({
     } finally {
       setIsRefreshingProject(false);
     }
+  }
+
+  async function handleConfirmRefreshClassifications() {
+    if (!selectedImport || isRefreshingProject || pendingRefreshTasks.length === 0) return;
+    const overrides = pendingRefreshTasks.flatMap((task) => {
+      const selected = pendingRefreshOverrides[task.idTask];
+      if (!selected) return [];
+      return task.lines.map((line) => ({ line, category: selected.category, subcategory: selected.subcategory }));
+    });
+    setReportNotice(null);
+    setIsRefreshingProject(true);
+    try {
+      const result = await refreshProjectImport(selectedImport.id, overrides);
+      if (result.status === "pendente_classificacao" && result.pendingTasks?.length) {
+        setPendingRefreshTasks(result.pendingTasks);
+        setPendingRefreshOverrides((current) => ({
+          ...Object.fromEntries(
+            result.pendingTasks!.map((task) => [
+              task.idTask,
+              current[task.idTask] ?? {
+                category: isUnclassifiedValue(task.category) ? "" : task.category,
+                subcategory: isUnclassifiedValue(task.subcategory) ? "" : task.subcategory,
+              },
+            ]),
+          ),
+        }));
+        setReportNotice({ tone: "error", message: "Ainda existem Tasks pendentes de classificação." });
+        return;
+      }
+      setPendingRefreshTasks([]);
+      setPendingRefreshOverrides({});
+      await onOpenProject(selectedImport.id);
+      resetCollaboratorTasks();
+      setTaskPage(1);
+      setReportNotice({ tone: "success", message: "Dados do projeto atualizados com sucesso." });
+    } catch (err) {
+      setReportNotice({
+        tone: "error",
+        message: err instanceof Error ? err.message : "NÃ£o foi possÃ­vel atualizar os dados do projeto.",
+      });
+    } finally {
+      setIsRefreshingProject(false);
+    }
+  }
+
+  function closePendingRefreshModal() {
+    if (isRefreshingProject) return;
+    setPendingRefreshTasks([]);
+    setPendingRefreshOverrides({});
   }
 
   if (!selectedImport) {
@@ -189,6 +263,27 @@ export function ReportsPage({
         isRefreshing={isRefreshingProject}
         onRefreshData={handleRefreshProjectData}
       />
+
+      {pendingRefreshTasks.length > 0 && (
+        <ProjectRefreshClassificationModal
+          busy={isRefreshingProject}
+          categoryOptions={categoryOptions}
+          overrides={pendingRefreshOverrides}
+          pendingTasks={pendingRefreshTasks}
+          subcategoryOptions={subcategoryOptions}
+          onCancel={closePendingRefreshModal}
+          onConfirm={() => void handleConfirmRefreshClassifications()}
+          onOverrideChange={(taskId, field, value) => {
+            setPendingRefreshOverrides((current) => ({
+              ...current,
+              [taskId]: {
+                category: field === "category" ? value : current[taskId]?.category ?? "",
+                subcategory: field === "subcategory" ? value : current[taskId]?.subcategory ?? "",
+              },
+            }));
+          }}
+        />
+      )}
 
       {isLoadingProjectReport && (
         <section className="panel loading-panel">Carregando dados do projeto...</section>
@@ -267,4 +362,112 @@ export function ReportsPage({
 
     </>
   );
+}
+
+type ProjectRefreshClassificationModalProps = {
+  busy: boolean;
+  categoryOptions: string[];
+  overrides: Record<string, { category: string; subcategory: string }>;
+  pendingTasks: ProjectRefreshPendingTask[];
+  subcategoryOptions: string[];
+  onCancel: () => void;
+  onConfirm: () => void;
+  onOverrideChange: (taskId: string, field: "category" | "subcategory", value: string) => void;
+};
+
+function ProjectRefreshClassificationModal({
+  busy,
+  categoryOptions,
+  overrides,
+  pendingTasks,
+  subcategoryOptions,
+  onCancel,
+  onConfirm,
+  onOverrideChange,
+}: ProjectRefreshClassificationModalProps) {
+  const canConfirm = useMemo(
+    () =>
+      pendingTasks.every((task) => {
+        const selected = overrides[task.idTask];
+        return selected && !isUnclassifiedValue(selected.category) && !isUnclassifiedValue(selected.subcategory);
+      }),
+    [overrides, pendingTasks],
+  );
+  const pendingLabel = pendingTasks.length === 1 ? "1 Task pendente" : `${pendingTasks.length} Tasks pendentes`;
+
+  return (
+    <div className="saved-report-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}>
+      <div className="saved-report-modal project-refresh-classification-modal" role="dialog" aria-modal="true" aria-labelledby="project-refresh-classification-title">
+        <header>
+          <span>
+            <AlertTriangle size={20} />
+          </span>
+          <div>
+            <h2 id="project-refresh-classification-title">Classificações pendentes</h2>
+            <p>Foram encontradas Tasks que precisam ser classificadas antes de atualizar o relatório.</p>
+          </div>
+          <button type="button" aria-label="Fechar modal" disabled={busy} onClick={onCancel}><X size={18} /></button>
+        </header>
+
+        <div className="project-refresh-classification-count">{pendingLabel}</div>
+
+        <div className="project-refresh-classification-list">
+          {pendingTasks.map((task) => {
+            const selected = overrides[task.idTask] ?? { category: "", subcategory: "" };
+            return (
+              <article className="project-refresh-classification-item" key={task.idTask}>
+                <div className="project-refresh-classification-task">
+                  <span>#{task.idTask}</span>
+                  <strong title={task.tituloTask}>{task.tituloTask}</strong>
+                  <small>{task.loginUsuario} · {task.totalRecords} {task.totalRecords === 1 ? "registro" : "registros"}</small>
+                </div>
+                <label>
+                  <span>Categoria</span>
+                  <select
+                    disabled={busy}
+                    value={selected.category}
+                    onChange={(event) => onOverrideChange(task.idTask, "category", event.target.value)}
+                  >
+                    <option value="">Selecionar categoria</option>
+                    {categoryOptions.map((category) => (
+                      <option key={category} value={category}>{category}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span>Subcategoria</span>
+                  <select
+                    disabled={busy}
+                    value={selected.subcategory}
+                    onChange={(event) => onOverrideChange(task.idTask, "subcategory", event.target.value)}
+                  >
+                    <option value="">Selecionar subcategoria</option>
+                    {subcategoryOptions.map((subcategory) => (
+                      <option key={subcategory} value={subcategory}>{subcategory}</option>
+                    ))}
+                  </select>
+                </label>
+              </article>
+            );
+          })}
+        </div>
+
+        <footer>
+          <button className="secondary-button" disabled={busy} type="button" onClick={onCancel}>Cancelar</button>
+          <button className="primary-button" disabled={busy || !canConfirm} type="button" onClick={onConfirm}>
+            {busy ? "Confirmando..." : "Confirmar atualização"}
+          </button>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+function isUnclassifiedValue(value: string | undefined | null) {
+  const normalized = String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+  return normalized === "" || normalized === "nao classificado";
 }

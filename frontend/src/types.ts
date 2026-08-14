@@ -103,6 +103,17 @@ export type ImportCompleteResponse = {
   alertRows: number;
   blockedRows: number;
   savedRows: number;
+  pendingTasks?: ProjectRefreshPendingTask[];
+};
+
+export type ProjectRefreshPendingTask = {
+  idTask: string;
+  tituloTask: string;
+  loginUsuario: string;
+  lines: number[];
+  totalRecords: number;
+  category: string;
+  subcategory: string;
 };
 
 export type ImportSessionSummary = {

@@ -7,6 +7,7 @@ from collections import Counter
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 
 from app.db import get_connection
+from app.importers.spreadsheet_importer import normalize_text
 from app.repositories.audit_repository import insert_audit_log
 from app.repositories.import_repository import (
     apply_reprocessed_classification,
@@ -22,7 +23,7 @@ from app.repositories.import_repository import (
     list_imports,
     update_import_classifier_version,
 )
-from app.schemas.imports import ImportCompleteResponse, ImportDeleteResponse, ImportDetail, ImportReprocessApplyRequest, ImportReprocessApplyResponse, ImportReprocessPreview, ImportSummary, ImportValidationResponse, ReprocessHistoryItem
+from app.schemas.imports import ImportCompleteResponse, ImportDeleteResponse, ImportDetail, ImportReprocessApplyRequest, ImportReprocessApplyResponse, ImportReprocessPreview, ImportSummary, ImportValidationResponse, ProjectRefreshPendingTask, ProjectRefreshRequest, ReprocessHistoryItem
 from app.schemas.imports import CompleteSessionRequest, ImportSessionResponse, ImportSessionSummary
 from app.schemas.imports import SQLServerConnectionStatus, SQLServerImportRequest
 from app.services.classification_service import classify_title, load_classification_settings, load_collaborator_subcategories
@@ -257,10 +258,11 @@ def create_sqlserver_import_session(payload: SQLServerImportRequest) -> ImportSe
 
 
 @router.post("/{import_id}/refresh-sqlserver", response_model=ImportCompleteResponse)
-def refresh_sqlserver_project_import(import_id: int) -> ImportCompleteResponse:
+def refresh_sqlserver_project_import(import_id: int, payload: ProjectRefreshRequest | None = None) -> ImportCompleteResponse:
     logger.info("Atualizando dados do projeto via SQL Server. import_id=%s", import_id)
     with get_connection() as connection:
         source = _resolve_sqlserver_refresh_source(connection, import_id)
+        previous_manual_overrides = _manual_overrides_by_task(connection, import_id)
 
     try:
         dataframe = query_import_dataframe(ids=[source["id"]], id_type=source["idType"])
@@ -277,7 +279,27 @@ def refresh_sqlserver_project_import(import_id: int) -> ImportCompleteResponse:
             detail="A atualizacao encontrou bloqueios de validacao. Corrija a origem dos dados antes de atualizar o relatorio.",
         )
 
-    records = build_import_records(filename=filename, content=content)
+    user_overrides = _classification_overrides_from_list(payload.classificationOverrides) if payload else {}
+    resolved_overrides = _merge_refresh_classification_overrides(
+        validation=validation,
+        manual_by_task=previous_manual_overrides,
+        user_overrides=user_overrides,
+    )
+    pending_tasks = _pending_refresh_classification_tasks(validation, resolved_overrides)
+    if pending_tasks:
+        return ImportCompleteResponse(
+            importId=import_id,
+            filename=filename,
+            status="pendente_classificacao",
+            totalRows=validation.totalRows,
+            validRows=validation.validRows,
+            alertRows=validation.alertRows,
+            blockedRows=validation.blockedRows,
+            savedRows=0,
+            pendingTasks=pending_tasks,
+        )
+
+    records = build_import_records(filename=filename, content=content, classification_overrides=resolved_overrides)
     if validation.validRows > 0 and not records:
         raise HTTPException(
             status_code=500,
@@ -782,6 +804,98 @@ def _sqlserver_import_filename(payload: SQLServerImportRequest) -> str:
     suffix = "mais" if len(payload.ids) > 5 else ""
     parts = ["sqlserver", payload.idType, ids_label, suffix]
     return "-".join(part for part in parts if part) + ".csv"
+
+
+def _manual_overrides_by_task(connection, import_id: int) -> dict[str, dict[str, str]]:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT DISTINCT ON (l.id_task)
+                l.id_task,
+                c.nome AS categoria,
+                s.nome AS subcategoria
+            FROM lancamentos_horas l
+            JOIN categorias c ON c.id = l.categoria_id
+            JOIN subcategorias s ON s.id = l.subcategoria_id
+            WHERE l.importacao_id = %s
+              AND l.status_classificacao IN ('alterada', 'reprocessada')
+              AND COALESCE(l.id_task, '') <> ''
+            ORDER BY l.id_task, l.id DESC
+            """,
+            (import_id,),
+        )
+        rows = cursor.fetchall()
+
+    return {
+        str(row["id_task"]).strip(): {
+            "category": str(row["categoria"]).strip(),
+            "subcategory": str(row["subcategoria"]).strip(),
+        }
+        for row in rows
+        if str(row["id_task"]).strip() and not _is_unclassified(row["categoria"]) and not _is_unclassified(row["subcategoria"])
+    }
+
+
+def _merge_refresh_classification_overrides(
+    *,
+    validation: ImportValidationResponse,
+    manual_by_task: dict[str, dict[str, str]],
+    user_overrides: dict[int, dict[str, str]],
+) -> dict[int, dict[str, str]]:
+    merged: dict[int, dict[str, str]] = {}
+    for classification in validation.classifications:
+        manual = manual_by_task.get(str(classification.idTask).strip())
+        if manual and (_is_unclassified(classification.category) or _is_unclassified(classification.subcategory)):
+            merged[classification.line] = manual
+
+    merged.update(user_overrides)
+    return merged
+
+
+def _pending_refresh_classification_tasks(
+    validation: ImportValidationResponse,
+    overrides: dict[int, dict[str, str]],
+) -> list[ProjectRefreshPendingTask]:
+    grouped: dict[str, dict] = {}
+    for classification in validation.classifications:
+        selected = overrides.get(classification.line, {
+            "category": classification.category,
+            "subcategory": classification.subcategory,
+        })
+        if not _is_unclassified(selected.get("category")) and not _is_unclassified(selected.get("subcategory")):
+            continue
+
+        task_key = str(classification.idTask).strip() or f"linha-{classification.line}"
+        group = grouped.setdefault(
+            task_key,
+            {
+                "idTask": str(classification.idTask).strip(),
+                "tituloTask": classification.tituloTask,
+                "loginUsuario": classification.loginUsuario,
+                "lines": [],
+                "category": selected.get("category") or "",
+                "subcategory": selected.get("subcategory") or "",
+            },
+        )
+        group["lines"].append(classification.line)
+
+    return [
+        ProjectRefreshPendingTask(
+            idTask=item["idTask"],
+            tituloTask=item["tituloTask"],
+            loginUsuario=item["loginUsuario"],
+            lines=sorted(item["lines"]),
+            totalRecords=len(item["lines"]),
+            category=item["category"],
+            subcategory=item["subcategory"],
+        )
+        for item in sorted(grouped.values(), key=lambda value: (value["idTask"], value["tituloTask"]))
+    ]
+
+
+def _is_unclassified(value: str | None) -> bool:
+    normalized = normalize_text(str(value or ""))
+    return normalized in {"", "nao classificado"}
 
 
 def _resolve_sqlserver_refresh_source(connection, import_id: int) -> dict[str, str | int]:

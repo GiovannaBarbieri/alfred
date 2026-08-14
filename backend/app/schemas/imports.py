@@ -87,6 +87,20 @@ class ImportValidationResponse(BaseModel):
     canComplete: bool
 
 
+class ProjectRefreshPendingTask(BaseModel):
+    idTask: str
+    tituloTask: str
+    loginUsuario: str
+    lines: list[int]
+    totalRecords: int
+    category: str
+    subcategory: str
+
+
+class ProjectRefreshRequest(BaseModel):
+    classificationOverrides: list[dict] = Field(default_factory=list)
+
+
 class ImportCompleteResponse(BaseModel):
     importId: int
     filename: str
@@ -96,6 +110,7 @@ class ImportCompleteResponse(BaseModel):
     alertRows: int
     blockedRows: int
     savedRows: int
+    pendingTasks: list[ProjectRefreshPendingTask] = Field(default_factory=list)
 
 
 class ImportDeleteResponse(BaseModel):

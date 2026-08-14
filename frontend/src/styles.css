@@ -2519,6 +2519,105 @@ input {
   padding: 0 16px;
 }
 
+.project-refresh-classification-modal {
+  max-width: 760px;
+  padding: 18px;
+}
+
+.project-refresh-classification-count {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  color: #0f4f91;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 14px;
+  padding: 5px 10px;
+}
+
+.project-refresh-classification-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  max-height: min(52vh, 460px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.project-refresh-classification-item {
+  align-items: end;
+  background: #f8fafc;
+  border: 1px solid #dbe5f2;
+  border-radius: 10px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(220px, 1fr) 180px 190px;
+  padding: 12px;
+}
+
+.project-refresh-classification-task {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.project-refresh-classification-task span {
+  background: #e8eef7;
+  border: 1px solid #d8e2f0;
+  border-radius: 999px;
+  color: #4f6178;
+  font-size: 11px;
+  font-weight: 700;
+  justify-self: start;
+  padding: 2px 7px;
+}
+
+.project-refresh-classification-task strong {
+  color: #061b3a;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-refresh-classification-task small {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.project-refresh-classification-item label {
+  display: grid;
+  gap: 5px;
+}
+
+.project-refresh-classification-item label span {
+  color: #52647d;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.project-refresh-classification-item select {
+  background: #fff;
+  border: 1px solid #bdd0e7;
+  border-radius: 8px;
+  color: #061b3a;
+  font: inherit;
+  font-size: 13px;
+  min-height: 38px;
+  padding: 0 10px;
+}
+
+.project-refresh-classification-item select:focus {
+  border-color: #2f73ff;
+  box-shadow: 0 0 0 3px rgb(47 115 255 / 12%);
+  outline: none;
+}
+
+.project-refresh-classification-modal footer .primary-button {
+  min-height: 44px;
+}
+
 .danger-button {
   background: #b42318;
   border: 1px solid #b42318;
@@ -2733,6 +2832,13 @@ input {
   font-size: 12px;
   margin: 14px 0 0;
   padding: 10px 12px;
+}
+
+@media (max-width: 760px) {
+  .project-refresh-classification-item {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
 }
 
 .annual-report-flow-banner {
