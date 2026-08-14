@@ -19,3 +19,5 @@ uploads/
 *.log
 backups/
 *.dump
+
+.tmp-indicators-analysis/
