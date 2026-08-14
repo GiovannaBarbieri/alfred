@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import type { ProjectCollaboratorTask, ProjectTimelinePoint } from "../../types";
 import { formatPeriodBR } from "../../utils/date";
+import { trimInactiveEdges } from "../../utils/lineChartSeries";
 import { ChartExportButton } from "../general-indicators/ChartExportButton";
 import { projectAdjustmentColor } from "./projectChartStyles";
 import type { TaskSortId } from "./reportsConfig";
@@ -385,7 +386,7 @@ function CollaboratorCategoryTooltip({ active, payload }: { active?: boolean; pa
   if (!active || !payload?.length) return null;
 
   const row = payload[0]?.payload ?? {};
-  const visiblePayload = payload.filter((item) => item.dataKey !== "__periodTotal" && Number(item.value ?? 0) > 0);
+  const visiblePayload = payload.filter((item) => item.dataKey !== "__periodTotal" && item.value !== null && item.value !== undefined);
 
   return (
     <div className="timeline-tooltip">
@@ -501,7 +502,8 @@ function buildCollaboratorCategoryChartRows(
     current.__periodTotal = Number(current.__periodTotal ?? 0) + hours;
   });
 
-  return Array.from(rowsByPeriod.values()).sort((a, b) => String(a.period).localeCompare(String(b.period)));
+  const rows = Array.from(rowsByPeriod.values()).sort((a, b) => String(a.period).localeCompare(String(b.period)));
+  return trimInactiveEdges(rows, activeCategories);
 }
 
 function adjustmentKey(category: string) {

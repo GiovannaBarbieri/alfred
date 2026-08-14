@@ -14,6 +14,7 @@ import {
 
 import type { ProjectTimelinePoint } from "../types";
 import { formatPeriodBR } from "../utils/date";
+import { trimInactiveEdges } from "../utils/lineChartSeries";
 import { ChartExportButton } from "./general-indicators/ChartExportButton";
 
 type ProjectTimelineChartProps = {
@@ -74,13 +75,14 @@ export function ProjectTimelineChart({
   }, [data]);
 
   const visibleChartData = useMemo(() => {
-    return chartData.map((row) => {
+    const rows = chartData.map((row) => {
       const nextRow = { ...row };
       activeSeries.forEach((series) => {
         nextRow[series] = Number(nextRow[series] ?? 0);
       });
       return nextRow;
     });
+    return trimInactiveEdges(rows, activeSeries);
   }, [activeSeries, chartData]);
 
   const visibleValues = useMemo(() => {
@@ -201,7 +203,7 @@ function TimelineTooltip({ active, payload }: { active?: boolean; payload?: Arra
 
   const row = payload[0]?.payload ?? {};
   const periodTotal = Number(row.__periodTotal ?? 0);
-  const visiblePayload = payload.filter((item) => item.dataKey !== "__periodTotal");
+  const visiblePayload = payload.filter((item) => item.dataKey !== "__periodTotal" && item.value !== null && item.value !== undefined);
 
   return (
     <div className="timeline-tooltip">
